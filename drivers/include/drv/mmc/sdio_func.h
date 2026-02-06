@@ -1,0 +1,156 @@
+/**
+ * Copyright (c) 2016 Pramod Kanni.
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ * @file sdio_func.h
+ * @author Pramod Kanni (kanni.pramod@gmail.com)
+ * @brief SDIO function operations interface
+ *
+ * The source has been largely adapted from linux:
+ * include/linux/mmc/sdio_func.h
+ *
+ * Copyright 2007-2008 Pierre Ossman
+ *
+ * The original code is licensed under the GPL.
+ */
+
+#ifndef __DRV_MMC_SDIO_FUNC_H__
+#define __DRV_MMC_SDIO_FUNC_H__
+
+#include <linux/mod_devicetable.h>
+#include <vmm_device_driver.h>
+
+struct mmc_card;
+struct sdio_func;
+
+typedef void(sdio_irq_handler_t)(struct sdio_func *);
+
+/*
+ * SDIO function CIS tuple (unknown to the core)
+ */
+struct sdio_func_tuple {
+    unsigned char code;
+    unsigned char size;
+    unsigned char data[0];
+};
+
+/*
+ * SDIO function devices
+ */
+struct sdio_func {
+    struct mmc_card    *card;        /* the card this device belongs to */
+    vmm_device_t        dev;         /* the device */
+    sdio_irq_handler_t *irq_handler; /* IRQ callback */
+    uint32_t            num;         /* function number */
+
+    unsigned char class;             /* standard interface class */
+    unsigned short vendor;           /* vendor id */
+    unsigned short device;           /* device id */
+
+    unsigned max_blocksize;          /* maximum block size */
+    unsigned cur_blocksize;          /* current block size */
+
+    unsigned enable_timeout;         /* max enable timeout in msec */
+
+    uint32_t state;                  /* function state */
+#define SDIO_STATE_PRESENT (1 << 0)  /* present in sysfs */
+
+    uint8_t tmpbuf[4];               /* DMA:able scratch buffer */
+};
+
+#define sdio_func_present(f)     ((f)->state & SDIO_STATE_PRESENT)
+
+#define sdio_func_set_present(f) ((f)->state |= SDIO_STATE_PRESENT)
+
+#define sdio_func_id(f)          ((f)->dev.name)
+
+#define sdio_get_drvdata(f)      dev_get_drvdata(&(f)->dev)
+#define sdio_set_drvdata(f, d)   dev_set_drvdata(&(f)->dev, d)
+#define dev_to_sdio_func(d)      container_of(d, struct sdio_func, dev)
+
+/*
+ * SDIO function device driver
+ */
+struct sdio_driver {
+    char                        *name;
+    const struct sdio_device_id *id_table;
+
+    int (*probe)(struct sdio_func *, const struct sdio_device_id *);
+    void (*remove)(struct sdio_func *);
+
+    vmm_driver_t drv;
+};
+
+/**
+ * SDIO_DEVICE - macro used to describe a specific SDIO device
+ * @vend: the 16 bit manufacturer code
+ * @dev: the 16 bit function id
+ *
+ * This macro is used to create a struct sdio_device_id that matches a
+ * specific device. The class field will be set to SDIO_ANY_ID.
+ */
+#define SDIO_DEVICE(vend, dev)       .class = SDIO_ANY_ID, .vendor = (vend), .device = (dev)
+
+/**
+ * SDIO_DEVICE_CLASS - macro used to describe a specific SDIO device class
+ * @dev_class: the 8 bit standard interface code
+ *
+ * This macro is used to create a struct sdio_device_id that matches a
+ * specific standard SDIO function type.  The vendor and device fields will
+ * be set to SDIO_ANY_ID.
+ */
+#define SDIO_DEVICE_CLASS(dev_class) .class = (dev_class), .vendor = SDIO_ANY_ID, .device = SDIO_ANY_ID
+
+extern int  sdio_register_driver(struct sdio_driver *);
+extern void sdio_unregister_driver(struct sdio_driver *);
+
+/*
+ * SDIO I/O operations
+ */
+extern void sdio_claim_host(struct sdio_func *func);
+extern void sdio_release_host(struct sdio_func *func);
+
+extern int sdio_enable_func(struct sdio_func *func);
+extern int sdio_disable_func(struct sdio_func *func);
+
+extern int sdio_set_block_size(struct sdio_func *func, unsigned blksz);
+
+extern int sdio_claim_irq(struct sdio_func *func, sdio_irq_handler_t *handler);
+extern int sdio_release_irq(struct sdio_func *func);
+
+extern uint32_t sdio_align_size(struct sdio_func *func, uint32_t size);
+
+extern uint8_t  sdio_readb(struct sdio_func *func, uint32_t addr, int *err_ret);
+extern uint16_t sdio_readw(struct sdio_func *func, uint32_t addr, int *err_ret);
+extern uint32_t sdio_readl(struct sdio_func *func, uint32_t addr, int *err_ret);
+
+extern int sdio_memcpy_fromio(struct sdio_func *func, void *dst, uint32_t addr, int count);
+extern int sdio_readsb(struct sdio_func *func, void *dst, uint32_t addr, int count);
+
+extern void sdio_writeb(struct sdio_func *func, uint8_t b, uint32_t addr, int *err_ret);
+extern void sdio_writew(struct sdio_func *func, uint16_t b, uint32_t addr, int *err_ret);
+extern void sdio_writel(struct sdio_func *func, uint32_t b, uint32_t addr, int *err_ret);
+
+extern uint8_t sdio_writeb_readb(struct sdio_func *func, uint8_t write_byte, uint32_t addr, int *err_ret);
+
+extern int sdio_memcpy_toio(struct sdio_func *func, uint32_t addr, void *src, int count);
+extern int sdio_writesb(struct sdio_func *func, uint32_t addr, void *src, int count);
+
+extern unsigned char sdio_f0_readb(struct sdio_func *func, uint32_t addr, int *err_ret);
+extern void          sdio_f0_writeb(struct sdio_func *func, unsigned char b, uint32_t addr, int *err_ret);
+
+#endif /* __DRV_MMC_SDIO_FUNC_H */
