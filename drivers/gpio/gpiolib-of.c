@@ -97,7 +97,7 @@ struct gpio_desc *of_get_named_gpiod_flags(struct device_node *np, const char *p
         pr_debug(
             "%s: can't parse '%s' property of node '%s[%d]'\n",
 #if 0
-                 __func__, propname, np->full_name, index);
+            __func__, propname, np->full_name, index);
 #else
             __func__, propname, np->name, index);
 #endif
@@ -110,7 +110,7 @@ struct gpio_desc *of_get_named_gpiod_flags(struct device_node *np, const char *p
     pr_debug(
         "%s: parsed '%s' property of node '%s[%d]' - status (%d)\n",
 #if 0
-             __func__, propname, np->full_name, index,
+        __func__, propname, np->full_name, index,
 #else
         __func__, propname, np->name, index,
 #endif
@@ -237,7 +237,7 @@ err0:
     pr_err(
         "%s: GPIO chip registration failed with status %d\n",
 #if 0
-           np->full_name, ret);
+        np->full_name, ret);
 #else
         np->name, ret);
 #endif
@@ -284,7 +284,7 @@ static void of_gpiochip_add_pin_range(struct gpio_chip *chip)
                     pr_err(
                         "%s: Group name of numeric GPIO ranges must be the empty string.\n",
 #if 0
-                           np->full_name);
+                        np->full_name);
 #else
                         np->name);
 #endif
@@ -304,7 +304,7 @@ static void of_gpiochip_add_pin_range(struct gpio_chip *chip)
                 pr_err(
                     "%s: Illegal gpio-range format.\n",
 #if 0
-                       np->full_name);
+                    np->full_name);
 #else
                     np->name);
 #endif
@@ -315,7 +315,7 @@ static void of_gpiochip_add_pin_range(struct gpio_chip *chip)
                 pr_err(
                     "%s: GPIO group range requested but no %s property.\n",
 #if 0
-                       np->full_name, group_names_propname);
+                    np->full_name, group_names_propname);
 #else
                     np->name, group_names_propname);
 #endif
@@ -332,7 +332,7 @@ static void of_gpiochip_add_pin_range(struct gpio_chip *chip)
                 pr_err(
                     "%s: Group name of GPIO group range cannot be the empty string.\n",
 #if 0
-                       np->full_name);
+                    np->full_name);
 #else
                     np->name);
 #endif

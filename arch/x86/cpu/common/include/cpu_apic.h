@@ -191,25 +191,25 @@ extern virtual_addr_t lapic_eoi_addr;
 #define LAPIC_TDR_DIV_64             0x9
 #define LAPIC_TDR_DIV_128            0xA
 
-#define IS_INTEGRATED_APIC(_x)                           \
-    ({                                                   \
-        int ia = 0;                                      \
-        do {                                             \
-            int va = (_x & 0xF);                         \
-            ia     = (va >= 0x10 && va <= 0x15 ? 1 : 0); \
-        } while (0);                                     \
-        ia;                                              \
+#define IS_INTEGRATED_APIC(_x)                                                                                                                       \
+    ({                                                                                                                                               \
+        int ia = 0;                                                                                                                                  \
+        do {                                                                                                                                         \
+            int va = (_x & 0xF);                                                                                                                     \
+            ia     = (va >= 0x10 && va <= 0x15 ? 1 : 0);                                                                                             \
+        } while (0);                                                                                                                                 \
+        ia;                                                                                                                                          \
     })
 
-#define NR_LVT_ENTRIES(_x)                \
-    ({                                    \
-        int nr_lvt = ((_x >> 16) & 0xFF); \
-        (nr_lvt - 1);                     \
+#define NR_LVT_ENTRIES(_x)                                                                                                                           \
+    ({                                                                                                                                               \
+        int nr_lvt = ((_x >> 16) & 0xFF);                                                                                                            \
+        (nr_lvt - 1);                                                                                                                                \
     })
 
-#define apic_eoi()                                  \
-    do {                                            \
-        *((volatile uint32_t *)lapic_eoi_addr) = 0; \
+#define apic_eoi()                                                                                                                                   \
+    do {                                                                                                                                             \
+        *((volatile uint32_t *)lapic_eoi_addr) = 0;                                                                                                  \
     } while (0)
 
 struct cpu_ioapic {

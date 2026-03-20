@@ -34,10 +34,10 @@
 #ifdef DEBUG
 #define DBG(fmt, ...) printk(fmt, ##__VA_ARGS__)
 #else
-#define DBG(fmt, ...)                   \
-    do {                                \
-        if (0)                          \
-            printk(fmt, ##__VA_ARGS__); \
+#define DBG(fmt, ...)                                                                                                                                \
+    do {                                                                                                                                             \
+        if (0)                                                                                                                                       \
+            printk(fmt, ##__VA_ARGS__);                                                                                                              \
     } while (0)
 #endif
 

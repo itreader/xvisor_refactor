@@ -72,26 +72,26 @@ static struct rockchip_pll_rate_table rk3188_pll_rates[] = {
 #define RK3066_DIV_AHB2APB_MASK      0x3
 #define RK3066_DIV_AHB2APB_SHIFT     14
 
-#define RK3066_CLKSEL0(_core_peri)                                                                                               \
-    {                                                                                                                            \
-        .reg = RK2928_CLKSEL_CON(0), .val = HIWORD_UPDATE(_core_peri, RK3066_DIV_CORE_PERIPH_MASK, RK3066_DIV_CORE_PERIPH_SHIFT) \
+#define RK3066_CLKSEL0(_core_peri)                                                                                                                   \
+    {                                                                                                                                                \
+        .reg = RK2928_CLKSEL_CON(0), .val = HIWORD_UPDATE(_core_peri, RK3066_DIV_CORE_PERIPH_MASK, RK3066_DIV_CORE_PERIPH_SHIFT)                     \
     }
-#define RK3066_CLKSEL1(_aclock_core, _aclock_hclk, _aclock_pclk, _ahb2apb)                          \
-    {                                                                                               \
-        .reg = RK2928_CLKSEL_CON(1),                                                                \
-        .val = HIWORD_UPDATE(_aclock_core, RK3066_DIV_ACLK_CORE_MASK, RK3066_DIV_ACLK_CORE_SHIFT) | \
-               HIWORD_UPDATE(_aclock_hclk, RK3066_DIV_ACLK_HCLK_MASK, RK3066_DIV_ACLK_HCLK_SHIFT) | \
-               HIWORD_UPDATE(_aclock_pclk, RK3066_DIV_ACLK_PCLK_MASK, RK3066_DIV_ACLK_PCLK_SHIFT) | \
-               HIWORD_UPDATE(_ahb2apb, RK3066_DIV_AHB2APB_MASK, RK3066_DIV_AHB2APB_SHIFT),          \
+#define RK3066_CLKSEL1(_aclock_core, _aclock_hclk, _aclock_pclk, _ahb2apb)                                                                           \
+    {                                                                                                                                                \
+        .reg = RK2928_CLKSEL_CON(1),                                                                                                                 \
+        .val = HIWORD_UPDATE(_aclock_core, RK3066_DIV_ACLK_CORE_MASK, RK3066_DIV_ACLK_CORE_SHIFT) |                                                  \
+               HIWORD_UPDATE(_aclock_hclk, RK3066_DIV_ACLK_HCLK_MASK, RK3066_DIV_ACLK_HCLK_SHIFT) |                                                  \
+               HIWORD_UPDATE(_aclock_pclk, RK3066_DIV_ACLK_PCLK_MASK, RK3066_DIV_ACLK_PCLK_SHIFT) |                                                  \
+               HIWORD_UPDATE(_ahb2apb, RK3066_DIV_AHB2APB_MASK, RK3066_DIV_AHB2APB_SHIFT),                                                           \
     }
 
-#define RK3066_CPUCLK_RATE(_prate, _core_peri, _acore, _ahclk, _apclk, _h2p) \
-    {                                                                        \
-        .prate = _prate,                                                     \
-        .divs  = {                                                           \
-            RK3066_CLKSEL0(_core_peri),                                     \
-            RK3066_CLKSEL1(_acore, _ahclk, _apclk, _h2p),                   \
-        },                                                                  \
+#define RK3066_CPUCLK_RATE(_prate, _core_peri, _acore, _ahclk, _apclk, _h2p)                                                                         \
+    {                                                                                                                                                \
+        .prate = _prate,                                                                                                                             \
+        .divs  = {                                                                                                                                   \
+            RK3066_CLKSEL0(_core_peri),                                                                                                             \
+            RK3066_CLKSEL1(_acore, _ahclk, _apclk, _h2p),                                                                                           \
+        },                                                                                                                                          \
     }
 
 static struct rockchip_cpuclock_rate_table rk3066_cpuclock_rates[] __initdata = {
@@ -113,17 +113,17 @@ static const struct rockchip_cpuclock_reg_data rk3066_cpuclock_data = {
 #define RK3188_DIV_ACLK_CORE_MASK  0x7
 #define RK3188_DIV_ACLK_CORE_SHIFT 3
 
-#define RK3188_CLKSEL1(_aclock_core)                                                                                           \
-    {                                                                                                                          \
-        .reg = RK2928_CLKSEL_CON(1), .val = HIWORD_UPDATE(_aclock_core, RK3188_DIV_ACLK_CORE_MASK, RK3188_DIV_ACLK_CORE_SHIFT) \
+#define RK3188_CLKSEL1(_aclock_core)                                                                                                                 \
+    {                                                                                                                                                \
+        .reg = RK2928_CLKSEL_CON(1), .val = HIWORD_UPDATE(_aclock_core, RK3188_DIV_ACLK_CORE_MASK, RK3188_DIV_ACLK_CORE_SHIFT)                       \
     }
-#define RK3188_CPUCLK_RATE(_prate, _core_peri, _aclock_core) \
-    {                                                        \
-        .prate = _prate,                                     \
-        .divs  = {                                           \
-            RK3066_CLKSEL0(_core_peri),                     \
-            RK3188_CLKSEL1(_aclock_core),                   \
-        },                                                  \
+#define RK3188_CPUCLK_RATE(_prate, _core_peri, _aclock_core)                                                                                         \
+    {                                                                                                                                                \
+        .prate = _prate,                                                                                                                             \
+        .divs  = {                                                                                                                                   \
+            RK3066_CLKSEL0(_core_peri),                                                                                                             \
+            RK3188_CLKSEL1(_aclock_core),                                                                                                           \
+        },                                                                                                                                          \
     }
 
 static struct rockchip_cpuclock_rate_table rk3188_cpuclock_rates[] __initdata = {

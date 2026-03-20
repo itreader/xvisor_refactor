@@ -81,24 +81,24 @@ static int input_defuzz_abs_event(int value, int old_val, int fuzz)
     return value;
 }
 
-#define INPUT_DO_TOGGLE(dev, type, bits, on)                \
-    do {                                                    \
-        int  i;                                             \
-        bool active;                                        \
-                                                            \
-        if (!test_bit(EV_##type, dev->evbit))               \
-            break;                                          \
-                                                            \
-        for (i = 0; i < type##_MAX; i++) {                  \
-            if (!test_bit(i, dev->bits##bit))               \
-                continue;                                   \
-                                                            \
-            active = test_bit(i, dev->bits);                \
-            if (!active && !on)                             \
-                continue;                                   \
-                                                            \
-            dev->event(dev, EV_##type, i, on ? active : 0); \
-        }                                                   \
+#define INPUT_DO_TOGGLE(dev, type, bits, on)                                                                                                         \
+    do {                                                                                                                                             \
+        int  i;                                                                                                                                      \
+        bool active;                                                                                                                                 \
+                                                                                                                                                     \
+        if (!test_bit(EV_##type, dev->evbit))                                                                                                        \
+            break;                                                                                                                                   \
+                                                                                                                                                     \
+        for (i = 0; i < type##_MAX; i++) {                                                                                                           \
+            if (!test_bit(i, dev->bits##bit))                                                                                                        \
+                continue;                                                                                                                            \
+                                                                                                                                                     \
+            active = test_bit(i, dev->bits);                                                                                                         \
+            if (!active && !on)                                                                                                                      \
+                continue;                                                                                                                            \
+                                                                                                                                                     \
+            dev->event(dev, EV_##type, i, on ? active : 0);                                                                                          \
+        }                                                                                                                                            \
     } while (0)
 
 static void input_device_toggle(input_device_t *dev, bool activate)
@@ -735,10 +735,10 @@ static uint32_t input_estimate_events_per_packet(input_device_t *dev)
     return events;
 }
 
-#define INPUT_CLEANSE_BITMASK(dev, type, bits)                 \
-    do {                                                       \
-        if (!test_bit(EV_##type, dev->evbit))                  \
-            memset(dev->bits##bit, 0, sizeof(dev->bits##bit)); \
+#define INPUT_CLEANSE_BITMASK(dev, type, bits)                                                                                                       \
+    do {                                                                                                                                             \
+        if (!test_bit(EV_##type, dev->evbit))                                                                                                        \
+            memset(dev->bits##bit, 0, sizeof(dev->bits##bit));                                                                                       \
     } while (0)
 
 static void input_cleanse_bitmasks(input_device_t *dev)

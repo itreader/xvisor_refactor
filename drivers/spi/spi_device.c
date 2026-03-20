@@ -51,8 +51,8 @@
 static LIST_HEAD(device_list);
 static DEFINE_MUTEX(device_list_lock);
 
-#define SPI_MODE_MASK                                                                                                                             \
-    (SPI_CPHA | SPI_CPOL | SPI_CS_HIGH | SPI_LSB_FIRST | SPI_3WIRE | SPI_LOOP | SPI_NO_CS | SPI_READY | SPI_TX_DUAL | SPI_TX_QUAD | SPI_RX_DUAL | \
+#define SPI_MODE_MASK                                                                                                                                \
+    (SPI_CPHA | SPI_CPOL | SPI_CS_HIGH | SPI_LSB_FIRST | SPI_3WIRE | SPI_LOOP | SPI_NO_CS | SPI_READY | SPI_TX_DUAL | SPI_TX_QUAD | SPI_RX_DUAL |    \
      SPI_RX_QUAD)
 
 int spi_device_count(void)

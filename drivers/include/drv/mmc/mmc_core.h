@@ -127,13 +127,13 @@
 #define MMC_STATE_PRG                   (7 << 9)
 
 #define MMC_SWITCH_MODE_CMD_SET         0x00     /* Change the command set */
-#define MMC_SWITCH_MODE_SET_BITS                                             \
-    0x01                                         /* Set bits in EXT_CSD byte \
-                                        addressed by index which are         \
+#define MMC_SWITCH_MODE_SET_BITS                                                                                                                     \
+    0x01                                         /* Set bits in EXT_CSD byte                                                                         \
+                                        addressed by index which are                                                                                 \
                                         1 in value field */
-#define MMC_SWITCH_MODE_CLEAR_BITS                                             \
-    0x02                                         /* Clear bits in EXT_CSD byte \
-                                addressed by index, which are          \
+#define MMC_SWITCH_MODE_CLEAR_BITS                                                                                                                   \
+    0x02                                         /* Clear bits in EXT_CSD byte                                                                       \
+                                addressed by index, which are                                                                                \
                                 1 in value field */
 #define MMC_SWITCH_MODE_WRITE_BYTE          0x03 /* Set target byte to value */
 
@@ -593,7 +593,7 @@ struct mmc_host {
 #define MMC_CAP_NONREMOVABLE    0x00400000 /* Nonremovable e.g. eMMC */
 #define MMC_CAP_CMD23           0x00800000 /* CMD23 supported */
 
-#define MMC_CAP_MODE_UHS \
+#define MMC_CAP_MODE_UHS                                                                                                                             \
     (MMC_CAP_MODE(UHS_SDR12) | MMC_CAP_MODE(UHS_SDR25) | MMC_CAP_MODE(UHS_SDR50) | MMC_CAP_MODE(UHS_SDR104) | MMC_CAP_MODE(UHS_DDR50))
 
     uint32_t caps2;

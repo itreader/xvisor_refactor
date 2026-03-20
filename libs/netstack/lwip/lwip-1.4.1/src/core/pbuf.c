@@ -91,13 +91,13 @@
 #if !NO_SYS
 #ifndef PBUF_POOL_FREE_OOSEQ_QUEUE_CALL
 #include "lwip/tcpip.h"
-#define PBUF_POOL_FREE_OOSEQ_QUEUE_CALL()                                             \
-    do {                                                                              \
-        if (tcpip_callback_with_block(pbuf_free_ooseq_callback, NULL, 0) != ERR_OK) { \
-            SYS_ARCH_PROTECT(old_level);                                              \
-            pbuf_free_ooseq_pending = 0;                                              \
-            SYS_ARCH_UNPROTECT(old_level);                                            \
-        }                                                                             \
+#define PBUF_POOL_FREE_OOSEQ_QUEUE_CALL()                                                                                                            \
+    do {                                                                                                                                             \
+        if (tcpip_callback_with_block(pbuf_free_ooseq_callback, NULL, 0) != ERR_OK) {                                                                \
+            SYS_ARCH_PROTECT(old_level);                                                                                                             \
+            pbuf_free_ooseq_pending = 0;                                                                                                             \
+            SYS_ARCH_UNPROTECT(old_level);                                                                                                           \
+        }                                                                                                                                            \
     } while (0)
 #endif /* PBUF_POOL_FREE_OOSEQ_QUEUE_CALL */
 #endif /* !NO_SYS */

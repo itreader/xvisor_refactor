@@ -163,10 +163,10 @@ static const int err_to_errno_table[] = {
 #define set_errno(err)
 #endif /* ERRNO */
 
-#define sock_set_errno(sk, e) \
-    do {                      \
-        sk->err = (e);        \
-        set_errno(sk->err);   \
+#define sock_set_errno(sk, e)                                                                                                                        \
+    do {                                                                                                                                             \
+        sk->err = (e);                                                                                                                               \
+        set_errno(sk->err);                                                                                                                          \
     } while (0)
 
 /* Forward delcaration of some functions */

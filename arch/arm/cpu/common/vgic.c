@@ -68,8 +68,8 @@ struct vgic_host_ctrl {
 static struct vgic_host_ctrl vgich;
 
 struct vgic_irq_state {
-    uint32_t active  : VGIC_MAX_NCPU;
-    uint32_t level   : VGIC_MAX_NCPU;
+    uint32_t active : VGIC_MAX_NCPU;
+    uint32_t level : VGIC_MAX_NCPU;
     uint32_t model   : 1; /* 0 = N:N, 1 = 1:N */
     uint32_t trigger : 1; /* nonzero = edge triggered.  */
     uint32_t host_irq;    /* If UINT_MAX then not mapped to host irq else mapped */
@@ -258,15 +258,15 @@ static bool __vgic_test_pending(struct vgic_guest_state *s, uint32_t irq, uint32
 
 #define VGIC_HAVE_LR_USED(vs)           ((vs)->lr_used_count)
 #define VGIC_TEST_LR_USED(vs, lr)       ((vs)->lr_used[((lr) >> 5)] & (1 << ((lr) & 0x1f)))
-#define VGIC_SET_LR_USED(vs, lr)                            \
-    do {                                                    \
-        (vs)->lr_used[((lr) >> 5)] |= (1 << ((lr) & 0x1f)); \
-        (vs)->lr_used_count++;                              \
+#define VGIC_SET_LR_USED(vs, lr)                                                                                                                     \
+    do {                                                                                                                                             \
+        (vs)->lr_used[((lr) >> 5)] |= (1 << ((lr) & 0x1f));                                                                                          \
+        (vs)->lr_used_count++;                                                                                                                       \
     } while (0)
-#define VGIC_CLEAR_LR_USED(vs, lr)                           \
-    do {                                                     \
-        (vs)->lr_used[((lr) >> 5)] &= ~(1 << ((lr) & 0x1f)); \
-        (vs)->lr_used_count--;                               \
+#define VGIC_CLEAR_LR_USED(vs, lr)                                                                                                                   \
+    do {                                                                                                                                             \
+        (vs)->lr_used[((lr) >> 5)] &= ~(1 << ((lr) & 0x1f));                                                                                         \
+        (vs)->lr_used_count--;                                                                                                                       \
     } while (0)
 
 #define VGIC_SET_LR_MAP(vs, irq, lr) ((vs)->irq_lr[irq] = (lr))

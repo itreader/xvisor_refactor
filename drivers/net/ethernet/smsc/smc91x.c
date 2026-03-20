@@ -134,16 +134,16 @@ static int watchdog = 1000;
 #define MII_DELAY        1
 
 #if SMC_DEBUG > 0
-#define DBG(n, args...)       \
-    do {                      \
-        if (SMC_DEBUG >= (n)) \
-            printk(args);     \
+#define DBG(n, args...)                                                                                                                              \
+    do {                                                                                                                                             \
+        if (SMC_DEBUG >= (n))                                                                                                                        \
+            printk(args);                                                                                                                            \
     } while (0)
 
 #define PRINTK(args...) printk(args)
 #else
-#define DBG(n, args...) \
-    do {                \
+#define DBG(n, args...)                                                                                                                              \
+    do {                                                                                                                                             \
     } while (0)
 #define PRINTK(args...) printk(KERN_DEBUG args)
 #endif
@@ -181,33 +181,33 @@ static void PRINT_PKT(uint8_t *buf, int length)
     printk("\n");
 }
 #else
-#define PRINT_PKT(x...) \
-    do {                \
+#define PRINT_PKT(x...)                                                                                                                              \
+    do {                                                                                                                                             \
     } while (0)
 #endif
 
 /* this enables an interrupt in the interrupt mask register */
-#define SMC_ENABLE_INT(lp, x)                                 \
-    do {                                                      \
-        unsigned char mask;                                   \
-        uint64_t      smc_enable_flags;                       \
-        spin_lock_irq_save(&lp->lock, smc_enable_flags);      \
-        mask = SMC_GET_INT_MASK(lp);                          \
-        mask |= (x);                                          \
-        SMC_SET_INT_MASK(lp, mask);                           \
-        spin_unlock_irq_restore(&lp->lock, smc_enable_flags); \
+#define SMC_ENABLE_INT(lp, x)                                                                                                                        \
+    do {                                                                                                                                             \
+        unsigned char mask;                                                                                                                          \
+        uint64_t      smc_enable_flags;                                                                                                              \
+        spin_lock_irq_save(&lp->lock, smc_enable_flags);                                                                                             \
+        mask = SMC_GET_INT_MASK(lp);                                                                                                                 \
+        mask |= (x);                                                                                                                                 \
+        SMC_SET_INT_MASK(lp, mask);                                                                                                                  \
+        spin_unlock_irq_restore(&lp->lock, smc_enable_flags);                                                                                        \
     } while (0)
 
 /* this disables an interrupt from the interrupt mask register */
-#define SMC_DISABLE_INT(lp, x)                                 \
-    do {                                                       \
-        unsigned char mask;                                    \
-        uint64_t      smc_disable_flags;                       \
-        spin_lock_irq_save(&lp->lock, smc_disable_flags);      \
-        mask = SMC_GET_INT_MASK(lp);                           \
-        mask &= ~(x);                                          \
-        SMC_SET_INT_MASK(lp, mask);                            \
-        spin_unlock_irq_restore(&lp->lock, smc_disable_flags); \
+#define SMC_DISABLE_INT(lp, x)                                                                                                                       \
+    do {                                                                                                                                             \
+        unsigned char mask;                                                                                                                          \
+        uint64_t      smc_disable_flags;                                                                                                             \
+        spin_lock_irq_save(&lp->lock, smc_disable_flags);                                                                                            \
+        mask = SMC_GET_INT_MASK(lp);                                                                                                                 \
+        mask &= ~(x);                                                                                                                                \
+        SMC_SET_INT_MASK(lp, mask);                                                                                                                  \
+        spin_unlock_irq_restore(&lp->lock, smc_disable_flags);                                                                                       \
     } while (0)
 
 /*
@@ -215,18 +215,18 @@ static void PRINT_PKT(uint8_t *buf, int length)
  * if at all, but let's avoid deadlocking the system if the hardware
  * decides to go south.
  */
-#define SMC_WAIT_MMU_BUSY(lp)                                                          \
-    do {                                                                               \
-        if (unlikely(SMC_GET_MMU_CMD(lp) & MC_BUSY)) {                                 \
-            uint64_t timeout = jiffies + 2;                                            \
-            while (SMC_GET_MMU_CMD(lp) & MC_BUSY) {                                    \
-                if (time_after(jiffies, timeout)) {                                    \
-                    printk("%s: timeout %s line %d\n", dev->name, __FILE__, __LINE__); \
-                    break;                                                             \
-                }                                                                      \
-                cpu_relax();                                                           \
-            }                                                                          \
-        }                                                                              \
+#define SMC_WAIT_MMU_BUSY(lp)                                                                                                                        \
+    do {                                                                                                                                             \
+        if (unlikely(SMC_GET_MMU_CMD(lp) & MC_BUSY)) {                                                                                               \
+            uint64_t timeout = jiffies + 2;                                                                                                          \
+            while (SMC_GET_MMU_CMD(lp) & MC_BUSY) {                                                                                                  \
+                if (time_after(jiffies, timeout)) {                                                                                                  \
+                    printk("%s: timeout %s line %d\n", dev->name, __FILE__, __LINE__);                                                               \
+                    break;                                                                                                                           \
+                }                                                                                                                                    \
+                cpu_relax();                                                                                                                         \
+            }                                                                                                                                        \
+        }                                                                                                                                            \
     } while (0)
 
 /*
@@ -535,30 +535,30 @@ back:
  * any other concurrent access and C would always interrupt B. But life
  * isn't that easy in a SMP world...
  */
-#define smc_special_trylock(lock, flags) \
-    ({                                   \
-        int __ret;                       \
-        local_irq_save(flags);           \
-        __ret = spin_trylock(lock);      \
-        if (!__ret)                      \
-            local_irq_restore(flags);    \
-        __ret;                           \
+#define smc_special_trylock(lock, flags)                                                                                                             \
+    ({                                                                                                                                               \
+        int __ret;                                                                                                                                   \
+        local_irq_save(flags);                                                                                                                       \
+        __ret = spin_trylock(lock);                                                                                                                  \
+        if (!__ret)                                                                                                                                  \
+            local_irq_restore(flags);                                                                                                                \
+        __ret;                                                                                                                                       \
     })
 #define smc_special_lock(lock, flags)   spin_lock_irq_save(lock, flags)
 #define smc_special_unlock(lock, flags) spin_unlock_irq_restore(lock, flags)
 #else
-#define smc_special_trylock(lock, flags) \
-    ({                                   \
-        (void)(flags);                   \
-        1;                               \
+#define smc_special_trylock(lock, flags)                                                                                                             \
+    ({                                                                                                                                               \
+        (void)(flags);                                                                                                                               \
+        1;                                                                                                                                           \
     })
-#define smc_special_lock(lock, flags) \
-    do {                              \
-        (void)(flags);                \
+#define smc_special_lock(lock, flags)                                                                                                                \
+    do {                                                                                                                                             \
+        (void)(flags);                                                                                                                               \
     } while (0)
-#define smc_special_unlock(lock, flags) \
-    do {                                \
-        (void)(flags);                  \
+#define smc_special_unlock(lock, flags)                                                                                                              \
+    do {                                                                                                                                             \
+        (void)(flags);                                                                                                                               \
     } while (0)
 #endif
 

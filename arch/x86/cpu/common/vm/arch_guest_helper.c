@@ -88,8 +88,7 @@ int arch_guest_add_region(struct vmm_guest *guest, struct vmm_region *region)
         struct x86_guest_priv *private = x86_guest_private(guest);
 
         /* += ? Multiple memory regions may be */
-      private
-        ->tot_ram_sz += region->phys_size;
+        private->tot_ram_sz += region->phys_size;
     }
 
     return VMM_OK;
@@ -120,8 +119,7 @@ int arch_guest_del_region(struct vmm_guest *guest, struct vmm_region *region)
 
         if (private->tot_ram_sz && private->tot_ram_sz >= region->phys_size) {
             /* += ? Multiple memory regions may be */
-          private
-            ->tot_ram_sz += region->phys_size;
+            private->tot_ram_sz += region->phys_size;
         }
     }
 
@@ -180,8 +178,7 @@ void arch_guest_set_cmos(struct vmm_guest *guest, struct cmos_rtc_state *s)
     struct x86_guest_priv *private = x86_guest_private(guest);
 
     if (private) {
-      private
-        ->rtc_cmos = s;
+        private->rtc_cmos = s;
     }
 
     guest_cmos_init(guest);

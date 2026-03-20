@@ -838,11 +838,11 @@ enum ethtool_sfeatures_retval_bits {
 #define ETHTOOL_SRXCSUM       0x00000015         /* Set RX hw csum enable (ethtool_value) */
 #define ETHTOOL_GTXCSUM       0x00000016         /* Get TX hw csum enable (ethtool_value) */
 #define ETHTOOL_STXCSUM       0x00000017         /* Set TX hw csum enable (ethtool_value) */
-#define ETHTOOL_GSG                                                           \
-    0x00000018                                   /* Get scatter-gather enable \
+#define ETHTOOL_GSG                                                                                                                                  \
+    0x00000018                                   /* Get scatter-gather enable                                                                        \
                                                   * (ethtool_value) */
-#define ETHTOOL_SSG                                                           \
-    0x00000019                                   /* Set scatter-gather enable \
+#define ETHTOOL_SSG                                                                                                                                  \
+    0x00000019                                   /* Set scatter-gather enable                                                                        \
                                                   * (ethtool_value). */
 #define ETHTOOL_TEST                  0x0000001a /* execute NIC self-test. */
 #define ETHTOOL_GSTRINGS              0x0000001b /* get specified string set */

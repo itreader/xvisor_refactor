@@ -30,18 +30,18 @@ struct idr {
     struct radix_tree_root root;
 };
 
-#define IDR_INITIALIZER(__name)               \
-    {                                         \
-        .root = RADIX_TREE_INIT(__name.root), \
+#define IDR_INITIALIZER(__name)                                                                                                                      \
+    {                                                                                                                                                \
+        .root = RADIX_TREE_INIT(__name.root),                                                                                                        \
     }
 
 #define DEFINE_IDR(__name)  struct idr __name = IDR_INITIALIZER(__name)
 
 #define DECLARE_IDR(__name) struct idr __name
 
-#define INIT_IDR(__idr)                     \
-    do {                                    \
-        INIT_RADIX_TREE(&(__idr)->root, 0); \
+#define INIT_IDR(__idr)                                                                                                                              \
+    do {                                                                                                                                             \
+        INIT_RADIX_TREE(&(__idr)->root, 0);                                                                                                          \
     } while (0)
 
 /** Allocate id for given pointer */
@@ -57,18 +57,18 @@ struct ida {
     struct idr idr;
 };
 
-#define IDA_INITIALIZER(__name)             \
-    {                                       \
-        .idr = IDR_INITIALIZER(__name.idr), \
+#define IDA_INITIALIZER(__name)                                                                                                                      \
+    {                                                                                                                                                \
+        .idr = IDR_INITIALIZER(__name.idr),                                                                                                          \
     }
 
 #define DEFINE_IDA(__name)  struct ida __name = IDA_INITIALIZER(__name)
 
 #define DECLARE_IDA(__name) struct ida __name
 
-#define INIT_IDA(__ida)          \
-    do {                         \
-        INIT_IDR(&(__ida)->idr); \
+#define INIT_IDA(__ida)                                                                                                                              \
+    do {                                                                                                                                             \
+        INIT_IDR(&(__ida)->idr);                                                                                                                     \
     } while (0)
 
 /** Allocate new ID using ID allocator */

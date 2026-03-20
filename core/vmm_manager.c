@@ -527,10 +527,10 @@ vmm_vcpu_t *vmm_manager_vcpu_orphan_create(
     }
 
     /* Setup start program counter and stack */
-    vcpu->start_pc = start_pc;
-    vcpu->stack_va = (virtual_addr_t)vmm_malloc(stack_size);
+    vcpu->start_pc              = start_pc;
+    vcpu->stack_virtual_address = (virtual_addr_t)vmm_malloc(stack_size);
 
-    if (!vcpu->stack_va) {
+    if (!vcpu->stack_virtual_address) {
         goto fail_list_del;
     }
 
@@ -591,7 +591,7 @@ vmm_vcpu_t *vmm_manager_vcpu_orphan_create(
 fail_vcpu_deinit:
     arch_vcpu_deinit(vcpu);
 fail_free_stack:
-    vmm_free((void *)vcpu->stack_va);
+    vmm_free((void *)vcpu->stack_virtual_address);
 fail_list_del:
 
     if (vmm_timer_started()) {
@@ -651,8 +651,8 @@ int vmm_manager_vcpu_orphan_destroy(vmm_vcpu_t *vcpu)
     }
 
     /* Free stack pages */
-    if (vcpu->stack_va) {
-        vmm_free((void *)vcpu->stack_va);
+    if (vcpu->stack_virtual_address) {
+        vmm_free((void *)vcpu->stack_virtual_address);
     }
 
     /* Acquire manager lock */
@@ -1363,9 +1363,9 @@ struct vmm_guest *vmm_manager_guest_create(vmm_device_tree_node_t *gnode)
 
         /* Setup start program counter and stack */
         vmm_device_tree_read_virtaddr(vnode, VMM_DEVICE_TREE_START_PC_ATTR_NAME, &vcpu->start_pc);
-        vcpu->stack_va = (virtual_addr_t)vmm_malloc(CONFIG_IRQ_STACK_SIZE);
+        vcpu->stack_virtual_address = (virtual_addr_t)vmm_malloc(CONFIG_IRQ_STACK_SIZE);
 
-        if (!vcpu->stack_va) {
+        if (!vcpu->stack_virtual_address) {
             vmm_printf(
                 "%s: stack alloc failed "
                 "for VCPU %s\n",
@@ -1425,7 +1425,7 @@ struct vmm_guest *vmm_manager_guest_create(vmm_device_tree_node_t *gnode)
         vcpu->arch_private = NULL;
 
         if (arch_vcpu_init(vcpu)) {
-            vmm_free((void *)vcpu->stack_va);
+            vmm_free((void *)vcpu->stack_virtual_address);
             vmm_printf(
                 "%s: arch_vcpu_init() failed "
                 "for VCPU %s\n",
@@ -1443,7 +1443,7 @@ struct vmm_guest *vmm_manager_guest_create(vmm_device_tree_node_t *gnode)
         /* Initialize virtual IRQ context */
         if (vmm_vcpu_irq_init(vcpu)) {
             arch_vcpu_deinit(vcpu);
-            vmm_free((void *)vcpu->stack_va);
+            vmm_free((void *)vcpu->stack_virtual_address);
             vmm_printf(
                 "%s: vmm_vcpu_irq_init() failed "
                 "for VCPU %s\n",
@@ -1472,7 +1472,7 @@ struct vmm_guest *vmm_manager_guest_create(vmm_device_tree_node_t *gnode)
         if (vmm_manager_vcpu_set_state(vcpu, VMM_VCPU_STATE_RESET)) {
             vmm_vcpu_irq_deinit(vcpu);
             arch_vcpu_deinit(vcpu);
-            vmm_free((void *)vcpu->stack_va);
+            vmm_free((void *)vcpu->stack_virtual_address);
             vmm_printf(
                 "%s: Setting RESET state failed "
                 "for VCPU %s\n",
@@ -1600,8 +1600,8 @@ int vmm_manager_guest_destroy(struct vmm_guest *guest)
         }
 
         /* Free stack pages */
-        if (vcpu->stack_va) {
-            vmm_free((void *)vcpu->stack_va);
+        if (vcpu->stack_virtual_address) {
+            vmm_free((void *)vcpu->stack_virtual_address);
         }
 
         /* De-reference VCPU node */

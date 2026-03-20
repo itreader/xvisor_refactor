@@ -98,9 +98,9 @@ struct symbol {
     struct expr_value   rev_dep;
 };
 
-#define for_all_symbols(i, sym)                          \
-    for (i = 0; i < 257; i++)                            \
-        for (sym = symbol_hash[i]; sym; sym = sym->next) \
+#define for_all_symbols(i, sym)                                                                                                                      \
+    for (i = 0; i < 257; i++)                                                                                                                        \
+        for (sym = symbol_hash[i]; sym; sym = sym->next)                                                                                             \
             if (sym->type != S_OTHER)
 
 #define SYMBOL_CONST     0x0001
@@ -148,13 +148,13 @@ struct property {
     int               lineno;
 };
 
-#define for_all_properties(sym, st, tok)    \
-    for (st = sym->prop; st; st = st->next) \
+#define for_all_properties(sym, st, tok)                                                                                                             \
+    for (st = sym->prop; st; st = st->next)                                                                                                          \
         if (st->type == (tok))
 #define for_all_defaults(sym, st) for_all_properties(sym, st, P_DEFAULT)
 #define for_all_choices(sym, st)  for_all_properties(sym, st, P_CHOICE)
-#define for_all_prompts(sym, st)            \
-    for (st = sym->prop; st; st = st->next) \
+#define for_all_prompts(sym, st)                                                                                                                     \
+    for (st = sym->prop; st; st = st->next)                                                                                                          \
         if (st->text)
 
 struct menu {

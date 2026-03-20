@@ -41,8 +41,8 @@
 #ifdef __DEBUG
 #define debug_print(fmt, args...) vmm_printf("cpu_interrupt[%d]: " fmt, __LINE__, ##args)
 #else
-#define debug_print(fmt, args...) \
-    {                             \
+#define debug_print(fmt, args...)                                                                                                                    \
+    {                                                                                                                                                \
     }
 #endif
 
@@ -51,11 +51,11 @@ static struct idt64_ptr       iptr;
 static struct tss_64          vmm_tss __attribute__((aligned(8)));
 extern struct tss64_desc      __xvisor_tss_64_desc;
 
-#define VIRT_TO_PHYS(ptr)                         \
-    ({                                            \
-        physical_addr_t pa = 0x0;                 \
-        vmm_host_va2pa((virtual_addr_t)ptr, &pa); \
-        pa;                                       \
+#define VIRT_TO_PHYS(ptr)                                                                                                                            \
+    ({                                                                                                                                               \
+        physical_addr_t pa = 0x0;                                                                                                                    \
+        vmm_host_va2pa((virtual_addr_t)ptr, &pa);                                                                                                    \
+        pa;                                                                                                                                          \
     })
 
 void reload_host_tss(void)
@@ -217,22 +217,22 @@ int __cpuinit arch_cpu_irq_setup(void)
 extern void dump_vcpu_regs(arch_regs_t *regs);
 extern void print_stack_trace(struct stack_trace *trace);
 
-#define do_panic_dump(regs, msg, args...)         \
-    do {                                          \
-        struct stack_trace trace;                 \
-        uint64_t           entries[16];           \
-                                                  \
-        vmm_printf(msg, ##args);                  \
-        trace.nr_entries  = 0;                    \
-        trace.max_entries = 16;                   \
-        trace.entries     = entries;              \
-        trace.skip        = 0;                    \
-                                                  \
-        dump_vcpu_regs(regs);                     \
-        vmm_printf("\n");                         \
-        arch_save_stack_trace_regs(regs, &trace); \
-        vmm_printf("call trace:\n");              \
-        print_stack_trace(&trace);                \
+#define do_panic_dump(regs, msg, args...)                                                                                                            \
+    do {                                                                                                                                             \
+        struct stack_trace trace;                                                                                                                    \
+        uint64_t           entries[16];                                                                                                              \
+                                                                                                                                                     \
+        vmm_printf(msg, ##args);                                                                                                                     \
+        trace.nr_entries  = 0;                                                                                                                       \
+        trace.max_entries = 16;                                                                                                                      \
+        trace.entries     = entries;                                                                                                                 \
+        trace.skip        = 0;                                                                                                                       \
+                                                                                                                                                     \
+        dump_vcpu_regs(regs);                                                                                                                        \
+        vmm_printf("\n");                                                                                                                            \
+        arch_save_stack_trace_regs(regs, &trace);                                                                                                    \
+        vmm_printf("call trace:\n");                                                                                                                 \
+        print_stack_trace(&trace);                                                                                                                   \
     } while (0);
 
 /* All Handlers */

@@ -57,7 +57,7 @@ struct mmu_page_table {
     uint32_t               attr;
     uint32_t               hw_tag;
     physical_addr_t        map_ia;
-    physical_addr_t        table_pa;
+    physical_addr_t        table_phy_addr;/* 页表起始地址 */
     vmm_spinlock_t         table_lock; /*< Lock to protect table contents,
                               pte_count, child_count, and child_list
                           */
@@ -78,7 +78,7 @@ extern uint8_t stage1_page_table_nonroot[];
 
 uint64_t mmu_page_table_count(int stage, int level);
 
-struct mmu_page_table *mmu_page_table_find(int stage, physical_addr_t table_pa);
+struct mmu_page_table *mmu_page_table_find(int stage, physical_addr_t table_phy_addr);
 
 struct mmu_page_table *mmu_page_table_alloc(int stage, int level, uint32_t attr, uint32_t hw_tag);
 
@@ -126,7 +126,7 @@ static inline physical_addr_t mmu_page_table_map_addr_end(struct mmu_page_table 
 
 static inline physical_addr_t mmu_page_table_physical_addr(struct mmu_page_table *page_table)
 {
-    return (page_table) ? page_table->table_pa : 0;
+    return (page_table) ? page_table->table_phy_addr : 0;
 }
 
 static inline virtual_size_t mmu_page_table_size(struct mmu_page_table *page_table)
@@ -193,8 +193,8 @@ struct mmu_page_table *mmu_hypervisor_page_table(void);
 
 static inline struct mmu_page_table *mmu_stage2_current_page_table(void)
 {
-    physical_addr_t table_pa = arch_mmu_stage2_current_page_table_addr();
-    return mmu_page_table_find(MMU_STAGE2, table_pa);
+    physical_addr_t table_phy_addr = arch_mmu_stage2_current_page_table_addr();
+    return mmu_page_table_find(MMU_STAGE2, table_phy_addr);
 }
 
 static inline uint32_t mmu_stage2_current_vmid(void)
@@ -204,7 +204,7 @@ static inline uint32_t mmu_stage2_current_vmid(void)
 
 static inline int mmu_stage2_change_page_table(struct mmu_page_table *page_table)
 {
-    return arch_mmu_stage2_change_page_table(mmu_page_table_has_hw_tag(page_table), mmu_page_table_hw_tag(page_table), page_table->table_pa);
+    return arch_mmu_stage2_change_page_table(mmu_page_table_has_hw_tag(page_table), mmu_page_table_hw_tag(page_table), page_table->table_phy_addr);
 }
 
 #endif

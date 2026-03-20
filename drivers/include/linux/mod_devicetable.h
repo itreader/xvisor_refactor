@@ -282,13 +282,13 @@ struct ssb_device_id {
     uint8_t  revision;
 };
 
-#define SSB_DEVICE(_vendor, _coreid, _revision)                      \
-    {                                                                \
-        .vendor = _vendor, .coreid = _coreid, .revision = _revision, \
+#define SSB_DEVICE(_vendor, _coreid, _revision)                                                                                                      \
+    {                                                                                                                                                \
+        .vendor = _vendor, .coreid = _coreid, .revision = _revision,                                                                                 \
     }
-#define SSB_DEVTABLE_END \
-    {                    \
-        0,               \
+#define SSB_DEVTABLE_END                                                                                                                             \
+    {                                                                                                                                                \
+        0,                                                                                                                                           \
     },
 
 #define SSB_ANY_VENDOR 0xFFFF
@@ -303,13 +303,13 @@ struct bcma_device_id {
     uint8_t class;
 };
 
-#define BCMA_CORE(_manuf, _id, _rev, _class)                      \
-    {                                                             \
-        .manuf = _manuf, .id = _id, .rev = _rev, .class = _class, \
+#define BCMA_CORE(_manuf, _id, _rev, _class)                                                                                                         \
+    {                                                                                                                                                \
+        .manuf = _manuf, .id = _id, .rev = _rev, .class = _class,                                                                                    \
     }
-#define BCMA_CORETABLE_END \
-    {                      \
-        0,                 \
+#define BCMA_CORETABLE_END                                                                                                                           \
+    {                                                                                                                                                \
+        0,                                                                                                                                           \
     },
 
 #define BCMA_ANY_MANUF 0xFFFF
@@ -390,9 +390,9 @@ struct dmi_system_id {
  */
 #define dmi_device_id dmi_system_id
 
-#define DMI_MATCH(a, b) \
-    {                   \
-        a, b            \
+#define DMI_MATCH(a, b)                                                                                                                              \
+    {                                                                                                                                                \
+        a, b                                                                                                                                         \
     }
 
 #define PLATFORM_NAME_SIZE     20
@@ -406,11 +406,11 @@ struct platform_device_id {
 #define MDIO_MODULE_PREFIX "mdio:"
 
 #define MDIO_ID_FMT        "%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d"
-#define MDIO_ID_ARGS(_id)                                                                                                                    \
-    (_id) >> 31, ((_id) >> 30) & 1, ((_id) >> 29) & 1, ((_id) >> 28) & 1, ((_id) >> 27) & 1, ((_id) >> 26) & 1, ((_id) >> 25) & 1,           \
-        ((_id) >> 24) & 1, ((_id) >> 23) & 1, ((_id) >> 22) & 1, ((_id) >> 21) & 1, ((_id) >> 20) & 1, ((_id) >> 19) & 1, ((_id) >> 18) & 1, \
-        ((_id) >> 17) & 1, ((_id) >> 16) & 1, ((_id) >> 15) & 1, ((_id) >> 14) & 1, ((_id) >> 13) & 1, ((_id) >> 12) & 1, ((_id) >> 11) & 1, \
-        ((_id) >> 10) & 1, ((_id) >> 9) & 1, ((_id) >> 8) & 1, ((_id) >> 7) & 1, ((_id) >> 6) & 1, ((_id) >> 5) & 1, ((_id) >> 4) & 1,       \
+#define MDIO_ID_ARGS(_id)                                                                                                                            \
+    (_id) >> 31, ((_id) >> 30) & 1, ((_id) >> 29) & 1, ((_id) >> 28) & 1, ((_id) >> 27) & 1, ((_id) >> 26) & 1, ((_id) >> 25) & 1,                   \
+        ((_id) >> 24) & 1, ((_id) >> 23) & 1, ((_id) >> 22) & 1, ((_id) >> 21) & 1, ((_id) >> 20) & 1, ((_id) >> 19) & 1, ((_id) >> 18) & 1,         \
+        ((_id) >> 17) & 1, ((_id) >> 16) & 1, ((_id) >> 15) & 1, ((_id) >> 14) & 1, ((_id) >> 13) & 1, ((_id) >> 12) & 1, ((_id) >> 11) & 1,         \
+        ((_id) >> 10) & 1, ((_id) >> 9) & 1, ((_id) >> 8) & 1, ((_id) >> 7) & 1, ((_id) >> 6) & 1, ((_id) >> 5) & 1, ((_id) >> 4) & 1,               \
         ((_id) >> 3) & 1, ((_id) >> 2) & 1, ((_id) >> 1) & 1, (_id) & 1
 
 /**

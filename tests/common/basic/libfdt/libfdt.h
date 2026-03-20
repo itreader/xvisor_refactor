@@ -155,11 +155,11 @@ int fdt_next_node(const void *fdt, int offset, int *depth);
 #define fdt_size_device_tree_strings(fdt) (fdt_get_header(fdt, size_device_tree_strings))
 #define fdt_size_device_tree_struct(fdt)  (fdt_get_header(fdt, size_device_tree_struct))
 
-#define __fdt_set_hdr(name)                                    \
-    static inline void fdt_set_##name(void *fdt, uint32_t val) \
-    {                                                          \
-        struct fdt_header *fdth = (struct fdt_header *)fdt;    \
-        fdth->name              = cpu_to_fdt32(val);           \
+#define __fdt_set_hdr(name)                                                                                                                          \
+    static inline void fdt_set_##name(void *fdt, uint32_t val)                                                                                       \
+    {                                                                                                                                                \
+        struct fdt_header *fdth = (struct fdt_header *)fdt;                                                                                          \
+        fdth->name              = cpu_to_fdt32(val);                                                                                                 \
     }
 __fdt_set_hdr(magic);
 __fdt_set_hdr(totalsize);

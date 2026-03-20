@@ -54,14 +54,14 @@ struct vmm_netport_lazy {
     void (*xfer)(struct vmm_netport *, void *, int);
 };
 
-#define INIT_NETPORT_LAZY(__lazy, __port, __budget, __arg, __xfer) \
-    do {                                                           \
-        (__lazy)->port = (__port);                                 \
-        ARCH_ATOMIC_INIT(&(__lazy)->sched_count, 0);               \
-        INIT_LIST_HEAD(&(__lazy)->head);                           \
-        (__lazy)->budget = (__budget);                             \
-        (__lazy)->arg    = (__arg);                                \
-        (__lazy)->xfer   = (__xfer);                               \
+#define INIT_NETPORT_LAZY(__lazy, __port, __budget, __arg, __xfer)                                                                                   \
+    do {                                                                                                                                             \
+        (__lazy)->port = (__port);                                                                                                                   \
+        ARCH_ATOMIC_INIT(&(__lazy)->sched_count, 0);                                                                                                 \
+        INIT_LIST_HEAD(&(__lazy)->head);                                                                                                             \
+        (__lazy)->budget = (__budget);                                                                                                               \
+        (__lazy)->arg    = (__arg);                                                                                                                  \
+        (__lazy)->xfer   = (__xfer);                                                                                                                 \
     } while (0)
 
 struct vmm_netport {

@@ -44,61 +44,61 @@
 #undef DEBUG
 
 #ifdef DEBUG
-#define DPRINTF(fmt, ...)               \
-    do {                                \
-        vmm_printf(fmt, ##__VA_ARGS__); \
+#define DPRINTF(fmt, ...)                                                                                                                            \
+    do {                                                                                                                                             \
+        vmm_printf(fmt, ##__VA_ARGS__);                                                                                                              \
     } while (0)
 
-#define DUMP_NETSWITCH_PKT(mbuf)                                                                                \
-    do {                                                                                                        \
-        char           tname[30];                                                                               \
-        const uint8_t *srcmac = ether_srcmac(mtod(mbuf, uint8_t *));                                            \
-        const uint8_t *dstmac = ether_dstmac(mtod(mbuf, uint8_t *));                                            \
-        const uint8_t *ip_frame, *icmp_frame, *tcp_frame;                                                       \
-                                                                                                                \
-        DPRINTF("%s: got pkt with srcaddr[%s]", __func__, ethaddr_to_str(tname, srcmac));                       \
-        DPRINTF(", dstaddr[%s]", ethaddr_to_str(tname, dstmac));                                                \
-        DPRINTF(", ethertype: 0x%04X\n", ether_type(mtod(mbuf, uint8_t *)));                                    \
-        if (ether_type(mtod(mbuf, uint8_t *)) == 0x0806 /* ARP */) {                                            \
-            DPRINTF("\tARP-HType: 0x%04X\n", arp_htype(ether_payload(mtod(mbuf, uint8_t *))));                  \
-            DPRINTF("\tARP-PType: 0x%04X\n", arp_ptype(ether_payload(mtod(mbuf, uint8_t *))));                  \
-            DPRINTF("\tARP-Hlen: 0x%02X\n", arp_hlen(ether_payload(mtod(mbuf, uint8_t *))));                    \
-            DPRINTF("\tARP-Plen: 0x%02X\n", arp_plen(ether_payload(mtod(mbuf, uint8_t *))));                    \
-            DPRINTF("\tARP-Oper: 0x%04X\n", arp_oper(ether_payload(mtod(mbuf, uint8_t *))));                    \
-            DPRINTF("\tARP-SHA: %s\n", ethaddr_to_str(tname, arp_sha(ether_payload((mtod(mbuf, uint8_t *)))))); \
-            DPRINTF("\tARP-SPA: %s\n", ip4addr_to_str(tname, arp_spa(ether_payload((mtod(mbuf, uint8_t *)))))); \
-            DPRINTF("\tARP-THA: %s\n", ethaddr_to_str(tname, arp_tha(ether_payload((mtod(mbuf, uint8_t *)))))); \
-            DPRINTF("\tARP-TPA: %s\n", ip4addr_to_str(tname, arp_tpa(ether_payload((mtod(mbuf, uint8_t *)))))); \
-        } else if (ether_type(mtod(mbuf, uint8_t *)) == 0x0800 /* IPv4 */) {                                    \
-            ip_frame = ether_payload(mtod(mbuf, uint8_t *));                                                    \
-            DPRINTF("\tIP-SRC: %s\n", ip4addr_to_str(tname, ip_srcaddr(ip_frame)));                             \
-            DPRINTF("\tIP-DST: %s\n", ip4addr_to_str(tname, ip_dstaddr(ip_frame)));                             \
-            DPRINTF("\tIP-LEN: %d\n", ip_len(ip_frame));                                                        \
-            DPRINTF("\tIP-TTL: %d\n", ip_ttl(ip_frame));                                                        \
-            DPRINTF("\tIP-CHKSUM: 0x%04X\n", ip_chksum(ip_frame));                                              \
-            DPRINTF("\tIP-PROTOCOL: %d\n", ip_protocol(ip_frame));                                              \
-            if (ip_protocol(ip_frame) == 0x01 /* ICMP */) {                                                     \
-                icmp_frame = ip_payload(ip_frame);                                                              \
-                DPRINTF("\t\tICMP-TYPE: 0x%x\n", icmp_type(icmp_frame));                                        \
-                DPRINTF("\t\tICMP-CODE: 0x%x\n", icmp_code(icmp_frame));                                        \
-                DPRINTF("\t\tICMP-CHECKSUM: 0x%x\n", icmp_checksum(icmp_frame));                                \
-                DPRINTF("\t\tICMP-ID: 0x%x\n", icmp_id(icmp_frame));                                            \
-                DPRINTF("\t\tICMP-SEQUENCE: 0x%x\n", icmp_sequence(icmp_frame));                                \
-            } else if (ip_protocol(ip_frame) == 0x06 /* TCP */) {                                               \
-                tcp_frame = ip_payload(ip_frame);                                                               \
-                DPRINTF("\t\tTCP-SRCPORT: %d\n", tcp_srcport(tcp_frame));                                       \
-                DPRINTF("\t\tTCP-DSTPORT: %d\n", tcp_dstport(tcp_frame));                                       \
-                DPRINTF("\t\tTCP-SEQUENCE: 0x%x\n", tcp_sequence(tcp_frame));                                   \
-                DPRINTF("\t\tTCP-ACKNUMBER: 0x%x\n", tcp_acknumber(tcp_frame));                                 \
-                DPRINTF("\t\tTCP-FLAGS: 0x%x\n", tcp_flags(tcp_frame));                                         \
-                DPRINTF("\t\tTCP-CHECKSUM: 0x%x\n", tcp_checksum(tcp_frame));                                   \
-                DPRINTF("\t\tTCP-URGENT: 0x%x\n", tcp_urgent(tcp_frame));                                       \
-            }                                                                                                   \
-        }                                                                                                       \
+#define DUMP_NETSWITCH_PKT(mbuf)                                                                                                                     \
+    do {                                                                                                                                             \
+        char           tname[30];                                                                                                                    \
+        const uint8_t *srcmac = ether_srcmac(mtod(mbuf, uint8_t *));                                                                                 \
+        const uint8_t *dstmac = ether_dstmac(mtod(mbuf, uint8_t *));                                                                                 \
+        const uint8_t *ip_frame, *icmp_frame, *tcp_frame;                                                                                            \
+                                                                                                                                                     \
+        DPRINTF("%s: got pkt with srcaddr[%s]", __func__, ethaddr_to_str(tname, srcmac));                                                            \
+        DPRINTF(", dstaddr[%s]", ethaddr_to_str(tname, dstmac));                                                                                     \
+        DPRINTF(", ethertype: 0x%04X\n", ether_type(mtod(mbuf, uint8_t *)));                                                                         \
+        if (ether_type(mtod(mbuf, uint8_t *)) == 0x0806 /* ARP */) {                                                                                 \
+            DPRINTF("\tARP-HType: 0x%04X\n", arp_htype(ether_payload(mtod(mbuf, uint8_t *))));                                                       \
+            DPRINTF("\tARP-PType: 0x%04X\n", arp_ptype(ether_payload(mtod(mbuf, uint8_t *))));                                                       \
+            DPRINTF("\tARP-Hlen: 0x%02X\n", arp_hlen(ether_payload(mtod(mbuf, uint8_t *))));                                                         \
+            DPRINTF("\tARP-Plen: 0x%02X\n", arp_plen(ether_payload(mtod(mbuf, uint8_t *))));                                                         \
+            DPRINTF("\tARP-Oper: 0x%04X\n", arp_oper(ether_payload(mtod(mbuf, uint8_t *))));                                                         \
+            DPRINTF("\tARP-SHA: %s\n", ethaddr_to_str(tname, arp_sha(ether_payload((mtod(mbuf, uint8_t *))))));                                      \
+            DPRINTF("\tARP-SPA: %s\n", ip4addr_to_str(tname, arp_spa(ether_payload((mtod(mbuf, uint8_t *))))));                                      \
+            DPRINTF("\tARP-THA: %s\n", ethaddr_to_str(tname, arp_tha(ether_payload((mtod(mbuf, uint8_t *))))));                                      \
+            DPRINTF("\tARP-TPA: %s\n", ip4addr_to_str(tname, arp_tpa(ether_payload((mtod(mbuf, uint8_t *))))));                                      \
+        } else if (ether_type(mtod(mbuf, uint8_t *)) == 0x0800 /* IPv4 */) {                                                                         \
+            ip_frame = ether_payload(mtod(mbuf, uint8_t *));                                                                                         \
+            DPRINTF("\tIP-SRC: %s\n", ip4addr_to_str(tname, ip_srcaddr(ip_frame)));                                                                  \
+            DPRINTF("\tIP-DST: %s\n", ip4addr_to_str(tname, ip_dstaddr(ip_frame)));                                                                  \
+            DPRINTF("\tIP-LEN: %d\n", ip_len(ip_frame));                                                                                             \
+            DPRINTF("\tIP-TTL: %d\n", ip_ttl(ip_frame));                                                                                             \
+            DPRINTF("\tIP-CHKSUM: 0x%04X\n", ip_chksum(ip_frame));                                                                                   \
+            DPRINTF("\tIP-PROTOCOL: %d\n", ip_protocol(ip_frame));                                                                                   \
+            if (ip_protocol(ip_frame) == 0x01 /* ICMP */) {                                                                                          \
+                icmp_frame = ip_payload(ip_frame);                                                                                                   \
+                DPRINTF("\t\tICMP-TYPE: 0x%x\n", icmp_type(icmp_frame));                                                                             \
+                DPRINTF("\t\tICMP-CODE: 0x%x\n", icmp_code(icmp_frame));                                                                             \
+                DPRINTF("\t\tICMP-CHECKSUM: 0x%x\n", icmp_checksum(icmp_frame));                                                                     \
+                DPRINTF("\t\tICMP-ID: 0x%x\n", icmp_id(icmp_frame));                                                                                 \
+                DPRINTF("\t\tICMP-SEQUENCE: 0x%x\n", icmp_sequence(icmp_frame));                                                                     \
+            } else if (ip_protocol(ip_frame) == 0x06 /* TCP */) {                                                                                    \
+                tcp_frame = ip_payload(ip_frame);                                                                                                    \
+                DPRINTF("\t\tTCP-SRCPORT: %d\n", tcp_srcport(tcp_frame));                                                                            \
+                DPRINTF("\t\tTCP-DSTPORT: %d\n", tcp_dstport(tcp_frame));                                                                            \
+                DPRINTF("\t\tTCP-SEQUENCE: 0x%x\n", tcp_sequence(tcp_frame));                                                                        \
+                DPRINTF("\t\tTCP-ACKNUMBER: 0x%x\n", tcp_acknumber(tcp_frame));                                                                      \
+                DPRINTF("\t\tTCP-FLAGS: 0x%x\n", tcp_flags(tcp_frame));                                                                              \
+                DPRINTF("\t\tTCP-CHECKSUM: 0x%x\n", tcp_checksum(tcp_frame));                                                                        \
+                DPRINTF("\t\tTCP-URGENT: 0x%x\n", tcp_urgent(tcp_frame));                                                                            \
+            }                                                                                                                                        \
+        }                                                                                                                                            \
     } while (0)
 #else
-#define DPRINTF(fmt, ...) \
-    do {                  \
+#define DPRINTF(fmt, ...)                                                                                                                            \
+    do {                                                                                                                                             \
     } while (0)
 #define DUMP_NETSWITCH_PKT(mbuf)
 #endif
@@ -705,8 +705,7 @@ int netswitch_policy_unregister_find(struct vmm_netswitch *nsw, void *data)
     struct netswitch_policy_unregister_priv *private = data;
 
     if (nsw->policy == private->nsp) {
-      private
-        ->nsw = nsw;
+        private->nsw = nsw;
     }
 
     return VMM_OK;
@@ -724,11 +723,9 @@ void vmm_netswitch_policy_unregister(struct vmm_netswitch_policy *nsp)
     vmm_mutex_lock(&policy_list_lock);
 
     do {
-      private
-        .nsw = NULL;
-      private
-        .nsp = nsp;
-        ret  = vmm_netswitch_iterate(NULL, &private, netswitch_policy_unregister_find);
+        private.nsw = NULL;
+        private.nsp = nsp;
+        ret         = vmm_netswitch_iterate(NULL, &private, netswitch_policy_unregister_find);
 
         if (ret || !private.nsw) {
             break;
@@ -785,8 +782,7 @@ static int netswitch_policy_find(struct vmm_netswitch_policy *nsp, void *data)
     struct netswitch_policy_find_priv *private = data;
 
     if (strcmp(private->name, nsp->name) == 0) {
-      private
-        ->nsp = nsp;
+        private->nsp = nsp;
     }
 
     return VMM_OK;

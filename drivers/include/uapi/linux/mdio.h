@@ -14,8 +14,8 @@
 #include <linux/types.h>
 
 /* MDIO Manageable Devices (MMDs). */
-#define MDIO_MMD_PMAPMD                                            \
-    1                               /* Physical Medium Attachment/ \
+#define MDIO_MMD_PMAPMD                                                                                                                              \
+    1                               /* Physical Medium Attachment/                                                                                   \
                                      * Physical Medium Dependent */
 #define MDIO_MMD_WIS             2  /* WAN Interface Sublayer */
 #define MDIO_MMD_PCS             3  /* Physical Coding Sublayer */
@@ -53,8 +53,8 @@
 /* Media-dependent registers. */
 #define MDIO_PMA_10GBT_SWAPPOL   130         /* 10GBASE-T pair swap & polarity */
 #define MDIO_PMA_10GBT_TXPWR     131         /* 10GBASE-T TX power control */
-#define MDIO_PMA_10GBT_SNR                                                    \
-    133                                      /* 10GBASE-T SNR margin, lane A. \
+#define MDIO_PMA_10GBT_SNR                                                                                                                           \
+    133                                      /* 10GBASE-T SNR margin, lane A.                                                                        \
                                               * Lanes B-D are numbered 134-136. */
 #define MDIO_PMA_10GBR_FECABLE           170 /* 10GBASE-R FEC ability */
 #define MDIO_PCS_10GBX_STAT1             24  /* 10GBASE-X PCS status 1 */

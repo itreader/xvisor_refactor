@@ -105,14 +105,14 @@ enum v4l2_field {
                      transmitted first */
 };
 
-#define V4L2_FIELD_HAS_TOP(field)                                                                                                                   \
-    ((field) == V4L2_FIELD_TOP || (field) == V4L2_FIELD_INTERLACED || (field) == V4L2_FIELD_INTERLACED_TB || (field) == V4L2_FIELD_INTERLACED_BT || \
+#define V4L2_FIELD_HAS_TOP(field)                                                                                                                    \
+    ((field) == V4L2_FIELD_TOP || (field) == V4L2_FIELD_INTERLACED || (field) == V4L2_FIELD_INTERLACED_TB || (field) == V4L2_FIELD_INTERLACED_BT ||  \
      (field) == V4L2_FIELD_SEQ_TB || (field) == V4L2_FIELD_SEQ_BT)
-#define V4L2_FIELD_HAS_BOTTOM(field)                                                                            \
-    ((field) == V4L2_FIELD_BOTTOM || (field) == V4L2_FIELD_INTERLACED || (field) == V4L2_FIELD_INTERLACED_TB || \
+#define V4L2_FIELD_HAS_BOTTOM(field)                                                                                                                 \
+    ((field) == V4L2_FIELD_BOTTOM || (field) == V4L2_FIELD_INTERLACED || (field) == V4L2_FIELD_INTERLACED_TB ||                                      \
      (field) == V4L2_FIELD_INTERLACED_BT || (field) == V4L2_FIELD_SEQ_TB || (field) == V4L2_FIELD_SEQ_BT)
-#define V4L2_FIELD_HAS_BOTH(field)                                                                                     \
-    ((field) == V4L2_FIELD_INTERLACED || (field) == V4L2_FIELD_INTERLACED_TB || (field) == V4L2_FIELD_INTERLACED_BT || \
+#define V4L2_FIELD_HAS_BOTH(field)                                                                                                                   \
+    ((field) == V4L2_FIELD_INTERLACED || (field) == V4L2_FIELD_INTERLACED_TB || (field) == V4L2_FIELD_INTERLACED_BT ||                               \
      (field) == V4L2_FIELD_SEQ_TB || (field) == V4L2_FIELD_SEQ_BT)
 #define V4L2_FIELD_HAS_T_OR_B(field) ((field) == V4L2_FIELD_BOTTOM || (field) == V4L2_FIELD_TOP || (field) == V4L2_FIELD_ALTERNATE)
 
@@ -137,8 +137,8 @@ enum v4l2_buf_type {
 
 #define V4L2_TYPE_IS_MULTIPLANAR(type) ((type) == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
 
-#define V4L2_TYPE_IS_OUTPUT(type)                                                                                                    \
-    ((type) == V4L2_BUF_TYPE_VIDEO_OUTPUT || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE || (type) == V4L2_BUF_TYPE_VIDEO_OVERLAY || \
+#define V4L2_TYPE_IS_OUTPUT(type)                                                                                                                    \
+    ((type) == V4L2_BUF_TYPE_VIDEO_OUTPUT || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE || (type) == V4L2_BUF_TYPE_VIDEO_OVERLAY ||                 \
      (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY || (type) == V4L2_BUF_TYPE_VBI_OUTPUT || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT)
 
 enum v4l2_tuner_type {
@@ -584,8 +584,8 @@ struct v4l2_jpegcompression {
 #define V4L2_JPEG_MARKER_DQT (1 << 4) /* Define Quantization Tables */
 #define V4L2_JPEG_MARKER_DRI (1 << 5) /* Define Restart Interval */
 #define V4L2_JPEG_MARKER_COM (1 << 6) /* Comment segment */
-#define V4L2_JPEG_MARKER_APP                                      \
-    (1 << 7)                          /* App segment, driver will \
+#define V4L2_JPEG_MARKER_APP                                                                                                                         \
+    (1 << 7)                          /* App segment, driver will                                                                                    \
                                        * always use APP0 */
 };
 
@@ -1066,7 +1066,7 @@ struct v4l2_bt_timings {
 /* A few useful defines to calculate the total blanking and frame sizes */
 #define V4L2_DV_BT_BLANKING_WIDTH(bt) ((bt)->hfrontporch + (bt)->hsync + (bt)->hbackporch)
 #define V4L2_DV_BT_FRAME_WIDTH(bt)    ((bt)->width + V4L2_DV_BT_BLANKING_WIDTH(bt))
-#define V4L2_DV_BT_BLANKING_HEIGHT(bt) \
+#define V4L2_DV_BT_BLANKING_HEIGHT(bt)                                                                                                               \
     ((bt)->vfrontporch + (bt)->vsync + (bt)->vbackporch + (bt)->il_vfrontporch + (bt)->il_vsync + (bt)->il_vbackporch)
 #define V4L2_DV_BT_FRAME_HEIGHT(bt) ((bt)->height + V4L2_DV_BT_BLANKING_HEIGHT(bt))
 

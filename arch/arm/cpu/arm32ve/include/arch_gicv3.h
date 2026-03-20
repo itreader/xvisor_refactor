@@ -112,29 +112,29 @@
 #define lower_32_bits(n) ((uint32_t)(n))
 #define upper_32_bits(n) ((uint32_t)(((n) >> 16) >> 16))
 
-#define CPUIF_MAP(a32, a64)                      \
-    static inline void write_##a64(uint32_t val) \
-    {                                            \
-        write_sysreg(val, a32);                  \
-    }                                            \
-    static inline uint32_t read_##a64(void)      \
-    {                                            \
-        return read_sysreg(a32);                 \
+#define CPUIF_MAP(a32, a64)                                                                                                                          \
+    static inline void write_##a64(uint32_t val)                                                                                                     \
+    {                                                                                                                                                \
+        write_sysreg(val, a32);                                                                                                                      \
+    }                                                                                                                                                \
+    static inline uint32_t read_##a64(void)                                                                                                          \
+    {                                                                                                                                                \
+        return read_sysreg(a32);                                                                                                                     \
     }
 
-#define CPUIF_MAP_LO_HI(a32lo, a32hi, a64)         \
-    static inline void write_##a64(uint64_t val)   \
-    {                                              \
-        write_sysreg(lower_32_bits(val), a32lo);   \
-        write_sysreg(upper_32_bits(val), a32hi);   \
-    }                                              \
-    static inline uint64_t read_##a64(void)        \
-    {                                              \
-        uint64_t val = read_sysreg(a32lo);         \
-                                                   \
-        val |= (uint64_t)read_sysreg(a32hi) << 32; \
-                                                   \
-        return val;                                \
+#define CPUIF_MAP_LO_HI(a32lo, a32hi, a64)                                                                                                           \
+    static inline void write_##a64(uint64_t val)                                                                                                     \
+    {                                                                                                                                                \
+        write_sysreg(lower_32_bits(val), a32lo);                                                                                                     \
+        write_sysreg(upper_32_bits(val), a32hi);                                                                                                     \
+    }                                                                                                                                                \
+    static inline uint64_t read_##a64(void)                                                                                                          \
+    {                                                                                                                                                \
+        uint64_t val = read_sysreg(a32lo);                                                                                                           \
+                                                                                                                                                     \
+        val |= (uint64_t)read_sysreg(a32hi) << 32;                                                                                                   \
+                                                                                                                                                     \
+        return val;                                                                                                                                  \
     }
 
 CPUIF_MAP(ICH_HCR, ICH_HCR_EL2)

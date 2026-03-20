@@ -151,13 +151,13 @@
 #endif
 
 #ifdef RTL8139_NDEBUG
-#define assert(expr) \
-    do {             \
+#define assert(expr)                                                                                                                                 \
+    do {                                                                                                                                             \
     } while (0)
 #else
-#define assert(expr)                                                                                      \
-    if (unlikely(!(expr))) {                                                                              \
-        printk(KERN_ERR "Assertion failed! %s,%s,%s,line=%d\n", #expr, __FILE__, __FUNCTION__, __LINE__); \
+#define assert(expr)                                                                                                                                 \
+    if (unlikely(!(expr))) {                                                                                                                         \
+        printk(KERN_ERR "Assertion failed! %s,%s,%s,line=%d\n", #expr, __FILE__, __FUNCTION__, __LINE__);                                            \
     }
 #endif
 
@@ -531,13 +531,11 @@ static const struct {
      HasHltClk, },
 
     {
-     "RTL-8139A", HW_REVID(1, 1, 1, 0, 0, 0, 0),
-     HasHltClk, /* XXX undocumented? */
+     "RTL-8139A", HW_REVID(1, 1, 1, 0, 0, 0, 0), HasHltClk, /* XXX undocumented? */
     },
 
     {
-     "RTL-8139A rev G", HW_REVID(1, 1, 1, 0, 0, 1, 0),
-     HasHltClk, /* XXX undocumented? */
+     "RTL-8139A rev G", HW_REVID(1, 1, 1, 0, 0, 1, 0), HasHltClk, /* XXX undocumented? */
     },
 
     {
@@ -658,20 +656,20 @@ static struct ethtool_ops rtl8139_ethtool_ops;
 
 /* write MMIO register, with flush */
 /* Flush avoids rtl8139 bug w/ posted MMIO writes */
-#define RTL_W8_F(reg, val8)               \
-    do {                                  \
-        iowrite8((val8), ioaddr + (reg)); \
-        ioread8(ioaddr + (reg));          \
+#define RTL_W8_F(reg, val8)                                                                                                                          \
+    do {                                                                                                                                             \
+        iowrite8((val8), ioaddr + (reg));                                                                                                            \
+        ioread8(ioaddr + (reg));                                                                                                                     \
     } while (0)
-#define RTL_W16_F(reg, val16)               \
-    do {                                    \
-        iowrite16((val16), ioaddr + (reg)); \
-        ioread16(ioaddr + (reg));           \
+#define RTL_W16_F(reg, val16)                                                                                                                        \
+    do {                                                                                                                                             \
+        iowrite16((val16), ioaddr + (reg));                                                                                                          \
+        ioread16(ioaddr + (reg));                                                                                                                    \
     } while (0)
-#define RTL_W32_F(reg, val32)               \
-    do {                                    \
-        iowrite32((val32), ioaddr + (reg)); \
-        ioread32(ioaddr + (reg));           \
+#define RTL_W32_F(reg, val32)                                                                                                                        \
+    do {                                                                                                                                             \
+        iowrite32((val32), ioaddr + (reg));                                                                                                          \
+        ioread32(ioaddr + (reg));                                                                                                                    \
     } while (0)
 
 #define MMIO_FLUSH_AUDIT_COMPLETE 1

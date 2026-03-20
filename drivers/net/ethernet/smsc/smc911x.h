@@ -225,10 +225,10 @@ static inline void SMC_outsl(struct smc911x_local *lp, int reg, void *addr, uint
 #else
 #if SMC_USE_16BIT
 #define SMC_inl(lp, r) ((readw((lp)->base + (r)) & 0xFFFF) + (readw((lp)->base + (r) + 2) << 16))
-#define SMC_outl(v, lp, r)                     \
-    do {                                       \
-        writew(v & 0xFFFF, (lp)->base + (r));  \
-        writew(v >> 16, (lp)->base + (r) + 2); \
+#define SMC_outl(v, lp, r)                                                                                                                           \
+    do {                                                                                                                                             \
+        writew(v & 0xFFFF, (lp)->base + (r));                                                                                                        \
+        writew(v >> 16, (lp)->base + (r) + 2);                                                                                                       \
     } while (0)
 #define SMC_insl(lp, r, p, l)  readsw((short *)((lp)->base + (r)), p, l * 2)
 #define SMC_outsl(lp, r, p, l) writesw((short *)((lp)->base + (r)), p, l * 2)
@@ -255,12 +255,12 @@ static inline void SMC_outsl(struct smc911x_local *lp, int reg, void *addr, uint
 
 #define SMC_DMA_FREE(dev, dma)        pxa_free_dma(dma)
 
-#define SMC_DMA_ACK_IRQ(dev, dma)                                \
-    {                                                            \
-        if (DCSR(dma) & DCSR_BUSERR) {                           \
-            printk("%s: DMA %d bus error!\n", dev->name, dma);   \
-        }                                                        \
-        DCSR(dma) = DCSR_STARTINTR | DCSR_ENDINTR | DCSR_BUSERR; \
+#define SMC_DMA_ACK_IRQ(dev, dma)                                                                                                                    \
+    {                                                                                                                                                \
+        if (DCSR(dma) & DCSR_BUSERR) {                                                                                                               \
+            printk("%s: DMA %d bus error!\n", dev->name, dma);                                                                                       \
+        }                                                                                                                                            \
+        DCSR(dma) = DCSR_STARTINTR | DCSR_ENDINTR | DCSR_BUSERR;                                                                                     \
     }
 
 /*
@@ -755,41 +755,41 @@ static const struct chip_id chip_ids[] = {
 #define SMC_SET_BYTE_TEST(lp, x)     SMC_outl(x, lp, BYTE_TEST)
 #define SMC_GET_FIFO_INT(lp)         SMC_inl(lp, FIFO_INT)
 #define SMC_SET_FIFO_INT(lp, x)      SMC_outl(x, lp, FIFO_INT)
-#define SMC_SET_FIFO_TDA(lp, x)                          \
-    do {                                                 \
-        uint64_t __flags;                                \
-        int      __mask;                                 \
-        local_irq_save(__flags);                         \
-        __mask = SMC_GET_FIFO_INT((lp)) & ~(0xFF << 24); \
-        SMC_SET_FIFO_INT((lp), __mask | (x) << 24);      \
-        local_irq_restore(__flags);                      \
+#define SMC_SET_FIFO_TDA(lp, x)                                                                                                                      \
+    do {                                                                                                                                             \
+        uint64_t __flags;                                                                                                                            \
+        int      __mask;                                                                                                                             \
+        local_irq_save(__flags);                                                                                                                     \
+        __mask = SMC_GET_FIFO_INT((lp)) & ~(0xFF << 24);                                                                                             \
+        SMC_SET_FIFO_INT((lp), __mask | (x) << 24);                                                                                                  \
+        local_irq_restore(__flags);                                                                                                                  \
     } while (0)
-#define SMC_SET_FIFO_TSL(lp, x)                                \
-    do {                                                       \
-        uint64_t __flags;                                      \
-        int      __mask;                                       \
-        local_irq_save(__flags);                               \
-        __mask = SMC_GET_FIFO_INT((lp)) & ~(0xFF << 16);       \
-        SMC_SET_FIFO_INT((lp), __mask | (((x) & 0xFF) << 16)); \
-        local_irq_restore(__flags);                            \
+#define SMC_SET_FIFO_TSL(lp, x)                                                                                                                      \
+    do {                                                                                                                                             \
+        uint64_t __flags;                                                                                                                            \
+        int      __mask;                                                                                                                             \
+        local_irq_save(__flags);                                                                                                                     \
+        __mask = SMC_GET_FIFO_INT((lp)) & ~(0xFF << 16);                                                                                             \
+        SMC_SET_FIFO_INT((lp), __mask | (((x) & 0xFF) << 16));                                                                                       \
+        local_irq_restore(__flags);                                                                                                                  \
     } while (0)
-#define SMC_SET_FIFO_RSA(lp, x)                               \
-    do {                                                      \
-        uint64_t __flags;                                     \
-        int      __mask;                                      \
-        local_irq_save(__flags);                              \
-        __mask = SMC_GET_FIFO_INT((lp)) & ~(0xFF << 8);       \
-        SMC_SET_FIFO_INT((lp), __mask | (((x) & 0xFF) << 8)); \
-        local_irq_restore(__flags);                           \
+#define SMC_SET_FIFO_RSA(lp, x)                                                                                                                      \
+    do {                                                                                                                                             \
+        uint64_t __flags;                                                                                                                            \
+        int      __mask;                                                                                                                             \
+        local_irq_save(__flags);                                                                                                                     \
+        __mask = SMC_GET_FIFO_INT((lp)) & ~(0xFF << 8);                                                                                              \
+        SMC_SET_FIFO_INT((lp), __mask | (((x) & 0xFF) << 8));                                                                                        \
+        local_irq_restore(__flags);                                                                                                                  \
     } while (0)
-#define SMC_SET_FIFO_RSL(lp, x)                        \
-    do {                                               \
-        uint64_t __flags;                              \
-        int      __mask;                               \
-        local_irq_save(__flags);                       \
-        __mask = SMC_GET_FIFO_INT((lp)) & ~0xFF;       \
-        SMC_SET_FIFO_INT((lp), __mask | ((x) & 0xFF)); \
-        local_irq_restore(__flags);                    \
+#define SMC_SET_FIFO_RSL(lp, x)                                                                                                                      \
+    do {                                                                                                                                             \
+        uint64_t __flags;                                                                                                                            \
+        int      __mask;                                                                                                                             \
+        local_irq_save(__flags);                                                                                                                     \
+        __mask = SMC_GET_FIFO_INT((lp)) & ~0xFF;                                                                                                     \
+        SMC_SET_FIFO_INT((lp), __mask | ((x) & 0xFF));                                                                                               \
+        local_irq_restore(__flags);                                                                                                                  \
     } while (0)
 #define SMC_GET_RX_CFG(lp)         SMC_inl(lp, RX_CFG)
 #define SMC_SET_RX_CFG(lp, x)      SMC_outl(x, lp, RX_CFG)
@@ -823,23 +823,23 @@ static const struct chip_id chip_ids[] = {
 #define SMC_SET_E2P_DATA(lp, x)    SMC_outl(x, lp, E2P_DATA)
 
 /* MAC register read/write macros */
-#define SMC_GET_MAC_CSR(lp, a, v)                                                  \
-    do {                                                                           \
-        while (SMC_GET_MAC_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_)                      \
-            ;                                                                      \
-        SMC_SET_MAC_CMD((lp), MAC_CSR_CMD_CSR_BUSY_ | MAC_CSR_CMD_R_NOT_W_ | (a)); \
-        while (SMC_GET_MAC_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_)                      \
-            ;                                                                      \
-        v = SMC_GET_MAC_DATA((lp));                                                \
+#define SMC_GET_MAC_CSR(lp, a, v)                                                                                                                    \
+    do {                                                                                                                                             \
+        while (SMC_GET_MAC_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_)                                                                                        \
+            ;                                                                                                                                        \
+        SMC_SET_MAC_CMD((lp), MAC_CSR_CMD_CSR_BUSY_ | MAC_CSR_CMD_R_NOT_W_ | (a));                                                                   \
+        while (SMC_GET_MAC_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_)                                                                                        \
+            ;                                                                                                                                        \
+        v = SMC_GET_MAC_DATA((lp));                                                                                                                  \
     } while (0)
-#define SMC_SET_MAC_CSR(lp, a, v)                             \
-    do {                                                      \
-        while (SMC_GET_MAC_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_) \
-            ;                                                 \
-        SMC_SET_MAC_DATA((lp), v);                            \
-        SMC_SET_MAC_CMD((lp), MAC_CSR_CMD_CSR_BUSY_ | (a));   \
-        while (SMC_GET_MAC_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_) \
-            ;                                                 \
+#define SMC_SET_MAC_CSR(lp, a, v)                                                                                                                    \
+    do {                                                                                                                                             \
+        while (SMC_GET_MAC_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_)                                                                                        \
+            ;                                                                                                                                        \
+        SMC_SET_MAC_DATA((lp), v);                                                                                                                   \
+        SMC_SET_MAC_CMD((lp), MAC_CSR_CMD_CSR_BUSY_ | (a));                                                                                          \
+        while (SMC_GET_MAC_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_)                                                                                        \
+            ;                                                                                                                                        \
     } while (0)
 #define SMC_GET_MAC_CR(lp, x)   SMC_GET_MAC_CSR((lp), MAC_CR, x)
 #define SMC_SET_MAC_CR(lp, x)   SMC_SET_MAC_CSR((lp), MAC_CR, x)
@@ -866,29 +866,29 @@ static const struct chip_id chip_ids[] = {
 #define SMC_SET_WUCSR(lp, x)    SMC_SET_MAC_CSR((lp), WUCSR, x)
 
 /* PHY register read/write macros */
-#define SMC_GET_MII(lp, a, phy, v)                                             \
-    do {                                                                       \
-        uint32_t __v;                                                          \
-        do {                                                                   \
-            SMC_GET_MII_ACC((lp), __v);                                        \
-        } while (__v & MII_ACC_MII_BUSY_);                                     \
-        SMC_SET_MII_ACC((lp), ((phy) << 11) | ((a) << 6) | MII_ACC_MII_BUSY_); \
-        do {                                                                   \
-            SMC_GET_MII_ACC((lp), __v);                                        \
-        } while (__v & MII_ACC_MII_BUSY_);                                     \
-        SMC_GET_MII_DATA((lp), v);                                             \
+#define SMC_GET_MII(lp, a, phy, v)                                                                                                                   \
+    do {                                                                                                                                             \
+        uint32_t __v;                                                                                                                                \
+        do {                                                                                                                                         \
+            SMC_GET_MII_ACC((lp), __v);                                                                                                              \
+        } while (__v & MII_ACC_MII_BUSY_);                                                                                                           \
+        SMC_SET_MII_ACC((lp), ((phy) << 11) | ((a) << 6) | MII_ACC_MII_BUSY_);                                                                       \
+        do {                                                                                                                                         \
+            SMC_GET_MII_ACC((lp), __v);                                                                                                              \
+        } while (__v & MII_ACC_MII_BUSY_);                                                                                                           \
+        SMC_GET_MII_DATA((lp), v);                                                                                                                   \
     } while (0)
-#define SMC_SET_MII(lp, a, phy, v)                                                                  \
-    do {                                                                                            \
-        uint32_t __v;                                                                               \
-        do {                                                                                        \
-            SMC_GET_MII_ACC((lp), __v);                                                             \
-        } while (__v & MII_ACC_MII_BUSY_);                                                          \
-        SMC_SET_MII_DATA((lp), v);                                                                  \
-        SMC_SET_MII_ACC((lp), ((phy) << 11) | ((a) << 6) | MII_ACC_MII_BUSY_ | MII_ACC_MII_WRITE_); \
-        do {                                                                                        \
-            SMC_GET_MII_ACC((lp), __v);                                                             \
-        } while (__v & MII_ACC_MII_BUSY_);                                                          \
+#define SMC_SET_MII(lp, a, phy, v)                                                                                                                   \
+    do {                                                                                                                                             \
+        uint32_t __v;                                                                                                                                \
+        do {                                                                                                                                         \
+            SMC_GET_MII_ACC((lp), __v);                                                                                                              \
+        } while (__v & MII_ACC_MII_BUSY_);                                                                                                           \
+        SMC_SET_MII_DATA((lp), v);                                                                                                                   \
+        SMC_SET_MII_ACC((lp), ((phy) << 11) | ((a) << 6) | MII_ACC_MII_BUSY_ | MII_ACC_MII_WRITE_);                                                  \
+        do {                                                                                                                                         \
+            SMC_GET_MII_ACC((lp), __v);                                                                                                              \
+        } while (__v & MII_ACC_MII_BUSY_);                                                                                                           \
     } while (0)
 #define SMC_GET_PHY_BMCR(lp, phy, x)     SMC_GET_MII((lp), MII_BMCR, phy, x)
 #define SMC_SET_PHY_BMCR(lp, phy, x)     SMC_SET_MII((lp), MII_BMCR, phy, x)
@@ -910,34 +910,34 @@ static const struct chip_id chip_ids[] = {
 /* Misc read/write macros */
 
 #ifndef SMC_GET_MAC_ADDR
-#define SMC_GET_MAC_ADDR(lp, addr)         \
-    do {                                   \
-        uint32_t __v;                      \
-                                           \
-        SMC_GET_MAC_CSR((lp), ADDRL, __v); \
-        addr[0] = __v;                     \
-        addr[1] = __v >> 8;                \
-        addr[2] = __v >> 16;               \
-        addr[3] = __v >> 24;               \
-        SMC_GET_MAC_CSR((lp), ADDRH, __v); \
-        addr[4] = __v;                     \
-        addr[5] = __v >> 8;                \
+#define SMC_GET_MAC_ADDR(lp, addr)                                                                                                                   \
+    do {                                                                                                                                             \
+        uint32_t __v;                                                                                                                                \
+                                                                                                                                                     \
+        SMC_GET_MAC_CSR((lp), ADDRL, __v);                                                                                                           \
+        addr[0] = __v;                                                                                                                               \
+        addr[1] = __v >> 8;                                                                                                                          \
+        addr[2] = __v >> 16;                                                                                                                         \
+        addr[3] = __v >> 24;                                                                                                                         \
+        SMC_GET_MAC_CSR((lp), ADDRH, __v);                                                                                                           \
+        addr[4] = __v;                                                                                                                               \
+        addr[5] = __v >> 8;                                                                                                                          \
     } while (0)
 #endif
 
-#define SMC_SET_MAC_ADDR(lp, addr)                                                                  \
-    do {                                                                                            \
-        SMC_SET_MAC_CSR((lp), ADDRL, addr[0] | (addr[1] << 8) | (addr[2] << 16) | (addr[3] << 24)); \
-        SMC_SET_MAC_CSR((lp), ADDRH, addr[4] | (addr[5] << 8));                                     \
+#define SMC_SET_MAC_ADDR(lp, addr)                                                                                                                   \
+    do {                                                                                                                                             \
+        SMC_SET_MAC_CSR((lp), ADDRL, addr[0] | (addr[1] << 8) | (addr[2] << 16) | (addr[3] << 24));                                                  \
+        SMC_SET_MAC_CSR((lp), ADDRH, addr[4] | (addr[5] << 8));                                                                                      \
     } while (0)
 
-#define SMC_WRITE_EEPROM_CMD(lp, cmd, addr)                   \
-    do {                                                      \
-        while (SMC_GET_E2P_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_) \
-            ;                                                 \
-        SMC_SET_MAC_CMD((lp), MAC_CSR_CMD_R_NOT_W_ | a);      \
-        while (SMC_GET_MAC_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_) \
-            ;                                                 \
+#define SMC_WRITE_EEPROM_CMD(lp, cmd, addr)                                                                                                          \
+    do {                                                                                                                                             \
+        while (SMC_GET_E2P_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_)                                                                                        \
+            ;                                                                                                                                        \
+        SMC_SET_MAC_CMD((lp), MAC_CSR_CMD_R_NOT_W_ | a);                                                                                             \
+        while (SMC_GET_MAC_CMD((lp)) & MAC_CSR_CMD_CSR_BUSY_)                                                                                        \
+            ;                                                                                                                                        \
     } while (0)
 
 #endif /* _SMC911X_H_ */

@@ -36,14 +36,14 @@
 #include <vmm_types.h>
 
 enum vmm_region_flags {
-    VMM_REGION_REAL        = 0x00000001,
-    VMM_REGION_VIRTUAL     = 0x00000002,
-    VMM_REGION_ALIAS       = 0x00000004,
-    VMM_REGION_MEMORY      = 0x00000008,
-    VMM_REGION_IO          = 0x00000010,
-    VMM_REGION_CACHEABLE   = 0x00000020,
-    VMM_REGION_BUFFERABLE  = 0x00000040,
-    VMM_REGION_READONLY    = 0x00000080,
+    VMM_REGION_REAL        = 0x00000001, /* 真实区域 */
+    VMM_REGION_VIRTUAL     = 0x00000002, /* 虚拟区域 */
+    VMM_REGION_ALIAS       = 0x00000004, /* 别名区域 */
+    VMM_REGION_MEMORY      = 0x00000008, /* 内存区域 */
+    VMM_REGION_IO          = 0x00000010, /* IO区域 */
+    VMM_REGION_CACHEABLE   = 0x00000020, /* 区域可以有cache的能力 */
+    VMM_REGION_BUFFERABLE  = 0x00000040, /* 区域是可缓冲的 */
+    VMM_REGION_READONLY    = 0x00000080, /* 区域是只读的 */
     VMM_REGION_IS_RAM      = 0x00000100,
     VMM_REGION_IS_ROM      = 0x00000200,
     VMM_REGION_IS_DEVICE   = 0x00000400,
@@ -104,20 +104,21 @@ struct vmm_region {
 #define VMM_REGION_MAP_ORDER(reg)             ((reg)->map_order)
 #define VMM_REGION_MAPS_COUNT(reg)            ((reg)->maps_count)
 
+/* 负责管理客户机操作系统可见的内存和IO 区域，包括物理内存区域和设备 IO 区域两类 */
 struct vmm_guest_address_space {
     vmm_device_tree_node_t *node;
     struct vmm_guest       *guest;
-    bool                    initialized;
+    bool                    initialized;         // 是否已经初始化完成，初始化完成后才允许访问这个地址空间
 
-    vmm_rwlock_t          reg_iotree_lock;
-    struct red_black_root reg_iotree;
+    vmm_rwlock_t          reg_iotree_lock;       // I/O 区域树锁
+    struct red_black_root reg_iotree;            // I/O 区域树，vmm_region类型的红黑树，按照guest物理地址排序
+    double_list_t         reg_ioprobe_list;      // IO 区域探测链表，用于设备探测的双向链表
 
-    double_list_t reg_ioprobe_list;
+    vmm_rwlock_t          reg_memory_tree_lock;  // 内存区域树锁
+    struct red_black_root reg_memtree;           // 内存区域树，vmm_region类型的红黑树，按照guest物理地址排序
+    double_list_t         reg_memprobe_list;     // 内存区域探测链表，用于设备探测的双向链表
 
-    vmm_rwlock_t          reg_memory_tree_lock;
-    struct red_black_root reg_memtree;
-    double_list_t         reg_memprobe_list;
-    void                 *device_emulate_private;
+    void *device_emulate_private;                // 设备仿真上下文，设备仿真的私有数据结构
 };
 
 /* 描述一个对guest的操作请求 */
@@ -224,7 +225,7 @@ struct vmm_vcpu {
 
     /* Start PC and stack */
     virtual_addr_t start_pc;
-    virtual_addr_t stack_va;
+    virtual_addr_t stack_virtual_address;
     virtual_size_t stack_size;
 
     /* Scheduler dynamic context */

@@ -133,7 +133,7 @@ struct sunxi_mmc_des {
     uint32_t : 1, dic : 1,      /* disable interrupt on completion */
         last_des    : 1,        /* 1-this data buffer is the last buffer */
         first_des   : 1,        /* 1-data buffer is the first buffer,
-                      0-data buffer contained in the next descriptor is 1st buffer */
+       0-data buffer contained in the next descriptor is 1st buffer */
         des_chain   : 1,        /* 1-the 2nd address in the descriptor is the next descriptor address */
         end_of_ring : 1,        /* 1-last descriptor flag when using dual data buffer in descriptor */
         : 24, card_err_sum : 1, /* transfer error flag */

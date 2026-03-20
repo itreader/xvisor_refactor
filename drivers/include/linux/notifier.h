@@ -30,9 +30,9 @@
 #define RAW_INIT_NOTIFIER_HEAD(nc)      RAW_INIT_NOTIFIER_CHAIN(nc)
 #define srcu_init_notifier_head(nc)     ATOMIC_INIT_NOTIFIER_CHAIN(nc)
 
-#define srcu_cleanup_notifier_head(nc) \
-    do {                               \
-        (void)nc;                      \
+#define srcu_cleanup_notifier_head(nc)                                                                                                               \
+    do {                                                                                                                                             \
+        (void)nc;                                                                                                                                    \
     } while (0)
 
 #define ATOMIC_NOTIFIER_HEAD(name)                 ATOMIC_NOTIFIER_CHAIN(name)

@@ -8,6 +8,8 @@
  *
  * License terms: GNU General Public License (GPL) version 2
  */
+#ifndef __PINCTRL_CORE_H__
+#define __PINCTRL_CORE_H__
 
 #include <linux/kref.h>
 #include <linux/mutex.h>
@@ -65,7 +67,7 @@ struct pinctrl_device {
 #endif
 };
 
-typedef struct pinctrl_device pinctrl_device_t;
+// typedef struct pinctrl_device pinctrl_device_t;
 
 /**
  * struct pinctrl - per-device pin control state holder
@@ -243,6 +245,8 @@ extern int pinctrl_force_default(pinctrl_device_t *pctldev);
 extern struct mutex pinctrl_maps_mutex;
 extern list_head_t  pinctrl_maps;
 
-#define for_each_maps(_maps_node_, _i_, _map_)                                                                                        \
-    list_for_each_entry(_maps_node_, &pinctrl_maps, node) for (_i_ = 0, _map_ = &_maps_node_->maps[_i_]; _i_ < _maps_node_->num_maps; \
+#define for_each_maps(_maps_node_, _i_, _map_)                                                                                                       \
+    list_for_each_entry(_maps_node_, &pinctrl_maps, node) for (_i_ = 0, _map_ = &_maps_node_->maps[_i_]; _i_ < _maps_node_->num_maps;                \
                                                                _i_++, _map_   = &_maps_node_->maps[_i_])
+
+#endif /* __PINCTRL_CORE_H__ */

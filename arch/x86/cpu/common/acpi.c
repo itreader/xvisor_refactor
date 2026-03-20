@@ -313,16 +313,14 @@ int __init acpi_init(void)
     root_desc = (struct acpi_rsdp *)find_root_system_descriptor();
 
     if (root_desc == NULL) {
-        vmm_printf(
-            "ACPI ERROR: No root system descriptor"
-            " table found!\n");
+        vmm_printf("ACPI ERROR: No root system descriptor"
+                   " table found!\n");
         goto rdesc_fail;
     }
 
     if (root_desc->rsdt_addr == 0) {
-        vmm_printf(
-            "ACPI ERROR: No root descriptor found"
-            " in RSD Pointer!\n");
+        vmm_printf("ACPI ERROR: No root descriptor found"
+                   " in RSD Pointer!\n");
         goto rsdt_fail;
     }
 

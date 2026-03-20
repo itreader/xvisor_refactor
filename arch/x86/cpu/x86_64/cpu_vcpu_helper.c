@@ -159,7 +159,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
 
     if (!vcpu->is_normal) {
         /* For orphan vcpu */
-        stack_start       = vcpu->stack_va + vcpu->stack_size - sizeof(uint64_t);
+        stack_start       = vcpu->stack_virtual_address + vcpu->stack_size - sizeof(uint64_t);
         vcpu->regs.rip    = vcpu->start_pc;
         vcpu->regs.rip    = vcpu->start_pc;
         vcpu->regs.rsp    = stack_start;
@@ -189,7 +189,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
              * This vcpu has to run VMM code before and after guest mode
              * switch. Prepare for the same.
              */
-            stack_start       = vcpu->stack_va + vcpu->stack_size - sizeof(uint64_t);
+            stack_start       = vcpu->stack_virtual_address + vcpu->stack_size - sizeof(uint64_t);
             vcpu->regs.rip    = (uint64_t)arch_guest_vcpu_trampoline;
             vcpu->regs.rsp    = stack_start;
             vcpu->regs.cs     = VMM_CODE_SEG_SEL;

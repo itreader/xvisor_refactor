@@ -230,13 +230,13 @@ uint64_t sbi_xvisor_isa_string(char *out_isa, uint64_t max_len)
         out_isa[pos++] = valid_isa_order[i];
     }
 
-#define SET_ISA_EXT_MAP(__name, __bit)                                                 \
-    do {                                                                               \
-        ret = sbi_ecall(SBI_EXT_XVISOR, SBI_EXT_XVISOR_ISA_EXT, __bit, 0, 0, 0, 0, 0); \
-        if (!ret.error && ret.value) {                                                 \
-            basic_strcat(&out_isa[pos], "_" __name);                                   \
-            pos += basic_strlen("_" __name);                                           \
-        }                                                                              \
+#define SET_ISA_EXT_MAP(__name, __bit)                                                                                                               \
+    do {                                                                                                                                             \
+        ret = sbi_ecall(SBI_EXT_XVISOR, SBI_EXT_XVISOR_ISA_EXT, __bit, 0, 0, 0, 0, 0);                                                               \
+        if (!ret.error && ret.value) {                                                                                                               \
+            basic_strcat(&out_isa[pos], "_" __name);                                                                                                 \
+            pos += basic_strlen("_" __name);                                                                                                         \
+        }                                                                                                                                            \
     } while (0)
 
     SET_ISA_EXT_MAP("sstc", RISCV_ISA_EXT_SSTC);

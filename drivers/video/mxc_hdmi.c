@@ -69,11 +69,11 @@
 #define MODULE_INIT      mxc_hdmi_init
 #define MODULE_EXIT      mxc_hdmi_exit
 
-#define console_lock() \
-    do {               \
+#define console_lock()                                                                                                                               \
+    do {                                                                                                                                             \
     } while (0)
-#define console_unlock() \
-    do {                 \
+#define console_unlock()                                                                                                                             \
+    do {                                                                                                                                             \
     } while (0)
 
 #define DISPDRV_HDMI        "hdmi"

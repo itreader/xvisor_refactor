@@ -51,21 +51,21 @@ struct scsi_request {
     unsigned char  status; /* SCSI Status */
 };
 
-#define INIT_SCSI_REQUEST(_srb, _lun, _data, _datalen)   \
-    do {                                                 \
-        (_srb)->lun          = (_lun);                   \
-        (_srb)->cmd[0]       = 0;                        \
-        (_srb)->cmd[1]       = 0;                        \
-        (_srb)->cmd[2]       = 0;                        \
-        (_srb)->cmd[3]       = 0;                        \
-        (_srb)->cmdlen       = 0;                        \
-        (_srb)->data         = (unsigned char *)(_data); \
-        (_srb)->datalen      = (_datalen);               \
-        (_srb)->sense_buf[0] = 0;                        \
-        (_srb)->sense_buf[1] = 0;                        \
-        (_srb)->sense_buf[2] = 0;                        \
-        (_srb)->sense_buf[3] = 0;                        \
-        (_srb)->status       = 0;                        \
+#define INIT_SCSI_REQUEST(_srb, _lun, _data, _datalen)                                                                                               \
+    do {                                                                                                                                             \
+        (_srb)->lun          = (_lun);                                                                                                               \
+        (_srb)->cmd[0]       = 0;                                                                                                                    \
+        (_srb)->cmd[1]       = 0;                                                                                                                    \
+        (_srb)->cmd[2]       = 0;                                                                                                                    \
+        (_srb)->cmd[3]       = 0;                                                                                                                    \
+        (_srb)->cmdlen       = 0;                                                                                                                    \
+        (_srb)->data         = (unsigned char *)(_data);                                                                                             \
+        (_srb)->datalen      = (_datalen);                                                                                                           \
+        (_srb)->sense_buf[0] = 0;                                                                                                                    \
+        (_srb)->sense_buf[1] = 0;                                                                                                                    \
+        (_srb)->sense_buf[2] = 0;                                                                                                                    \
+        (_srb)->sense_buf[3] = 0;                                                                                                                    \
+        (_srb)->status       = 0;                                                                                                                    \
     } while (0)
 
 struct scsi_info {

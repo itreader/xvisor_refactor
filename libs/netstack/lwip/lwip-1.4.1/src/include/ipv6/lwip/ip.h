@@ -59,8 +59,8 @@ extern "C" {
 #define IP_HDRINCL NULL
 
 #if LWIP_NETIF_HWADDRHINT
-#define IP_PCB_ADDRHINT \
-    ;                   \
+#define IP_PCB_ADDRHINT                                                                                                                              \
+    ;                                                                                                                                                \
     u8_t addr_hint
 #else
 #define IP_PCB_ADDRHINT
@@ -70,16 +70,16 @@ extern "C" {
    beginning of a PCB type definition. It is located here so that
    changes to this common part are made in one location instead of
    having to change all PCB structs. */
-#define IP_PCB                               \
-    struct ip_addr local_ip;                 \
-    struct ip_addr remote_ip;                \
-    /* Socket options */                     \
-    u16_t          so_options;               \
-    /* Type Of Service */                    \
-    u8_t           tos;                      \
-    /* Time To Live */                       \
-    u8_t           ttl;                      \
-    /* link layer address resolution hint */ \
+#define IP_PCB                                                                                                                                       \
+    struct ip_addr local_ip;                                                                                                                         \
+    struct ip_addr remote_ip;                                                                                                                        \
+    /* Socket options */                                                                                                                             \
+    u16_t          so_options;                                                                                                                       \
+    /* Type Of Service */                                                                                                                            \
+    u8_t           tos;                                                                                                                              \
+    /* Time To Live */                                                                                                                               \
+    u8_t           ttl;                                                                                                                              \
+    /* link layer address resolution hint */                                                                                                         \
     IP_PCB_ADDRHINT
 
 /* The IPv6 header. */

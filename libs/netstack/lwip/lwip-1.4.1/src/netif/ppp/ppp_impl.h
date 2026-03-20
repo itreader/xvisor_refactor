@@ -105,10 +105,10 @@
  * OR MODIFICATIONS.
  */
 
-#define TIMEOUT(f, a, t)                   \
-    do {                                   \
-        sys_untimeout((f), (a));           \
-        sys_timeout((t) * 1000, (f), (a)); \
+#define TIMEOUT(f, a, t)                                                                                                                             \
+    do {                                                                                                                                             \
+        sys_untimeout((f), (a));                                                                                                                     \
+        sys_timeout((t) * 1000, (f), (a));                                                                                                           \
     } while (0)
 #define UNTIMEOUT(f, a) sys_untimeout((f), (a))
 
@@ -177,49 +177,49 @@ enum NPmode {
  * are lvalues and will already be in registers.
  * cp MUST be uint8_t *.
  */
-#define GETCHAR(c, cp) \
-    {                  \
-        (c) = *(cp)++; \
+#define GETCHAR(c, cp)                                                                                                                               \
+    {                                                                                                                                                \
+        (c) = *(cp)++;                                                                                                                               \
     }
-#define PUTCHAR(c, cp)          \
-    {                           \
-        *(cp)++ = (uint8_t)(c); \
-    }
-
-#define GETSHORT(s, cp) \
-    {                   \
-        (s) = *(cp);    \
-        (cp)++;         \
-        (s) <<= 8;      \
-        (s) |= *(cp);   \
-        (cp)++;         \
-    }
-#define PUTSHORT(s, cp)                \
-    {                                  \
-        *(cp)++ = (uint8_t)((s) >> 8); \
-        *(cp)++ = (uint8_t)(s & 0xff); \
+#define PUTCHAR(c, cp)                                                                                                                               \
+    {                                                                                                                                                \
+        *(cp)++ = (uint8_t)(c);                                                                                                                      \
     }
 
-#define GETLONG(l, cp) \
-    {                  \
-        (l) = *(cp);   \
-        (cp)++;        \
-        (l) <<= 8;     \
-        (l) |= *(cp);  \
-        (cp)++;        \
-        (l) <<= 8;     \
-        (l) |= *(cp);  \
-        (cp)++;        \
-        (l) <<= 8;     \
-        (l) |= *(cp);  \
-        (cp)++;        \
+#define GETSHORT(s, cp)                                                                                                                              \
+    {                                                                                                                                                \
+        (s) = *(cp);                                                                                                                                 \
+        (cp)++;                                                                                                                                      \
+        (s) <<= 8;                                                                                                                                   \
+        (s) |= *(cp);                                                                                                                                \
+        (cp)++;                                                                                                                                      \
     }
-#define PUTLONG(l, cp)                  \
-    {                                   \
-        *(cp)++ = (uint8_t)((l) >> 24); \
-        *(cp)++ = (uint8_t)((l) >> 16); \
-        *(cp)++ = (uint8_t)((l) >> 8);  \
-        *(cp)++ = (uint8_t)(l);         \
+#define PUTSHORT(s, cp)                                                                                                                              \
+    {                                                                                                                                                \
+        *(cp)++ = (uint8_t)((s) >> 8);                                                                                                               \
+        *(cp)++ = (uint8_t)(s & 0xff);                                                                                                               \
+    }
+
+#define GETLONG(l, cp)                                                                                                                               \
+    {                                                                                                                                                \
+        (l) = *(cp);                                                                                                                                 \
+        (cp)++;                                                                                                                                      \
+        (l) <<= 8;                                                                                                                                   \
+        (l) |= *(cp);                                                                                                                                \
+        (cp)++;                                                                                                                                      \
+        (l) <<= 8;                                                                                                                                   \
+        (l) |= *(cp);                                                                                                                                \
+        (cp)++;                                                                                                                                      \
+        (l) <<= 8;                                                                                                                                   \
+        (l) |= *(cp);                                                                                                                                \
+        (cp)++;                                                                                                                                      \
+    }
+#define PUTLONG(l, cp)                                                                                                                               \
+    {                                                                                                                                                \
+        *(cp)++ = (uint8_t)((l) >> 24);                                                                                                              \
+        *(cp)++ = (uint8_t)((l) >> 16);                                                                                                              \
+        *(cp)++ = (uint8_t)((l) >> 8);                                                                                                               \
+        *(cp)++ = (uint8_t)(l);                                                                                                                      \
     }
 
 #define INCPTR(n, cp)   ((cp) += (n))
@@ -230,10 +230,10 @@ enum NPmode {
 #define BZERO(s, n)     memset(s, 0, n)
 
 #if PPP_DEBUG
-#define PRINTMSG(m, l)                                      \
-    {                                                       \
-        m[l] = '\0';                                        \
-        LWIP_DEBUGF(LOG_INFO, ("Remote message: %s\n", m)); \
+#define PRINTMSG(m, l)                                                                                                                               \
+    {                                                                                                                                                \
+        m[l] = '\0';                                                                                                                                 \
+        LWIP_DEBUGF(LOG_INFO, ("Remote message: %s\n", m));                                                                                          \
     }
 #else  /* PPP_DEBUG */
 #define PRINTMSG(m, l)
@@ -242,11 +242,11 @@ enum NPmode {
 /*
  * MAKEHEADER - Add PPP Header fields to a packet.
  */
-#define MAKEHEADER(p, t)             \
-    {                                \
-        PUTCHAR(PPP_ALLSTATIONS, p); \
-        PUTCHAR(PPP_UI, p);          \
-        PUTSHORT(t, p);              \
+#define MAKEHEADER(p, t)                                                                                                                             \
+    {                                                                                                                                                \
+        PUTCHAR(PPP_ALLSTATIONS, p);                                                                                                                 \
+        PUTCHAR(PPP_UI, p);                                                                                                                          \
+        PUTSHORT(t, p);                                                                                                                              \
     }
 
 /************************

@@ -58,9 +58,9 @@
 
 #undef DEBUG
 
-#define sp805_msg(LEVEL, SP805, FORMAT...)                 \
-    do {                                                   \
-        vmm_lprintf(LEVEL, EMU_NAME(sp805->edev), FORMAT); \
+#define sp805_msg(LEVEL, SP805, FORMAT...)                                                                                                           \
+    do {                                                                                                                                             \
+        vmm_lprintf(LEVEL, EMU_NAME(sp805->edev), FORMAT);                                                                                           \
     } while (0)
 
 #ifdef DEBUG

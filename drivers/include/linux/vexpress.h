@@ -59,9 +59,9 @@
 #define VEXPRESS_GPIO_LED6          9
 #define VEXPRESS_GPIO_LED7          10
 
-#define VEXPRESS_RES_FUNC(_site, _func)                            \
-    {                                                              \
-        .start = (_site), .end = (_func), .flags = IORESOURCE_BUS, \
+#define VEXPRESS_RES_FUNC(_site, _func)                                                                                                              \
+    {                                                                                                                                                \
+        .start = (_site), .end = (_func), .flags = IORESOURCE_BUS,                                                                                   \
     }
 
 /* Config bridge API */

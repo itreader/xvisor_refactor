@@ -41,12 +41,12 @@ struct cpu_mmu_entry_ctrl {
 extern uint8_t default_terminal_early_base[];
 #endif
 
-#define PGTBL_ROOT_SIZE     (1UL << ARCH_MMU_STAGE1_ROOT_SIZE_ORDER)
-#define PGTBL_ROOT_ENTCNT   (PGTBL_ROOT_SIZE / sizeof(arch_pte_t))
+#define PAGE_TABLE_ROOT_SIZE     (1UL << ARCH_MMU_STAGE1_ROOT_SIZE_ORDER)
+#define PAGE_TABLE_ROOT_ENTCNT   (PAGE_TABLE_ROOT_SIZE / sizeof(arch_pte_t))
 
-#define PGTBL_INITIAL_COUNT ARCH_MMU_STAGE1_NONROOT_INITIAL_COUNT
-#define PGTBL_SIZE          (1UL << ARCH_MMU_STAGE1_NONROOT_SIZE_ORDER)
-#define PGTBL_ENTCNT        (PGTBL_SIZE / sizeof(arch_pte_t))
+#define PAGE_TABLE_INITIAL_COUNT ARCH_MMU_STAGE1_NONROOT_INITIAL_COUNT
+#define PAGE_TABLE_SIZE          (1UL << ARCH_MMU_STAGE1_NONROOT_SIZE_ORDER)
+#define PAGE_TABLE_ENTCNT        (PAGE_TABLE_SIZE / sizeof(arch_pte_t))
 
 void __attribute__((section(".entry"))) __setup_initial_page_table(
     struct cpu_mmu_entry_ctrl *entry, virtual_addr_t map_start, virtual_addr_t map_end, virtual_addr_t pa_start, bool writeable)
@@ -56,8 +56,8 @@ void __attribute__((section(".entry"))) __setup_initial_page_table(
     virtual_addr_t page_addr;
 
     /* align start addresses */
-    map_start &= PGTBL_L0_MAP_MASK;
-    pa_start &= PGTBL_L0_MAP_MASK;
+    map_start &= PAGE_TABLE_L0_MAP_MASK;
+    pa_start &= PAGE_TABLE_L0_MAP_MASK;
 
     page_addr = map_start;
 
@@ -70,29 +70,30 @@ void __attribute__((section(".entry"))) __setup_initial_page_table(
         }
 
 #if CONFIG_64BIT
-        index = (page_addr & PGTBL_L4_INDEX_MASK) >> PGTBL_L4_INDEX_SHIFT;
+        index = (page_addr & PAGE_TABLE_L4_INDEX_MASK) >> PAGE_TABLE_L4_INDEX_SHIFT;
 
-        if (page_table[index] & PGTBL_PTE_VALID_MASK) {
+        if (page_table[index] & PAGE_TABLE_PTE_VALID_MASK) {
             /* Find level3 table */
-            page_table = (arch_pte_t *)(uint64_t)(((page_table[index] & PGTBL_PTE_ADDR_MASK) >> PGTBL_PTE_ADDR_SHIFT) << PGTBL_PAGE_SIZE_SHIFT);
+            page_table =
+                (arch_pte_t *)(uint64_t)(((page_table[index] & PAGE_TABLE_PTE_ADDR_MASK) >> PAGE_TABLE_PTE_ADDR_SHIFT) << PAGE_TABLE_PAGE_SIZE_SHIFT);
         } else {
             /* Allocate new level3 table */
-            if (entry->page_table_count == PGTBL_INITIAL_COUNT) {
+            if (entry->page_table_count == PAGE_TABLE_INITIAL_COUNT) {
                 while (1)
                     ; /* No initial table available */
             }
 
-            for (i = 0; i < PGTBL_ENTCNT; i++) {
+            for (i = 0; i < PAGE_TABLE_ENTCNT; i++) {
                 entry->next_page_table[i] = 0x0ULL;
             }
 
             entry->page_table_count++;
             page_table[index] = (virtual_addr_t)entry->next_page_table;
-            page_table[index] = page_table[index] >> PGTBL_PAGE_SIZE_SHIFT;
-            page_table[index] = page_table[index] << PGTBL_PTE_ADDR_SHIFT;
-            page_table[index] |= PGTBL_PTE_VALID_MASK;
+            page_table[index] = page_table[index] >> PAGE_TABLE_PAGE_SIZE_SHIFT;
+            page_table[index] = page_table[index] << PAGE_TABLE_PTE_ADDR_SHIFT;
+            page_table[index] |= PAGE_TABLE_PTE_VALID_MASK;
             page_table = entry->next_page_table;
-            entry->next_page_table += PGTBL_ENTCNT;
+            entry->next_page_table += PAGE_TABLE_ENTCNT;
         }
 
 #endif
@@ -104,29 +105,30 @@ void __attribute__((section(".entry"))) __setup_initial_page_table(
         }
 
 #if CONFIG_64BIT
-        index = (page_addr & PGTBL_L3_INDEX_MASK) >> PGTBL_L3_INDEX_SHIFT;
+        index = (page_addr & PAGE_TABLE_L3_INDEX_MASK) >> PAGE_TABLE_L3_INDEX_SHIFT;
 
-        if (page_table[index] & PGTBL_PTE_VALID_MASK) {
+        if (page_table[index] & PAGE_TABLE_PTE_VALID_MASK) {
             /* Find level2 table */
-            page_table = (arch_pte_t *)(uint64_t)(((page_table[index] & PGTBL_PTE_ADDR_MASK) >> PGTBL_PTE_ADDR_SHIFT) << PGTBL_PAGE_SIZE_SHIFT);
+            page_table =
+                (arch_pte_t *)(uint64_t)(((page_table[index] & PAGE_TABLE_PTE_ADDR_MASK) >> PAGE_TABLE_PTE_ADDR_SHIFT) << PAGE_TABLE_PAGE_SIZE_SHIFT);
         } else {
             /* Allocate new level2 table */
-            if (entry->page_table_count == PGTBL_INITIAL_COUNT) {
+            if (entry->page_table_count == PAGE_TABLE_INITIAL_COUNT) {
                 while (1)
                     ; /* No initial table available */
             }
 
-            for (i = 0; i < PGTBL_ENTCNT; i++) {
+            for (i = 0; i < PAGE_TABLE_ENTCNT; i++) {
                 entry->next_page_table[i] = 0x0ULL;
             }
 
             entry->page_table_count++;
             page_table[index] = (virtual_addr_t)entry->next_page_table;
-            page_table[index] = page_table[index] >> PGTBL_PAGE_SIZE_SHIFT;
-            page_table[index] = page_table[index] << PGTBL_PTE_ADDR_SHIFT;
-            page_table[index] |= PGTBL_PTE_VALID_MASK;
+            page_table[index] = page_table[index] >> PAGE_TABLE_PAGE_SIZE_SHIFT;
+            page_table[index] = page_table[index] << PAGE_TABLE_PTE_ADDR_SHIFT;
+            page_table[index] |= PAGE_TABLE_PTE_VALID_MASK;
             page_table = entry->next_page_table;
-            entry->next_page_table += PGTBL_ENTCNT;
+            entry->next_page_table += PAGE_TABLE_ENTCNT;
         }
 
 #endif
@@ -138,29 +140,30 @@ void __attribute__((section(".entry"))) __setup_initial_page_table(
         }
 
 #if CONFIG_64BIT
-        index = (page_addr & PGTBL_L2_INDEX_MASK) >> PGTBL_L2_INDEX_SHIFT;
+        index = (page_addr & PAGE_TABLE_L2_INDEX_MASK) >> PAGE_TABLE_L2_INDEX_SHIFT;
 
-        if (page_table[index] & PGTBL_PTE_VALID_MASK) {
+        if (page_table[index] & PAGE_TABLE_PTE_VALID_MASK) {
             /* Find level1 table */
-            page_table = (arch_pte_t *)(uint64_t)(((page_table[index] & PGTBL_PTE_ADDR_MASK) >> PGTBL_PTE_ADDR_SHIFT) << PGTBL_PAGE_SIZE_SHIFT);
+            page_table =
+                (arch_pte_t *)(uint64_t)(((page_table[index] & PAGE_TABLE_PTE_ADDR_MASK) >> PAGE_TABLE_PTE_ADDR_SHIFT) << PAGE_TABLE_PAGE_SIZE_SHIFT);
         } else {
             /* Allocate new level1 table */
-            if (entry->page_table_count == PGTBL_INITIAL_COUNT) {
+            if (entry->page_table_count == PAGE_TABLE_INITIAL_COUNT) {
                 while (1)
                     ; /* No initial table available */
             }
 
-            for (i = 0; i < PGTBL_ENTCNT; i++) {
+            for (i = 0; i < PAGE_TABLE_ENTCNT; i++) {
                 entry->next_page_table[i] = 0x0ULL;
             }
 
             entry->page_table_count++;
             page_table[index] = (virtual_addr_t)entry->next_page_table;
-            page_table[index] = page_table[index] >> PGTBL_PAGE_SIZE_SHIFT;
-            page_table[index] = page_table[index] << PGTBL_PTE_ADDR_SHIFT;
-            page_table[index] |= PGTBL_PTE_VALID_MASK;
+            page_table[index] = page_table[index] >> PAGE_TABLE_PAGE_SIZE_SHIFT;
+            page_table[index] = page_table[index] << PAGE_TABLE_PTE_ADDR_SHIFT;
+            page_table[index] |= PAGE_TABLE_PTE_VALID_MASK;
             page_table = entry->next_page_table;
-            entry->next_page_table += PGTBL_ENTCNT;
+            entry->next_page_table += PAGE_TABLE_ENTCNT;
         }
 
 #endif
@@ -171,51 +174,52 @@ void __attribute__((section(".entry"))) __setup_initial_page_table(
             goto skip_level1;
         }
 
-        index = (page_addr & PGTBL_L1_INDEX_MASK) >> PGTBL_L1_INDEX_SHIFT;
+        index = (page_addr & PAGE_TABLE_L1_INDEX_MASK) >> PAGE_TABLE_L1_INDEX_SHIFT;
 
-        if (page_table[index] & PGTBL_PTE_VALID_MASK) {
+        if (page_table[index] & PAGE_TABLE_PTE_VALID_MASK) {
             /* Find level0 table */
-            page_table = (arch_pte_t *)(uint64_t)(((page_table[index] & PGTBL_PTE_ADDR_MASK) >> PGTBL_PTE_ADDR_SHIFT) << PGTBL_PAGE_SIZE_SHIFT);
+            page_table =
+                (arch_pte_t *)(uint64_t)(((page_table[index] & PAGE_TABLE_PTE_ADDR_MASK) >> PAGE_TABLE_PTE_ADDR_SHIFT) << PAGE_TABLE_PAGE_SIZE_SHIFT);
         } else {
             /* Allocate new level0 table */
-            if (entry->page_table_count == PGTBL_INITIAL_COUNT) {
+            if (entry->page_table_count == PAGE_TABLE_INITIAL_COUNT) {
                 while (1)
                     ; /* No initial table available */
             }
 
-            for (i = 0; i < PGTBL_ENTCNT; i++) {
+            for (i = 0; i < PAGE_TABLE_ENTCNT; i++) {
                 entry->next_page_table[i] = 0x0ULL;
             }
 
             entry->page_table_count++;
             page_table[index] = (virtual_addr_t)entry->next_page_table;
-            page_table[index] = page_table[index] >> PGTBL_PAGE_SIZE_SHIFT;
-            page_table[index] = page_table[index] << PGTBL_PTE_ADDR_SHIFT;
-            page_table[index] |= PGTBL_PTE_VALID_MASK;
+            page_table[index] = page_table[index] >> PAGE_TABLE_PAGE_SIZE_SHIFT;
+            page_table[index] = page_table[index] << PAGE_TABLE_PTE_ADDR_SHIFT;
+            page_table[index] |= PAGE_TABLE_PTE_VALID_MASK;
             page_table = entry->next_page_table;
-            entry->next_page_table += PGTBL_ENTCNT;
+            entry->next_page_table += PAGE_TABLE_ENTCNT;
         }
 
     skip_level1:
 
         /* Setup level0 table */
-        index = (page_addr & PGTBL_L0_INDEX_MASK) >> PGTBL_L0_INDEX_SHIFT;
+        index = (page_addr & PAGE_TABLE_L0_INDEX_MASK) >> PAGE_TABLE_L0_INDEX_SHIFT;
 
-        if (!(page_table[index] & PGTBL_PTE_VALID_MASK)) {
+        if (!(page_table[index] & PAGE_TABLE_PTE_VALID_MASK)) {
             /* Update level0 table */
             page_table[index] = (page_addr - map_start) + pa_start;
-            page_table[index] = page_table[index] >> PGTBL_PAGE_SIZE_SHIFT;
-            page_table[index] = page_table[index] << PGTBL_PTE_ADDR_SHIFT;
-            page_table[index] |= PGTBL_PTE_ACCESSED_MASK;
-            page_table[index] |= PGTBL_PTE_DIRTY_MASK;
-            page_table[index] |= PGTBL_PTE_EXECUTE_MASK;
-            page_table[index] |= (writeable) ? PGTBL_PTE_WRITE_MASK : 0;
-            page_table[index] |= PGTBL_PTE_READ_MASK;
-            page_table[index] |= PGTBL_PTE_VALID_MASK;
+            page_table[index] = page_table[index] >> PAGE_TABLE_PAGE_SIZE_SHIFT;
+            page_table[index] = page_table[index] << PAGE_TABLE_PTE_ADDR_SHIFT;
+            page_table[index] |= PAGE_TABLE_PTE_ACCESSED_MASK;
+            page_table[index] |= PAGE_TABLE_PTE_DIRTY_MASK;
+            page_table[index] |= PAGE_TABLE_PTE_EXECUTE_MASK;
+            page_table[index] |= (writeable) ? PAGE_TABLE_PTE_WRITE_MASK : 0;
+            page_table[index] |= PAGE_TABLE_PTE_READ_MASK;
+            page_table[index] |= PAGE_TABLE_PTE_VALID_MASK;
         }
 
         /* Point to next page */
-        page_addr += PGTBL_L0_BLOCK_SIZE;
+        page_addr += PAGE_TABLE_L0_BLOCK_SIZE;
     }
 }
 
@@ -224,21 +228,21 @@ void __attribute__((section(".entry"))) __setup_initial_page_table(
  * Note: This functions cannot refer to any global variable &
  * functions to ensure that it can execute from anywhere.
  */
-#define to_load_pa(va)                               \
-    ({                                               \
-        virtual_addr_t _tva = (va);                  \
-        if (exec_start <= _tva && _tva < exec_end) { \
-            _tva = _tva - exec_start + load_start;   \
-        }                                            \
-        _tva;                                        \
+#define to_load_pa(va)                                                                                                                               \
+    ({                                                                                                                                               \
+        virtual_addr_t _tva = (va);                                                                                                                  \
+        if (exec_start <= _tva && _tva < exec_end) {                                                                                                 \
+            _tva = _tva - exec_start + load_start;                                                                                                   \
+        }                                                                                                                                            \
+        _tva;                                                                                                                                        \
     })
-#define to_exec_va(va)                               \
-    ({                                               \
-        virtual_addr_t _tva = (va);                  \
-        if (load_start <= _tva && _tva < load_end) { \
-            _tva = _tva - load_start + exec_start;   \
-        }                                            \
-        _tva;                                        \
+#define to_exec_va(va)                                                                                                                               \
+    ({                                                                                                                                               \
+        virtual_addr_t _tva = (va);                                                                                                                  \
+        if (load_start <= _tva && _tva < load_end) {                                                                                                 \
+            _tva = _tva - load_start + exec_start;                                                                                                   \
+        }                                                                                                                                            \
+        _tva;                                                                                                                                        \
     })
 
 #define SECTION_START(SECTION)      _##SECTION##_start
@@ -247,8 +251,8 @@ void __attribute__((section(".entry"))) __setup_initial_page_table(
 #define SECTION_ADDR_START(SECTION) (virtual_addr_t) & SECTION_START(SECTION)
 #define SECTION_ADDR_END(SECTION)   (virtual_addr_t) & SECTION_END(SECTION)
 
-#define DECLARE_SECTION(SECTION)                  \
-    extern virtual_addr_t SECTION_START(SECTION); \
+#define DECLARE_SECTION(SECTION)                                                                                                                     \
+    extern virtual_addr_t SECTION_START(SECTION);                                                                                                    \
     extern virtual_addr_t SECTION_END(SECTION)
 
 DECLARE_SECTION(text);
@@ -257,8 +261,8 @@ DECLARE_SECTION(cpuinit);
 DECLARE_SECTION(spinlock);
 DECLARE_SECTION(rodata);
 
-#define SETUP_RO_SECTION(ENTRY, SECTION) \
-    __setup_initial_page_table(          \
+#define SETUP_RO_SECTION(ENTRY, SECTION)                                                                                                             \
+    __setup_initial_page_table(                                                                                                                      \
         &(ENTRY), to_exec_va(SECTION_ADDR_START(SECTION)), to_exec_va(SECTION_ADDR_END(SECTION)), to_load_pa(SECTION_ADDR_START(SECTION)), FALSE)
 
 void __attribute__((section(".entry"))) __detect_page_table_mode(
@@ -270,22 +274,22 @@ void __attribute__((section(".entry"))) __detect_page_table_mode(
     arch_pte_t *page_table = (arch_pte_t *)to_load_pa((virtual_addr_t)&stage1_page_table_root);
 
     /* Clear page table memory */
-    for (i = 0; i < PGTBL_ROOT_ENTCNT; i++) {
+    for (i = 0; i < PAGE_TABLE_ROOT_ENTCNT; i++) {
         page_table[i] = 0x0ULL;
     }
 
     /* Try Sv57 MMU mode */
-    index             = (load_start & PGTBL_L4_INDEX_MASK) >> PGTBL_L4_INDEX_SHIFT;
-    page_table[index] = load_start & PGTBL_L4_MAP_MASK;
-    page_table[index] = page_table[index] >> PGTBL_PAGE_SIZE_SHIFT;
-    page_table[index] = page_table[index] << PGTBL_PTE_ADDR_SHIFT;
-    page_table[index] |= PGTBL_PTE_ACCESSED_MASK;
-    page_table[index] |= PGTBL_PTE_DIRTY_MASK;
-    page_table[index] |= PGTBL_PTE_EXECUTE_MASK;
-    page_table[index] |= PGTBL_PTE_WRITE_MASK;
-    page_table[index] |= PGTBL_PTE_READ_MASK;
-    page_table[index] |= PGTBL_PTE_VALID_MASK;
-    satp = (uint64_t)page_table >> PGTBL_PAGE_SIZE_SHIFT;
+    index             = (load_start & PAGE_TABLE_L4_INDEX_MASK) >> PAGE_TABLE_L4_INDEX_SHIFT;
+    page_table[index] = load_start & PAGE_TABLE_L4_MAP_MASK;
+    page_table[index] = page_table[index] >> PAGE_TABLE_PAGE_SIZE_SHIFT;
+    page_table[index] = page_table[index] << PAGE_TABLE_PTE_ADDR_SHIFT;
+    page_table[index] |= PAGE_TABLE_PTE_ACCESSED_MASK;
+    page_table[index] |= PAGE_TABLE_PTE_DIRTY_MASK;
+    page_table[index] |= PAGE_TABLE_PTE_EXECUTE_MASK;
+    page_table[index] |= PAGE_TABLE_PTE_WRITE_MASK;
+    page_table[index] |= PAGE_TABLE_PTE_READ_MASK;
+    page_table[index] |= PAGE_TABLE_PTE_VALID_MASK;
+    satp = (uint64_t)page_table >> PAGE_TABLE_PAGE_SIZE_SHIFT;
     satp |= SATP_MODE_SV57 << SATP_MODE_SHIFT;
     __sfence_vma_all();
     csr_write(CSR_SATP, satp);
@@ -296,7 +300,7 @@ void __attribute__((section(".entry"))) __detect_page_table_mode(
     }
 
     /* Cleanup and disable MMU */
-    for (i = 0; i < PGTBL_ROOT_ENTCNT; i++) {
+    for (i = 0; i < PAGE_TABLE_ROOT_ENTCNT; i++) {
         page_table[i] = 0x0ULL;
     }
 
@@ -304,22 +308,22 @@ void __attribute__((section(".entry"))) __detect_page_table_mode(
     __sfence_vma_all();
 
     /* Clear page table memory */
-    for (i = 0; i < PGTBL_ROOT_ENTCNT; i++) {
+    for (i = 0; i < PAGE_TABLE_ROOT_ENTCNT; i++) {
         page_table[i] = 0x0ULL;
     }
 
     /* Try Sv48 MMU mode */
-    index             = (load_start & PGTBL_L3_INDEX_MASK) >> PGTBL_L3_INDEX_SHIFT;
-    page_table[index] = load_start & PGTBL_L3_MAP_MASK;
-    page_table[index] = page_table[index] >> PGTBL_PAGE_SIZE_SHIFT;
-    page_table[index] = page_table[index] << PGTBL_PTE_ADDR_SHIFT;
-    page_table[index] |= PGTBL_PTE_ACCESSED_MASK;
-    page_table[index] |= PGTBL_PTE_DIRTY_MASK;
-    page_table[index] |= PGTBL_PTE_EXECUTE_MASK;
-    page_table[index] |= PGTBL_PTE_WRITE_MASK;
-    page_table[index] |= PGTBL_PTE_READ_MASK;
-    page_table[index] |= PGTBL_PTE_VALID_MASK;
-    satp = (uint64_t)page_table >> PGTBL_PAGE_SIZE_SHIFT;
+    index             = (load_start & PAGE_TABLE_L3_INDEX_MASK) >> PAGE_TABLE_L3_INDEX_SHIFT;
+    page_table[index] = load_start & PAGE_TABLE_L3_MAP_MASK;
+    page_table[index] = page_table[index] >> PAGE_TABLE_PAGE_SIZE_SHIFT;
+    page_table[index] = page_table[index] << PAGE_TABLE_PTE_ADDR_SHIFT;
+    page_table[index] |= PAGE_TABLE_PTE_ACCESSED_MASK;
+    page_table[index] |= PAGE_TABLE_PTE_DIRTY_MASK;
+    page_table[index] |= PAGE_TABLE_PTE_EXECUTE_MASK;
+    page_table[index] |= PAGE_TABLE_PTE_WRITE_MASK;
+    page_table[index] |= PAGE_TABLE_PTE_READ_MASK;
+    page_table[index] |= PAGE_TABLE_PTE_VALID_MASK;
+    satp = (uint64_t)page_table >> PAGE_TABLE_PAGE_SIZE_SHIFT;
     satp |= SATP_MODE_SV48 << SATP_MODE_SHIFT;
     __sfence_vma_all();
     csr_write(CSR_SATP, satp);
@@ -331,7 +335,7 @@ void __attribute__((section(".entry"))) __detect_page_table_mode(
 skip_sv48_test:
 
     /* Cleanup and disable MMU */
-    for (i = 0; i < PGTBL_ROOT_ENTCNT; i++) {
+    for (i = 0; i < PAGE_TABLE_ROOT_ENTCNT; i++) {
         page_table[i] = 0x0ULL;
     }
 
@@ -400,7 +404,7 @@ void __attribute__((section(".entry"))) _setup_initial_page_table(
     /* Init root page_table */
     root_page_table       = (arch_pte_t *)entry.page_table_base;
 
-    for (i = 0; i < PGTBL_ROOT_ENTCNT; i++) {
+    for (i = 0; i < PAGE_TABLE_ROOT_ENTCNT; i++) {
         root_page_table[i] = 0x0ULL;
     }
 
@@ -410,7 +414,7 @@ void __attribute__((section(".entry"))) _setup_initial_page_table(
      */
     default_terminal_early_va = to_exec_va((virtual_addr_t)&default_terminal_early_base);
     __setup_initial_page_table(
-        &entry, default_terminal_early_va, default_terminal_early_va + PGTBL_L0_BLOCK_SIZE, CONFIG_ARCH_GENERIC_DEFTERM_EARLY_BASE_PA, TRUE);
+        &entry, default_terminal_early_va, default_terminal_early_va + PAGE_TABLE_L0_BLOCK_SIZE, CONFIG_ARCH_GENERIC_DEFTERM_EARLY_BASE_PA, TRUE);
 #endif
 
     /* Map to logical addresses which are
@@ -430,11 +434,11 @@ void __attribute__((section(".entry"))) _setup_initial_page_table(
     __setup_initial_page_table(&entry, exec_start, exec_end, load_start, TRUE);
 
     /* Compute and save device_tree addresses */
-    *dt_phys_base = dtb_start & PGTBL_L0_MAP_MASK;
+    *dt_phys_base = dtb_start & PAGE_TABLE_L0_MAP_MASK;
     *dt_virt_base = exec_start - _fdt_size(dtb_start);
-    *dt_virt_base &= PGTBL_L0_MAP_MASK;
+    *dt_virt_base &= PAGE_TABLE_L0_MAP_MASK;
     *dt_virt_size = exec_start - *dt_virt_base;
-    *dt_virt      = *dt_virt_base + (dtb_start & (PGTBL_L0_BLOCK_SIZE - 1));
+    *dt_virt      = *dt_virt_base + (dtb_start & (PAGE_TABLE_L0_BLOCK_SIZE - 1));
 
     /* Map device tree */
     __setup_initial_page_table(&entry, *dt_virt_base, *dt_virt_base + *dt_virt_size, *dt_phys_base, TRUE);

@@ -7,25 +7,25 @@
 #include <config.h>
 #include <stdlib.h>
 
-#define FAIL_RET() \
-    do {           \
-        fail();    \
-        return;    \
+#define FAIL_RET()                                                                                                                                   \
+    do {                                                                                                                                             \
+        fail();                                                                                                                                      \
+        return;                                                                                                                                      \
     } while (0)
 #define EXPECT(x) fail_unless(x)
-#define EXPECT_RET(x)   \
-    do {                \
-        fail_unless(x); \
-        if (!(x)) {     \
-            return;     \
-        }               \
+#define EXPECT_RET(x)                                                                                                                                \
+    do {                                                                                                                                             \
+        fail_unless(x);                                                                                                                              \
+        if (!(x)) {                                                                                                                                  \
+            return;                                                                                                                                  \
+        }                                                                                                                                            \
     } while (0)
-#define EXPECT_RETX(x, y) \
-    do {                  \
-        fail_unless(x);   \
-        if (!(x)) {       \
-            return y;     \
-        }                 \
+#define EXPECT_RETX(x, y)                                                                                                                            \
+    do {                                                                                                                                             \
+        fail_unless(x);                                                                                                                              \
+        if (!(x)) {                                                                                                                                  \
+            return y;                                                                                                                                \
+        }                                                                                                                                            \
     } while (0)
 #define EXPECT_RETNULL(x) EXPECT_RETX(x, NULL)
 

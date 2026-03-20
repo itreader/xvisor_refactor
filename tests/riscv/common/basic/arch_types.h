@@ -28,7 +28,7 @@ typedef short          int16_t;
 typedef int            int32_t;
 typedef unsigned char  uint8_t;
 typedef unsigned short uint16_t;
-typedef uint32_t       uint32_t;
+typedef unsigned int   uint32_t;
 typedef uint64_t       size_t;
 typedef uint32_t bool;
 typedef uint64_t ulong;
@@ -97,14 +97,14 @@ struct pt_regs {
     uint64_t sstatus;
 } __attribute((packed));
 
-#define _swab32(x)                                                                                                 \
-    ((uint32_t)((((uint32_t)(x) & (uint32_t)0x000000ffU) << 24) | (((uint32_t)(x) & (uint32_t)0x0000ff00U) << 8) | \
+#define _swab32(x)                                                                                                                                   \
+    ((uint32_t)((((uint32_t)(x) & (uint32_t)0x000000ffU) << 24) | (((uint32_t)(x) & (uint32_t)0x0000ff00U) << 8) |                                   \
                 (((uint32_t)(x) & (uint32_t)0x00ff0000U) >> 8) | (((uint32_t)(x) & (uint32_t)0xff000000U) >> 24)))
 
-#define _swab64(x)                                                                                                                      \
-    ((uint64_t)((((uint64_t)(x) & (uint64_t)0x00000000000000ffULL) << 56) | (((uint64_t)(x) & (uint64_t)0x000000000000ff00ULL) << 40) | \
-                (((uint64_t)(x) & (uint64_t)0x0000000000ff0000ULL) << 24) | (((uint64_t)(x) & (uint64_t)0x00000000ff000000ULL) << 8) |  \
-                (((uint64_t)(x) & (uint64_t)0x000000ff00000000ULL) >> 8) | (((uint64_t)(x) & (uint64_t)0x0000ff0000000000ULL) >> 24) |  \
+#define _swab64(x)                                                                                                                                   \
+    ((uint64_t)((((uint64_t)(x) & (uint64_t)0x00000000000000ffULL) << 56) | (((uint64_t)(x) & (uint64_t)0x000000000000ff00ULL) << 40) |              \
+                (((uint64_t)(x) & (uint64_t)0x0000000000ff0000ULL) << 24) | (((uint64_t)(x) & (uint64_t)0x00000000ff000000ULL) << 8) |               \
+                (((uint64_t)(x) & (uint64_t)0x000000ff00000000ULL) >> 8) | (((uint64_t)(x) & (uint64_t)0x0000ff0000000000ULL) >> 24) |               \
                 (((uint64_t)(x) & (uint64_t)0x00ff000000000000ULL) >> 40) | (((uint64_t)(x) & (uint64_t)0xff00000000000000ULL) >> 56)))
 
 #define cpu_to_be32(x)  _swab32(x)

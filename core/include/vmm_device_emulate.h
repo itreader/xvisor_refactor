@@ -67,25 +67,25 @@ int vmm_device_emulate_simple_write8(vmm_emulate_device_t *edev, physical_addr_t
 int vmm_device_emulate_simple_write16(vmm_emulate_device_t *edev, physical_addr_t offset, uint16_t src);
 int vmm_device_emulate_simple_write32(vmm_emulate_device_t *edev, physical_addr_t offset, uint32_t src);
 
-#define VMM_DECLARE_EMULATOR_SIMPLE(EMU, NAME, MATCH, ENDIAN, PROBE, REMOVE, RESET, SYNC, READ, WRITE) \
-    static vmm_emulator_t EMU = {                                                                      \
-        .name         = NAME,                                                                          \
-        .match_table  = MATCH,                                                                         \
-        .endian       = ENDIAN,                                                                        \
-        .probe        = PROBE,                                                                         \
-        .reset        = RESET,                                                                         \
-        .sync         = SYNC,                                                                          \
-        .remove       = REMOVE,                                                                        \
-        .read8        = vmm_device_emulate_simple_read8,                                               \
-        .write8       = vmm_device_emulate_simple_write8,                                              \
-        .read16       = vmm_device_emulate_simple_read16,                                              \
-        .write16      = vmm_device_emulate_simple_write16,                                             \
-        .read32       = vmm_device_emulate_simple_read32,                                              \
-        .write32      = vmm_device_emulate_simple_write32,                                             \
-        .read64       = NULL,                                                                          \
-        .write64      = NULL,                                                                          \
-        .read_simple  = READ,                                                                          \
-        .write_simple = WRITE,                                                                         \
+#define VMM_DECLARE_EMULATOR_SIMPLE(EMU, NAME, MATCH, ENDIAN, PROBE, REMOVE, RESET, SYNC, READ, WRITE)                                               \
+    static vmm_emulator_t EMU = {                                                                                                                    \
+        .name         = NAME,                                                                                                                        \
+        .match_table  = MATCH,                                                                                                                       \
+        .endian       = ENDIAN,                                                                                                                      \
+        .probe        = PROBE,                                                                                                                       \
+        .reset        = RESET,                                                                                                                       \
+        .sync         = SYNC,                                                                                                                        \
+        .remove       = REMOVE,                                                                                                                      \
+        .read8        = vmm_device_emulate_simple_read8,                                                                                             \
+        .write8       = vmm_device_emulate_simple_write8,                                                                                            \
+        .read16       = vmm_device_emulate_simple_read16,                                                                                            \
+        .write16      = vmm_device_emulate_simple_write16,                                                                                           \
+        .read32       = vmm_device_emulate_simple_read32,                                                                                            \
+        .write32      = vmm_device_emulate_simple_write32,                                                                                           \
+        .read64       = NULL,                                                                                                                        \
+        .write64      = NULL,                                                                                                                        \
+        .read_simple  = READ,                                                                                                                        \
+        .write_simple = WRITE,                                                                                                                       \
     }
 
 struct vmm_emulate_device {

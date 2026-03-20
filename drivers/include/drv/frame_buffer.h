@@ -708,8 +708,8 @@ struct fb_tile_ops {
 #define FBINFO_HWACCEL_YPAN      0x2000   /* optional */
 #define FBINFO_HWACCEL_YWRAP     0x4000   /* optional */
 
-#define FBINFO_MISC_USEREVENT                              \
-    0x10000                               /* event request \
+#define FBINFO_MISC_USEREVENT                                                                                                                        \
+    0x10000                               /* event request                                                                                           \
                      from userspace */
 #define FBINFO_MISC_TILEBLITTING  0x20000 /* use tile blitting */
 

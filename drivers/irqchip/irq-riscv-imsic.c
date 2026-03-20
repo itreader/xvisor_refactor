@@ -48,30 +48,30 @@
 #define IMSIC_DISABLE_EITHRESHOLD 1
 #define IMSIC_ENABLE_EITHRESHOLD  0
 
-#define imsic_csr_write(__c, __v)     \
-    do {                              \
-        csr_write(CSR_SISELECT, __c); \
-        csr_write(CSR_SIREG, __v);    \
+#define imsic_csr_write(__c, __v)                                                                                                                    \
+    do {                                                                                                                                             \
+        csr_write(CSR_SISELECT, __c);                                                                                                                \
+        csr_write(CSR_SIREG, __v);                                                                                                                   \
     } while (0)
 
-#define imsic_csr_read(__c)           \
-    ({                                \
-        uint64_t __v;                 \
-        csr_write(CSR_SISELECT, __c); \
-        __v = csr_read(CSR_SIREG);    \
-        __v;                          \
+#define imsic_csr_read(__c)                                                                                                                          \
+    ({                                                                                                                                               \
+        uint64_t __v;                                                                                                                                \
+        csr_write(CSR_SISELECT, __c);                                                                                                                \
+        __v = csr_read(CSR_SIREG);                                                                                                                   \
+        __v;                                                                                                                                         \
     })
 
-#define imsic_csr_set(__c, __v)       \
-    do {                              \
-        csr_write(CSR_SISELECT, __c); \
-        csr_set(CSR_SIREG, __v);      \
+#define imsic_csr_set(__c, __v)                                                                                                                      \
+    do {                                                                                                                                             \
+        csr_write(CSR_SISELECT, __c);                                                                                                                \
+        csr_set(CSR_SIREG, __v);                                                                                                                     \
     } while (0)
 
-#define imsic_csr_clear(__c, __v)     \
-    do {                              \
-        csr_write(CSR_SISELECT, __c); \
-        csr_clear(CSR_SIREG, __v);    \
+#define imsic_csr_clear(__c, __v)                                                                                                                    \
+    do {                                                                                                                                             \
+        csr_write(CSR_SISELECT, __c);                                                                                                                \
+        csr_clear(CSR_SIREG, __v);                                                                                                                   \
     } while (0)
 
 struct imsic_mmio {
@@ -218,8 +218,7 @@ static void imsic_id_set_target(struct imsic_priv *private, uint32_t id, uint32_
     irq_flags_t flags;
 
     vmm_spin_lock_irq_save_lite(&private->ids_lock, flags);
-  private
-    ->ids_target_cpu[id] = target_cpu;
+    private->ids_target_cpu[id] = target_cpu;
     vmm_spin_unlock_irq_restore_lite(&private->ids_lock, flags);
 }
 
@@ -402,16 +401,14 @@ static int __init imsic_ids_init(struct imsic_priv *private)
     INIT_SPIN_LOCK(&private->ids_lock);
 
     /* Allocate used bitmap */
-  private
-    ->ids_used_bimap = vmm_calloc(BITS_TO_LONGS(global->nr_ids + 1), sizeof(uint64_t));
+    private->ids_used_bimap = vmm_calloc(BITS_TO_LONGS(global->nr_ids + 1), sizeof(uint64_t));
 
     if (!private->ids_used_bimap) {
         return VMM_ENOMEM;
     }
 
     /* Allocate enabled bitmap */
-  private
-    ->ids_enabled_bimap = vmm_calloc(BITS_TO_LONGS(global->nr_ids + 1), sizeof(uint64_t));
+    private->ids_enabled_bimap = vmm_calloc(BITS_TO_LONGS(global->nr_ids + 1), sizeof(uint64_t));
 
     if (!private->ids_enabled_bimap) {
         vmm_free(private->ids_used_bimap);
@@ -419,8 +416,7 @@ static int __init imsic_ids_init(struct imsic_priv *private)
     }
 
     /* Allocate target CPU array */
-  private
-    ->ids_target_cpu = vmm_calloc(global->nr_ids + 1, sizeof(uint32_t));
+    private->ids_target_cpu = vmm_calloc(global->nr_ids + 1, sizeof(uint32_t));
 
     if (!private->ids_target_cpu) {
         vmm_free(private->ids_enabled_bimap);
@@ -429,8 +425,7 @@ static int __init imsic_ids_init(struct imsic_priv *private)
     }
 
     for (i = 0; i <= global->nr_ids; i++) {
-      private
-        ->ids_target_cpu[i] = UINT_MAX;
+        private->ids_target_cpu[i] = UINT_MAX;
     }
 
     /* Reserve ID#0 because it is special and never implemented */
@@ -531,15 +526,13 @@ static int __init imsic_ipi_domain_init(struct imsic_priv *private)
         return virq;
     }
 
-  private
-    ->ipi_id = virq;
+    private->ipi_id = virq;
 
     /* Reserve interrupt identity for IPI */
     bitmap_set(private->ids_used_bimap, private->ipi_id, 1);
 
     /* Create IMSIC IPI domain */
-  private
-    ->ipi_domain = vmm_host_irq_domain_add(NULL, BITS_PER_LONG * 2, 1, &imsic_ipi_domain_ops, private);
+    private->ipi_domain = vmm_host_irq_domain_add(NULL, BITS_PER_LONG * 2, 1, &imsic_ipi_domain_ops, private);
 
     if (!private->ipi_domain) {
         imsic_ids_free(private, private->ipi_id, get_count_order(1));
@@ -566,8 +559,7 @@ skip_ipi:
         return virq;
     }
 
-  private
-    ->ipi_lsync_id = virq;
+    private->ipi_lsync_id = virq;
 
     return VMM_OK;
 }
@@ -586,10 +578,8 @@ static void imsic_ipi_disable(struct imsic_priv *private) {}
 static int __init imsic_ipi_domain_init(struct imsic_priv *private)
 {
     /* Clear the IPI ids because we are not using IPIs */
-  private
-    ->ipi_id = 0;
-  private
-    ->ipi_lsync_id = 0;
+    private->ipi_id       = 0;
+    private->ipi_lsync_id = 0;
     return VMM_OK;
 }
 
@@ -713,16 +703,14 @@ static struct vmm_msi_domain_ops imsic_plat_domain_ops = {};
 static int __init imsic_irq_domains_init(struct imsic_priv *private, vmm_device_tree_node_t *node)
 {
     /* Create Base IRQ domain */
-  private
-    ->base_domain = vmm_host_irq_domain_add(node, -1, private->global.nr_ids + 1, &imsic_base_domain_ops, private);
+    private->base_domain = vmm_host_irq_domain_add(node, -1, private->global.nr_ids + 1, &imsic_base_domain_ops, private);
 
     if (!private->base_domain) {
         vmm_lerror("imsic", "Failed to create IMSIC base domain\n");
         return VMM_ENOMEM;
     }
 
-  private
-    ->plat_domain = vmm_platform_msi_create_domain(node, &imsic_plat_domain_ops, private->base_domain, VMM_MSI_FLAG_USE_DEF_DOM_OPS, private);
+    private->plat_domain = vmm_platform_msi_create_domain(node, &imsic_plat_domain_ops, private->base_domain, VMM_MSI_FLAG_USE_DEF_DOM_OPS, private);
 
     if (!private->plat_domain) {
         vmm_lerror("imsic", "Failed to create IMSIC platform MSI domain\n");
@@ -842,8 +830,7 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
         return VMM_ENODEV;
     }
 
-  private
-    = vmm_zalloc(sizeof(*private));
+    private = vmm_zalloc(sizeof(*private));
 
     if (!private) {
         return VMM_ENOMEM;
@@ -940,11 +927,10 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
     }
 
     /* Check if IPIs are slow */
-  private
-    ->slow_ipi = vmm_device_tree_getattr(node, "riscv,slow-ipi") ? TRUE : FALSE;
+    private->slow_ipi = vmm_device_tree_getattr(node, "riscv,slow-ipi") ? TRUE : FALSE;
 
     /* Compute base address */
-    rc         = vmm_device_tree_regaddr(node, &global->base_addr, 0);
+    rc                = vmm_device_tree_regaddr(node, &global->base_addr, 0);
 
     if (rc) {
         vmm_lerror(node->name, "first MMIO resource not found\n");
@@ -956,13 +942,11 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
 
     /* Find number of MMIO register sets */
     while (!vmm_device_tree_regaddr(node, &base_addr, private->num_mmios)) {
-      private
-        ->num_mmios++;
+        private->num_mmios++;
     }
 
     /* Allocate MMIO register sets */
-  private
-    ->mmios = vmm_calloc(private->num_mmios, sizeof(*mmio));
+    private->mmios = vmm_calloc(private->num_mmios, sizeof(*mmio));
 
     if (!private->mmios) {
         rc = VMM_ENOMEM;

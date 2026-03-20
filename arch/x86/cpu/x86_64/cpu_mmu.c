@@ -32,8 +32,8 @@
 #include <vmm_stdio.h>
 #include <vmm_types.h>
 
-#define HOST_PGTBL_MAX_TABLE_COUNT (CONFIG_VAPOOL_SIZE_MB << (20 - 3 - PGTBL_TABLE_SIZE_SHIFT))
-#define HOST_PGTBL_MAX_TABLE_SIZE  (HOST_PGTBL_MAX_TABLE_COUNT * PGTBL_TABLE_SIZE)
+#define HOST_PAGE_TABLE_MAX_TABLE_COUNT (CONFIG_VAPOOL_SIZE_MB << (20 - 3 - PAGE_TABLE_SIZE_SHIFT))
+#define HOST_PAGE_TABLE_MAX_TABLE_SIZE  (HOST_PAGE_TABLE_MAX_TABLE_COUNT * PAGE_TABLE_SIZE)
 
 uint64_t __force_order;
 
@@ -48,7 +48,7 @@ extern uint64_t __early_iodev_pages[];
 
 static char      *early_iodev_pages      = (char *)__early_iodev_pages;
 static int        early_iodev_pages_used = 0;
-struct page_table host_page_table_array[HOST_PGTBL_MAX_TABLE_COUNT];
+struct page_table host_page_table_array[HOST_PAGE_TABLE_MAX_TABLE_COUNT];
 
 static char *alloc_iodev_page(void)
 {
@@ -224,19 +224,19 @@ int __delete_bootstrap_page_table_entry(uint64_t va)
     return VMM_OK;
 }
 
-void arch_cpu_aspace_print_info(vmm_char_device_t *cdev)
+void arch_cpu_addr_space_print_info(vmm_char_device_t *cdev)
 {
     /* Nothing to do here. */
 }
 
-uint32_t arch_cpu_aspace_hugepage_log2size(void)
+uint32_t arch_cpu_addr_space_hugepage_log2size(void)
 {
     /* FIXME: hugepage support will be added in-future */
     return PAGE_SHIFT;
 }
 
 /* mmu inline asm routines */
-int arch_cpu_aspace_map(virtual_addr_t page_va, virtual_size_t page_sz, physical_addr_t page_pa, uint32_t mem_flags)
+int arch_cpu_addr_space_map(virtual_addr_t page_va, virtual_size_t page_sz, physical_addr_t page_pa, uint32_t mem_flags)
 {
     union page pg;
 
@@ -261,12 +261,12 @@ int arch_cpu_aspace_map(virtual_addr_t page_va, virtual_size_t page_sz, physical
     return mmu_map_page(&host_page_table_ctl, host_page_table_ctl.base_page_table, page_va, &pg);
 }
 
-int arch_cpu_aspace_unmap(virtual_addr_t page_va)
+int arch_cpu_addr_space_unmap(virtual_addr_t page_va)
 {
     return mmu_unmap_page(&host_page_table_ctl, host_page_table_ctl.base_page_table, page_va);
 }
 
-int arch_cpu_aspace_va2pa(virtual_addr_t va, physical_addr_t *pa)
+int arch_cpu_addr_space_va2pa(virtual_addr_t va, physical_addr_t *pa)
 {
     int        rc;
     union page pg;
@@ -286,24 +286,29 @@ int arch_cpu_aspace_va2pa(virtual_addr_t va, physical_addr_t *pa)
     return VMM_OK;
 }
 
-virtual_addr_t __init arch_cpu_aspace_virtual_address_pool_start(void)
+virtual_addr_t __init arch_cpu_addr_space_virtual_address_pool_start(void)
 {
     return arch_code_vaddr_start();
 }
 
-virtual_size_t __init arch_cpu_aspace_virtual_address_pool_estimate_size(physical_size_t total_ram)
+virtual_size_t __init arch_cpu_addr_space_virtual_address_pool_estimate_size(physical_size_t total_ram)
 {
     return CONFIG_VAPOOL_SIZE_MB << 20;
 }
 
-int __init arch_cpu_aspace_primary_init(
+int __init arch_cpu_addr_space_primary_init(
     physical_addr_t *core_resv_pa, virtual_addr_t *core_resv_va, virtual_size_t *core_resv_sz, physical_addr_t *arch_resv_pa,
     virtual_addr_t *arch_resv_va, virtual_size_t *arch_resv_sz)
 {
-    int                i, t, rc = VMM_EFAIL;
-    virtual_addr_t     va, resv_va   = *core_resv_va;
-    virtual_size_t     size, resv_sz = *core_resv_sz;
-    physical_addr_t    pa, resv_pa   = *core_resv_pa;
+    int                i;
+    int                t;
+    int                rc = VMM_EFAIL;
+    virtual_addr_t     va;
+    virtual_addr_t     resv_va = *core_resv_va;
+    virtual_size_t     size;
+    virtual_size_t     resv_sz = *core_resv_sz;
+    physical_addr_t    pa;
+    physical_addr_t    resv_pa = *core_resv_pa;
     union page        *pg;
     union page         hyppg;
     struct page_table *page_table;
@@ -351,25 +356,25 @@ int __init arch_cpu_aspace_primary_init(
     memset(&host_page_table_ctl, 0, sizeof(host_page_table_ctl));
     memset(host_page_table_array, 0, sizeof(host_page_table_array));
     host_page_table_ctl.page_table_array     = &host_page_table_array[0];
-    host_page_table_ctl.page_table_max_size  = HOST_PGTBL_MAX_TABLE_SIZE;
-    host_page_table_ctl.page_table_max_count = HOST_PGTBL_MAX_TABLE_COUNT;
+    host_page_table_ctl.page_table_max_size  = HOST_PAGE_TABLE_MAX_TABLE_SIZE;
+    host_page_table_ctl.page_table_max_count = HOST_PAGE_TABLE_MAX_TABLE_COUNT;
     *arch_resv_va                            = (resv_va + resv_sz);
     *arch_resv_pa                            = (resv_pa + resv_sz);
     *arch_resv_sz                            = resv_sz;
     host_page_table_ctl.page_table_base_va   = resv_va + resv_sz;
     host_page_table_ctl.page_table_base_pa   = resv_pa + resv_sz;
-    resv_sz += PGTBL_TABLE_SIZE * HOST_PGTBL_MAX_TABLE_COUNT;
+    resv_sz += PAGE_TABLE_SIZE * HOST_PAGE_TABLE_MAX_TABLE_COUNT;
     *arch_resv_sz = resv_sz - *arch_resv_sz;
     INIT_SPIN_LOCK(&host_page_table_ctl.alloc_lock);
     host_page_table_ctl.page_table_alloc_count = 0x0;
     INIT_LIST_HEAD(&host_page_table_ctl.free_page_table_list);
 
-    for (i = 0; i < HOST_PGTBL_MAX_TABLE_COUNT; i++) {
+    for (i = 0; i < HOST_PAGE_TABLE_MAX_TABLE_COUNT; i++) {
         page_table = &host_page_table_ctl.page_table_array[i];
         memset(page_table, 0, sizeof(struct page_table));
-        page_table->table_pa = host_page_table_ctl.page_table_base_pa + i * PGTBL_TABLE_SIZE;
+        page_table->table_pa = host_page_table_ctl.page_table_base_pa + i * PAGE_TABLE_SIZE;
         INIT_SPIN_LOCK(&page_table->table_lock);
-        page_table->table_va = host_page_table_ctl.page_table_base_va + i * PGTBL_TABLE_SIZE;
+        page_table->table_va = host_page_table_ctl.page_table_base_va + i * PAGE_TABLE_SIZE;
         INIT_LIST_HEAD(&page_table->head);
         INIT_LIST_HEAD(&page_table->child_list);
         list_add_tail(&page_table->head, &host_page_table_ctl.free_page_table_list);
@@ -389,7 +394,7 @@ int __init arch_cpu_aspace_primary_init(
     INIT_LIST_HEAD(&page_table->child_list);
     host_page_table_ctl.page_table_alloc_count++;
 
-    for (t = 0; t < PGTBL_TABLE_ENTCNT; t++) {
+    for (t = 0; t < PAGE_TABLE_ENTCNT; t++) {
         pg = &((union page *)page_table->table_va)[t];
 
         if (pg->bits.present) {
@@ -411,7 +416,7 @@ int __init arch_cpu_aspace_primary_init(
     INIT_LIST_HEAD(&page_table->child_list);
     host_page_table_ctl.page_table_alloc_count++;
 
-    for (t = 0; t < PGTBL_TABLE_ENTCNT; t++) {
+    for (t = 0; t < PAGE_TABLE_ENTCNT; t++) {
         pg = &((union page *)page_table->table_va)[t];
 
         if (pg->bits.present) {
@@ -436,7 +441,7 @@ int __init arch_cpu_aspace_primary_init(
     INIT_LIST_HEAD(&page_table->child_list);
     host_page_table_ctl.page_table_alloc_count++;
 
-    for (t = 0; t < PGTBL_TABLE_ENTCNT; t++) {
+    for (t = 0; t < PAGE_TABLE_ENTCNT; t++) {
         pg = &((union page *)page_table->table_va)[t];
 
         if (pg->bits.present) {
@@ -461,7 +466,7 @@ int __init arch_cpu_aspace_primary_init(
     INIT_LIST_HEAD(&page_table->child_list);
     host_page_table_ctl.page_table_alloc_count++;
 
-    for (t = 0; t < PGTBL_TABLE_ENTCNT; t++) {
+    for (t = 0; t < PAGE_TABLE_ENTCNT; t++) {
         pg = &((union page *)page_table->table_va)[t];
 
         if (pg->bits.present) {
@@ -505,7 +510,7 @@ int __init arch_cpu_aspace_primary_init(
      */
     list_for_each_entry(page_table, &host_page_table_ctl.free_page_table_list, head)
     {
-        memset((void *)page_table->table_va, 0, PGTBL_TABLE_SIZE);
+        memset((void *)page_table->table_va, 0, PAGE_TABLE_SIZE);
     }
 
     return VMM_OK;
@@ -514,7 +519,7 @@ mmu_init_error:
     return rc;
 }
 
-int __cpuinit arch_cpu_aspace_secondary_init(void)
+int __cpuinit arch_cpu_addr_space_secondary_init(void)
 {
     /* FIXME: For now nothing to do here. */
     return VMM_OK;

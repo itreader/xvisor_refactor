@@ -101,10 +101,10 @@ static void __init vmx_display_features(void)
 
     vmm_printf("VMX: Supported advanced features:\n");
 
-#define P(p, s)                   \
-    if (p) {                      \
-        vmm_printf(" - %s\n", s); \
-        printed = 1;              \
+#define P(p, s)                                                                                                                                      \
+    if (p) {                                                                                                                                         \
+        vmm_printf(" - %s\n", s);                                                                                                                    \
+        printed = 1;                                                                                                                                 \
     }
     P(cpu_has_vmx_virtualize_apic_accesses, "APIC MMIO access virtualisation");
     P(cpu_has_vmx_tpr_shadow, "APIC TPR shadow");
@@ -632,12 +632,12 @@ void vmx_disable_intercept_for_msr(struct vcpu_hw_context *context, uint32_t msr
     }
 }
 
-#define GUEST_CRx_FILTER(x, __value) \
-    ({                               \
-        uint64_t _v = __value;       \
-        (_v |= vmx_cr##x##_fixed0);  \
-        (_v &= vmx_cr##x##_fixed1);  \
-        (_v);                        \
+#define GUEST_CRx_FILTER(x, __value)                                                                                                                 \
+    ({                                                                                                                                               \
+        uint64_t _v = __value;                                                                                                                       \
+        (_v |= vmx_cr##x##_fixed0);                                                                                                                  \
+        (_v &= vmx_cr##x##_fixed1);                                                                                                                  \
+        (_v);                                                                                                                                        \
     })
 
 #define DB_VECTOR  1

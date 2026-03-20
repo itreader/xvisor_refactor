@@ -50,24 +50,24 @@
 #ifndef ORDER
 
 #if SURFACE_BITS == 8
-#define COPY_PIXEL(s, to, from)      \
-    vmm_surface_write8(s, to, from); \
+#define COPY_PIXEL(s, to, from)                                                                                                                      \
+    vmm_surface_write8(s, to, from);                                                                                                                 \
     to++;
 #elif SURFACE_BITS == 15 || SURFACE_BITS == 16
-#define COPY_PIXEL(s, to, from)                   \
-    vmm_surface_write16(s, (uint16_t *)to, from); \
+#define COPY_PIXEL(s, to, from)                                                                                                                      \
+    vmm_surface_write16(s, (uint16_t *)to, from);                                                                                                    \
     to += 2;
 #elif SURFACE_BITS == 24
-#define COPY_PIXEL(s, to, from)              \
-    vmm_surface_write8(s, to, from);         \
-    to++;                                    \
-    vmm_surface_write8(s, to, (from) >> 8);  \
-    to++;                                    \
-    vmm_surface_write8(s, to, (from) >> 16); \
+#define COPY_PIXEL(s, to, from)                                                                                                                      \
+    vmm_surface_write8(s, to, from);                                                                                                                 \
+    to++;                                                                                                                                            \
+    vmm_surface_write8(s, to, (from) >> 8);                                                                                                          \
+    to++;                                                                                                                                            \
+    vmm_surface_write8(s, to, (from) >> 16);                                                                                                         \
     to++;
 #elif SURFACE_BITS == 32
-#define COPY_PIXEL(s, to, from)                   \
-    vmm_surface_write32(s, (uint32_t *)to, from); \
+#define COPY_PIXEL(s, to, from)                                                                                                                      \
+    vmm_surface_write32(s, (uint32_t *)to, from);                                                                                                    \
     to += 4;
 #else
 #error unknown bit depth

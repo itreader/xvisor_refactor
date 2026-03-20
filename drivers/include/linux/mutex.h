@@ -18,8 +18,8 @@
 #define mutex_lock_nested(x, y) vmm_mutex_lock(x)
 #define mutex_trylock(x)        vmm_mutex_trylock(x)
 #define mutex_unlock(x)         vmm_mutex_unlock(x)
-#define mutex_destroy(x) \
-    do {                 \
+#define mutex_destroy(x)                                                                                                                             \
+    do {                                                                                                                                             \
     } while (0);
 
 #endif /* _LINUX_MUTEX_H_ */

@@ -47,9 +47,9 @@ struct clock_lookup {
     struct clock_hw *clock_hw;
 };
 
-#define CLKDEV_INIT(d, n, c)                \
-    {                                       \
-        .dev_id = d, .con_id = n, .clk = c, \
+#define CLKDEV_INIT(d, n, c)                                                                                                                         \
+    {                                                                                                                                                \
+        .dev_id = d, .con_id = n, .clk = c,                                                                                                          \
     }
 
 struct clock_lookup *clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...) __printf(3, 4);

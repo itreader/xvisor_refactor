@@ -525,7 +525,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
      * This is terribly important because it messes runtime
      * with values greater than 32 bits (e.g. 64-bits integers).
      */
-    arm_regs(vcpu)->sp = vcpu->stack_va + (vcpu->stack_size - ARCH_CACHE_LINE_SIZE);
+    arm_regs(vcpu)->sp = vcpu->stack_virtual_address + (vcpu->stack_size - ARCH_CACHE_LINE_SIZE);
     arm_regs(vcpu)->sp = arm_regs(vcpu)->sp & ~0x7;
 
     if (vcpu->is_normal) {

@@ -21,22 +21,22 @@
 
 #include <vmm_types.h>
 
-#define SLAVE_IRQ_ENCODE(__dest, __dest_mode, __del_mode, __vector, __trigger_mode)                                              \
-    ({                                                                                                                           \
-        uint32_t val;                                                                                                            \
-        val =                                                                                                                    \
-            (((__del_mode & 0x7) << 8) | ((__dest_mode & 0x1) << 9) | ((__trigger_mode & 1) << 10) | ((__vector & 0xff) << 11) | \
-             ((__dest & 0xff) << 19));                                                                                           \
-        val;                                                                                                                     \
+#define SLAVE_IRQ_ENCODE(__dest, __dest_mode, __del_mode, __vector, __trigger_mode)                                                                  \
+    ({                                                                                                                                               \
+        uint32_t val;                                                                                                                                \
+        val =                                                                                                                                        \
+            (((__del_mode & 0x7) << 8) | ((__dest_mode & 0x1) << 9) | ((__trigger_mode & 1) << 10) | ((__vector & 0xff) << 11) |                     \
+             ((__dest & 0xff) << 19));                                                                                                               \
+        val;                                                                                                                                         \
     })
 
-#define SLAVE_IRQ_DECODE(__level, __dest, __dest_mode, __del_mode, __vector, __tmode) \
-    do {                                                                              \
-        __dest      = (((uint32_t)__level >> 19) & 0xff);                             \
-        __vector    = (((uint32_t)__level >> 11) & 0xff);                             \
-        __tmode     = (((uint32_t)__level >> 10) & 0x1);                              \
-        __dest_mode = (((uint32_t)__level >> 9) & 0x1);                               \
-        __del_mode  = (((uint32_t)__level >> 8) & 0x7);                               \
+#define SLAVE_IRQ_DECODE(__level, __dest, __dest_mode, __del_mode, __vector, __tmode)                                                                \
+    do {                                                                                                                                             \
+        __dest      = (((uint32_t)__level >> 19) & 0xff);                                                                                            \
+        __vector    = (((uint32_t)__level >> 11) & 0xff);                                                                                            \
+        __tmode     = (((uint32_t)__level >> 10) & 0x1);                                                                                             \
+        __dest_mode = (((uint32_t)__level >> 9) & 0x1);                                                                                              \
+        __del_mode  = (((uint32_t)__level >> 8) & 0x7);                                                                                              \
     } while (0);
 
 #endif /* _APIC_COMMON_H_ */

@@ -53,11 +53,11 @@ static void set_mono_theme(void)
     dlg.darrow.atr                = A_BOLD;
 }
 
-#define DLG_COLOR(dialog, f, b, h) \
-    do {                           \
-        dlg.dialog.fg = (f);       \
-        dlg.dialog.bg = (b);       \
-        dlg.dialog.hl = (h);       \
+#define DLG_COLOR(dialog, f, b, h)                                                                                                                   \
+    do {                                                                                                                                             \
+        dlg.dialog.fg = (f);                                                                                                                         \
+        dlg.dialog.bg = (b);                                                                                                                         \
+        dlg.dialog.hl = (h);                                                                                                                         \
     } while (0)
 
 static void set_classic_theme(void)

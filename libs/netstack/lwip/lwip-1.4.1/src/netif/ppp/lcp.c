@@ -535,48 +535,48 @@ static void lcp_addci(fsm *f, uint8_t *ucp, int *lenp)
     lcp_options *go        = &lcp_gotoptions[f->unit];
     uint8_t     *start_ucp = ucp;
 
-#define ADDCIVOID(opt, neg)                               \
-    if (neg) {                                            \
-        LCPDEBUG(LOG_INFO, ("lcp_addci: opt=%d\n", opt)); \
-        PUTCHAR(opt, ucp);                                \
-        PUTCHAR(CILEN_VOID, ucp);                         \
+#define ADDCIVOID(opt, neg)                                                                                                                          \
+    if (neg) {                                                                                                                                       \
+        LCPDEBUG(LOG_INFO, ("lcp_addci: opt=%d\n", opt));                                                                                            \
+        PUTCHAR(opt, ucp);                                                                                                                           \
+        PUTCHAR(CILEN_VOID, ucp);                                                                                                                    \
     }
-#define ADDCISHORT(opt, neg, val)                                     \
-    if (neg) {                                                        \
-        LCPDEBUG(LOG_INFO, ("lcp_addci: INT opt=%d %X\n", opt, val)); \
-        PUTCHAR(opt, ucp);                                            \
-        PUTCHAR(CILEN_SHORT, ucp);                                    \
-        PUTSHORT(val, ucp);                                           \
+#define ADDCISHORT(opt, neg, val)                                                                                                                    \
+    if (neg) {                                                                                                                                       \
+        LCPDEBUG(LOG_INFO, ("lcp_addci: INT opt=%d %X\n", opt, val));                                                                                \
+        PUTCHAR(opt, ucp);                                                                                                                           \
+        PUTCHAR(CILEN_SHORT, ucp);                                                                                                                   \
+        PUTSHORT(val, ucp);                                                                                                                          \
     }
-#define ADDCICHAP(opt, neg, val, digest)                               \
-    if (neg) {                                                         \
-        LCPDEBUG(LOG_INFO, ("lcp_addci: CHAP opt=%d %X\n", opt, val)); \
-        PUTCHAR(opt, ucp);                                             \
-        PUTCHAR(CILEN_CHAP, ucp);                                      \
-        PUTSHORT(val, ucp);                                            \
-        PUTCHAR(digest, ucp);                                          \
+#define ADDCICHAP(opt, neg, val, digest)                                                                                                             \
+    if (neg) {                                                                                                                                       \
+        LCPDEBUG(LOG_INFO, ("lcp_addci: CHAP opt=%d %X\n", opt, val));                                                                               \
+        PUTCHAR(opt, ucp);                                                                                                                           \
+        PUTCHAR(CILEN_CHAP, ucp);                                                                                                                    \
+        PUTSHORT(val, ucp);                                                                                                                          \
+        PUTCHAR(digest, ucp);                                                                                                                        \
     }
-#define ADDCILONG(opt, neg, val)                                     \
-    if (neg) {                                                       \
-        LCPDEBUG(LOG_INFO, ("lcp_addci: L opt=%d %lX\n", opt, val)); \
-        PUTCHAR(opt, ucp);                                           \
-        PUTCHAR(CILEN_LONG, ucp);                                    \
-        PUTLONG(val, ucp);                                           \
+#define ADDCILONG(opt, neg, val)                                                                                                                     \
+    if (neg) {                                                                                                                                       \
+        LCPDEBUG(LOG_INFO, ("lcp_addci: L opt=%d %lX\n", opt, val));                                                                                 \
+        PUTCHAR(opt, ucp);                                                                                                                           \
+        PUTCHAR(CILEN_LONG, ucp);                                                                                                                    \
+        PUTLONG(val, ucp);                                                                                                                           \
     }
-#define ADDCILQR(opt, neg, val)                                        \
-    if (neg) {                                                         \
-        LCPDEBUG(LOG_INFO, ("lcp_addci: LQR opt=%d %lX\n", opt, val)); \
-        PUTCHAR(opt, ucp);                                             \
-        PUTCHAR(CILEN_LQR, ucp);                                       \
-        PUTSHORT(PPP_LQR, ucp);                                        \
-        PUTLONG(val, ucp);                                             \
+#define ADDCILQR(opt, neg, val)                                                                                                                      \
+    if (neg) {                                                                                                                                       \
+        LCPDEBUG(LOG_INFO, ("lcp_addci: LQR opt=%d %lX\n", opt, val));                                                                               \
+        PUTCHAR(opt, ucp);                                                                                                                           \
+        PUTCHAR(CILEN_LQR, ucp);                                                                                                                     \
+        PUTSHORT(PPP_LQR, ucp);                                                                                                                      \
+        PUTLONG(val, ucp);                                                                                                                           \
     }
-#define ADDCICHAR(opt, neg, val)                                                 \
-    if (neg) {                                                                   \
-        LCPDEBUG(LOG_INFO, ("lcp_addci: CHAR opt=%d %X '%z'\n", opt, val, val)); \
-        PUTCHAR(opt, ucp);                                                       \
-        PUTCHAR(CILEN_CHAR, ucp);                                                \
-        PUTCHAR(val, ucp);                                                       \
+#define ADDCICHAR(opt, neg, val)                                                                                                                     \
+    if (neg) {                                                                                                                                       \
+        LCPDEBUG(LOG_INFO, ("lcp_addci: CHAR opt=%d %X '%z'\n", opt, val, val));                                                                     \
+        PUTCHAR(opt, ucp);                                                                                                                           \
+        PUTCHAR(CILEN_CHAR, ucp);                                                                                                                    \
+        PUTCHAR(val, ucp);                                                                                                                           \
     }
 
     ADDCISHORT(CI_MRU, go->neg_mru && go->mru != PPP_DEFMRU, go->mru);
@@ -615,80 +615,80 @@ static int lcp_ackci(fsm *f, uint8_t *p, int len)
      * Check packet length and CI length at each step.
      * If we find any deviations, then this packet is bad.
      */
-#define ACKCIVOID(opt, neg)                       \
-    if (neg) {                                    \
-        if ((len -= CILEN_VOID) < 0)              \
-            goto bad;                             \
-        GETCHAR(citype, p);                       \
-        GETCHAR(cilen, p);                        \
-        if (cilen != CILEN_VOID || citype != opt) \
-            goto bad;                             \
+#define ACKCIVOID(opt, neg)                                                                                                                          \
+    if (neg) {                                                                                                                                       \
+        if ((len -= CILEN_VOID) < 0)                                                                                                                 \
+            goto bad;                                                                                                                                \
+        GETCHAR(citype, p);                                                                                                                          \
+        GETCHAR(cilen, p);                                                                                                                           \
+        if (cilen != CILEN_VOID || citype != opt)                                                                                                    \
+            goto bad;                                                                                                                                \
     }
-#define ACKCISHORT(opt, neg, val)                  \
-    if (neg) {                                     \
-        if ((len -= CILEN_SHORT) < 0)              \
-            goto bad;                              \
-        GETCHAR(citype, p);                        \
-        GETCHAR(cilen, p);                         \
-        if (cilen != CILEN_SHORT || citype != opt) \
-            goto bad;                              \
-        GETSHORT(cishort, p);                      \
-        if (cishort != val)                        \
-            goto bad;                              \
+#define ACKCISHORT(opt, neg, val)                                                                                                                    \
+    if (neg) {                                                                                                                                       \
+        if ((len -= CILEN_SHORT) < 0)                                                                                                                \
+            goto bad;                                                                                                                                \
+        GETCHAR(citype, p);                                                                                                                          \
+        GETCHAR(cilen, p);                                                                                                                           \
+        if (cilen != CILEN_SHORT || citype != opt)                                                                                                   \
+            goto bad;                                                                                                                                \
+        GETSHORT(cishort, p);                                                                                                                        \
+        if (cishort != val)                                                                                                                          \
+            goto bad;                                                                                                                                \
     }
-#define ACKCICHAR(opt, neg, val)                  \
-    if (neg) {                                    \
-        if ((len -= CILEN_CHAR) < 0)              \
-            goto bad;                             \
-        GETCHAR(citype, p);                       \
-        GETCHAR(cilen, p);                        \
-        if (cilen != CILEN_CHAR || citype != opt) \
-            goto bad;                             \
-        GETCHAR(cichar, p);                       \
-        if (cichar != val)                        \
-            goto bad;                             \
+#define ACKCICHAR(opt, neg, val)                                                                                                                     \
+    if (neg) {                                                                                                                                       \
+        if ((len -= CILEN_CHAR) < 0)                                                                                                                 \
+            goto bad;                                                                                                                                \
+        GETCHAR(citype, p);                                                                                                                          \
+        GETCHAR(cilen, p);                                                                                                                           \
+        if (cilen != CILEN_CHAR || citype != opt)                                                                                                    \
+            goto bad;                                                                                                                                \
+        GETCHAR(cichar, p);                                                                                                                          \
+        if (cichar != val)                                                                                                                           \
+            goto bad;                                                                                                                                \
     }
-#define ACKCICHAP(opt, neg, val, digest)          \
-    if (neg) {                                    \
-        if ((len -= CILEN_CHAP) < 0)              \
-            goto bad;                             \
-        GETCHAR(citype, p);                       \
-        GETCHAR(cilen, p);                        \
-        if (cilen != CILEN_CHAP || citype != opt) \
-            goto bad;                             \
-        GETSHORT(cishort, p);                     \
-        if (cishort != val)                       \
-            goto bad;                             \
-        GETCHAR(cichar, p);                       \
-        if (cichar != digest)                     \
-            goto bad;                             \
+#define ACKCICHAP(opt, neg, val, digest)                                                                                                             \
+    if (neg) {                                                                                                                                       \
+        if ((len -= CILEN_CHAP) < 0)                                                                                                                 \
+            goto bad;                                                                                                                                \
+        GETCHAR(citype, p);                                                                                                                          \
+        GETCHAR(cilen, p);                                                                                                                           \
+        if (cilen != CILEN_CHAP || citype != opt)                                                                                                    \
+            goto bad;                                                                                                                                \
+        GETSHORT(cishort, p);                                                                                                                        \
+        if (cishort != val)                                                                                                                          \
+            goto bad;                                                                                                                                \
+        GETCHAR(cichar, p);                                                                                                                          \
+        if (cichar != digest)                                                                                                                        \
+            goto bad;                                                                                                                                \
     }
-#define ACKCILONG(opt, neg, val)                  \
-    if (neg) {                                    \
-        if ((len -= CILEN_LONG) < 0)              \
-            goto bad;                             \
-        GETCHAR(citype, p);                       \
-        GETCHAR(cilen, p);                        \
-        if (cilen != CILEN_LONG || citype != opt) \
-            goto bad;                             \
-        GETLONG(cilong, p);                       \
-        if (cilong != val)                        \
-            goto bad;                             \
+#define ACKCILONG(opt, neg, val)                                                                                                                     \
+    if (neg) {                                                                                                                                       \
+        if ((len -= CILEN_LONG) < 0)                                                                                                                 \
+            goto bad;                                                                                                                                \
+        GETCHAR(citype, p);                                                                                                                          \
+        GETCHAR(cilen, p);                                                                                                                           \
+        if (cilen != CILEN_LONG || citype != opt)                                                                                                    \
+            goto bad;                                                                                                                                \
+        GETLONG(cilong, p);                                                                                                                          \
+        if (cilong != val)                                                                                                                           \
+            goto bad;                                                                                                                                \
     }
-#define ACKCILQR(opt, neg, val)                  \
-    if (neg) {                                   \
-        if ((len -= CILEN_LQR) < 0)              \
-            goto bad;                            \
-        GETCHAR(citype, p);                      \
-        GETCHAR(cilen, p);                       \
-        if (cilen != CILEN_LQR || citype != opt) \
-            goto bad;                            \
-        GETSHORT(cishort, p);                    \
-        if (cishort != PPP_LQR)                  \
-            goto bad;                            \
-        GETLONG(cilong, p);                      \
-        if (cilong != val)                       \
-            goto bad;                            \
+#define ACKCILQR(opt, neg, val)                                                                                                                      \
+    if (neg) {                                                                                                                                       \
+        if ((len -= CILEN_LQR) < 0)                                                                                                                  \
+            goto bad;                                                                                                                                \
+        GETCHAR(citype, p);                                                                                                                          \
+        GETCHAR(cilen, p);                                                                                                                           \
+        if (cilen != CILEN_LQR || citype != opt)                                                                                                     \
+            goto bad;                                                                                                                                \
+        GETSHORT(cishort, p);                                                                                                                        \
+        if (cishort != PPP_LQR)                                                                                                                      \
+            goto bad;                                                                                                                                \
+        GETLONG(cilong, p);                                                                                                                          \
+        if (cilong != val)                                                                                                                           \
+            goto bad;                                                                                                                                \
     }
 
     ACKCISHORT(CI_MRU, go->neg_mru && go->mru != PPP_DEFMRU, go->mru);
@@ -747,54 +747,54 @@ static int lcp_nakci(fsm *f, uint8_t *p, int len)
      * Check packet length and CI length at each step.
      * If we find any deviations, then this packet is bad.
      */
-#define NAKCIVOID(opt, neg, code)                                            \
-    if (go->neg && len >= CILEN_VOID && p[1] == CILEN_VOID && p[0] == opt) { \
-        len -= CILEN_VOID;                                                   \
-        INCPTR(CILEN_VOID, p);                                               \
-        no.neg = 1;                                                          \
-        code                                                                 \
+#define NAKCIVOID(opt, neg, code)                                                                                                                    \
+    if (go->neg && len >= CILEN_VOID && p[1] == CILEN_VOID && p[0] == opt) {                                                                         \
+        len -= CILEN_VOID;                                                                                                                           \
+        INCPTR(CILEN_VOID, p);                                                                                                                       \
+        no.neg = 1;                                                                                                                                  \
+        code                                                                                                                                         \
     }
-#define NAKCICHAP(opt, neg, code)                                            \
-    if (go->neg && len >= CILEN_CHAP && p[1] == CILEN_CHAP && p[0] == opt) { \
-        len -= CILEN_CHAP;                                                   \
-        INCPTR(2, p);                                                        \
-        GETSHORT(cishort, p);                                                \
-        GETCHAR(cichar, p);                                                  \
-        no.neg = 1;                                                          \
-        code                                                                 \
+#define NAKCICHAP(opt, neg, code)                                                                                                                    \
+    if (go->neg && len >= CILEN_CHAP && p[1] == CILEN_CHAP && p[0] == opt) {                                                                         \
+        len -= CILEN_CHAP;                                                                                                                           \
+        INCPTR(2, p);                                                                                                                                \
+        GETSHORT(cishort, p);                                                                                                                        \
+        GETCHAR(cichar, p);                                                                                                                          \
+        no.neg = 1;                                                                                                                                  \
+        code                                                                                                                                         \
     }
-#define NAKCICHAR(opt, neg, code)                                            \
-    if (go->neg && len >= CILEN_CHAR && p[1] == CILEN_CHAR && p[0] == opt) { \
-        len -= CILEN_CHAR;                                                   \
-        INCPTR(2, p);                                                        \
-        GETCHAR(cichar, p);                                                  \
-        no.neg = 1;                                                          \
-        code                                                                 \
+#define NAKCICHAR(opt, neg, code)                                                                                                                    \
+    if (go->neg && len >= CILEN_CHAR && p[1] == CILEN_CHAR && p[0] == opt) {                                                                         \
+        len -= CILEN_CHAR;                                                                                                                           \
+        INCPTR(2, p);                                                                                                                                \
+        GETCHAR(cichar, p);                                                                                                                          \
+        no.neg = 1;                                                                                                                                  \
+        code                                                                                                                                         \
     }
-#define NAKCISHORT(opt, neg, code)                                             \
-    if (go->neg && len >= CILEN_SHORT && p[1] == CILEN_SHORT && p[0] == opt) { \
-        len -= CILEN_SHORT;                                                    \
-        INCPTR(2, p);                                                          \
-        GETSHORT(cishort, p);                                                  \
-        no.neg = 1;                                                            \
-        code                                                                   \
+#define NAKCISHORT(opt, neg, code)                                                                                                                   \
+    if (go->neg && len >= CILEN_SHORT && p[1] == CILEN_SHORT && p[0] == opt) {                                                                       \
+        len -= CILEN_SHORT;                                                                                                                          \
+        INCPTR(2, p);                                                                                                                                \
+        GETSHORT(cishort, p);                                                                                                                        \
+        no.neg = 1;                                                                                                                                  \
+        code                                                                                                                                         \
     }
-#define NAKCILONG(opt, neg, code)                                            \
-    if (go->neg && len >= CILEN_LONG && p[1] == CILEN_LONG && p[0] == opt) { \
-        len -= CILEN_LONG;                                                   \
-        INCPTR(2, p);                                                        \
-        GETLONG(cilong, p);                                                  \
-        no.neg = 1;                                                          \
-        code                                                                 \
+#define NAKCILONG(opt, neg, code)                                                                                                                    \
+    if (go->neg && len >= CILEN_LONG && p[1] == CILEN_LONG && p[0] == opt) {                                                                         \
+        len -= CILEN_LONG;                                                                                                                           \
+        INCPTR(2, p);                                                                                                                                \
+        GETLONG(cilong, p);                                                                                                                          \
+        no.neg = 1;                                                                                                                                  \
+        code                                                                                                                                         \
     }
-#define NAKCILQR(opt, neg, code)                                           \
-    if (go->neg && len >= CILEN_LQR && p[1] == CILEN_LQR && p[0] == opt) { \
-        len -= CILEN_LQR;                                                  \
-        INCPTR(2, p);                                                      \
-        GETSHORT(cishort, p);                                              \
-        GETLONG(cilong, p);                                                \
-        no.neg = 1;                                                        \
-        code                                                               \
+#define NAKCILQR(opt, neg, code)                                                                                                                     \
+    if (go->neg && len >= CILEN_LQR && p[1] == CILEN_LQR && p[0] == opt) {                                                                           \
+        len -= CILEN_LQR;                                                                                                                            \
+        INCPTR(2, p);                                                                                                                                \
+        GETSHORT(cishort, p);                                                                                                                        \
+        GETLONG(cilong, p);                                                                                                                          \
+        no.neg = 1;                                                                                                                                  \
+        code                                                                                                                                         \
     }
 
     /*
@@ -1040,75 +1040,75 @@ static int lcp_rejci(fsm *f, uint8_t *p, int len)
      * Check packet length and CI length at each step.
      * If we find any deviations, then this packet is bad.
      */
-#define REJCIVOID(opt, neg)                                                  \
-    if (go->neg && len >= CILEN_VOID && p[1] == CILEN_VOID && p[0] == opt) { \
-        len -= CILEN_VOID;                                                   \
-        INCPTR(CILEN_VOID, p);                                               \
-        try.neg = 0;                                                         \
-        LCPDEBUG(LOG_INFO, ("lcp_rejci: void opt %d rejected\n", opt));      \
+#define REJCIVOID(opt, neg)                                                                                                                          \
+    if (go->neg && len >= CILEN_VOID && p[1] == CILEN_VOID && p[0] == opt) {                                                                         \
+        len -= CILEN_VOID;                                                                                                                           \
+        INCPTR(CILEN_VOID, p);                                                                                                                       \
+        try.neg = 0;                                                                                                                                 \
+        LCPDEBUG(LOG_INFO, ("lcp_rejci: void opt %d rejected\n", opt));                                                                              \
     }
-#define REJCISHORT(opt, neg, val)                                              \
-    if (go->neg && len >= CILEN_SHORT && p[1] == CILEN_SHORT && p[0] == opt) { \
-        len -= CILEN_SHORT;                                                    \
-        INCPTR(2, p);                                                          \
-        GETSHORT(cishort, p);                                                  \
-        /* Check rejected value. */                                            \
-        if (cishort != val) {                                                  \
-            goto bad;                                                          \
-        }                                                                      \
-        try.neg = 0;                                                           \
-        LCPDEBUG(LOG_INFO, ("lcp_rejci: short opt %d rejected\n", opt));       \
+#define REJCISHORT(opt, neg, val)                                                                                                                    \
+    if (go->neg && len >= CILEN_SHORT && p[1] == CILEN_SHORT && p[0] == opt) {                                                                       \
+        len -= CILEN_SHORT;                                                                                                                          \
+        INCPTR(2, p);                                                                                                                                \
+        GETSHORT(cishort, p);                                                                                                                        \
+        /* Check rejected value. */                                                                                                                  \
+        if (cishort != val) {                                                                                                                        \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        try.neg = 0;                                                                                                                                 \
+        LCPDEBUG(LOG_INFO, ("lcp_rejci: short opt %d rejected\n", opt));                                                                             \
     }
-#define REJCICHAP(opt, neg, val, digest)                                     \
-    if (go->neg && len >= CILEN_CHAP && p[1] == CILEN_CHAP && p[0] == opt) { \
-        len -= CILEN_CHAP;                                                   \
-        INCPTR(2, p);                                                        \
-        GETSHORT(cishort, p);                                                \
-        GETCHAR(cichar, p);                                                  \
-        /* Check rejected value. */                                          \
-        if (cishort != val || cichar != digest) {                            \
-            goto bad;                                                        \
-        }                                                                    \
-        try.neg      = 0;                                                    \
-        try.neg_upap = 0;                                                    \
-        LCPDEBUG(LOG_INFO, ("lcp_rejci: chap opt %d rejected\n", opt));      \
+#define REJCICHAP(opt, neg, val, digest)                                                                                                             \
+    if (go->neg && len >= CILEN_CHAP && p[1] == CILEN_CHAP && p[0] == opt) {                                                                         \
+        len -= CILEN_CHAP;                                                                                                                           \
+        INCPTR(2, p);                                                                                                                                \
+        GETSHORT(cishort, p);                                                                                                                        \
+        GETCHAR(cichar, p);                                                                                                                          \
+        /* Check rejected value. */                                                                                                                  \
+        if (cishort != val || cichar != digest) {                                                                                                    \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        try.neg      = 0;                                                                                                                            \
+        try.neg_upap = 0;                                                                                                                            \
+        LCPDEBUG(LOG_INFO, ("lcp_rejci: chap opt %d rejected\n", opt));                                                                              \
     }
-#define REJCILONG(opt, neg, val)                                             \
-    if (go->neg && len >= CILEN_LONG && p[1] == CILEN_LONG && p[0] == opt) { \
-        len -= CILEN_LONG;                                                   \
-        INCPTR(2, p);                                                        \
-        GETLONG(cilong, p);                                                  \
-        /* Check rejected value. */                                          \
-        if (cilong != val) {                                                 \
-            goto bad;                                                        \
-        }                                                                    \
-        try.neg = 0;                                                         \
-        LCPDEBUG(LOG_INFO, ("lcp_rejci: long opt %d rejected\n", opt));      \
+#define REJCILONG(opt, neg, val)                                                                                                                     \
+    if (go->neg && len >= CILEN_LONG && p[1] == CILEN_LONG && p[0] == opt) {                                                                         \
+        len -= CILEN_LONG;                                                                                                                           \
+        INCPTR(2, p);                                                                                                                                \
+        GETLONG(cilong, p);                                                                                                                          \
+        /* Check rejected value. */                                                                                                                  \
+        if (cilong != val) {                                                                                                                         \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        try.neg = 0;                                                                                                                                 \
+        LCPDEBUG(LOG_INFO, ("lcp_rejci: long opt %d rejected\n", opt));                                                                              \
     }
-#define REJCILQR(opt, neg, val)                                            \
-    if (go->neg && len >= CILEN_LQR && p[1] == CILEN_LQR && p[0] == opt) { \
-        len -= CILEN_LQR;                                                  \
-        INCPTR(2, p);                                                      \
-        GETSHORT(cishort, p);                                              \
-        GETLONG(cilong, p);                                                \
-        /* Check rejected value. */                                        \
-        if (cishort != PPP_LQR || cilong != val) {                         \
-            goto bad;                                                      \
-        }                                                                  \
-        try.neg = 0;                                                       \
-        LCPDEBUG(LOG_INFO, ("lcp_rejci: LQR opt %d rejected\n", opt));     \
+#define REJCILQR(opt, neg, val)                                                                                                                      \
+    if (go->neg && len >= CILEN_LQR && p[1] == CILEN_LQR && p[0] == opt) {                                                                           \
+        len -= CILEN_LQR;                                                                                                                            \
+        INCPTR(2, p);                                                                                                                                \
+        GETSHORT(cishort, p);                                                                                                                        \
+        GETLONG(cilong, p);                                                                                                                          \
+        /* Check rejected value. */                                                                                                                  \
+        if (cishort != PPP_LQR || cilong != val) {                                                                                                   \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        try.neg = 0;                                                                                                                                 \
+        LCPDEBUG(LOG_INFO, ("lcp_rejci: LQR opt %d rejected\n", opt));                                                                               \
     }
-#define REJCICBCP(opt, neg, val)                                             \
-    if (go->neg && len >= CILEN_CBCP && p[1] == CILEN_CBCP && p[0] == opt) { \
-        len -= CILEN_CBCP;                                                   \
-        INCPTR(2, p);                                                        \
-        GETCHAR(cichar, p);                                                  \
-        /* Check rejected value. */                                          \
-        if (cichar != val) {                                                 \
-            goto bad;                                                        \
-        }                                                                    \
-        try.neg = 0;                                                         \
-        LCPDEBUG(LOG_INFO, ("lcp_rejci: Callback opt %d rejected\n", opt));  \
+#define REJCICBCP(opt, neg, val)                                                                                                                     \
+    if (go->neg && len >= CILEN_CBCP && p[1] == CILEN_CBCP && p[0] == opt) {                                                                         \
+        len -= CILEN_CBCP;                                                                                                                           \
+        INCPTR(2, p);                                                                                                                                \
+        GETCHAR(cichar, p);                                                                                                                          \
+        /* Check rejected value. */                                                                                                                  \
+        if (cichar != val) {                                                                                                                         \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        try.neg = 0;                                                                                                                                 \
+        LCPDEBUG(LOG_INFO, ("lcp_rejci: Callback opt %d rejected\n", opt));                                                                          \
     }
 
     REJCISHORT(CI_MRU, neg_mru, go->mru);

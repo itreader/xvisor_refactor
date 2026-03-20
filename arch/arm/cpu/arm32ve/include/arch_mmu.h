@@ -28,35 +28,35 @@
 #include <cpu_cache.h>
 #include <cpu_inline_asm.h>
 
-#define cpu_invalid_ipa_guest_tlb(ipa) \
-    do {                               \
-        inv_tlb_guest_allis();         \
-        dsb(ish);                      \
-        isb();                         \
+#define cpu_invalid_ipa_guest_tlb(ipa)                                                                                                               \
+    do {                                                                                                                                             \
+        inv_tlb_guest_allis();                                                                                                                       \
+        dsb(ish);                                                                                                                                    \
+        isb();                                                                                                                                       \
     } while (0)
 
-#define cpu_invalid_va_hypervisor_tlb(va) \
-    do {                                  \
-        inv_tlb_hyp_mvais((va));          \
-        dsb(ish);                         \
-        isb();                            \
+#define cpu_invalid_va_hypervisor_tlb(va)                                                                                                            \
+    do {                                                                                                                                             \
+        inv_tlb_hyp_mvais((va));                                                                                                                     \
+        dsb(ish);                                                                                                                                    \
+        isb();                                                                                                                                       \
     } while (0)
 
-#define cpu_invalid_all_tlbs() \
-    do {                       \
-        inv_utlb_all();        \
-        dsb(ish);              \
-        isb();                 \
+#define cpu_invalid_all_tlbs()                                                                                                                       \
+    do {                                                                                                                                             \
+        inv_utlb_all();                                                                                                                              \
+        dsb(ish);                                                                                                                                    \
+        isb();                                                                                                                                       \
     } while (0)
 
 #define cpu_stage2_ttable_pa() (read_vttbr() & VTTBR_BADDR_MASK)
 #define cpu_stage2_vmid()      ((read_vttbr() & VTTBR_VMID_MASK) >> VTTBR_VMID_SHIFT)
-#define cpu_stage2_update(ttable_pa, vmid)                                 \
-    do {                                                                   \
-        uint64_t vttbr = 0x0;                                              \
-        vttbr |= ((uint64_t)(vmid) << VTTBR_VMID_SHIFT) & VTTBR_VMID_MASK; \
-        vttbr |= (ttable_pa) & VTTBR_BADDR_MASK;                           \
-        write_vttbr(vttbr);                                                \
+#define cpu_stage2_update(ttable_pa, vmid)                                                                                                           \
+    do {                                                                                                                                             \
+        uint64_t vttbr = 0x0;                                                                                                                        \
+        vttbr |= ((uint64_t)(vmid) << VTTBR_VMID_SHIFT) & VTTBR_VMID_MASK;                                                                           \
+        vttbr |= (ttable_pa) & VTTBR_BADDR_MASK;                                                                                                     \
+        write_vttbr(vttbr);                                                                                                                          \
     } while (0);
 
 static inline void cpu_mmu_sync_tte(uint64_t *tte)

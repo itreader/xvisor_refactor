@@ -17,11 +17,11 @@
 
 /* Runtime PM flag argument bits */
 #define RPM_ASYNC 0x01 /* Request is asynchronous */
-#define RPM_NOWAIT                                  \
-    0x02               /* Don't wait for concurrent \
+#define RPM_NOWAIT                                                                                                                                   \
+    0x02               /* Don't wait for concurrent                                                                                                  \
                state change */
-#define RPM_GET_PUT                               \
-    0x04               /* Increment/decrement the \
+#define RPM_GET_PUT                                                                                                                                  \
+    0x04               /* Increment/decrement the                                                                                                    \
                usage_count */
 #define RPM_AUTO 0x08  /* Use autosuspend_delay */
 

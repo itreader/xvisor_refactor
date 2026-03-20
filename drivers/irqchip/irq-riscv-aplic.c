@@ -396,18 +396,15 @@ static int aplic_setup_lmask_msis(struct aplic_priv *private)
     vmm_cpumask_copy(&private->lmask, cpu_possible_mask);
 
     /* Allocate one APLIC MSI for every IRQ line */
-  private
-    ->msis = vmm_devm_calloc(dev, private->nr_irqs + 1, sizeof(*msi));
+    private->msis = vmm_devm_calloc(dev, private->nr_irqs + 1, sizeof(*msi));
 
     if (!private->msis) {
         return VMM_ENOMEM;
     }
 
     for (i = 0; i <= private->nr_irqs; i++) {
-      private
-        ->msis[i].hw_irq = i;
-      private
-        ->msis[i].private = private;
+        private->msis[i].hw_irq  = i;
+        private->msis[i].private = private;
     }
 
     /* Allocate platform MSIs from parent */
@@ -552,18 +549,16 @@ static int aplic_probe(vmm_device_t *dev)
     physical_addr_t pa;
     int             rc;
 
-  private
-    = vmm_zalloc(sizeof(*private));
+    private = vmm_zalloc(sizeof(*private));
 
     if (!private) {
         return VMM_ENOMEM;
     }
 
     dev->private = private;
-  private
-    ->dev = dev;
+    private->dev = dev;
 
-    rc    = vmm_device_tree_read_u32(node, "riscv,num-sources", &private->nr_irqs);
+    rc           = vmm_device_tree_read_u32(node, "riscv,num-sources", &private->nr_irqs);
 
     if (rc) {
         vmm_lerror(dev->name, "failed to get number of interrupt sources\n");
@@ -577,15 +572,13 @@ static int aplic_probe(vmm_device_t *dev)
         goto free_private;
     }
 
-  private
-    ->regs = (void *)base;
+    private->regs = (void *)base;
 
     /* Setup initial state APLIC interrupts */
     aplic_init_hw_irqs(private);
 
     /* Setup IDCs or MSIs based on parent interrupts in DT node */
-  private
-    ->nr_idcs = vmm_device_tree_irq_count(node);
+    private->nr_idcs = vmm_device_tree_irq_count(node);
 
     if (private->nr_idcs) {
         rc = aplic_setup_lmask_idcs(private);
@@ -602,8 +595,7 @@ static int aplic_probe(vmm_device_t *dev)
     aplic_init_hw_global(private);
 
     /* Add irq domain instance for the APLIC */
-  private
-    ->irq_domain = vmm_host_irq_domain_add(node, -1, private->nr_irqs + 1, &aplic_irq_domain_ops, private);
+    private->irq_domain = vmm_host_irq_domain_add(node, -1, private->nr_irqs + 1, &aplic_irq_domain_ops, private);
 
     if (!private->irq_domain) {
         vmm_lerror(dev->name, "failed to add irq_domain\n");

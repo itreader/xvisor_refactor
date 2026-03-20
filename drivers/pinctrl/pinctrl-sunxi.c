@@ -543,7 +543,7 @@ static struct gpio_chip sunxi_pinctrl_gpio_chip = {
 static int sunxi_pinctrl_irq_set_type(
     struct irq_data *d,
 #if 0
-                                      uint32_t type)
+    uint32_t type)
 #else
     uint32_t type)
 #endif
@@ -667,7 +667,7 @@ static void sunxi_pinctrl_irq_unmask(struct irq_data *d)
     func = sunxi_pinctrl_desc_find_function_by_pin(
         pctl,
 #if 0
-            pctl->irq_array[d->hwirq],
+               pctl->irq_array[d->hwirq],
 #else
         pctl->irq_array[d->num - pctl->irq_start],
 #endif

@@ -50,9 +50,9 @@ struct plat_sci_reg {
 };
 
 /* Helper for invalidating specific entries of an inherited map. */
-#define sci_reg_invalid        \
-    {                          \
-        .offset = 0, .size = 0 \
+#define sci_reg_invalid                                                                                                                              \
+    {                                                                                                                                                \
+        .offset = 0, .size = 0                                                                                                                       \
     }
 
 static const struct plat_sci_reg sci_regmap[SCIx_NR_REGTYPES][SCIx_NR_REGS] =

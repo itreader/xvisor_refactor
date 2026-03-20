@@ -643,8 +643,8 @@ static const struct mode_width_tuning sd_modes_by_pref[] = {
      }
 };
 
-#define for_each_sd_mode_by_pref(caps, mwt)                                                    \
-    for (mwt = sd_modes_by_pref; mwt < sd_modes_by_pref + array_size(sd_modes_by_pref); mwt++) \
+#define for_each_sd_mode_by_pref(caps, mwt)                                                                                                          \
+    for (mwt = sd_modes_by_pref; mwt < sd_modes_by_pref + array_size(sd_modes_by_pref); mwt++)                                                       \
         if (caps & MMC_CAP_MODE(mwt->mode))
 
 static int __sd_select_mode_and_width(struct mmc_host *host, struct mmc_card *card)
@@ -973,8 +973,8 @@ static const struct mode_width_tuning mmc_modes_by_pref[] = {
      }
 };
 
-#define for_each_mmc_mode_by_pref(caps, mwt)                                                      \
-    for (mwt = mmc_modes_by_pref; mwt < mmc_modes_by_pref + array_size(mmc_modes_by_pref); mwt++) \
+#define for_each_mmc_mode_by_pref(caps, mwt)                                                                                                         \
+    for (mwt = mmc_modes_by_pref; mwt < mmc_modes_by_pref + array_size(mmc_modes_by_pref); mwt++)                                                    \
         if (caps & MMC_CAP_MODE(mwt->mode))
 
 static const struct ext_csd_bus_width {
@@ -1038,8 +1038,8 @@ static int __mmc_select_hs400(struct mmc_host *host, struct mmc_card *card)
     return 0;
 }
 
-#define for_each_supported_width(caps, ddr, ecbv)                                                    \
-    for (ecbv = ext_csd_bus_width; ecbv < ext_csd_bus_width + array_size(ext_csd_bus_width); ecbv++) \
+#define for_each_supported_width(caps, ddr, ecbv)                                                                                                    \
+    for (ecbv = ext_csd_bus_width; ecbv < ext_csd_bus_width + array_size(ext_csd_bus_width); ecbv++)                                                 \
         if ((ddr == ecbv->is_ddr) && (caps & ecbv->cap))
 
 static int __mmc_select_mode_and_width(struct mmc_host *host, struct mmc_card *card)

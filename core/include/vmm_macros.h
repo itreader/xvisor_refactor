@@ -39,23 +39,23 @@
  * abs() should not be used for 64-bit types (int64_t, uint64_t, long long) - use abs64()
  * for those.
  */
-#define abs(x)                                 \
-    ({                                         \
-        long ret;                              \
-        if (sizeof(x) == sizeof(long)) {       \
-            long __x = (x);                    \
-            ret      = (__x < 0) ? -__x : __x; \
-        } else {                               \
-            int __x = (x);                     \
-            ret     = (__x < 0) ? -__x : __x;  \
-        }                                      \
-        ret;                                   \
+#define abs(x)                                                                                                                                       \
+    ({                                                                                                                                               \
+        long ret;                                                                                                                                    \
+        if (sizeof(x) == sizeof(long)) {                                                                                                             \
+            long __x = (x);                                                                                                                          \
+            ret      = (__x < 0) ? -__x : __x;                                                                                                       \
+        } else {                                                                                                                                     \
+            int __x = (x);                                                                                                                           \
+            ret     = (__x < 0) ? -__x : __x;                                                                                                        \
+        }                                                                                                                                            \
+        ret;                                                                                                                                         \
     })
 
-#define abs64(x)                \
-    ({                          \
-        int64_t __x = (x);      \
-        (__x < 0) ? -__x : __x; \
+#define abs64(x)                                                                                                                                     \
+    ({                                                                                                                                               \
+        int64_t __x = (x);                                                                                                                           \
+        (__x < 0) ? -__x : __x;                                                                                                                      \
     })
 
 /*
@@ -63,40 +63,40 @@
  * strict type-checking.. See the
  * "unnecessary" pointer comparison.
  */
-#define min(x, y)                      \
-    ({                                 \
-        typeof(x) _min1 = (x);         \
-        typeof(y) _min2 = (y);         \
-        (void)(&_min1 == &_min2);      \
-        _min1 < _min2 ? _min1 : _min2; \
+#define min(x, y)                                                                                                                                    \
+    ({                                                                                                                                               \
+        typeof(x) _min1 = (x);                                                                                                                       \
+        typeof(y) _min2 = (y);                                                                                                                       \
+        (void)(&_min1 == &_min2);                                                                                                                    \
+        _min1 < _min2 ? _min1 : _min2;                                                                                                               \
     })
 
-#define max(x, y)                      \
-    ({                                 \
-        typeof(x) _max1 = (x);         \
-        typeof(y) _max2 = (y);         \
-        (void)(&_max1 == &_max2);      \
-        _max1 > _max2 ? _max1 : _max2; \
+#define max(x, y)                                                                                                                                    \
+    ({                                                                                                                                               \
+        typeof(x) _max1 = (x);                                                                                                                       \
+        typeof(y) _max2 = (y);                                                                                                                       \
+        (void)(&_max1 == &_max2);                                                                                                                    \
+        _max1 > _max2 ? _max1 : _max2;                                                                                                               \
     })
 
-#define min3(x, y, z)                                                                      \
-    ({                                                                                     \
-        typeof(x) _min1 = (x);                                                             \
-        typeof(y) _min2 = (y);                                                             \
-        typeof(z) _min3 = (z);                                                             \
-        (void)(&_min1 == &_min2);                                                          \
-        (void)(&_min1 == &_min3);                                                          \
-        _min1 < _min2 ? (_min1 < _min3 ? _min1 : _min3) : (_min2 < _min3 ? _min2 : _min3); \
+#define min3(x, y, z)                                                                                                                                \
+    ({                                                                                                                                               \
+        typeof(x) _min1 = (x);                                                                                                                       \
+        typeof(y) _min2 = (y);                                                                                                                       \
+        typeof(z) _min3 = (z);                                                                                                                       \
+        (void)(&_min1 == &_min2);                                                                                                                    \
+        (void)(&_min1 == &_min3);                                                                                                                    \
+        _min1 < _min2 ? (_min1 < _min3 ? _min1 : _min3) : (_min2 < _min3 ? _min2 : _min3);                                                           \
     })
 
-#define max3(x, y, z)                                                                      \
-    ({                                                                                     \
-        typeof(x) _max1 = (x);                                                             \
-        typeof(y) _max2 = (y);                                                             \
-        typeof(z) _max3 = (z);                                                             \
-        (void)(&_max1 == &_max2);                                                          \
-        (void)(&_max1 == &_max3);                                                          \
-        _max1 > _max2 ? (_max1 > _max3 ? _max1 : _max3) : (_max2 > _max3 ? _max2 : _max3); \
+#define max3(x, y, z)                                                                                                                                \
+    ({                                                                                                                                               \
+        typeof(x) _max1 = (x);                                                                                                                       \
+        typeof(y) _max2 = (y);                                                                                                                       \
+        typeof(z) _max3 = (z);                                                                                                                       \
+        (void)(&_max1 == &_max2);                                                                                                                    \
+        (void)(&_max1 == &_max3);                                                                                                                    \
+        _max1 > _max2 ? (_max1 > _max3 ? _max1 : _max3) : (_max2 > _max3 ? _max2 : _max3);                                                           \
     })
 
 /**
@@ -104,11 +104,11 @@
  * @x: value1
  * @y: value2
  */
-#define min_not_zero(x, y)                                   \
-    ({                                                       \
-        typeof(x) __x = (x);                                 \
-        typeof(y) __y = (y);                                 \
-        __x == 0 ? __y : ((__y == 0) ? __x : min(__x, __y)); \
+#define min_not_zero(x, y)                                                                                                                           \
+    ({                                                                                                                                               \
+        typeof(x) __x = (x);                                                                                                                         \
+        typeof(y) __y = (y);                                                                                                                         \
+        __x == 0 ? __y : ((__y == 0) ? __x : min(__x, __y));                                                                                         \
     })
 
 /**
@@ -120,15 +120,15 @@
  * This macro does strict typechecking of min/max to make sure they are of the
  * same type as val.  See the unnecessary pointer comparisons.
  */
-#define clamp(val, min, max)                   \
-    ({                                         \
-        typeof(val) __val = (val);             \
-        typeof(min) __min = (min);             \
-        typeof(max) __max = (max);             \
-        (void)(&__val == &__min);              \
-        (void)(&__val == &__max);              \
-        __val = __val < __min ? __min : __val; \
-        __val > __max ? __max : __val;         \
+#define clamp(val, min, max)                                                                                                                         \
+    ({                                                                                                                                               \
+        typeof(val) __val = (val);                                                                                                                   \
+        typeof(min) __min = (min);                                                                                                                   \
+        typeof(max) __max = (max);                                                                                                                   \
+        (void)(&__val == &__min);                                                                                                                    \
+        (void)(&__val == &__max);                                                                                                                    \
+        __val = __val < __min ? __min : __val;                                                                                                       \
+        __val > __max ? __max : __val;                                                                                                               \
     })
 
 /*
@@ -137,18 +137,18 @@
  *
  * Or not use min/max/clamp at all, of course.
  */
-#define min_t(type, x, y)                  \
-    ({                                     \
-        type __min1 = (x);                 \
-        type __min2 = (y);                 \
-        __min1 < __min2 ? __min1 : __min2; \
+#define min_t(type, x, y)                                                                                                                            \
+    ({                                                                                                                                               \
+        type __min1 = (x);                                                                                                                           \
+        type __min2 = (y);                                                                                                                           \
+        __min1 < __min2 ? __min1 : __min2;                                                                                                           \
     })
 
-#define max_t(type, x, y)                  \
-    ({                                     \
-        type __max1 = (x);                 \
-        type __max2 = (y);                 \
-        __max1 > __max2 ? __max1 : __max2; \
+#define max_t(type, x, y)                                                                                                                            \
+    ({                                                                                                                                               \
+        type __max1 = (x);                                                                                                                           \
+        type __max2 = (y);                                                                                                                           \
+        __max1 > __max2 ? __max1 : __max2;                                                                                                           \
     })
 
 /**
@@ -161,13 +161,13 @@
  * This macro does no typechecking and uses temporary variables of type
  * 'type' to make all the comparisons.
  */
-#define clamp_t(type, val, min, max)                \
-    ({                                              \
-        type __val = (val);                         \
-        type __min = (min);                         \
-        type __max = (max);                         \
-        __val      = __val < __min ? __min : __val; \
-        __val > __max ? __max : __val;         \
+#define clamp_t(type, val, min, max)                                                                                                                 \
+    ({                                                                                                                                               \
+        type __val = (val);                                                                                                                          \
+        type __min = (min);                                                                                                                          \
+        type __max = (max);                                                                                                                          \
+        __val      = __val < __min ? __min : __val;                                                                                                  \
+        __val > __max ? __max : __val;                                                                                                          \
     })
 
 /**
@@ -181,23 +181,23 @@
  * type and min and max are literals that will otherwise be assigned a signed
  * integer type.
  */
-#define clamp_val(val, min, max)                           \
-    ({                                                     \
-        typeof(val) __val = (val);                         \
-        typeof(val) __min = (min);                         \
-        typeof(val) __max = (max);                         \
-        __val             = __val < __min ? __min : __val; \
-        __val > __max ? __max : __val;         \
+#define clamp_val(val, min, max)                                                                                                                     \
+    ({                                                                                                                                               \
+        typeof(val) __val = (val);                                                                                                                   \
+        typeof(val) __min = (min);                                                                                                                   \
+        typeof(val) __max = (max);                                                                                                                   \
+        __val             = __val < __min ? __min : __val;                                                                                           \
+        __val > __max ? __max : __val;                                                                                                   \
     })
 
 /*
  * swap - swap value of @a and @b
  */
-#define swap(a, b)               \
-    do {                         \
-        typeof(a) __tmp = (a);   \
-        (a)             = (b);   \
-        (b)             = __tmp; \
+#define swap(a, b)                                                                                                                                   \
+    do {                                                                                                                                             \
+        typeof(a) __tmp = (a);                                                                                                                       \
+        (a)             = (b);                                                                                                                       \
+        (b)             = __tmp;                                                                                                                     \
     } while (0)
 
 #define __align_vmm(x, a)         __align_vmm_mask(x, (typeof(x))(a) - 1)
@@ -216,10 +216,10 @@
  * @member: the name of the member within the struct.
  *
  */
-#define container_of(ptr, type, member)                    \
-    ({                                                     \
-        const typeof(((type *)0)->member) *__mptr = (ptr); \
-        (type *)((char *)__mptr - offsetof(type, member)); \
+#define container_of(ptr, type, member)                                                                                                              \
+    ({                                                                                                                                               \
+        const typeof(((type *)0)->member) *__mptr = (ptr);                                                                                           \
+        (type *)((char *)__mptr - offsetof(type, member));                                                                                           \
     })
 
 #define array_size(x)                 (sizeof(x) / sizeof((x)[0]))

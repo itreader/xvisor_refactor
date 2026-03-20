@@ -45,10 +45,10 @@
 #define DPRINTF(...)
 #endif
 
-#define BAD_RING(vq, fmt, args...)                                      \
-    do {                                                                \
-        vmm_lerror(vq->vdev->dev.name, "%s: " fmt, (vq)->name, ##args); \
-        (vq)->broken = TRUE;                                            \
+#define BAD_RING(vq, fmt, args...)                                                                                                                   \
+    do {                                                                                                                                             \
+        vmm_lerror(vq->vdev->dev.name, "%s: " fmt, (vq)->name, ##args);                                                                              \
+        (vq)->broken = TRUE;                                                                                                                         \
     } while (0)
 
 #define MODULE_DESC      "VirtIO Host Framework"

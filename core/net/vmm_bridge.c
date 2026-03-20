@@ -34,13 +34,13 @@
 #undef DEBUG_BRIDGE
 
 #ifdef DEBUG_BRIDGE
-#define DPRINTF(fmt, ...)               \
-    do {                                \
-        vmm_printf(fmt, ##__VA_ARGS__); \
+#define DPRINTF(fmt, ...)                                                                                                                            \
+    do {                                                                                                                                             \
+        vmm_printf(fmt, ##__VA_ARGS__);                                                                                                              \
     } while (0)
 #else
-#define DPRINTF(fmt, ...) \
-    do {                  \
+#define DPRINTF(fmt, ...)                                                                                                                            \
+    do {                                                                                                                                             \
     } while (0)
 #endif
 

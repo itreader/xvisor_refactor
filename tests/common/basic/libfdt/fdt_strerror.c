@@ -59,9 +59,9 @@ struct fdt_errtabent {
     const char *str;
 };
 
-#define FDT_ERRTABENT(val) \
-    [(val)] = {            \
-        .str = #val,       \
+#define FDT_ERRTABENT(val)                                                                                                                           \
+    [(val)] = {                                                                                                                                      \
+        .str = #val,                                                                                                                                 \
     }
 
 static struct fdt_errtabent fdt_errtable[] = {

@@ -326,54 +326,54 @@ static void ipcp_addci(fsm *f, uint8_t *ucp, int *lenp)
     ipcp_options *go  = &ipcp_gotoptions[f->unit];
     int           len = *lenp;
 
-#define ADDCIVJ(opt, neg, val, old, maxslotindex, cflag) \
-    if (neg) {                                           \
-        int vjlen = old ? CILEN_COMPRESS : CILEN_VJ;     \
-        if (len >= vjlen) {                              \
-            PUTCHAR(opt, ucp);                           \
-            PUTCHAR(vjlen, ucp);                         \
-            PUTSHORT(val, ucp);                          \
-            if (!old) {                                  \
-                PUTCHAR(maxslotindex, ucp);              \
-                PUTCHAR(cflag, ucp);                     \
-            }                                            \
-            len -= vjlen;                                \
-        } else {                                         \
-            neg = 0;                                     \
-        }                                                \
+#define ADDCIVJ(opt, neg, val, old, maxslotindex, cflag)                                                                                             \
+    if (neg) {                                                                                                                                       \
+        int vjlen = old ? CILEN_COMPRESS : CILEN_VJ;                                                                                                 \
+        if (len >= vjlen) {                                                                                                                          \
+            PUTCHAR(opt, ucp);                                                                                                                       \
+            PUTCHAR(vjlen, ucp);                                                                                                                     \
+            PUTSHORT(val, ucp);                                                                                                                      \
+            if (!old) {                                                                                                                              \
+                PUTCHAR(maxslotindex, ucp);                                                                                                          \
+                PUTCHAR(cflag, ucp);                                                                                                                 \
+            }                                                                                                                                        \
+            len -= vjlen;                                                                                                                            \
+        } else {                                                                                                                                     \
+            neg = 0;                                                                                                                                 \
+        }                                                                                                                                            \
     }
 
-#define ADDCIADDR(opt, neg, old, val1, val2)            \
-    if (neg) {                                          \
-        int addrlen = (old ? CILEN_ADDRS : CILEN_ADDR); \
-        if (len >= addrlen) {                           \
-            u32_t l;                                    \
-            PUTCHAR(opt, ucp);                          \
-            PUTCHAR(addrlen, ucp);                      \
-            l = ntohl(val1);                            \
-            PUTLONG(l, ucp);                            \
-            if (old) {                                  \
-                l = ntohl(val2);                        \
-                PUTLONG(l, ucp);                        \
-            }                                           \
-            len -= addrlen;                             \
-        } else {                                        \
-            neg = 0;                                    \
-        }                                               \
+#define ADDCIADDR(opt, neg, old, val1, val2)                                                                                                         \
+    if (neg) {                                                                                                                                       \
+        int addrlen = (old ? CILEN_ADDRS : CILEN_ADDR);                                                                                              \
+        if (len >= addrlen) {                                                                                                                        \
+            u32_t l;                                                                                                                                 \
+            PUTCHAR(opt, ucp);                                                                                                                       \
+            PUTCHAR(addrlen, ucp);                                                                                                                   \
+            l = ntohl(val1);                                                                                                                         \
+            PUTLONG(l, ucp);                                                                                                                         \
+            if (old) {                                                                                                                               \
+                l = ntohl(val2);                                                                                                                     \
+                PUTLONG(l, ucp);                                                                                                                     \
+            }                                                                                                                                        \
+            len -= addrlen;                                                                                                                          \
+        } else {                                                                                                                                     \
+            neg = 0;                                                                                                                                 \
+        }                                                                                                                                            \
     }
 
-#define ADDCIDNS(opt, neg, addr)      \
-    if (neg) {                        \
-        if (len >= CILEN_ADDR) {      \
-            u32_t l;                  \
-            PUTCHAR(opt, ucp);        \
-            PUTCHAR(CILEN_ADDR, ucp); \
-            l = ntohl(addr);          \
-            PUTLONG(l, ucp);          \
-            len -= CILEN_ADDR;        \
-        } else {                      \
-            neg = 0;                  \
-        }                             \
+#define ADDCIDNS(opt, neg, addr)                                                                                                                     \
+    if (neg) {                                                                                                                                       \
+        if (len >= CILEN_ADDR) {                                                                                                                     \
+            u32_t l;                                                                                                                                 \
+            PUTCHAR(opt, ucp);                                                                                                                       \
+            PUTCHAR(CILEN_ADDR, ucp);                                                                                                                \
+            l = ntohl(addr);                                                                                                                         \
+            PUTLONG(l, ucp);                                                                                                                         \
+            len -= CILEN_ADDR;                                                                                                                       \
+        } else {                                                                                                                                     \
+            neg = 0;                                                                                                                                 \
+        }                                                                                                                                            \
     }
 
     ADDCIADDR((go->old_addrs ? CI_ADDRS : CI_ADDR), go->neg_addr, go->old_addrs, go->ouraddr, go->hisaddr);
@@ -407,75 +407,75 @@ static int ipcp_ackci(fsm *f, uint8_t *p, int len)
      * If we find any deviations, then this packet is bad.
      */
 
-#define ACKCIVJ(opt, neg, val, old, maxslotindex, cflag) \
-    if (neg) {                                           \
-        int vjlen = old ? CILEN_COMPRESS : CILEN_VJ;     \
-        if ((len -= vjlen) < 0) {                        \
-            goto bad;                                    \
-        }                                                \
-        GETCHAR(citype, p);                              \
-        GETCHAR(cilen, p);                               \
-        if (cilen != vjlen || citype != opt) {           \
-            goto bad;                                    \
-        }                                                \
-        GETSHORT(cishort, p);                            \
-        if (cishort != val) {                            \
-            goto bad;                                    \
-        }                                                \
-        if (!old) {                                      \
-            GETCHAR(cimaxslotindex, p);                  \
-            if (cimaxslotindex != maxslotindex) {        \
-                goto bad;                                \
-            }                                            \
-            GETCHAR(cicflag, p);                         \
-            if (cicflag != cflag) {                      \
-                goto bad;                                \
-            }                                            \
-        }                                                \
+#define ACKCIVJ(opt, neg, val, old, maxslotindex, cflag)                                                                                             \
+    if (neg) {                                                                                                                                       \
+        int vjlen = old ? CILEN_COMPRESS : CILEN_VJ;                                                                                                 \
+        if ((len -= vjlen) < 0) {                                                                                                                    \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        GETCHAR(citype, p);                                                                                                                          \
+        GETCHAR(cilen, p);                                                                                                                           \
+        if (cilen != vjlen || citype != opt) {                                                                                                       \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        GETSHORT(cishort, p);                                                                                                                        \
+        if (cishort != val) {                                                                                                                        \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        if (!old) {                                                                                                                                  \
+            GETCHAR(cimaxslotindex, p);                                                                                                              \
+            if (cimaxslotindex != maxslotindex) {                                                                                                    \
+                goto bad;                                                                                                                            \
+            }                                                                                                                                        \
+            GETCHAR(cicflag, p);                                                                                                                     \
+            if (cicflag != cflag) {                                                                                                                  \
+                goto bad;                                                                                                                            \
+            }                                                                                                                                        \
+        }                                                                                                                                            \
     }
 
-#define ACKCIADDR(opt, neg, old, val1, val2)              \
-    if (neg) {                                            \
-        int   addrlen = (old ? CILEN_ADDRS : CILEN_ADDR); \
-        u32_t l;                                          \
-        if ((len -= addrlen) < 0) {                       \
-            goto bad;                                     \
-        }                                                 \
-        GETCHAR(citype, p);                               \
-        GETCHAR(cilen, p);                                \
-        if (cilen != addrlen || citype != opt) {          \
-            goto bad;                                     \
-        }                                                 \
-        GETLONG(l, p);                                    \
-        cilong = htonl(l);                                \
-        if (val1 != cilong) {                             \
-            goto bad;                                     \
-        }                                                 \
-        if (old) {                                        \
-            GETLONG(l, p);                                \
-            cilong = htonl(l);                            \
-            if (val2 != cilong) {                         \
-                goto bad;                                 \
-            }                                             \
-        }                                                 \
+#define ACKCIADDR(opt, neg, old, val1, val2)                                                                                                         \
+    if (neg) {                                                                                                                                       \
+        int   addrlen = (old ? CILEN_ADDRS : CILEN_ADDR);                                                                                            \
+        u32_t l;                                                                                                                                     \
+        if ((len -= addrlen) < 0) {                                                                                                                  \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        GETCHAR(citype, p);                                                                                                                          \
+        GETCHAR(cilen, p);                                                                                                                           \
+        if (cilen != addrlen || citype != opt) {                                                                                                     \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        GETLONG(l, p);                                                                                                                               \
+        cilong = htonl(l);                                                                                                                           \
+        if (val1 != cilong) {                                                                                                                        \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        if (old) {                                                                                                                                   \
+            GETLONG(l, p);                                                                                                                           \
+            cilong = htonl(l);                                                                                                                       \
+            if (val2 != cilong) {                                                                                                                    \
+                goto bad;                                                                                                                            \
+            }                                                                                                                                        \
+        }                                                                                                                                            \
     }
 
-#define ACKCIDNS(opt, neg, addr)                    \
-    if (neg) {                                      \
-        u32_t l;                                    \
-        if ((len -= CILEN_ADDR) < 0) {              \
-            goto bad;                               \
-        }                                           \
-        GETCHAR(citype, p);                         \
-        GETCHAR(cilen, p);                          \
-        if (cilen != CILEN_ADDR || citype != opt) { \
-            goto bad;                               \
-        }                                           \
-        GETLONG(l, p);                              \
-        cilong = htonl(l);                          \
-        if (addr != cilong) {                       \
-            goto bad;                               \
-        }                                           \
+#define ACKCIDNS(opt, neg, addr)                                                                                                                     \
+    if (neg) {                                                                                                                                       \
+        u32_t l;                                                                                                                                     \
+        if ((len -= CILEN_ADDR) < 0) {                                                                                                               \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        GETCHAR(citype, p);                                                                                                                          \
+        GETCHAR(cilen, p);                                                                                                                           \
+        if (cilen != CILEN_ADDR || citype != opt) {                                                                                                  \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        GETLONG(l, p);                                                                                                                               \
+        cilong = htonl(l);                                                                                                                           \
+        if (addr != cilong) {                                                                                                                        \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
     }
 
     ACKCIADDR((go->old_addrs ? CI_ADDRS : CI_ADDR), go->neg_addr, go->old_addrs, go->ouraddr, go->hisaddr);
@@ -529,40 +529,40 @@ static int ipcp_nakci(fsm *f, uint8_t *p, int len)
      * Check packet length and CI length at each step.
      * If we find any deviations, then this packet is bad.
      */
-#define NAKCIADDR(opt, neg, old, code)                                                                  \
-    if (go->neg && len >= (cilen = (old ? CILEN_ADDRS : CILEN_ADDR)) && p[1] == cilen && p[0] == opt) { \
-        len -= cilen;                                                                                   \
-        INCPTR(2, p);                                                                                   \
-        GETLONG(l, p);                                                                                  \
-        ciaddr1 = htonl(l);                                                                             \
-        if (old) {                                                                                      \
-            GETLONG(l, p);                                                                              \
-            ciaddr2      = htonl(l);                                                                    \
-            no.old_addrs = 1;                                                                           \
-        } else {                                                                                        \
-            ciaddr2 = 0;                                                                                \
-        }                                                                                               \
-        no.neg = 1;                                                                                     \
-        code                                                                                            \
+#define NAKCIADDR(opt, neg, old, code)                                                                                                               \
+    if (go->neg && len >= (cilen = (old ? CILEN_ADDRS : CILEN_ADDR)) && p[1] == cilen && p[0] == opt) {                                              \
+        len -= cilen;                                                                                                                                \
+        INCPTR(2, p);                                                                                                                                \
+        GETLONG(l, p);                                                                                                                               \
+        ciaddr1 = htonl(l);                                                                                                                          \
+        if (old) {                                                                                                                                   \
+            GETLONG(l, p);                                                                                                                           \
+            ciaddr2      = htonl(l);                                                                                                                 \
+            no.old_addrs = 1;                                                                                                                        \
+        } else {                                                                                                                                     \
+            ciaddr2 = 0;                                                                                                                             \
+        }                                                                                                                                            \
+        no.neg = 1;                                                                                                                                  \
+        code                                                                                                                                         \
     }
 
-#define NAKCIVJ(opt, neg, code)                                                                              \
-    if (go->neg && ((cilen = p[1]) == CILEN_COMPRESS || cilen == CILEN_VJ) && len >= cilen && p[0] == opt) { \
-        len -= cilen;                                                                                        \
-        INCPTR(2, p);                                                                                        \
-        GETSHORT(cishort, p);                                                                                \
-        no.neg = 1;                                                                                          \
-        code                                                                                                 \
+#define NAKCIVJ(opt, neg, code)                                                                                                                      \
+    if (go->neg && ((cilen = p[1]) == CILEN_COMPRESS || cilen == CILEN_VJ) && len >= cilen && p[0] == opt) {                                         \
+        len -= cilen;                                                                                                                                \
+        INCPTR(2, p);                                                                                                                                \
+        GETSHORT(cishort, p);                                                                                                                        \
+        no.neg = 1;                                                                                                                                  \
+        code                                                                                                                                         \
     }
 
-#define NAKCIDNS(opt, neg, code)                                                    \
-    if (go->neg && ((cilen = p[1]) == CILEN_ADDR) && len >= cilen && p[0] == opt) { \
-        len -= cilen;                                                               \
-        INCPTR(2, p);                                                               \
-        GETLONG(l, p);                                                              \
-        cidnsaddr = htonl(l);                                                       \
-        no.neg    = 1;                                                              \
-        code                                                                        \
+#define NAKCIDNS(opt, neg, code)                                                                                                                     \
+    if (go->neg && ((cilen = p[1]) == CILEN_ADDR) && len >= cilen && p[0] == opt) {                                                                  \
+        len -= cilen;                                                                                                                                \
+        INCPTR(2, p);                                                                                                                                \
+        GETLONG(l, p);                                                                                                                               \
+        cidnsaddr = htonl(l);                                                                                                                        \
+        no.neg    = 1;                                                                                                                               \
+        code                                                                                                                                         \
     }
 
     /*
@@ -731,62 +731,62 @@ static int ipcp_rejci(fsm *f, uint8_t *p, int len)
      * Check packet length and CI length at each step.
      * If we find any deviations, then this packet is bad.
      */
-#define REJCIADDR(opt, neg, old, val1, val2)                                                          \
-    if (go->neg && len >= (cilen = old ? CILEN_ADDRS : CILEN_ADDR) && p[1] == cilen && p[0] == opt) { \
-        u32_t l;                                                                                      \
-        len -= cilen;                                                                                 \
-        INCPTR(2, p);                                                                                 \
-        GETLONG(l, p);                                                                                \
-        cilong = htonl(l);                                                                            \
-        /* Check rejected value. */                                                                   \
-        if (cilong != val1) {                                                                         \
-            goto bad;                                                                                 \
-        }                                                                                             \
-        if (old) {                                                                                    \
-            GETLONG(l, p);                                                                            \
-            cilong = htonl(l);                                                                        \
-            /* Check rejected value. */                                                               \
-            if (cilong != val2) {                                                                     \
-                goto bad;                                                                             \
-            }                                                                                         \
-        }                                                                                             \
-        try.neg = 0;                                                                                  \
+#define REJCIADDR(opt, neg, old, val1, val2)                                                                                                         \
+    if (go->neg && len >= (cilen = old ? CILEN_ADDRS : CILEN_ADDR) && p[1] == cilen && p[0] == opt) {                                                \
+        u32_t l;                                                                                                                                     \
+        len -= cilen;                                                                                                                                \
+        INCPTR(2, p);                                                                                                                                \
+        GETLONG(l, p);                                                                                                                               \
+        cilong = htonl(l);                                                                                                                           \
+        /* Check rejected value. */                                                                                                                  \
+        if (cilong != val1) {                                                                                                                        \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        if (old) {                                                                                                                                   \
+            GETLONG(l, p);                                                                                                                           \
+            cilong = htonl(l);                                                                                                                       \
+            /* Check rejected value. */                                                                                                              \
+            if (cilong != val2) {                                                                                                                    \
+                goto bad;                                                                                                                            \
+            }                                                                                                                                        \
+        }                                                                                                                                            \
+        try.neg = 0;                                                                                                                                 \
     }
 
-#define REJCIVJ(opt, neg, val, old, maxslot, cflag)                                           \
-    if (go->neg && p[1] == (old ? CILEN_COMPRESS : CILEN_VJ) && len >= p[1] && p[0] == opt) { \
-        len -= p[1];                                                                          \
-        INCPTR(2, p);                                                                         \
-        GETSHORT(cishort, p);                                                                 \
-        /* Check rejected value. */                                                           \
-        if (cishort != val) {                                                                 \
-            goto bad;                                                                         \
-        }                                                                                     \
-        if (!old) {                                                                           \
-            GETCHAR(cimaxslotindex, p);                                                       \
-            if (cimaxslotindex != maxslot) {                                                  \
-                goto bad;                                                                     \
-            }                                                                                 \
-            GETCHAR(ciflag, p);                                                               \
-            if (ciflag != cflag) {                                                            \
-                goto bad;                                                                     \
-            }                                                                                 \
-        }                                                                                     \
-        try.neg = 0;                                                                          \
+#define REJCIVJ(opt, neg, val, old, maxslot, cflag)                                                                                                  \
+    if (go->neg && p[1] == (old ? CILEN_COMPRESS : CILEN_VJ) && len >= p[1] && p[0] == opt) {                                                        \
+        len -= p[1];                                                                                                                                 \
+        INCPTR(2, p);                                                                                                                                \
+        GETSHORT(cishort, p);                                                                                                                        \
+        /* Check rejected value. */                                                                                                                  \
+        if (cishort != val) {                                                                                                                        \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        if (!old) {                                                                                                                                  \
+            GETCHAR(cimaxslotindex, p);                                                                                                              \
+            if (cimaxslotindex != maxslot) {                                                                                                         \
+                goto bad;                                                                                                                            \
+            }                                                                                                                                        \
+            GETCHAR(ciflag, p);                                                                                                                      \
+            if (ciflag != cflag) {                                                                                                                   \
+                goto bad;                                                                                                                            \
+            }                                                                                                                                        \
+        }                                                                                                                                            \
+        try.neg = 0;                                                                                                                                 \
     }
 
-#define REJCIDNS(opt, neg, dnsaddr)                                                 \
-    if (go->neg && ((cilen = p[1]) == CILEN_ADDR) && len >= cilen && p[0] == opt) { \
-        u32_t l;                                                                    \
-        len -= cilen;                                                               \
-        INCPTR(2, p);                                                               \
-        GETLONG(l, p);                                                              \
-        cilong = htonl(l);                                                          \
-        /* Check rejected value. */                                                 \
-        if (cilong != dnsaddr) {                                                    \
-            goto bad;                                                               \
-        }                                                                           \
-        try.neg = 0;                                                                \
+#define REJCIDNS(opt, neg, dnsaddr)                                                                                                                  \
+    if (go->neg && ((cilen = p[1]) == CILEN_ADDR) && len >= cilen && p[0] == opt) {                                                                  \
+        u32_t l;                                                                                                                                     \
+        len -= cilen;                                                                                                                                \
+        INCPTR(2, p);                                                                                                                                \
+        GETLONG(l, p);                                                                                                                               \
+        cilong = htonl(l);                                                                                                                           \
+        /* Check rejected value. */                                                                                                                  \
+        if (cilong != dnsaddr) {                                                                                                                     \
+            goto bad;                                                                                                                                \
+        }                                                                                                                                            \
+        try.neg = 0;                                                                                                                                 \
     }
 
     REJCIADDR((go->old_addrs ? CI_ADDRS : CI_ADDR), neg_addr, go->old_addrs, go->ouraddr, go->hisaddr);

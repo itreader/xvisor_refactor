@@ -52,8 +52,8 @@
 #ifdef DEBUG_IOAPIC
 #define debug_print(fmt, args...) vmm_printf("ioapic: " fmt, ##args);
 #else
-#define debug_print(fmnt, args...) \
-    {                              \
+#define debug_print(fmnt, args...)                                                                                                                   \
+    {                                                                                                                                                \
     }
 #endif
 
@@ -321,8 +321,8 @@ int detect_ioapics(uint32_t *nr_ioapics)
     char                    apic_nm[512];
     uint32_t                n = 0;
 
-    node                      = vmm_device_tree_getnode(
-        VMM_DEVICE_TREE_PATH_SEPARATOR_STRING VMM_DEVICE_TREE_MOTHERBOARD_NODE_NAME VMM_DEVICE_TREE_PATH_SEPARATOR_STRING "APIC");
+    node = vmm_device_tree_getnode(VMM_DEVICE_TREE_PATH_SEPARATOR_STRING VMM_DEVICE_TREE_MOTHERBOARD_NODE_NAME VMM_DEVICE_TREE_PATH_SEPARATOR_STRING
+                                   "APIC");
 
     if (!node) {
         return VMM_ENODEV;

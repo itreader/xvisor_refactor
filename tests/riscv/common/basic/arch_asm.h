@@ -127,55 +127,55 @@
 
 #ifndef __ASSEMBLY__
 
-#define csr_swap(csr, val)                                                                           \
-    ({                                                                                               \
-        uint64_t __v = (uint64_t)(val);                                                              \
-        __asm__ __volatile__("csrrw %0, " __ASM_STR(csr) ", %1" : "=r"(__v) : "rK"(__v) : "memory"); \
-        __v;                                                                                         \
+#define csr_swap(csr, val)                                                                                                                           \
+    ({                                                                                                                                               \
+        uint64_t __v = (uint64_t)(val);                                                                                                              \
+        __asm__ __volatile__("csrrw %0, " __ASM_STR(csr) ", %1" : "=r"(__v) : "rK"(__v) : "memory");                                                 \
+        __v;                                                                                                                                         \
     })
 
-#define csr_read(csr)                                                              \
-    ({                                                                             \
-        register uint64_t __v;                                                     \
-        __asm__ __volatile__("csrr %0, " __ASM_STR(csr) : "=r"(__v) : : "memory"); \
-        __v;                                                                       \
+#define csr_read(csr)                                                                                                                                \
+    ({                                                                                                                                               \
+        register uint64_t __v;                                                                                                                       \
+        __asm__ __volatile__("csrr %0, " __ASM_STR(csr) : "=r"(__v) : : "memory");                                                                   \
+        __v;                                                                                                                                         \
     })
 
-#define csr_write(csr, val)                                                           \
-    ({                                                                                \
-        uint64_t __v = (uint64_t)(val);                                               \
-        __asm__ __volatile__("csrw " __ASM_STR(csr) ", %0" : : "rK"(__v) : "memory"); \
+#define csr_write(csr, val)                                                                                                                          \
+    ({                                                                                                                                               \
+        uint64_t __v = (uint64_t)(val);                                                                                                              \
+        __asm__ __volatile__("csrw " __ASM_STR(csr) ", %0" : : "rK"(__v) : "memory");                                                                \
     })
 
-#define csr_read_set(csr, val)                                                                       \
-    ({                                                                                               \
-        uint64_t __v = (uint64_t)(val);                                                              \
-        __asm__ __volatile__("csrrs %0, " __ASM_STR(csr) ", %1" : "=r"(__v) : "rK"(__v) : "memory"); \
-        __v;                                                                                         \
+#define csr_read_set(csr, val)                                                                                                                       \
+    ({                                                                                                                                               \
+        uint64_t __v = (uint64_t)(val);                                                                                                              \
+        __asm__ __volatile__("csrrs %0, " __ASM_STR(csr) ", %1" : "=r"(__v) : "rK"(__v) : "memory");                                                 \
+        __v;                                                                                                                                         \
     })
 
-#define csr_set(csr, val)                                                             \
-    ({                                                                                \
-        uint64_t __v = (uint64_t)(val);                                               \
-        __asm__ __volatile__("csrs " __ASM_STR(csr) ", %0" : : "rK"(__v) : "memory"); \
+#define csr_set(csr, val)                                                                                                                            \
+    ({                                                                                                                                               \
+        uint64_t __v = (uint64_t)(val);                                                                                                              \
+        __asm__ __volatile__("csrs " __ASM_STR(csr) ", %0" : : "rK"(__v) : "memory");                                                                \
     })
 
-#define csr_read_clear(csr, val)                                                                     \
-    ({                                                                                               \
-        uint64_t __v = (uint64_t)(val);                                                              \
-        __asm__ __volatile__("csrrc %0, " __ASM_STR(csr) ", %1" : "=r"(__v) : "rK"(__v) : "memory"); \
-        __v;                                                                                         \
+#define csr_read_clear(csr, val)                                                                                                                     \
+    ({                                                                                                                                               \
+        uint64_t __v = (uint64_t)(val);                                                                                                              \
+        __asm__ __volatile__("csrrc %0, " __ASM_STR(csr) ", %1" : "=r"(__v) : "rK"(__v) : "memory");                                                 \
+        __v;                                                                                                                                         \
     })
 
-#define csr_clear(csr, val)                                                           \
-    ({                                                                                \
-        uint64_t __v = (uint64_t)(val);                                               \
-        __asm__ __volatile__("csrc " __ASM_STR(csr) ", %0" : : "rK"(__v) : "memory"); \
+#define csr_clear(csr, val)                                                                                                                          \
+    ({                                                                                                                                               \
+        uint64_t __v = (uint64_t)(val);                                                                                                              \
+        __asm__ __volatile__("csrc " __ASM_STR(csr) ", %0" : : "rK"(__v) : "memory");                                                                \
     })
 
-#define wfi()                                     \
-    do {                                          \
-        __asm__ __volatile__("wfi" ::: "memory"); \
+#define wfi()                                                                                                                                        \
+    do {                                                                                                                                             \
+        __asm__ __volatile__("wfi" ::: "memory");                                                                                                    \
     } while (0)
 
 #endif

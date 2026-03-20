@@ -43,29 +43,23 @@ struct vmm_timer_event {
     uint32_t       active_hcpu;
 };
 
-#define INIT_TIMER_EVENT(ev, _hndl, _private) \
-    do {                                      \
-        (ev)->expiry_tstamp  = 0;             \
-        (ev)->duration_nsecs = 0;             \
-        (ev)->handler        = _hndl;         \
-        (ev)->private        = _private;      \
-        INIT_SPIN_LOCK(&(ev)->active_lock);   \
-        INIT_LIST_HEAD(&(ev)->active_head);   \
-        (ev)->active_state = FALSE;           \
-        (ev)->active_hcpu  = 0;               \
+#define INIT_TIMER_EVENT(ev, _hndl, _private)                                                                                                        \
+    do {                                                                                                                                             \
+        (ev)->expiry_tstamp  = 0;                                                                                                                    \
+        (ev)->duration_nsecs = 0;                                                                                                                    \
+        (ev)->handler        = _hndl;                                                                                                                \
+        (ev)->private        = _private;                                                                                                             \
+        INIT_SPIN_LOCK(&(ev)->active_lock);                                                                                                          \
+        INIT_LIST_HEAD(&(ev)->active_head);                                                                                                          \
+        (ev)->active_state = FALSE;                                                                                                                  \
+        (ev)->active_hcpu  = 0;                                                                                                                      \
     } while (0)
 
-#define __TIMER_EVENT_INITIALIZER(ev, _hndl, _private)              \
-    {                                                               \
-        .expiry_tstamp  = 0,                                        \
-        .duration_nsecs = 0,                                        \
-        .handler        = _hndl,                                    \
-        .private        = _private,                                 \
-        .active_lock    = __SPINLOCK_INITIALIZER((ev).active_lock), \
-        .active_head    = {&(ev).head, &(ev).head},                 \
-        .active_state   = FALSE,                                    \
-        .active_hcpu    = 0,                                        \
-}
+#define __TIMER_EVENT_INITIALIZER(ev, _hndl, _private)                                                                                               \
+    {                                                                                                                                                \
+        .expiry_tstamp = 0, .duration_nsecs = 0, .handler = _hndl, .private = _private, .active_lock = __SPINLOCK_INITIALIZER((ev).active_lock),     \
+        .active_head = {&(ev).head, &(ev).head}, .active_state = FALSE, .active_hcpu = 0,                                                            \
+    }
 
 #define DECLARE_TIMER_EVENT(ev, _hndl, _private) vmm_timer_event_t ev = __TIMER_EVENT_INITIALIZER(ev, _hndl, _private)
 

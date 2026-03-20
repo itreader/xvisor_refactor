@@ -42,13 +42,13 @@ struct vmm_keymap_file {
     const unsigned long *size;
 };
 
-#define DECLARE_KEYMAP_FILE(__kf__)                                      \
-    extern const char          core_vio_keymaps_##__kf__##_data_start[]; \
+#define DECLARE_KEYMAP_FILE(__kf__)                                                                                                                  \
+    extern const char          core_vio_keymaps_##__kf__##_data_start[];                                                                             \
     extern const unsigned long core_vio_keymaps_##__kf__##_data_size;
 
-#define KEYMAP_FILE(__kf__, __kf_name__)                                                                                      \
-    {                                                                                                                         \
-        .name = __kf_name__, .start = core_vio_keymaps_##__kf__##_data_start, .size = &core_vio_keymaps_##__kf__##_data_size, \
+#define KEYMAP_FILE(__kf__, __kf_name__)                                                                                                             \
+    {                                                                                                                                                \
+        .name = __kf_name__, .start = core_vio_keymaps_##__kf__##_data_start, .size = &core_vio_keymaps_##__kf__##_data_size,                        \
     }
 
 DECLARE_KEYMAP_FILE(modifiers);

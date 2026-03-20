@@ -46,9 +46,9 @@ struct gpiod_lookup_table {
  * Each GPIO needs to use a different index and can be accessed using
  * gpiod_get_index()
  */
-#define GPIO_LOOKUP_IDX(_chip_label, _chip_hwnum, _con_id, _idx, _flags)                                       \
-    {                                                                                                          \
-        .chip_label = _chip_label, .chip_hwnum = _chip_hwnum, .con_id = _con_id, .idx = _idx, .flags = _flags, \
+#define GPIO_LOOKUP_IDX(_chip_label, _chip_hwnum, _con_id, _idx, _flags)                                                                             \
+    {                                                                                                                                                \
+        .chip_label = _chip_label, .chip_hwnum = _chip_hwnum, .con_id = _con_id, .idx = _idx, .flags = _flags,                                       \
     }
 
 void gpiod_add_lookup_table(struct gpiod_lookup_table *table);

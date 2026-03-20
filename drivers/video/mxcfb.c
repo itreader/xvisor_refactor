@@ -58,11 +58,11 @@
 #define copy_to_user     memcpy
 #define get_user(X, PTR) (NULL == memcpy(&X, PTR, sizeof(*PTR)))
 #define put_user(PTR, X) (NULL == memcpy(X, &PTR, sizeof(*X)))
-#define console_lock() \
-    do {               \
+#define console_lock()                                                                                                                               \
+    do {                                                                                                                                             \
     } while (0)
-#define console_unlock() \
-    do {                 \
+#define console_unlock()                                                                                                                             \
+    do {                                                                                                                                             \
     } while (0)
 
 static void *dma_alloc_attrs(

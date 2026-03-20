@@ -312,9 +312,9 @@ __hcr_set:
 __hsctlr_clear:
 	.dword ~(SCTLR_A_MASK)
 __exec_start:
-	.dword _code_start
+	.dword _code_start /* VMM程序的开始位置，程序包括：代码/数据/堆栈/对齐 */
 __exec_end:
-	.dword _code_end
+	.dword _code_end /* VMM程序的结束位置，程序包括：代码/数据/堆栈/对齐 */
 __load_start:
 	.dword _load_start
 __load_end:

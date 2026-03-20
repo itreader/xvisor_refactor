@@ -86,27 +86,27 @@ static struct rockchip_pll_rate_table rk3288_pll_rates[] = {
 #define RK3288_DIV_PCLK_DBGPRE_MASK   0x1f
 #define RK3288_DIV_PCLK_DBGPRE_SHIFT  9
 
-#define RK3288_CLKSEL0(_core_m0, _core_mp)                                                            \
-    {                                                                                                 \
-        .reg = RK3288_CLKSEL_CON(0),                                                                  \
-        .val = HIWORD_UPDATE(_core_m0, RK3288_DIV_ACLK_CORE_M0_MASK, RK3288_DIV_ACLK_CORE_M0_SHIFT) | \
-               HIWORD_UPDATE(_core_mp, RK3288_DIV_ACLK_CORE_MP_MASK, RK3288_DIV_ACLK_CORE_MP_SHIFT),  \
+#define RK3288_CLKSEL0(_core_m0, _core_mp)                                                                                                           \
+    {                                                                                                                                                \
+        .reg = RK3288_CLKSEL_CON(0),                                                                                                                 \
+        .val = HIWORD_UPDATE(_core_m0, RK3288_DIV_ACLK_CORE_M0_MASK, RK3288_DIV_ACLK_CORE_M0_SHIFT) |                                                \
+               HIWORD_UPDATE(_core_mp, RK3288_DIV_ACLK_CORE_MP_MASK, RK3288_DIV_ACLK_CORE_MP_SHIFT),                                                 \
     }
-#define RK3288_CLKSEL37(_l2ram, _atclk, _pclock_dbg_pre)                                                  \
-    {                                                                                                     \
-        .reg = RK3288_CLKSEL_CON(37),                                                                     \
-        .val = HIWORD_UPDATE(_l2ram, RK3288_DIV_L2RAM_MASK, RK3288_DIV_L2RAM_SHIFT) |                     \
-               HIWORD_UPDATE(_atclk, RK3288_DIV_ATCLK_MASK, RK3288_DIV_ATCLK_SHIFT) |                     \
-               HIWORD_UPDATE(_pclock_dbg_pre, RK3288_DIV_PCLK_DBGPRE_MASK, RK3288_DIV_PCLK_DBGPRE_SHIFT), \
+#define RK3288_CLKSEL37(_l2ram, _atclk, _pclock_dbg_pre)                                                                                             \
+    {                                                                                                                                                \
+        .reg = RK3288_CLKSEL_CON(37),                                                                                                                \
+        .val = HIWORD_UPDATE(_l2ram, RK3288_DIV_L2RAM_MASK, RK3288_DIV_L2RAM_SHIFT) |                                                                \
+               HIWORD_UPDATE(_atclk, RK3288_DIV_ATCLK_MASK, RK3288_DIV_ATCLK_SHIFT) |                                                                \
+               HIWORD_UPDATE(_pclock_dbg_pre, RK3288_DIV_PCLK_DBGPRE_MASK, RK3288_DIV_PCLK_DBGPRE_SHIFT),                                            \
     }
 
-#define RK3288_CPUCLK_RATE(_prate, _core_m0, _core_mp, _l2ram, _atclk, _pdbg) \
-    {                                                                         \
-        .prate = _prate,                                                      \
-        .divs  = {                                                            \
-            RK3288_CLKSEL0(_core_m0, _core_mp),                              \
-            RK3288_CLKSEL37(_l2ram, _atclk, _pdbg),                          \
-        },                                                                   \
+#define RK3288_CPUCLK_RATE(_prate, _core_m0, _core_mp, _l2ram, _atclk, _pdbg)                                                                        \
+    {                                                                                                                                                \
+        .prate = _prate,                                                                                                                             \
+        .divs  = {                                                                                                                                   \
+            RK3288_CLKSEL0(_core_m0, _core_mp),                                                                                                     \
+            RK3288_CLKSEL37(_l2ram, _atclk, _pdbg),                                                                                                 \
+        },                                                                                                                                          \
     }
 
 static struct rockchip_cpuclock_rate_table rk3288_cpuclock_rates[] __initdata = {

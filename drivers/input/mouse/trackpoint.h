@@ -92,12 +92,12 @@
 #define TP_MASK_STICKY_TWO   0x04
 #define TP_TOGGLE_SKIPBACK   0x2D /* Suppress movement after drag release */
 #define TP_MASK_SKIPBACK     0x08
-#define TP_TOGGLE_SOURCE_TAG                                                  \
-    0x20                          /* Bit 3 of the first packet will be set to \
+#define TP_TOGGLE_SOURCE_TAG                                                                                                                         \
+    0x20                          /* Bit 3 of the first packet will be set to                                                                        \
                          to the origin of the packet (external or TP) */
 #define TP_MASK_SOURCE_TAG 0x80
-#define TP_TOGGLE_EXT_TAG                                                      \
-    0x22                          /* Bit 3 of the first packet coming from the \
+#define TP_TOGGLE_EXT_TAG                                                                                                                            \
+    0x22                          /* Bit 3 of the first packet coming from the                                                                       \
                          external device will be forced to 1 */
 #define TP_MASK_EXT_TAG                    0x04
 

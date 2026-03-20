@@ -241,9 +241,9 @@ static void nested_software_tlb_deinit(vmm_vcpu_t *vcpu)
 }
 
 #ifdef CONFIG_64BIT
-#define NESTED_MMU_OFF_BLOCK_SIZE PGTBL_L2_BLOCK_SIZE
+#define NESTED_MMU_OFF_BLOCK_SIZE PAGE_TABLE_L2_BLOCK_SIZE
 #else
-#define NESTED_MMU_OFF_BLOCK_SIZE PGTBL_L1_BLOCK_SIZE
+#define NESTED_MMU_OFF_BLOCK_SIZE PAGE_TABLE_L1_BLOCK_SIZE
 #endif
 
 enum nested_xlate_access {
@@ -278,22 +278,22 @@ struct nested_xlate_context {
     uint64_t        htval;
 };
 
-#define nested_xlate_context_init(__x, __v, __a, __smode, __sstatus, __hlvx) \
-    do {                                                                     \
-        (__x)->vcpu            = (__v);                                      \
-        (__x)->original_access = (__a);                                      \
-        (__x)->smode           = (__smode);                                  \
-        (__x)->sstatus         = (__sstatus);                                \
-        (__x)->hlvx            = (__hlvx);                                   \
-        (__x)->host_pa         = 0;                                          \
-        (__x)->host_sz         = 0;                                          \
-        (__x)->host_reg_flags  = 0;                                          \
-        (__x)->nostage_page_sz = 0;                                          \
-        (__x)->gstage_page_sz  = 0;                                          \
-        (__x)->vsstage_page_sz = 0;                                          \
-        (__x)->scause          = 0;                                          \
-        (__x)->stval           = 0;                                          \
-        (__x)->htval           = 0;                                          \
+#define nested_xlate_context_init(__x, __v, __a, __smode, __sstatus, __hlvx)                                                                         \
+    do {                                                                                                                                             \
+        (__x)->vcpu            = (__v);                                                                                                              \
+        (__x)->original_access = (__a);                                                                                                              \
+        (__x)->smode           = (__smode);                                                                                                          \
+        (__x)->sstatus         = (__sstatus);                                                                                                        \
+        (__x)->hlvx            = (__hlvx);                                                                                                           \
+        (__x)->host_pa         = 0;                                                                                                                  \
+        (__x)->host_sz         = 0;                                                                                                                  \
+        (__x)->host_reg_flags  = 0;                                                                                                                  \
+        (__x)->nostage_page_sz = 0;                                                                                                                  \
+        (__x)->gstage_page_sz  = 0;                                                                                                                  \
+        (__x)->vsstage_page_sz = 0;                                                                                                                  \
+        (__x)->scause          = 0;                                                                                                                  \
+        (__x)->stval           = 0;                                                                                                                  \
+        (__x)->htval           = 0;                                                                                                                  \
     } while (0)
 
 static int nested_nostage_perm_check(enum nested_xlate_access guest_access, uint32_t reg_flags)
@@ -387,14 +387,14 @@ static int nested_xlate_nostage(struct nested_xlate_context *xc, physical_addr_t
     physical_addr_t outaddr  = 0;
 
     /* Translate host physical address with L0 block size */
-    rc = nested_xlate_nostage_single(xc->vcpu->guest, guest_hpa, PGTBL_L0_BLOCK_SIZE, guest_access, &outaddr, &outsz, &outflags);
+    rc = nested_xlate_nostage_single(xc->vcpu->guest, guest_hpa, PAGE_TABLE_L0_BLOCK_SIZE, guest_access, &outaddr, &outsz, &outflags);
 
     if (rc) {
         return rc;
     }
 
     /* Try to translate host physical address with L1 block size */
-    rc = nested_xlate_nostage_single(xc->vcpu->guest, guest_hpa, PGTBL_L1_BLOCK_SIZE, guest_access, &outaddr, &outsz, &outflags);
+    rc = nested_xlate_nostage_single(xc->vcpu->guest, guest_hpa, PAGE_TABLE_L1_BLOCK_SIZE, guest_access, &outaddr, &outsz, &outflags);
 
     if (rc) {
         goto done;
@@ -402,7 +402,7 @@ static int nested_xlate_nostage(struct nested_xlate_context *xc, physical_addr_t
 
 #ifdef CONFIG_64BIT
     /* Try to translate host physical address with L2 block size */
-    rc = nested_xlate_nostage_single(xc->vcpu->guest, guest_hpa, PGTBL_L2_BLOCK_SIZE, guest_access, &outaddr, &outsz, &outflags);
+    rc = nested_xlate_nostage_single(xc->vcpu->guest, guest_hpa, PAGE_TABLE_L2_BLOCK_SIZE, guest_access, &outaddr, &outsz, &outflags);
 
     if (rc) {
         goto done;
@@ -434,7 +434,7 @@ static int nested_gstage_gpa2hpa(void *opaque, int stage, int level, physical_ad
     physical_addr_t              outaddr = 0;
     struct nested_xlate_context *xc      = opaque;
 
-    rc = nested_xlate_nostage_single(xc->vcpu->guest, guest_hpa, PGTBL_L0_BLOCK_SIZE, NESTED_XLATE_LOAD, &outaddr, &outsz, NULL);
+    rc = nested_xlate_nostage_single(xc->vcpu->guest, guest_hpa, PAGE_TABLE_L0_BLOCK_SIZE, NESTED_XLATE_LOAD, &outaddr, &outsz, NULL);
 
     if (rc) {
         return rc;
@@ -504,7 +504,7 @@ static int nested_xlate_gstage(struct nested_xlate_context *xc, physical_addr_t 
                 return VMM_EFAIL;
         }
 
-        pgtlb = (nprivate->hgatp & HGATP_PPN) << PGTBL_PAGE_SIZE_SHIFT;
+        pgtlb = (nprivate->hgatp & HGATP_PPN) << PAGE_TABLE_PAGE_SIZE_SHIFT;
         rc    = mmu_get_guest_page(pgtlb, MMU_STAGE2, rc, &nested_xlate_gstage_ops, xc, guest_gpa, &page);
 
         if (rc) {
@@ -739,7 +739,7 @@ static int nested_xlate_vsstage(struct nested_xlate_context *xc, physical_addr_t
                 return VMM_EFAIL;
         }
 
-        pgtlb = (nprivate->vsatp & SATP_PPN) << PGTBL_PAGE_SIZE_SHIFT;
+        pgtlb = (nprivate->vsatp & SATP_PPN) << PAGE_TABLE_PAGE_SIZE_SHIFT;
         rc    = mmu_get_guest_page(pgtlb, MMU_STAGE1, rc, &nested_xlate_vsstage_ops, xc, guest_gva, &page);
 
         if (rc) {

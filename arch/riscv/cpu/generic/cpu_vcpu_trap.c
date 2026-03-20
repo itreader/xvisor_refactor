@@ -120,8 +120,8 @@ static int cpu_vcpu_stage2_map(vmm_vcpu_t *vcpu, physical_addr_t fault_addr)
 
     memset(&pg, 0, sizeof(pg));
 
-    inaddr = fault_addr & PGTBL_L0_MAP_MASK;
-    size   = PGTBL_L0_BLOCK_SIZE;
+    inaddr = fault_addr & PAGE_TABLE_L0_MAP_MASK;
+    size   = PAGE_TABLE_L0_BLOCK_SIZE;
 
     rc     = vmm_guest_physical_map(vcpu->guest, inaddr, size, &outaddr, &availsz, &reg_flags);
 
@@ -130,7 +130,7 @@ static int cpu_vcpu_stage2_map(vmm_vcpu_t *vcpu, physical_addr_t fault_addr)
         return rc;
     }
 
-    if (availsz < PGTBL_L0_BLOCK_SIZE) {
+    if (availsz < PAGE_TABLE_L0_BLOCK_SIZE) {
         vmm_printf(
             "%s: availsz=0x%" PRIPSIZE " insufficent for "
             "guest_phys=0x%" PRIPADDR "\n",
@@ -144,11 +144,11 @@ static int cpu_vcpu_stage2_map(vmm_vcpu_t *vcpu, physical_addr_t fault_addr)
     pg_reg_flags = reg_flags;
 
     if (reg_flags & (VMM_REGION_IS_RAM | VMM_REGION_IS_ROM)) {
-        inaddr = fault_addr & PGTBL_L1_MAP_MASK;
-        size   = PGTBL_L1_BLOCK_SIZE;
+        inaddr = fault_addr & PAGE_TABLE_L1_MAP_MASK;
+        size   = PAGE_TABLE_L1_BLOCK_SIZE;
         rc     = vmm_guest_physical_map(vcpu->guest, inaddr, size, &outaddr, &availsz, &reg_flags);
 
-        if (!rc && (availsz >= PGTBL_L1_BLOCK_SIZE)) {
+        if (!rc && (availsz >= PAGE_TABLE_L1_BLOCK_SIZE)) {
             pg.ia        = inaddr;
             pg.size      = size;
             pg.oa        = outaddr;
@@ -156,11 +156,11 @@ static int cpu_vcpu_stage2_map(vmm_vcpu_t *vcpu, physical_addr_t fault_addr)
         }
 
 #ifdef CONFIG_64BIT
-        inaddr = fault_addr & PGTBL_L2_MAP_MASK;
-        size   = PGTBL_L2_BLOCK_SIZE;
+        inaddr = fault_addr & PAGE_TABLE_L2_MAP_MASK;
+        size   = PAGE_TABLE_L2_BLOCK_SIZE;
         rc     = vmm_guest_physical_map(vcpu->guest, inaddr, size, &outaddr, &availsz, &reg_flags);
 
-        if (!rc && (availsz >= PGTBL_L2_BLOCK_SIZE)) {
+        if (!rc && (availsz >= PAGE_TABLE_L2_BLOCK_SIZE)) {
             pg.ia        = inaddr;
             pg.size      = size;
             pg.oa        = outaddr;

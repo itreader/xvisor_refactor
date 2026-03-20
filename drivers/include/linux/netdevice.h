@@ -364,9 +364,9 @@ int                netdev_can_receive(struct vmm_netport *port);
 int                netdev_switch2port_xfer(struct vmm_netport *port, struct vmm_mbuf *mbuf);
 struct net_device *alloc_etherdev(int sizeof_private);
 
-#define netdev_msg(level, ndev, msg...)      \
-    do {                                     \
-        vmm_lprintf(level, ndev->name, msg); \
+#define netdev_msg(level, ndev, msg...)                                                                                                              \
+    do {                                                                                                                                             \
+        vmm_lprintf(level, ndev->name, msg);                                                                                                         \
     } while (0);
 
 #define netdev_info(ndev, msg...) netdev_msg(VMM_LOGLEVEL_INFO, ndev, msg)

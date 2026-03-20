@@ -541,7 +541,7 @@ END_TEST
 
 START_TEST(test_tcp_recv_ooseq_max_bytes)
 {
-#if TCP_OOSEQ_MAX_BYTES && (TCP_OOSEQ_MAX_BYTES < (TCP_WND + 1)) && \
+#if TCP_OOSEQ_MAX_BYTES && (TCP_OOSEQ_MAX_BYTES < (TCP_WND + 1)) &&                                                                                  \
     (PBUF_POOL_BUFSIZE >= (TCP_MSS + PBUF_LINK_HLEN + PBUF_IP_HLEN + PBUF_TRANSPORT_HLEN))
     int                      i, k;
     struct test_tcp_counters counters;
@@ -613,7 +613,7 @@ START_TEST(test_tcp_recv_ooseq_max_bytes)
     EXPECT(lwip_stats.memp[MEMP_TCP_PCB].used == 1);
     tcp_abort(pcb);
     EXPECT(lwip_stats.memp[MEMP_TCP_PCB].used == 0);
-#endif /* TCP_OOSEQ_MAX_BYTES && (TCP_OOSEQ_MAX_BYTES < (TCP_WND + 1)) && (PBUF_POOL_BUFSIZE >= (TCP_MSS + PBUF_LINK_HLEN + PBUF_IP_HLEN + \
+#endif /* TCP_OOSEQ_MAX_BYTES && (TCP_OOSEQ_MAX_BYTES < (TCP_WND + 1)) && (PBUF_POOL_BUFSIZE >= (TCP_MSS + PBUF_LINK_HLEN + PBUF_IP_HLEN +           \
           PBUF_TRANSPORT_HLEN)) */
     LWIP_UNUSED_ARG(_i);
 }
@@ -622,7 +622,7 @@ END_TEST
 
 START_TEST(test_tcp_recv_ooseq_max_pbufs)
 {
-#if TCP_OOSEQ_MAX_PBUFS && (TCP_OOSEQ_MAX_PBUFS < ((TCP_WND / TCP_MSS) + 1)) && \
+#if TCP_OOSEQ_MAX_PBUFS && (TCP_OOSEQ_MAX_PBUFS < ((TCP_WND / TCP_MSS) + 1)) &&                                                                      \
     (PBUF_POOL_BUFSIZE >= (TCP_MSS + PBUF_LINK_HLEN + PBUF_IP_HLEN + PBUF_TRANSPORT_HLEN))
     int                      i;
     struct test_tcp_counters counters;
@@ -694,7 +694,7 @@ START_TEST(test_tcp_recv_ooseq_max_pbufs)
     EXPECT(lwip_stats.memp[MEMP_TCP_PCB].used == 1);
     tcp_abort(pcb);
     EXPECT(lwip_stats.memp[MEMP_TCP_PCB].used == 0);
-#endif /* TCP_OOSEQ_MAX_PBUFS && (TCP_OOSEQ_MAX_BYTES < (TCP_WND + 1)) && (PBUF_POOL_BUFSIZE >= (TCP_MSS + PBUF_LINK_HLEN + PBUF_IP_HLEN + \
+#endif /* TCP_OOSEQ_MAX_PBUFS && (TCP_OOSEQ_MAX_BYTES < (TCP_WND + 1)) && (PBUF_POOL_BUFSIZE >= (TCP_MSS + PBUF_LINK_HLEN + PBUF_IP_HLEN +           \
           PBUF_TRANSPORT_HLEN)) */
     LWIP_UNUSED_ARG(_i);
 }
@@ -906,12 +906,12 @@ static void test_tcp_recv_ooseq_double_FINs(int delay_packet)
 
 /** create multiple segments and pass them to tcp_input with the first segment missing
  * to simulate overruning the rxwin with ooseq queueing enabled */
-#define FIN_TEST(name, num)                   \
-    START_TEST(name)                          \
-    {                                         \
-        LWIP_UNUSED_ARG(_i);                  \
-        test_tcp_recv_ooseq_double_FINs(num); \
-    }                                         \
+#define FIN_TEST(name, num)                                                                                                                          \
+    START_TEST(name)                                                                                                                                 \
+    {                                                                                                                                                \
+        LWIP_UNUSED_ARG(_i);                                                                                                                         \
+        test_tcp_recv_ooseq_double_FINs(num);                                                                                                        \
+    }                                                                                                                                                \
     END_TEST
 FIN_TEST(test_tcp_recv_ooseq_double_FIN_0, 0)
 FIN_TEST(test_tcp_recv_ooseq_double_FIN_1, 1)

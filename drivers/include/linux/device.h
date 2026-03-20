@@ -50,12 +50,12 @@
 #define device_del(dev)                  vmm_device_driver_unregister_device(dev)
 #define device_register(dev)             vmm_device_driver_register_device(dev)
 #define device_unregister(dev)           vmm_device_driver_unregister_device(dev)
-#define device_lock(_lock) \
-    do {                   \
+#define device_lock(_lock)                                                                                                                           \
+    do {                                                                                                                                             \
     } while (0);
 #define device_trylock(_lock) (1) /* always available */
-#define device_unlock(_lock) \
-    do {                     \
+#define device_unlock(_lock)                                                                                                                         \
+    do {                                                                                                                                             \
     } while (0);
 
 #define driver_register(drv)       vmm_device_driver_register_driver(drv)
@@ -67,14 +67,14 @@
 #define dev_set_drvdata(dev, data) vmm_device_driver_set_data(dev, data)
 
 #define dev_get_platdata(dev)      (dev)->of_node->system_data
-#define dev_set_platdata(dev, data)           \
-    do {                                      \
-        (dev)->of_node->system_data = (data); \
+#define dev_set_platdata(dev, data)                                                                                                                  \
+    do {                                                                                                                                             \
+        (dev)->of_node->system_data = (data);                                                                                                        \
     } while (0)
 
-#define platform_set_drvdata(pdev, data) \
-    do {                                 \
-        (pdev)->private = (void *)data;  \
+#define platform_set_drvdata(pdev, data)                                                                                                             \
+    do {                                                                                                                                             \
+        (pdev)->private = (void *)data;                                                                                                              \
     } while (0)
 #define platform_get_drvdata(pdev)                (pdev)->private
 
@@ -82,7 +82,7 @@
 #define dr_match_t                                vmm_device_resource_match_t
 
 #define device_resource_alloc(release, size, gfp) vmm_device_resource_alloc(release, size)
-#define device_resource_for_each_res(dev, release, match, match_data, fn, data) \
+#define device_resource_for_each_res(dev, release, match, match_data, fn, data)                                                                      \
     vmm_device_resource_for_each_resource(dev, release, match, match_data, fn, data)
 #define device_resource_free(res)                                vmm_device_resource_free(res)
 #define device_resource_add(dev, res)                            vmm_device_resource_add(dev, res)
@@ -132,15 +132,15 @@ static inline void set_dev_node(struct device *dev, int node) {}
  * Use this macro to construct bus specific macros for registering
  * drivers, and do not use it on its own.
  */
-#define module_driver(__desc, __author, __license, __ipriority, __driver, __register, __unregister, ...) \
-    static int __init __driver##_init(void)                                                              \
-    {                                                                                                    \
-        return __register(&(__driver), ##__VA_ARGS__);                                                   \
-    }                                                                                                    \
-    static void __exit __driver##_exit(void)                                                             \
-    {                                                                                                    \
-        __unregister(&(__driver), ##__VA_ARGS__);                                                        \
-    }                                                                                                    \
+#define module_driver(__desc, __author, __license, __ipriority, __driver, __register, __unregister, ...)                                             \
+    static int __init __driver##_init(void)                                                                                                          \
+    {                                                                                                                                                \
+        return __register(&(__driver), ##__VA_ARGS__);                                                                                               \
+    }                                                                                                                                                \
+    static void __exit __driver##_exit(void)                                                                                                         \
+    {                                                                                                                                                \
+        __unregister(&(__driver), ##__VA_ARGS__);                                                                                                    \
+    }                                                                                                                                                \
     VMM_DECLARE_MODULE(__desc, __author, __license, __ipriority, __driver##_init, __driver##_exit);
 
 /* interface for exporting device attributes */

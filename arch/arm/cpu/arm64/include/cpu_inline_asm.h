@@ -27,28 +27,28 @@
 #include <vmm_compiler.h>
 #include <vmm_types.h>
 
-#define rev16(val)                                                                    \
-    ({                                                                                \
-        uint16_t rval;                                                                \
-        asm volatile(" rev16   %0, %1\n\t" : "=r"(rval) : "r"(val) : "memory", "cc"); \
-        rval;                                                                         \
+#define rev16(val)                                                                                                                                   \
+    ({                                                                                                                                               \
+        uint16_t rval;                                                                                                                               \
+        asm volatile(" rev16   %0, %1\n\t" : "=r"(rval) : "r"(val) : "memory", "cc");                                                                \
+        rval;                                                                                                                                        \
     })
 
-#define rev32(val)                                                                     \
-    ({                                                                                 \
-        uint32_t rval;                                                                 \
-        asm volatile(" rev32    %0, %1\n\t" : "=r"(rval) : "r"(val) : "memory", "cc"); \
-        rval;                                                                          \
+#define rev32(val)                                                                                                                                   \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" rev32    %0, %1\n\t" : "=r"(rval) : "r"(val) : "memory", "cc");                                                               \
+        rval;                                                                                                                                        \
     })
 
-#define rev64(val)                               \
-    ({                                           \
-        uint32_t d1, d2;                         \
-        d1 = (uint32_t)((uint64_t)val >> 32);    \
-        d2 = (uint32_t)val;                      \
-        d1 = rev32(d1);                          \
-        d2 = rev32(d2);                          \
-        (((uint64_t)d2 << 32) | ((uint64_t)d1)); \
+#define rev64(val)                                                                                                                                   \
+    ({                                                                                                                                               \
+        uint32_t d1, d2;                                                                                                                             \
+        d1 = (uint32_t)((uint64_t)val >> 32);                                                                                                        \
+        d2 = (uint32_t)val;                                                                                                                          \
+        d1 = rev32(d1);                                                                                                                              \
+        d2 = rev32(d2);                                                                                                                              \
+        (((uint64_t)d2 << 32) | ((uint64_t)d1));                                                                                                     \
     })
 
 #define ldxr(addr, data)      asm volatile("ldxr	%0, [%1]\n\t" : "=r"(data) : "r"(addr))
@@ -58,77 +58,77 @@
 #define clrex()               asm volatile("clrex\n\t")
 
 /* Sysreg access */
-#define read_sysreg(__r)                                       \
-    ({                                                         \
-        uint64_t __v;                                          \
-        asm volatile("mrs_s %0, " stringify(__r) : "=r"(__v)); \
-        __v;                                                   \
+#define read_sysreg(__r)                                                                                                                             \
+    ({                                                                                                                                               \
+        uint64_t __v;                                                                                                                                \
+        asm volatile("mrs_s %0, " stringify(__r) : "=r"(__v));                                                                                       \
+        __v;                                                                                                                                         \
     })
 
-#define write_sysreg(__v, __r)                                                 \
-    do {                                                                       \
-        asm volatile("msr_s " stringify(__r) ", %0" : : "r"((uint64_t)(__v))); \
+#define write_sysreg(__v, __r)                                                                                                                       \
+    do {                                                                                                                                             \
+        asm volatile("msr_s " stringify(__r) ", %0" : : "r"((uint64_t)(__v)));                                                                       \
     } while (0)
 
-#define mrs(__spr)                                            \
-    ({                                                        \
-        uint64_t __v;                                         \
-        asm volatile("mrs %0," stringify(__spr) : "=r"(__v)); \
-        __v;                                                  \
+#define mrs(__spr)                                                                                                                                   \
+    ({                                                                                                                                               \
+        uint64_t __v;                                                                                                                                \
+        asm volatile("mrs %0," stringify(__spr) : "=r"(__v));                                                                                        \
+        __v;                                                                                                                                         \
     })
 
-#define msr(__spr, __v)                                            \
-    do {                                                           \
-        asm volatile("msr " stringify(__spr) ", %0" : : "r"(__v)); \
+#define msr(__spr, __v)                                                                                                                              \
+    do {                                                                                                                                             \
+        asm volatile("msr " stringify(__spr) ", %0" : : "r"(__v));                                                                                   \
     } while (0)
 
-#define msr_sync(__spr, __v)                              \
-    do {                                                  \
-        asm volatile("msr " stringify(__spr) ", %0\n\t"   \
-                                             "dsb sy\n\t" \
-                                             "isb\n\t"    \
-                     :                                    \
-                     : "r"(__v));                         \
+#define msr_sync(__spr, __v)                                                                                                                         \
+    do {                                                                                                                                             \
+        asm volatile("msr " stringify(__spr) ", %0\n\t"                                                                                              \
+                                             "dsb sy\n\t"                                                                                            \
+                                             "isb\n\t"                                                                                               \
+                     :                                                                                                                               \
+                     : "r"(__v));                                                                                                                    \
     } while (0)
 
 #define read_mpidr() mrs(mpidr_el1)
 
 /* TLB maintainence */
 
-#define inv_tlb_hyp_all()           \
-    asm volatile("tlbi alle2is\n\t" \
-                 "dsb ish\n\t"      \
-                 "isb\n\t" ::       \
+#define inv_tlb_hyp_all()                                                                                                                            \
+    asm volatile("tlbi alle2is\n\t"                                                                                                                  \
+                 "dsb ish\n\t"                                                                                                                       \
+                 "isb\n\t" ::                                                                                                                        \
                      : "memory", "cc")
 
-#define inv_tlb_guest_allis()       \
-    asm volatile("tlbi alle1is\n\t" \
-                 "dsb ish\n\t"      \
-                 "isb\n\t" ::       \
+#define inv_tlb_guest_allis()                                                                                                                        \
+    asm volatile("tlbi alle1is\n\t"                                                                                                                  \
+                 "dsb ish\n\t"                                                                                                                       \
+                 "isb\n\t" ::                                                                                                                        \
                      : "memory", "cc")
 
-#define inv_tlb_guest_cur()              \
-    asm volatile("tlbi vmalls12e1is\n\t" \
-                 "dsb ish\n\t"           \
-                 "isb\n\t" ::            \
+#define inv_tlb_guest_cur()                                                                                                                          \
+    asm volatile("tlbi vmalls12e1is\n\t"                                                                                                             \
+                 "dsb ish\n\t"                                                                                                                       \
+                 "isb\n\t" ::                                                                                                                        \
                      : "memory", "cc")
 
-#define inv_tlb_hyp_vais(va)                 \
-    asm volatile("tlbi vae2is, %0\n\t"       \
-                 "dsb ish\n\t"               \
-                 "isb\n\t" ::"r"((va) >> 12) \
+#define inv_tlb_hyp_vais(va)                                                                                                                         \
+    asm volatile("tlbi vae2is, %0\n\t"                                                                                                               \
+                 "dsb ish\n\t"                                                                                                                       \
+                 "isb\n\t" ::"r"((va) >> 12)                                                                                                         \
                  : "memory", "cc")
 
-#define inv_tlb_guest_ipa(va)                \
-    asm volatile("tlbi ipas2e1is, %0\n\t"    \
-                 "dsb ish\n\t"               \
-                 "isb\n\t" ::"r"((va) >> 12) \
+#define inv_tlb_guest_ipa(va)                                                                                                                        \
+    asm volatile("tlbi ipas2e1is, %0\n\t"                                                                                                            \
+                 "dsb ish\n\t"                                                                                                                       \
+                 "isb\n\t" ::"r"((va) >> 12)                                                                                                         \
                  : "memory", "cc")
 
-#define inv_tlb_guest_va(va)                 \
-    asm volatile("tlbi vaae1is, %0\n\t"      \
-                 "dsb ish\n\t"               \
-                 "isb\n\t" ::"r"((va) >> 12) \
+#define inv_tlb_guest_va(va)                                                                                                                         \
+    asm volatile("tlbi vaae1is, %0\n\t"                                                                                                              \
+                 "dsb ish\n\t"                                                                                                                       \
+                 "isb\n\t" ::"r"((va) >> 12)                                                                                                         \
                  : "memory", "cc")
 
 /* VA to PA Address Translation */
@@ -145,123 +145,123 @@
 
 /* CPU feature checking macros */
 
-#define cpu_supports_address_auth_arch()                        \
-    ({                                                          \
-        uint64_t isar1;                                         \
-        asm volatile("mrs %0, id_aa64isar1_el1" : "=r"(isar1)); \
-        (isar1 & ID_AA64ISAR1_APA_MASK);                        \
+#define cpu_supports_address_auth_arch()                                                                                                             \
+    ({                                                                                                                                               \
+        uint64_t isar1;                                                                                                                              \
+        asm volatile("mrs %0, id_aa64isar1_el1" : "=r"(isar1));                                                                                      \
+        (isar1 & ID_AA64ISAR1_APA_MASK);                                                                                                             \
     })
 
-#define cpu_supports_address_auth_imp()                         \
-    ({                                                          \
-        uint64_t isar1;                                         \
-        asm volatile("mrs %0, id_aa64isar1_el1" : "=r"(isar1)); \
-        (isar1 & ID_AA64ISAR1_API_MASK);                        \
+#define cpu_supports_address_auth_imp()                                                                                                              \
+    ({                                                                                                                                               \
+        uint64_t isar1;                                                                                                                              \
+        asm volatile("mrs %0, id_aa64isar1_el1" : "=r"(isar1));                                                                                      \
+        (isar1 & ID_AA64ISAR1_API_MASK);                                                                                                             \
     })
 
-#define cpu_supports_thumbee()                            \
-    ({                                                    \
-        uint64_t pfr0;                                    \
-        asm volatile("mrs %0, id_pfr0_el1" : "=r"(pfr0)); \
-        (pfr0 & ID_PFR0_THUMBEE_MASK);                    \
+#define cpu_supports_thumbee()                                                                                                                       \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_pfr0_el1" : "=r"(pfr0));                                                                                            \
+        (pfr0 & ID_PFR0_THUMBEE_MASK);                                                                                                               \
     })
 
-#define cpu_supports_thumb()                              \
-    ({                                                    \
-        uint64_t pfr0;                                    \
-        asm volatile("mrs %0, id_pfr0_el1" : "=r"(pfr0)); \
-        (pfr0 & ID_PFR0_THUMBEE_MASK);                    \
+#define cpu_supports_thumb()                                                                                                                         \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_pfr0_el1" : "=r"(pfr0));                                                                                            \
+        (pfr0 & ID_PFR0_THUMBEE_MASK);                                                                                                               \
     })
 
-#define cpu_supports_thumb2()                                 \
-    ({                                                        \
-        uint64_t pfr0;                                        \
-        asm volatile("mrs %0, id_pfr0_el1" : "=r"(pfr0));     \
-        ((pfr0 & ID_PFR0_THUMB_MASK) == ID_PFR0_THUMB2_MASK); \
+#define cpu_supports_thumb2()                                                                                                                        \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_pfr0_el1" : "=r"(pfr0));                                                                                            \
+        ((pfr0 & ID_PFR0_THUMB_MASK) == ID_PFR0_THUMB2_MASK);                                                                                        \
     })
 
-#define cpu_supports_jazelle()                            \
-    ({                                                    \
-        uint64_t pfr0;                                    \
-        asm volatile("mrs %0, id_pfr0_el1" : "=r"(pfr0)); \
-        (pfr0 & ID_PFR0_JAZELLE_MASK);                    \
+#define cpu_supports_jazelle()                                                                                                                       \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_pfr0_el1" : "=r"(pfr0));                                                                                            \
+        (pfr0 & ID_PFR0_JAZELLE_MASK);                                                                                                               \
     })
 
-#define cpu_supports_arm()                                \
-    ({                                                    \
-        uint64_t pfr0;                                    \
-        asm volatile("mrs %0, id_pfr0_el1" : "=r"(pfr0)); \
-        (pfr0 & ID_PFR0_ARM_MASK);                        \
+#define cpu_supports_arm()                                                                                                                           \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_pfr0_el1" : "=r"(pfr0));                                                                                            \
+        (pfr0 & ID_PFR0_ARM_MASK);                                                                                                                   \
     })
 
-#define cpu_supports_asimd()                                  \
-    ({                                                        \
-        uint64_t pfr0;                                        \
-        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0)); \
-        ((pfr0 & ID_AA64PFR0_ASIMD_MASK) != 0xf);             \
+#define cpu_supports_asimd()                                                                                                                         \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));                                                                                        \
+        ((pfr0 & ID_AA64PFR0_ASIMD_MASK) != 0xf);                                                                                                    \
     })
 
-#define cpu_supports_fpu()                                    \
-    ({                                                        \
-        uint64_t pfr0;                                        \
-        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0)); \
-        ((pfr0 & ID_AA64PFR0_FPU_MASK) != 0xf);               \
+#define cpu_supports_fpu()                                                                                                                           \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));                                                                                        \
+        ((pfr0 & ID_AA64PFR0_FPU_MASK) != 0xf);                                                                                                      \
     })
 
-#define cpu_supports_el0_a32()                                  \
-    ({                                                          \
-        uint64_t pfr0;                                          \
-        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));   \
-        ((pfr0 & ID_AA64PFR0_EL0_MASK) == ID_AA64PFR0_EL0_A32); \
+#define cpu_supports_el0_a32()                                                                                                                       \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));                                                                                        \
+        ((pfr0 & ID_AA64PFR0_EL0_MASK) == ID_AA64PFR0_EL0_A32);                                                                                      \
     })
 
-#define cpu_supports_el1_a32()                                  \
-    ({                                                          \
-        uint64_t pfr0;                                          \
-        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));   \
-        ((pfr0 & ID_AA64PFR0_EL1_MASK) == ID_AA64PFR0_EL1_A32); \
+#define cpu_supports_el1_a32()                                                                                                                       \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));                                                                                        \
+        ((pfr0 & ID_AA64PFR0_EL1_MASK) == ID_AA64PFR0_EL1_A32);                                                                                      \
     })
 
-#define cpu_supports_el2_a32()                                  \
-    ({                                                          \
-        uint64_t pfr0;                                          \
-        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));   \
-        ((pfr0 & ID_AA64PFR0_EL2_MASK) == ID_AA64PFR0_EL2_A32); \
+#define cpu_supports_el2_a32()                                                                                                                       \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));                                                                                        \
+        ((pfr0 & ID_AA64PFR0_EL2_MASK) == ID_AA64PFR0_EL2_A32);                                                                                      \
     })
 
-#define cpu_supports_el3_a32()                                  \
-    ({                                                          \
-        uint64_t pfr0;                                          \
-        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));   \
-        ((pfr0 & ID_AA64PFR0_EL3_MASK) == ID_AA64PFR0_EL3_A32); \
+#define cpu_supports_el3_a32()                                                                                                                       \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));                                                                                        \
+        ((pfr0 & ID_AA64PFR0_EL3_MASK) == ID_AA64PFR0_EL3_A32);                                                                                      \
     })
 
-#define cpu_supports_el0()                                    \
-    ({                                                        \
-        uint64_t pfr0;                                        \
-        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0)); \
-        (pfr0 & ID_AA64PFR0_EL0_MASK);                        \
+#define cpu_supports_el0()                                                                                                                           \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));                                                                                        \
+        (pfr0 & ID_AA64PFR0_EL0_MASK);                                                                                                               \
     })
 
-#define cpu_supports_el1()                                    \
-    ({                                                        \
-        uint64_t pfr0;                                        \
-        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0)); \
-        (pfr0 & ID_AA64PFR0_EL1_MASK);                        \
+#define cpu_supports_el1()                                                                                                                           \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));                                                                                        \
+        (pfr0 & ID_AA64PFR0_EL1_MASK);                                                                                                               \
     })
 
-#define cpu_supports_el2()                                    \
-    ({                                                        \
-        uint64_t pfr0;                                        \
-        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0)); \
-        (pfr0 & ID_AA64PFR0_EL2_MASK);                        \
+#define cpu_supports_el2()                                                                                                                           \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));                                                                                        \
+        (pfr0 & ID_AA64PFR0_EL2_MASK);                                                                                                               \
     })
 
-#define cpu_supports_el3()                                    \
-    ({                                                        \
-        uint64_t pfr0;                                        \
-        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0)); \
-        (pfr0 & ID_AA64PFR0_EL3_MASK);                        \
+#define cpu_supports_el3()                                                                                                                           \
+    ({                                                                                                                                               \
+        uint64_t pfr0;                                                                                                                               \
+        asm volatile("mrs %0, id_aa64pfr0_el1" : "=r"(pfr0));                                                                                        \
+        (pfr0 & ID_AA64PFR0_EL3_MASK);                                                                                                               \
     })
 
 #endif

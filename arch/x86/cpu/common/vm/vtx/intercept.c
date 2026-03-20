@@ -47,12 +47,12 @@ extern uint64_t vmx_cr0_fixed1;
 extern uint64_t vmx_cr4_fixed0;
 extern uint64_t vmx_cr4_fixed1;
 
-#define GUEST_CRx_FILTER(x, __value) \
-    ({                               \
-        uint64_t _v = __value;       \
-        (_v |= vmx_cr##x##_fixed0);  \
-        (_v &= vmx_cr##x##_fixed1);  \
-        (_v);                        \
+#define GUEST_CRx_FILTER(x, __value)                                                                                                                 \
+    ({                                                                                                                                               \
+        uint64_t _v = __value;                                                                                                                       \
+        (_v |= vmx_cr##x##_fixed0);                                                                                                                  \
+        (_v &= vmx_cr##x##_fixed1);                                                                                                                  \
+        (_v);                                                                                                                                        \
     })
 
 /* IMS: Table 30-1 Section 30.4 */

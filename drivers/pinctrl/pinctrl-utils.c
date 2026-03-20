@@ -19,15 +19,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
  * 02111-1307, USA
  */
-
+#include "core.h"
+#include "pinctrl-utils.h"
 #include <linux/device.h>
 #include <linux/export.h>
 #include <linux/kernel.h>
 #include <linux/of.h>
 #include <linux/pinctrl/pinctrl.h>
 #include <linux/slab.h>
-#include "core.h"
-#include "pinctrl-utils.h"
 
 int pinctrl_utils_reserve_map(pinctrl_device_t *pctldev, struct pinctrl_map **map, unsigned *reserved_maps, unsigned *num_maps, unsigned reserve)
 {

@@ -1104,11 +1104,11 @@ static void i8042_controller_reset(bool force_reset)
  * waiting for KBC to free up even if KBD interrupt is off
  */
 
-#define DELAY             \
-    do {                  \
-        mdelay(1);        \
-        if (++delay > 10) \
-            return delay; \
+#define DELAY                                                                                                                                        \
+    do {                                                                                                                                             \
+        mdelay(1);                                                                                                                                   \
+        if (++delay > 10)                                                                                                                            \
+            return delay;                                                                                                                            \
     } while (0)
 
 static long i8042_panic_blink(int state)

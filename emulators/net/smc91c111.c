@@ -56,13 +56,13 @@
 #define SMC91C111_MTU    2048
 
 #ifdef DEBUG_LAN9118
-#define DPRINTF(fmt, ...)               \
-    do {                                \
-        vmm_printf(fmt, ##__VA_ARGS__); \
+#define DPRINTF(fmt, ...)                                                                                                                            \
+    do {                                                                                                                                             \
+        vmm_printf(fmt, ##__VA_ARGS__);                                                                                                              \
     } while (0)
 #else
-#define DPRINTF(fmt, ...) \
-    do {                  \
+#define DPRINTF(fmt, ...)                                                                                                                            \
+    do {                                                                                                                                             \
     } while (0)
 #endif
 

@@ -124,30 +124,30 @@ static inline unsigned spi_imx_get_fifosize(struct spi_imx_data *d)
     return (d->devtype_data->devtype == IMX51_ECSPI) ? 64 : 8;
 }
 
-#define MXC_SPI_BUF_RX(type)                                        \
-    static void spi_imx_buf_rx_##type(struct spi_imx_data *spi_imx) \
-    {                                                               \
-        uint32_t val = readl(spi_imx->base + MXC_CSPIRXDATA);       \
-                                                                    \
-        if (spi_imx->rx_buf) {                                      \
-            *(type *)spi_imx->rx_buf = val;                         \
-            spi_imx->rx_buf += sizeof(type);                        \
-        }                                                           \
+#define MXC_SPI_BUF_RX(type)                                                                                                                         \
+    static void spi_imx_buf_rx_##type(struct spi_imx_data *spi_imx)                                                                                  \
+    {                                                                                                                                                \
+        uint32_t val = readl(spi_imx->base + MXC_CSPIRXDATA);                                                                                        \
+                                                                                                                                                     \
+        if (spi_imx->rx_buf) {                                                                                                                       \
+            *(type *)spi_imx->rx_buf = val;                                                                                                          \
+            spi_imx->rx_buf += sizeof(type);                                                                                                         \
+        }                                                                                                                                            \
     }
 
-#define MXC_SPI_BUF_TX(type)                                        \
-    static void spi_imx_buf_tx_##type(struct spi_imx_data *spi_imx) \
-    {                                                               \
-        type val = 0;                                               \
-                                                                    \
-        if (spi_imx->tx_buf) {                                      \
-            val = *(type *)spi_imx->tx_buf;                         \
-            spi_imx->tx_buf += sizeof(type);                        \
-        }                                                           \
-                                                                    \
-        spi_imx->count -= sizeof(type);                             \
-                                                                    \
-        writel(val, spi_imx->base + MXC_CSPITXDATA);                \
+#define MXC_SPI_BUF_TX(type)                                                                                                                         \
+    static void spi_imx_buf_tx_##type(struct spi_imx_data *spi_imx)                                                                                  \
+    {                                                                                                                                                \
+        type val = 0;                                                                                                                                \
+                                                                                                                                                     \
+        if (spi_imx->tx_buf) {                                                                                                                       \
+            val = *(type *)spi_imx->tx_buf;                                                                                                          \
+            spi_imx->tx_buf += sizeof(type);                                                                                                         \
+        }                                                                                                                                            \
+                                                                                                                                                     \
+        spi_imx->count -= sizeof(type);                                                                                                              \
+                                                                                                                                                     \
+        writel(val, spi_imx->base + MXC_CSPITXDATA);                                                                                                 \
     }
 
 MXC_SPI_BUF_RX(uint8_t)

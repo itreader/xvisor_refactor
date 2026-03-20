@@ -89,8 +89,8 @@ struct vmm_iommu_group {
 
 /* Domain feature flags */
 #define __VMM_IOMMU_DOMAIN_PAGING (1U << 0)  /* Support for iommu_map/unmap */
-#define __VMM_IOMMU_DOMAIN_DMA_API                                        \
-    (1U << 1)                                /* Domain for use in DMA-API \
+#define __VMM_IOMMU_DOMAIN_DMA_API                                                                                                                   \
+    (1U << 1)                                /* Domain for use in DMA-API                                                                            \
                             implementation              */
 #define __VMM_IOMMU_DOMAIN_PT      (1U << 2) /* Domain is identity mapped   */
 

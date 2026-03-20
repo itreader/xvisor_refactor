@@ -152,9 +152,9 @@
 /*
  * LCR=0xBF, XR16C85x
  */
-#define UART_TRG_OFFSET              \
-    0 /* FCTR bit 7 selects Rx or Tx \
-       * In: Fifo count              \
+#define UART_TRG_OFFSET                                                                                                                              \
+    0 /* FCTR bit 7 selects Rx or Tx                                                                                                                 \
+       * In: Fifo count                                                                                                                              \
        * Out: Fifo custom trigger levels */
 
 /*

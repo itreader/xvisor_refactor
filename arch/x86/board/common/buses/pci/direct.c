@@ -326,9 +326,8 @@ void __init pci_direct_init(int type)
             return;
         }
 
-        printk(
-            KERN_INFO "PCI: Using configuration type 1 "
-                      "for extended access\n");
+        printk(KERN_INFO "PCI: Using configuration type 1 "
+                         "for extended access\n");
         raw_pci_ext_ops = &pci_direct_conf1;
         return;
     }

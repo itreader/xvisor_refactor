@@ -59,10 +59,10 @@ enum apic_debug_log_levels {
 
 static uint32_t apic_default_log_lvl = APIC_LOG_LVL_VERBOSE;
 
-#define APIC_LOG(lvl, fmt, args...)                     \
-    do {                                                \
-        if (APIC_LOG_LVL_##lvl <= apic_default_log_lvl) \
-            vmm_printf("LAPIC: " fmt, ##args);          \
+#define APIC_LOG(lvl, fmt, args...)                                                                                                                  \
+    do {                                                                                                                                             \
+        if (APIC_LOG_LVL_##lvl <= apic_default_log_lvl)                                                                                              \
+            vmm_printf("LAPIC: " fmt, ##args);                                                                                                       \
     } while (0);
 
 #define MAX_APIC_WORDS        8
@@ -182,25 +182,25 @@ static void apic_external_nmi(apic_state_t *s)
 }
 #endif
 
-#define foreach_apic(apic_base, apic, deliver_bitmask, code) \
-    {                                                        \
-        int __i, __j;                                        \
-        int nr_apics = apic_base->vcpu->guest->vcpu_count;   \
-        for (__i = 0; __i < MAX_APIC_WORDS; __i++) {         \
-            uint32_t __mask = deliver_bitmask[__i];          \
-            if (__mask) {                                    \
-                for (__j = 0; __j < 32; __j++) {             \
-                    if (__mask & (1U << __j)) {              \
-                        if ((__i * 32 + __j) >= nr_apics)    \
-                            continue;                        \
-                        apic = apic_base + (__i * 32 + __j); \
-                        if (apic) {                          \
-                            code;                            \
-                        }                                    \
-                    }                                        \
-                }                                            \
-            }                                                \
-        }                                                    \
+#define foreach_apic(apic_base, apic, deliver_bitmask, code)                                                                                         \
+    {                                                                                                                                                \
+        int __i, __j;                                                                                                                                \
+        int nr_apics = apic_base->vcpu->guest->vcpu_count;                                                                                           \
+        for (__i = 0; __i < MAX_APIC_WORDS; __i++) {                                                                                                 \
+            uint32_t __mask = deliver_bitmask[__i];                                                                                                  \
+            if (__mask) {                                                                                                                            \
+                for (__j = 0; __j < 32; __j++) {                                                                                                     \
+                    if (__mask & (1U << __j)) {                                                                                                      \
+                        if ((__i * 32 + __j) >= nr_apics)                                                                                            \
+                            continue;                                                                                                                \
+                        apic = apic_base + (__i * 32 + __j);                                                                                         \
+                        if (apic) {                                                                                                                  \
+                            code;                                                                                                                    \
+                        }                                                                                                                            \
+                    }                                                                                                                                \
+                }                                                                                                                                    \
+            }                                                                                                                                        \
+        }                                                                                                                                            \
     }
 
 static void apic_bus_deliver(

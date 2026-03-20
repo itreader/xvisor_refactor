@@ -70,9 +70,9 @@ struct regmap_range {
     uint32_t range_max;
 };
 
-#define regmap_reg_range(low, high)          \
-    {                                        \
-        .range_min = low, .range_max = high, \
+#define regmap_reg_range(low, high)                                                                                                                  \
+    {                                                                                                                                                \
+        .range_min = low, .range_max = high,                                                                                                         \
     }
 
 /**

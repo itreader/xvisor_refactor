@@ -351,9 +351,9 @@ vmm_resource_t *__vmm_request_region(vmm_resource_t *parent, resource_size_t sta
 #define __vmm_request_mem_region(start, n, name, excl)   __vmm_request_region(&vmm_hostmem_resource, (start), (n), (name), excl)
 #define vmm_request_mem_region(start, n, name)           __vmm_request_region(&vmm_hostmem_resource, (start), (n), (name), 0)
 #define vmm_request_mem_region_exclusive(start, n, name) __vmm_request_region(&vmm_hostmem_resource, (start), (n), (name), VMM_IORESOURCE_EXCLUSIVE)
-#define vmm_rename_region(region, newname) \
-    do {                                   \
-        (region)->name = (newname);        \
+#define vmm_rename_region(region, newname)                                                                                                           \
+    do {                                                                                                                                             \
+        (region)->name = (newname);                                                                                                                  \
     } while (0)
 
 /**

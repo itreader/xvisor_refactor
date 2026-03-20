@@ -399,10 +399,10 @@ void __init vexpress_sysreg_of_early_init(void)
 
 #if 0 /* FIXME: #ifdef CONFIG_GPIOLIB */
 
-#define VEXPRESS_SYSREG_GPIO(_name, _reg, _value) \
-    [VEXPRESS_GPIO_##_name] = {                   \
-        .reg   = _reg,                            \
-        .value = _reg##_##_value,                 \
+#define VEXPRESS_SYSREG_GPIO(_name, _reg, _value)                                                                                                    \
+    [VEXPRESS_GPIO_##_name] = {                                                                                                                      \
+        .reg   = _reg,                                                                                                                               \
+        .value = _reg##_##_value,                                                                                                                    \
     }
 
 static struct vexpress_sysreg_gpio {
@@ -469,9 +469,9 @@ static struct gpio_chip vexpress_sysreg_gpio_chip = {
     .base = 0,
 };
 
-#define VEXPRESS_SYSREG_GREEN_LED(_name, _default_trigger, _gpio)                                       \
-    {                                                                                                   \
-        .name = "v2m:green:" _name, .default_trigger = _default_trigger, .gpio = VEXPRESS_GPIO_##_gpio, \
+#define VEXPRESS_SYSREG_GREEN_LED(_name, _default_trigger, _gpio)                                                                                    \
+    {                                                                                                                                                \
+        .name = "v2m:green:" _name, .default_trigger = _default_trigger, .gpio = VEXPRESS_GPIO_##_gpio,                                              \
     }
 
 struct gpio_led vexpress_sysreg_leds[] = {

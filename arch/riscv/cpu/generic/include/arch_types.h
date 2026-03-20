@@ -83,16 +83,16 @@ typedef struct {
 
 #define ARCH_ATOMIC_INIT(_lptr, val) (_lptr)->counter = (val)
 
-#define ARCH_ATOMIC_INITIALIZER(val) \
-    {                                \
-        .counter = (val),            \
+#define ARCH_ATOMIC_INITIALIZER(val)                                                                                                                 \
+    {                                                                                                                                                \
+        .counter = (val),                                                                                                                            \
     }
 
 #define ARCH_ATOMIC64_INIT(_lptr, val) (_lptr)->counter = (val)
 
-#define ARCH_ATOMIC64_INITIALIZER(val) \
-    {                                  \
-        .counter = (val),              \
+#define ARCH_ATOMIC64_INITIALIZER(val)                                                                                                               \
+    {                                                                                                                                                \
+        .counter = (val),                                                                                                                            \
     }
 
 #define __ARCH_SPIN_UNLOCKED       0
@@ -100,9 +100,9 @@ typedef struct {
 /* FIXME: Need memory barrier for this. */
 #define ARCH_SPIN_LOCK_INIT(_lptr) (_lptr)->lock = __ARCH_SPIN_UNLOCKED
 
-#define ARCH_SPIN_LOCK_INITIALIZER    \
-    {                                 \
-        .lock = __ARCH_SPIN_UNLOCKED, \
+#define ARCH_SPIN_LOCK_INITIALIZER                                                                                                                   \
+    {                                                                                                                                                \
+        .lock = __ARCH_SPIN_UNLOCKED,                                                                                                                \
     }
 
 typedef struct {
@@ -115,9 +115,9 @@ typedef struct {
 /* FIXME: Need memory barrier for this. */
 #define ARCH_RW_LOCK_INIT(_lptr) (_lptr)->lock = __ARCH_RW_UNLOCKED
 
-#define ARCH_RW_LOCK_INITIALIZER    \
-    {                               \
-        .lock = __ARCH_RW_UNLOCKED, \
+#define ARCH_RW_LOCK_INITIALIZER                                                                                                                     \
+    {                                                                                                                                                \
+        .lock = __ARCH_RW_UNLOCKED,                                                                                                                  \
     }
 
 #endif /* _ARCH_TYPES_H__ */

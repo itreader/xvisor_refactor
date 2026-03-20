@@ -93,17 +93,17 @@ static struct rockchip_pll_rate_table rk3036_pll_rates[] = {
 #define RK3036_DIV_PCLK_MASK  0x7
 #define RK3036_DIV_PCLK_SHIFT 12
 
-#define RK3036_CLKSEL1(_core_periph_div)                                                                                 \
-    {                                                                                                                    \
-        .reg = RK2928_CLKSEL_CON(1), .val = HIWORD_UPDATE(_core_periph_div, RK3036_DIV_PERI_MASK, RK3036_DIV_PERI_SHIFT) \
+#define RK3036_CLKSEL1(_core_periph_div)                                                                                                             \
+    {                                                                                                                                                \
+        .reg = RK2928_CLKSEL_CON(1), .val = HIWORD_UPDATE(_core_periph_div, RK3036_DIV_PERI_MASK, RK3036_DIV_PERI_SHIFT)                             \
     }
 
-#define RK3036_CPUCLK_RATE(_prate, _core_periph_div) \
-    {                                                \
-        .prate = _prate,                             \
-        .divs  = {                                   \
-            RK3036_CLKSEL1(_core_periph_div),       \
-        },                                          \
+#define RK3036_CPUCLK_RATE(_prate, _core_periph_div)                                                                                                 \
+    {                                                                                                                                                \
+        .prate = _prate,                                                                                                                             \
+        .divs  = {                                                                                                                                   \
+            RK3036_CLKSEL1(_core_periph_div),                                                                                                       \
+        },                                                                                                                                          \
     }
 
 static struct rockchip_cpuclock_rate_table rk3036_cpuclock_rates[] __initdata = {

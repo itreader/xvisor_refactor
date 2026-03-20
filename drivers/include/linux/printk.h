@@ -2,6 +2,7 @@
 #define __KERNEL_PRINTK__
 
 #include <vmm_stdio.h>
+#include <linux/device.h>
 
 #define KERN_EMERG
 #define KERN_ALERT
@@ -18,43 +19,43 @@
 #define no_printk(args...)
 
 #if defined(DEV_DEBUG)
-#define dev_dbg(dev, args...)           \
-    do {                                \
-        vmm_lnotice((dev)->name, args); \
+#define dev_dbg(dev, args...)                                                                                                                        \
+    do {                                                                                                                                             \
+        vmm_lnotice((dev)->name, args);                                                                                                              \
     } while (0)
 #else
 #define dev_dbg(...)
 #endif
 
-#define dev_info(dev, args...)        \
-    do {                              \
-        vmm_linfo((dev)->name, args); \
+#define dev_info(dev, args...)                                                                                                                       \
+    do {                                                                                                                                             \
+        vmm_linfo((dev)->name, args);                                                                                                                \
     } while (0)
 
-#define dev_warn(dev, args...)           \
-    do {                                 \
-        vmm_lwarning((dev)->name, args); \
+#define dev_warn(dev, args...)                                                                                                                       \
+    do {                                                                                                                                             \
+        vmm_lwarning((dev)->name, args);                                                                                                             \
     } while (0)
 
-#define dev_err(dev, args...)          \
-    do {                               \
-        vmm_lerror((dev)->name, args); \
+#define dev_err(dev, args...)                                                                                                                        \
+    do {                                                                                                                                             \
+        vmm_lerror((dev)->name, args);                                                                                                               \
     } while (0)
 
-#define dev_crit(dev, args...)            \
-    do {                                  \
-        vmm_lcritical((dev)->name, args); \
+#define dev_crit(dev, args...)                                                                                                                       \
+    do {                                                                                                                                             \
+        vmm_lcritical((dev)->name, args);                                                                                                            \
     } while (0)
 
-#define dev_notice(dev, args...)        \
-    do {                                \
-        vmm_lnotice((dev)->name, args); \
+#define dev_notice(dev, args...)                                                                                                                     \
+    do {                                                                                                                                             \
+        vmm_lnotice((dev)->name, args);                                                                                                              \
     } while (0)
 
-#define dev_printk(level, dev, args...) \
-    do {                                \
-        vmm_printf("%s ", (dev)->name); \
-        vmm_printf(args);               \
+#define dev_printk(level, dev, args...)                                                                                                              \
+    do {                                                                                                                                             \
+        vmm_printf("%s ", (dev)->name);                                                                                                              \
+        vmm_printf(args);                                                                                                                            \
     } while (0)
 
 #define printk_ratelimit() 0

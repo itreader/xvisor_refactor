@@ -56,11 +56,11 @@ enum {
 
 static int cmos_default_log_lvl = CMOS_LOG_LVL_INFO;
 
-#define CMOS_LOG(lvl, fmt, args...)                                 \
-    do {                                                            \
-        if (CMOS_LOG_##lvl <= cmos_default_log_lvl) {               \
-            vmm_printf("(%s:%d) " fmt, __func__, __LINE__, ##args); \
-        }                                                           \
+#define CMOS_LOG(lvl, fmt, args...)                                                                                                                  \
+    do {                                                                                                                                             \
+        if (CMOS_LOG_##lvl <= cmos_default_log_lvl) {                                                                                                \
+            vmm_printf("(%s:%d) " fmt, __func__, __LINE__, ##args);                                                                                  \
+        }                                                                                                                                            \
     } while (0);
 
 #define SEC_PER_MIN               60

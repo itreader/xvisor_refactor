@@ -48,8 +48,8 @@
 #include <riscv_lrsc.h>
 #include <riscv_timex.h>
 
-#define RISCV_ISA_ALLOWED                                                                                                    \
-    (riscv_isa_extension_mask(a) | riscv_isa_extension_mask(c) | riscv_isa_extension_mask(d) | riscv_isa_extension_mask(f) | \
+#define RISCV_ISA_ALLOWED                                                                                                                            \
+    (riscv_isa_extension_mask(a) | riscv_isa_extension_mask(c) | riscv_isa_extension_mask(d) | riscv_isa_extension_mask(f) |                         \
      riscv_isa_extension_mask(i) | riscv_isa_extension_mask(m) | riscv_isa_extension_mask(h) | riscv_isa_extension_mask(SSTC))
 
 static char *guest_fdt_find_serial_node(char *guest_name)
@@ -113,22 +113,19 @@ int arch_guest_init(struct vmm_guest *guest)
             return VMM_ENOMEM;
         }
 
-      private
-        = riscv_guest_private(guest);
+        private             = riscv_guest_private(guest);
 
-      private
-        ->time_delta      = -get_cycles64();
+        private->time_delta = -get_cycles64();
 
-        page_table_hw_tag = 0;
-        page_table_attr   = MMU_ATTR_REMOTE_TLB_FLUSH;
+        page_table_hw_tag   = 0;
+        page_table_attr     = MMU_ATTR_REMOTE_TLB_FLUSH;
 
         if (riscv_stage2_vmid_available()) {
             page_table_hw_tag = guest->id;
             page_table_attr |= MMU_ATTR_HW_TAG_VALID;
         }
 
-      private
-        ->page_table = mmu_page_table_alloc(MMU_STAGE2, -1, page_table_attr, page_table_hw_tag);
+        private->page_table = mmu_page_table_alloc(MMU_STAGE2, -1, page_table_attr, page_table_hw_tag);
 
         if (!private->page_table) {
             vmm_free(guest->arch_private);
@@ -136,8 +133,7 @@ int arch_guest_init(struct vmm_guest *guest)
             return VMM_ENOMEM;
         }
 
-      private
-        ->guest_serial = vmm_malloc(sizeof(struct riscv_guest_serial));
+        private->guest_serial = vmm_malloc(sizeof(struct riscv_guest_serial));
 
         if (!private->guest_serial) {
             mmu_page_table_free(riscv_guest_private(guest)->page_table);
@@ -213,10 +209,10 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
     /* Determine stack location */
     if (vcpu->is_normal) {
         sp      = 0;
-        sp_exec = vcpu->stack_va + vcpu->stack_size;
+        sp_exec = vcpu->stack_virtual_address + vcpu->stack_size;
         sp_exec = sp_exec & ~(__SIZEOF_POINTER__ - 1);
     } else {
-        sp = vcpu->stack_va + vcpu->stack_size;
+        sp = vcpu->stack_virtual_address + vcpu->stack_size;
         sp = sp & ~(__SIZEOF_POINTER__ - 1);
 
         if (!vcpu->reset_count) {
@@ -421,30 +417,18 @@ void arch_vcpu_switch(vmm_vcpu_t *vcpu_on_thread, vmm_vcpu_t *vcpu, arch_regs_t 
         memcpy(riscv_regs(vcpu_on_thread), regs, sizeof(*regs));
 
         if (vcpu_on_thread->is_normal) {
-          private
-            = riscv_private(vcpu_on_thread);
-          private
-            ->hie = csr_read(CSR_HIE);
-          private
-            ->hip = csr_read(CSR_HIP);
-          private
-            ->hvip = csr_read(CSR_HVIP);
-          private
-            ->vsstatus = csr_read(CSR_VSSTATUS);
-          private
-            ->vstvec = csr_read(CSR_VSTVEC);
-          private
-            ->vsscratch = csr_read(CSR_VSSCRATCH);
-          private
-            ->vsepc = csr_read(CSR_VSEPC);
-          private
-            ->vscause = csr_read(CSR_VSCAUSE);
-          private
-            ->vstval = csr_read(CSR_VSTVAL);
-          private
-            ->vsatp = csr_read(CSR_VSATP);
-          private
-            ->scounteren = csr_read(CSR_SCOUNTEREN);
+            private             = riscv_private(vcpu_on_thread);
+            private->hie        = csr_read(CSR_HIE);
+            private->hip        = csr_read(CSR_HIP);
+            private->hvip       = csr_read(CSR_HVIP);
+            private->vsstatus   = csr_read(CSR_VSSTATUS);
+            private->vstvec     = csr_read(CSR_VSTVEC);
+            private->vsscratch  = csr_read(CSR_VSSCRATCH);
+            private->vsepc      = csr_read(CSR_VSEPC);
+            private->vscause    = csr_read(CSR_VSCAUSE);
+            private->vstval     = csr_read(CSR_VSTVAL);
+            private->vsatp      = csr_read(CSR_VSATP);
+            private->scounteren = csr_read(CSR_SCOUNTEREN);
             cpu_vcpu_fp_save(vcpu_on_thread, regs);
             cpu_vcpu_timer_save(vcpu_on_thread);
         }
@@ -455,8 +439,7 @@ void arch_vcpu_switch(vmm_vcpu_t *vcpu_on_thread, vmm_vcpu_t *vcpu, arch_regs_t 
     memcpy(regs, riscv_regs(vcpu), sizeof(*regs));
 
     if (vcpu->is_normal) {
-      private
-        = riscv_private(vcpu);
+        private = riscv_private(vcpu);
         csr_write(CSR_HIE, private->hie);
         csr_write(CSR_HVIP, private->hvip);
         csr_write(CSR_VSSTATUS, private->vsstatus);

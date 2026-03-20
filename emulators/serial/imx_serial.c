@@ -164,7 +164,7 @@
 #define UTS_SOFTRST          (1 << 0)          /* Software reset */
 
 #define USR1_WR_MASK         (USR1_PARITYERR | USR1_RTSD | USR1_ESCF | USR1_FRAMERR | USR1_AGTIM | USR1_TIMEOUT | USR1_AIRINT | USR1_AWAKE)
-#define USR2_WR_MASK \
+#define USR2_WR_MASK                                                                                                                                 \
     (USR2_ADET | USR2_DTRF | USR2_IDLE | (1 << 11) | (1 << 10) | USR2_IRINT | USR2_WAKE | (1 << 6) | USR2_RTSF | USR2_BRCD | USR2_ORE)
 #define UTS_WR_MASK   (UTS_FRCPERR | UTS_LOOP | (7 << 9) | UTS_TXEMPTY | UTS_RXEMPTY | UTS_TXFULL | UTS_RXFULL | UTS_SOFTRST)
 

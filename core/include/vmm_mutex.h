@@ -41,22 +41,20 @@ typedef struct vmm_mutex {
 void __vmm_mutex_cleanup(vmm_vcpu_t *vcpu, vmm_vcpu_resource_t *vcpu_res);
 
 /** Initialize mutex lock */
-#define INIT_MUTEX(__mut)                              \
-    do {                                               \
-        (__mut)->lock        = 0;                      \
-        (__mut)->res.name    = "vmm_mutex";            \
-        (__mut)->res.cleanup = __vmm_mutex_cleanup;    \
-        (__mut)->owner       = NULL;                   \
-        INIT_WAITQUEUE(&(__mut)->wait_queue, (__mut)); \
+#define INIT_MUTEX(__mut)                                                                                                                            \
+    do {                                                                                                                                             \
+        (__mut)->lock        = 0;                                                                                                                    \
+        (__mut)->res.name    = "vmm_mutex";                                                                                                          \
+        (__mut)->res.cleanup = __vmm_mutex_cleanup;                                                                                                  \
+        (__mut)->owner       = NULL;                                                                                                                 \
+        INIT_WAITQUEUE(&(__mut)->wait_queue, (__mut));                                                                                               \
     } while (0)
 
-#define __MUTEX_INITIALIZER(__mut)                                           \
-    {                                                                        \
-        .lock       = 0,                                                     \
-        .res        = {.name = "vmm_mutex", .cleanup = __vmm_mutex_cleanup}, \
-        .owner      = NULL,                                                  \
-        .wait_queue = __WAITQUEUE_INITIALIZER((__mut).wait_queue, &(__mut)), \
-}
+#define __MUTEX_INITIALIZER(__mut)                                                                                                                   \
+    {                                                                                                                                                \
+        .lock = 0, .res = {.name = "vmm_mutex", .cleanup = __vmm_mutex_cleanup}, .owner = NULL,                                                      \
+        .wait_queue = __WAITQUEUE_INITIALIZER((__mut).wait_queue, &(__mut)),                                                                         \
+    }
 
 #define DEFINE_MUTEX(__mut) vmm_mutex_t __mut = __MUTEX_INITIALIZER(__mut)
 

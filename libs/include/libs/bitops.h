@@ -348,18 +348,18 @@ static inline uint64_t __ffs64(uint64_t word)
     return __ffs((uint64_t)word);
 }
 
-#define for_each_set_bit(bit, addr, size) \
+#define for_each_set_bit(bit, addr, size)                                                                                                            \
     for ((bit) = find_first_bit((addr), (size)); (bit) < (size); (bit) = find_next_bit((addr), (size), (bit) + 1))
 
 /* same as for_each_set_bit() but use bit as value to start with */
-#define for_each_set_bit_from(bit, addr, size) \
+#define for_each_set_bit_from(bit, addr, size)                                                                                                       \
     for ((bit) = find_next_bit((addr), (size), (bit)); (bit) < (size); (bit) = find_next_bit((addr), (size), (bit) + 1))
 
-#define for_each_clear_bit(bit, addr, size) \
+#define for_each_clear_bit(bit, addr, size)                                                                                                          \
     for ((bit) = find_first_zero_bit((addr), (size)); (bit) < (size); (bit) = find_next_zero_bit((addr), (size), (bit) + 1))
 
 /* same as for_each_clear_bit() but use bit as value to start with */
-#define for_each_clear_bit_from(bit, addr, size) \
+#define for_each_clear_bit_from(bit, addr, size)                                                                                                     \
     for ((bit) = find_next_zero_bit((addr), (size), (bit)); (bit) < (size); (bit) = find_next_zero_bit((addr), (size), (bit) + 1))
 
 static __inline__ int get_bitmask_order(uint32_t count)
@@ -510,29 +510,29 @@ extern arch_spinlock_t __atomic_hash[ATOMIC_HASH_SIZE];
 
 /* Can't use raw_spin_lock_irq because of #include problems, so
  * this is the substitute */
-#define _atomic_spin_lock_irq_save(l, f)     \
-    do {                                     \
-        arch_spinlock_t *s = ATOMIC_HASH(l); \
-        arch_cpu_irq_save(f);                \
-        arch_spin_lock(s);                   \
+#define _atomic_spin_lock_irq_save(l, f)                                                                                                             \
+    do {                                                                                                                                             \
+        arch_spinlock_t *s = ATOMIC_HASH(l);                                                                                                         \
+        arch_cpu_irq_save(f);                                                                                                                        \
+        arch_spin_lock(s);                                                                                                                           \
     } while (0)
 
-#define _atomic_spin_unlock_irq_restore(l, f) \
-    do {                                      \
-        arch_spinlock_t *s = ATOMIC_HASH(l);  \
-        arch_spin_unlock(s);                  \
-        arch_cpu_irq_restore(f);              \
+#define _atomic_spin_unlock_irq_restore(l, f)                                                                                                        \
+    do {                                                                                                                                             \
+        arch_spinlock_t *s = ATOMIC_HASH(l);                                                                                                         \
+        arch_spin_unlock(s);                                                                                                                         \
+        arch_cpu_irq_restore(f);                                                                                                                     \
     } while (0)
 
 #else
 
-#define _atomic_spin_lock_irq_save(l, f) \
-    do {                                 \
-        arch_cpu_irq_save(f);            \
+#define _atomic_spin_lock_irq_save(l, f)                                                                                                             \
+    do {                                                                                                                                             \
+        arch_cpu_irq_save(f);                                                                                                                        \
     } while (0)
-#define _atomic_spin_unlock_irq_restore(l, f) \
-    do {                                      \
-        arch_cpu_irq_restore(f);              \
+#define _atomic_spin_unlock_irq_restore(l, f)                                                                                                        \
+    do {                                                                                                                                             \
+        arch_cpu_irq_restore(f);                                                                                                                     \
     } while (0)
 
 #endif

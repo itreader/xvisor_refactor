@@ -82,11 +82,11 @@ static int _fdt_rw_check_header(void *fdt)
     return 0;
 }
 
-#define FDT_RW_CHECK_HEADER(fdt)                    \
-    {                                               \
-        int err;                                    \
-        if ((err = _fdt_rw_check_header(fdt)) != 0) \
-            return err;                             \
+#define FDT_RW_CHECK_HEADER(fdt)                                                                                                                     \
+    {                                                                                                                                                \
+        int err;                                                                                                                                     \
+        if ((err = _fdt_rw_check_header(fdt)) != 0)                                                                                                  \
+            return err;                                                                                                                              \
     }
 
 static inline int _fdt_data_size(void *fdt)

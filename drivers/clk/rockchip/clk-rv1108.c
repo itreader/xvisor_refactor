@@ -81,17 +81,17 @@ static struct rockchip_pll_rate_table rv1108_pll_rates[] = {
 #define RV1108_DIV_CORE_MASK  0xf
 #define RV1108_DIV_CORE_SHIFT 4
 
-#define RV1108_CLKSEL0(_core_peri_div)                                                                                 \
-    {                                                                                                                  \
-        .reg = RV1108_CLKSEL_CON(1), .val = HIWORD_UPDATE(_core_peri_div, RV1108_DIV_CORE_MASK, RV1108_DIV_CORE_SHIFT) \
+#define RV1108_CLKSEL0(_core_peri_div)                                                                                                               \
+    {                                                                                                                                                \
+        .reg = RV1108_CLKSEL_CON(1), .val = HIWORD_UPDATE(_core_peri_div, RV1108_DIV_CORE_MASK, RV1108_DIV_CORE_SHIFT)                               \
     }
 
-#define RV1108_CPUCLK_RATE(_prate, _core_peri_div) \
-    {                                              \
-        .prate = _prate,                           \
-        .divs  = {                                 \
-            RV1108_CLKSEL0(_core_peri_div),       \
-        },                                        \
+#define RV1108_CPUCLK_RATE(_prate, _core_peri_div)                                                                                                   \
+    {                                                                                                                                                \
+        .prate = _prate,                                                                                                                             \
+        .divs  = {                                                                                                                                   \
+            RV1108_CLKSEL0(_core_peri_div),                                                                                                         \
+        },                                                                                                                                          \
     }
 
 static struct rockchip_cpuclock_rate_table rv1108_cpuclock_rates[] __initdata = {

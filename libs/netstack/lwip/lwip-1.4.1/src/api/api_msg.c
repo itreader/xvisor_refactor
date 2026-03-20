@@ -54,13 +54,13 @@
 
 #include <libs/stringlib.h>
 
-#define SET_NONBLOCKING_CONNECT(conn, val)                         \
-    do {                                                           \
-        if (val) {                                                 \
-            (conn)->flags |= NETCONN_FLAG_IN_NONBLOCKING_CONNECT;  \
-        } else {                                                   \
-            (conn)->flags &= ~NETCONN_FLAG_IN_NONBLOCKING_CONNECT; \
-        }                                                          \
+#define SET_NONBLOCKING_CONNECT(conn, val)                                                                                                           \
+    do {                                                                                                                                             \
+        if (val) {                                                                                                                                   \
+            (conn)->flags |= NETCONN_FLAG_IN_NONBLOCKING_CONNECT;                                                                                    \
+        } else {                                                                                                                                     \
+            (conn)->flags &= ~NETCONN_FLAG_IN_NONBLOCKING_CONNECT;                                                                                   \
+        }                                                                                                                                            \
     } while (0)
 #define IN_NONBLOCKING_CONNECT(conn) (((conn)->flags & NETCONN_FLAG_IN_NONBLOCKING_CONNECT) != 0)
 

@@ -88,17 +88,17 @@ struct vmm_vmsg {
     void (*free_hdr)(struct vmm_vmsg *);
 };
 
-#define INIT_VMSG(__m, __dst, __src, __local, __d, __l, __p, __fd, __fh) \
-    do {                                                                 \
-        xref_init(&(__m)->ref_count);                                    \
-        (__m)->dst       = (__dst);                                      \
-        (__m)->src       = (__src);                                      \
-        (__m)->local     = (__local);                                    \
-        (__m)->data      = (__d);                                        \
-        (__m)->len       = (__l);                                        \
-        (__m)->private   = (__p);                                        \
-        (__m)->free_data = (__fd);                                       \
-        (__m)->free_hdr  = (__fh);                                       \
+#define INIT_VMSG(__m, __dst, __src, __local, __d, __l, __p, __fd, __fh)                                                                             \
+    do {                                                                                                                                             \
+        xref_init(&(__m)->ref_count);                                                                                                                \
+        (__m)->dst       = (__dst);                                                                                                                  \
+        (__m)->src       = (__src);                                                                                                                  \
+        (__m)->local     = (__local);                                                                                                                \
+        (__m)->data      = (__d);                                                                                                                    \
+        (__m)->len       = (__l);                                                                                                                    \
+        (__m)->private   = (__p);                                                                                                                    \
+        (__m)->free_data = (__fd);                                                                                                                   \
+        (__m)->free_hdr  = (__fh);                                                                                                                   \
     } while (0)
 
 /** Representation of a virtual messaging domain */
@@ -121,14 +121,14 @@ struct vmm_vmsg_node_lazy {
     void (*xfer)(struct vmm_vmsg_node *, void *, int);
 };
 
-#define INIT_VMM_VMSG_NODE_LAZY(__lazy, __node, __budget, __arg, __xfer) \
-    do {                                                                 \
-        (__lazy)->node = (__node);                                       \
-        ARCH_ATOMIC_INIT(&(__lazy)->sched_count, 0);                     \
-        INIT_LIST_HEAD(&(__lazy)->head);                                 \
-        (__lazy)->budget = (__budget);                                   \
-        (__lazy)->arg    = (__arg);                                      \
-        (__lazy)->xfer   = (__xfer);                                     \
+#define INIT_VMM_VMSG_NODE_LAZY(__lazy, __node, __budget, __arg, __xfer)                                                                             \
+    do {                                                                                                                                             \
+        (__lazy)->node = (__node);                                                                                                                   \
+        ARCH_ATOMIC_INIT(&(__lazy)->sched_count, 0);                                                                                                 \
+        INIT_LIST_HEAD(&(__lazy)->head);                                                                                                             \
+        (__lazy)->budget = (__budget);                                                                                                               \
+        (__lazy)->arg    = (__arg);                                                                                                                  \
+        (__lazy)->xfer   = (__xfer);                                                                                                                 \
     } while (0)
 
 /** Representation of a virtual messaging node operations */

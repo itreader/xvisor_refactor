@@ -336,7 +336,7 @@ static virtual_addr_t host_memmap(physical_addr_t pa, virtual_size_t size, uint3
     uint32_t        tmem_flags = 0;
 
     if (use_hugepage) {
-        page_shift = arch_cpu_aspace_hugepage_log2size();
+        page_shift = arch_cpu_addr_space_hugepage_log2size();
     } else {
         page_shift = VMM_PAGE_SHIFT;
     }
@@ -384,7 +384,7 @@ static virtual_addr_t host_memmap(physical_addr_t pa, virtual_size_t size, uint3
         }
 
         for (ite = 0; ite < (size >> page_shift); ite++) {
-            rc = arch_cpu_aspace_map(va + ite * page_size, page_size, tpa + ite * page_size, mem_flags);
+            rc = arch_cpu_addr_space_map(va + ite * page_size, page_size, tpa + ite * page_size, mem_flags);
 
             if (rc) {
                 /* We were not able to map physical address */
@@ -411,7 +411,7 @@ static int host_memunmap(virtual_addr_t va, virtual_size_t size, bool use_hugepa
     physical_addr_t pa = 0x0;
 
     if (use_hugepage) {
-        page_shift = arch_cpu_aspace_hugepage_log2size();
+        page_shift = arch_cpu_addr_space_hugepage_log2size();
     } else {
         page_shift = VMM_PAGE_SHIFT;
     }
@@ -422,7 +422,7 @@ static int host_memunmap(virtual_addr_t va, virtual_size_t size, bool use_hugepa
     size      = roundup2_order_size(size, page_shift);
     va &= ~page_mask;
 
-    if ((rc = arch_cpu_aspace_va2pa(va, &pa))) {
+    if ((rc = arch_cpu_addr_space_va2pa(va, &pa))) {
         return rc;
     }
 
@@ -435,7 +435,7 @@ static int host_memunmap(virtual_addr_t va, virtual_size_t size, bool use_hugepa
     }
 
     for (ite = 0; ite < (size >> page_shift); ite++) {
-        rc = arch_cpu_aspace_unmap(va + ite * page_size);
+        rc = arch_cpu_addr_space_unmap(va + ite * page_size);
 
         if (rc) {
             return rc;
@@ -456,7 +456,7 @@ static virtual_addr_t host_alloc_aligned_pages(uint32_t page_count, uint32_t ali
     physical_addr_t pa = 0x0;
 
     if (use_hugepage) {
-        page_shift = arch_cpu_aspace_hugepage_log2size();
+        page_shift = arch_cpu_addr_space_hugepage_log2size();
     } else {
         page_shift = VMM_PAGE_SHIFT;
     }
@@ -482,7 +482,7 @@ static int host_free_pages(virtual_addr_t page_va, uint32_t page_count, bool use
     physical_addr_t pa = 0x0;
 
     if (use_hugepage) {
-        page_shift = arch_cpu_aspace_hugepage_log2size();
+        page_shift = arch_cpu_addr_space_hugepage_log2size();
     } else {
         page_shift = VMM_PAGE_SHIFT;
     }
@@ -492,7 +492,7 @@ static int host_free_pages(virtual_addr_t page_va, uint32_t page_count, bool use
 
     page_va &= ~page_mask;
 
-    if ((rc = arch_cpu_aspace_va2pa(page_va, &pa))) {
+    if ((rc = arch_cpu_addr_space_va2pa(page_va, &pa))) {
         return rc;
     }
 
@@ -535,17 +535,17 @@ int vmm_host_memunmap(virtual_addr_t va)
 
 uint32_t vmm_host_hugepage_shift(void)
 {
-    return arch_cpu_aspace_hugepage_log2size();
+    return arch_cpu_addr_space_hugepage_log2size();
 }
 
 virtual_size_t vmm_host_hugepage_size(void)
 {
-    return ((virtual_size_t)1) << arch_cpu_aspace_hugepage_log2size();
+    return ((virtual_size_t)1) << arch_cpu_addr_space_hugepage_log2size();
 }
 
 virtual_addr_t vmm_host_alloc_hugepages(uint32_t page_count, uint32_t mem_flags)
 {
-    return host_alloc_aligned_pages(page_count, arch_cpu_aspace_hugepage_log2size(), mem_flags, true);
+    return host_alloc_aligned_pages(page_count, arch_cpu_addr_space_hugepage_log2size(), mem_flags, true);
 }
 
 int vmm_host_free_hugepages(virtual_addr_t page_va, uint32_t page_count)
@@ -573,7 +573,7 @@ int vmm_host_va2pa(virtual_addr_t va, physical_addr_t *pa)
     int             rc  = VMM_OK;
     physical_addr_t _pa = 0x0;
 
-    if ((rc = arch_cpu_aspace_va2pa(va, &_pa))) {
+    if ((rc = arch_cpu_addr_space_va2pa(va, &_pa))) {
         return rc;
     }
 
@@ -621,8 +621,8 @@ uint32_t vmm_host_memory_read(physical_addr_t hpa, void *dst, uint32_t len, bool
         arch_cpu_irq_save(flags);
 
 #if !defined(ARCH_HAS_MEMORY_READWRITE)
-        rc =
-            arch_cpu_aspace_map(tmp_va, VMM_PAGE_SIZE, hpa & ~VMM_PAGE_MASK, (cacheable) ? VMM_MEMORY_FLAGS_NORMAL : VMM_MEMORY_FLAGS_NORMAL_NOCACHE);
+        rc = arch_cpu_addr_space_map(
+            tmp_va, VMM_PAGE_SIZE, hpa & ~VMM_PAGE_MASK, (cacheable) ? VMM_MEMORY_FLAGS_NORMAL : VMM_MEMORY_FLAGS_NORMAL_NOCACHE);
 
         if (rc) {
             break;
@@ -630,14 +630,14 @@ uint32_t vmm_host_memory_read(physical_addr_t hpa, void *dst, uint32_t len, bool
 
         memcpy(dst, (void *)(tmp_va + page_offset), page_read);
 
-        rc = arch_cpu_aspace_unmap(tmp_va);
+        rc = arch_cpu_addr_space_unmap(tmp_va);
 
         if (rc) {
             break;
         }
 
 #else
-        rc = arch_cpu_aspace_memory_read(tmp_va, hpa, dst, page_read, cacheable);
+        rc = arch_cpu_addr_space_memory_read(tmp_va, hpa, dst, page_read, cacheable);
 
         if (rc) {
             break;
@@ -674,8 +674,8 @@ uint32_t vmm_host_memory_write(physical_addr_t hpa, void *src, uint32_t len, boo
         arch_cpu_irq_save(flags);
 
 #if !defined(ARCH_HAS_MEMORY_READWRITE)
-        rc =
-            arch_cpu_aspace_map(tmp_va, VMM_PAGE_SIZE, hpa & ~VMM_PAGE_MASK, (cacheable) ? VMM_MEMORY_FLAGS_NORMAL : VMM_MEMORY_FLAGS_NORMAL_NOCACHE);
+        rc = arch_cpu_addr_space_map(
+            tmp_va, VMM_PAGE_SIZE, hpa & ~VMM_PAGE_MASK, (cacheable) ? VMM_MEMORY_FLAGS_NORMAL : VMM_MEMORY_FLAGS_NORMAL_NOCACHE);
 
         if (rc) {
             break;
@@ -683,14 +683,14 @@ uint32_t vmm_host_memory_write(physical_addr_t hpa, void *src, uint32_t len, boo
 
         memcpy((void *)(tmp_va + page_offset), src, page_write);
 
-        rc = arch_cpu_aspace_unmap(tmp_va);
+        rc = arch_cpu_addr_space_unmap(tmp_va);
 
         if (rc) {
             break;
         }
 
 #else
-        rc = arch_cpu_aspace_memory_write(tmp_va, hpa, src, page_write, cacheable);
+        rc = arch_cpu_addr_space_memory_write(tmp_va, hpa, src, page_write, cacheable);
 
         if (rc) {
             break;
@@ -752,12 +752,12 @@ uint32_t vmm_host_free_initmem(void)
     return (init_size >> VMM_PAGE_SHIFT) * VMM_PAGE_SIZE / 1024;
 }
 
-static int __cpuinit host_aspace_init_secondary(void)
+static int __cpuinit host_addr_space_init_secondary(void)
 {
     int rc;
 
     /* For Non-Boot CPU just call arch code and return */
-    rc = arch_cpu_aspace_secondary_init();
+    rc = arch_cpu_addr_space_secondary_init();
 
     if (rc) {
         return rc;
@@ -765,7 +765,7 @@ static int __cpuinit host_aspace_init_secondary(void)
 
 #if defined(ARCH_HAS_MEMORY_READWRITE)
     /* Initialize memory read/write for Non-Boot CPU */
-    rc = arch_cpu_aspace_memory_rwinit(host_mem_rw_va[vmm_smp_processor_id()]);
+    rc = arch_cpu_addr_space_memory_rwinit(host_mem_rw_va[vmm_smp_processor_id()]);
 
     if (rc) {
         return rc;
@@ -776,7 +776,7 @@ static int __cpuinit host_aspace_init_secondary(void)
     return VMM_OK;
 }
 
-static int __init host_aspace_init_primary(void)
+static int __init host_addr_space_init_primary(void)
 {
     int             rc, cpu, bank_found = 0;
     uint32_t        resv, resv_count, bank, bank_count = 0x0;
@@ -857,8 +857,8 @@ static int __init host_aspace_init_primary(void)
     }
 
     /* Determine VAPOOL start and size */
-    virtual_address_pool_start  = arch_cpu_aspace_virtual_address_pool_start();
-    virtual_address_pool_size   = arch_cpu_aspace_virtual_address_pool_estimate_size(ram_total_size);
+    virtual_address_pool_start  = arch_cpu_addr_space_virtual_address_pool_start();
+    virtual_address_pool_size   = arch_cpu_addr_space_virtual_address_pool_estimate_size(ram_total_size);
 
     /* Determine VAPOOL house-keeping size based on VAPOOL size */
     virtual_address_pool_hksize = vmm_host_virtual_address_pool_estimate_hksize(virtual_address_pool_size);
@@ -886,19 +886,19 @@ static int __init host_aspace_init_primary(void)
 
     /* We cannot estimate the physical address, virtual address,
      * and size of arch reserved space so we set all of them to
-     * zero and expect that arch_primary_cpu_aspace_init() will
+     * zero and expect that arch_primary_cpu_addr_space_init() will
      * update them if arch code requires arch reserved space.
      */
     arch_resv_pa  = 0x0;
     arch_resv_va  = 0x0;
     arch_resv_sz  = 0x0;
 
-    /* Call arch_primary_cpu_aspace_init() with the estimated
+    /* Call arch_primary_cpu_addr_space_init() with the estimated
      * parameters for core reserved space and arch reserved space.
-     * The arch_primary_cpu_aspace_init() can change these parameter
+     * The arch_primary_cpu_addr_space_init() can change these parameter
      * as needed.
      */
-    if ((rc = arch_cpu_aspace_primary_init(&core_resv_pa, &core_resv_va, &core_resv_sz, &arch_resv_pa, &arch_resv_va, &arch_resv_sz))) {
+    if ((rc = arch_cpu_addr_space_primary_init(&core_resv_pa, &core_resv_va, &core_resv_sz, &arch_resv_pa, &arch_resv_va, &arch_resv_sz))) {
         return rc;
     }
 
@@ -1027,7 +1027,7 @@ static int __init host_aspace_init_primary(void)
 
 #if defined(ARCH_HAS_MEMORY_READWRITE)
     /* Initialize memory read/write for Boot CPU */
-    rc = arch_cpu_aspace_memory_rwinit(host_mem_rw_va[vmm_smp_bootcpu_id()]);
+    rc = arch_cpu_addr_space_memory_rwinit(host_mem_rw_va[vmm_smp_bootcpu_id()]);
 
     if (rc) {
         return rc;
@@ -1041,8 +1041,8 @@ static int __init host_aspace_init_primary(void)
 int __cpuinit vmm_host_address_space_init(void)
 {
     if (!vmm_smp_is_bootcpu()) {
-        return host_aspace_init_secondary();
+        return host_addr_space_init_secondary();
     }
 
-    return host_aspace_init_primary();
+    return host_addr_space_init_primary();
 }

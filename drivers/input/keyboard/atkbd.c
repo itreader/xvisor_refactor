@@ -236,17 +236,17 @@ static ssize_t atkbd_attr_show_helper(struct device *dev, char *buf,
                                       ssize_t (*handler)(struct atkbd *, char *));
 static ssize_t atkbd_attr_set_helper(struct device *dev, const char *buf, size_t count,
                                      ssize_t (*handler)(struct atkbd *, const char *, size_t));
-#define ATKBD_DEFINE_ATTR(_name)                                                                                  \
-    static ssize_t atkbd_show_##_name(struct atkbd *, char *);                                                    \
-    static ssize_t atkbd_set_##_name(struct atkbd *, const char *, size_t);                                       \
-    static ssize_t atkbd_do_show_##_name(struct device *d, struct device_attribute *attr, char *b)                \
-    {                                                                                                             \
-        return atkbd_attr_show_helper(d, b, atkbd_show_##_name);                                                  \
-    }                                                                                                             \
-    static ssize_t atkbd_do_set_##_name(struct device *d, struct device_attribute *attr, const char *b, size_t s) \
-    {                                                                                                             \
-        return atkbd_attr_set_helper(d, b, s, atkbd_set_##_name);                                                 \
-    }                                                                                                             \
+#define ATKBD_DEFINE_ATTR(_name)                                                                                                                     \
+    static ssize_t atkbd_show_##_name(struct atkbd *, char *);                                                                                       \
+    static ssize_t atkbd_set_##_name(struct atkbd *, const char *, size_t);                                                                          \
+    static ssize_t atkbd_do_show_##_name(struct device *d, struct device_attribute *attr, char *b)                                                   \
+    {                                                                                                                                                \
+        return atkbd_attr_show_helper(d, b, atkbd_show_##_name);                                                                                     \
+    }                                                                                                                                                \
+    static ssize_t atkbd_do_set_##_name(struct device *d, struct device_attribute *attr, const char *b, size_t s)                                    \
+    {                                                                                                                                                \
+        return atkbd_attr_set_helper(d, b, s, atkbd_set_##_name);                                                                                    \
+    }                                                                                                                                                \
     static struct device_attribute atkbd_attr_##_name = __ATTR(_name, S_IWUSR | S_IRUGO, atkbd_do_show_##_name, atkbd_do_set_##_name);
 
 ATKBD_DEFINE_ATTR(extra);
@@ -256,12 +256,12 @@ ATKBD_DEFINE_ATTR(set);
 ATKBD_DEFINE_ATTR(softrepeat);
 ATKBD_DEFINE_ATTR(softraw);
 
-#define ATKBD_DEFINE_RO_ATTR(_name)                                                                \
-    static ssize_t atkbd_show_##_name(struct atkbd *, char *);                                     \
-    static ssize_t atkbd_do_show_##_name(struct device *d, struct device_attribute *attr, char *b) \
-    {                                                                                              \
-        return atkbd_attr_show_helper(d, b, atkbd_show_##_name);                                   \
-    }                                                                                              \
+#define ATKBD_DEFINE_RO_ATTR(_name)                                                                                                                  \
+    static ssize_t atkbd_show_##_name(struct atkbd *, char *);                                                                                       \
+    static ssize_t atkbd_do_show_##_name(struct device *d, struct device_attribute *attr, char *b)                                                   \
+    {                                                                                                                                                \
+        return atkbd_attr_show_helper(d, b, atkbd_show_##_name);                                                                                     \
+    }                                                                                                                                                \
     static struct device_attribute atkbd_attr_##_name = __ATTR(_name, S_IRUGO, atkbd_do_show_##_name, NULL);
 
 ATKBD_DEFINE_RO_ATTR(err_count);

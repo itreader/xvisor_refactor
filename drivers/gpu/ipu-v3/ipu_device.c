@@ -70,70 +70,70 @@ static struct ipu_channel_tabel ipu_ch_tbl;
 
 #include "vdoa.h"
 
-#define CHECK_RETCODE(cont, str, err, label, ret)     \
-    do {                                              \
-        if (cont) {                                   \
-            dev_err(                                  \
-                t->dev,                               \
-                "ERR:[0x%p]-no:0x%x " #str " ret:%d," \
-                "line:%d\n",                          \
-                t, t->task_no, ret, __LINE__);        \
-            if (ret != -EACCES) {                     \
-                t->state = err;                       \
-                goto label;                           \
-            }                                         \
-        }                                             \
+#define CHECK_RETCODE(cont, str, err, label, ret)                                                                                                    \
+    do {                                                                                                                                             \
+        if (cont) {                                                                                                                                  \
+            dev_err(                                                                                                                                 \
+                t->dev,                                                                                                                              \
+                "ERR:[0x%p]-no:0x%x " #str " ret:%d,"                                                                                                \
+                "line:%d\n",                                                                                                                         \
+                t, t->task_no, ret, __LINE__);                                                                                                       \
+            if (ret != -EACCES) {                                                                                                                    \
+                t->state = err;                                                                                                                      \
+                goto label;                                                                                                                          \
+            }                                                                                                                                        \
+        }                                                                                                                                            \
     } while (0)
 
-#define CHECK_RETCODE_CONT(cont, str, err, ret)      \
-    do {                                             \
-        if (cont) {                                  \
-            dev_err(                                 \
-                t->dev,                              \
-                "ERR:[0x%p]-no:0x%x" #str " ret:%d," \
-                "line:%d\n",                         \
-                t, t->task_no, ret, __LINE__);       \
-            if (ret != -EACCES) {                    \
-                if (t->state == STATE_OK)            \
-                    t->state = err;                  \
-            }                                        \
-        }                                            \
+#define CHECK_RETCODE_CONT(cont, str, err, ret)                                                                                                      \
+    do {                                                                                                                                             \
+        if (cont) {                                                                                                                                  \
+            dev_err(                                                                                                                                 \
+                t->dev,                                                                                                                              \
+                "ERR:[0x%p]-no:0x%x" #str " ret:%d,"                                                                                                 \
+                "line:%d\n",                                                                                                                         \
+                t, t->task_no, ret, __LINE__);                                                                                                       \
+            if (ret != -EACCES) {                                                                                                                    \
+                if (t->state == STATE_OK)                                                                                                            \
+                    t->state = err;                                                                                                                  \
+            }                                                                                                                                        \
+        }                                                                                                                                            \
     } while (0)
 
 #undef DBG_IPU_PERF
 #ifdef DBG_IPU_PERF
-#define CHECK_PERF(ts)      \
-    do {                    \
-        getnstimeofday(ts); \
+#define CHECK_PERF(ts)                                                                                                                               \
+    do {                                                                                                                                             \
+        getnstimeofday(ts);                                                                                                                          \
     } while (0)
 
-#define DECLARE_PERF_VAR        \
-    struct timespec ts_queue;   \
-    struct timespec ts_dotask;  \
-    struct timespec ts_waitirq; \
-    struct timespec ts_sche;    \
-    struct timespec ts_rel;     \
+#define DECLARE_PERF_VAR                                                                                                                             \
+    struct timespec ts_queue;                                                                                                                        \
+    struct timespec ts_dotask;                                                                                                                       \
+    struct timespec ts_waitirq;                                                                                                                      \
+    struct timespec ts_sche;                                                                                                                         \
+    struct timespec ts_rel;                                                                                                                          \
     struct timespec ts_frame
 
-#define PRINT_TASK_STATISTICS                                                                                                                       \
-    do {                                                                                                                                            \
-        ts_queue   = timespec_sub(tsk->ts_dotask, tsk->ts_queue);                                                                                   \
-        ts_dotask  = timespec_sub(tsk->ts_waitirq, tsk->ts_dotask);                                                                                 \
-        ts_waitirq = timespec_sub(tsk->ts_inirq, tsk->ts_waitirq);                                                                                  \
-        ts_sche    = timespec_sub(tsk->ts_wakeup, tsk->ts_inirq);                                                                                   \
-        ts_rel     = timespec_sub(tsk->ts_rel, tsk->ts_wakeup);                                                                                     \
-        ts_frame   = timespec_sub(tsk->ts_rel, tsk->ts_queue);                                                                                      \
-        dev_dbg(                                                                                                                                    \
-            tsk->dev,                                                                                                                               \
-            "[0x%p] no-0x%x, ts_q:%ldus, ts_do:%ldus,"                                                                                              \
-            "ts_waitirq:%ldus,ts_sche:%ldus, ts_rel:%ldus,"                                                                                         \
-            "ts_frame: %ldus\n",                                                                                                                    \
-            tsk, tsk->task_no, ts_queue.tv_nsec / NSEC_PER_USEC + ts_queue.tv_sec * USEC_PER_SEC,                                                   \
-            ts_dotask.tv_nsec / NSEC_PER_USEC + ts_dotask.tv_sec * USEC_PER_SEC,                                                                    \
-            ts_waitirq.tv_nsec / NSEC_PER_USEC + ts_waitirq.tv_sec * USEC_PER_SEC, ts_sche.tv_nsec / NSEC_PER_USEC + ts_sche.tv_sec * USEC_PER_SEC, \
-            ts_rel.tv_nsec / NSEC_PER_USEC + ts_rel.tv_sec * USEC_PER_SEC, ts_frame.tv_nsec / NSEC_PER_USEC + ts_frame.tv_sec * USEC_PER_SEC);      \
-        if ((ts_frame.tv_nsec / NSEC_PER_USEC + ts_frame.tv_sec * USEC_PER_SEC) > 80000)                                                            \
-            dev_dbg(tsk->dev, "ts_frame larger than 80ms [0x%p] no-0x%x.\n", tsk, tsk->task_no);                                                    \
+#define PRINT_TASK_STATISTICS                                                                                                                        \
+    do {                                                                                                                                             \
+        ts_queue   = timespec_sub(tsk->ts_dotask, tsk->ts_queue);                                                                                    \
+        ts_dotask  = timespec_sub(tsk->ts_waitirq, tsk->ts_dotask);                                                                                  \
+        ts_waitirq = timespec_sub(tsk->ts_inirq, tsk->ts_waitirq);                                                                                   \
+        ts_sche    = timespec_sub(tsk->ts_wakeup, tsk->ts_inirq);                                                                                    \
+        ts_rel     = timespec_sub(tsk->ts_rel, tsk->ts_wakeup);                                                                                      \
+        ts_frame   = timespec_sub(tsk->ts_rel, tsk->ts_queue);                                                                                       \
+        dev_dbg(                                                                                                                                     \
+            tsk->dev,                                                                                                                                \
+            "[0x%p] no-0x%x, ts_q:%ldus, ts_do:%ldus,"                                                                                               \
+            "ts_waitirq:%ldus,ts_sche:%ldus, ts_rel:%ldus,"                                                                                          \
+            "ts_frame: %ldus\n",                                                                                                                     \
+            tsk, tsk->task_no, ts_queue.tv_nsec / NSEC_PER_USEC + ts_queue.tv_sec * USEC_PER_SEC,                                                    \
+            ts_dotask.tv_nsec / NSEC_PER_USEC + ts_dotask.tv_sec * USEC_PER_SEC,                                                                     \
+            ts_waitirq.tv_nsec / NSEC_PER_USEC + ts_waitirq.tv_sec * USEC_PER_SEC, ts_sche.tv_nsec / NSEC_PER_USEC + ts_sche.tv_sec * USEC_PER_SEC,  \
+            ts_rel.tv_nsec / NSEC_PER_USEC + ts_rel.tv_sec * USEC_PER_SEC, ts_frame.tv_nsec / NSEC_PER_USEC + ts_frame.tv_sec * USEC_PER_SEC);       \
+        if ((ts_frame.tv_nsec / NSEC_PER_USEC + ts_frame.tv_sec * USEC_PER_SEC) > 80000)                                                             \
+            dev_dbg(tsk->dev, "ts_frame larger than 80ms [0x%p] no-0x%x.\n", tsk, tsk->task_no);                                                     \
     } while (0)
 #else
 #define CHECK_PERF(ts)
@@ -3567,7 +3567,7 @@ static int ipu_task_thread(void *argv)
                 list_splice(&tsk->split_list, &ipu_task_list);
 
                 spin_unlock_irq_restore(&ipu_task_list_lock,
-                                       flags);
+                                        flags);
 
                 /* let the parent thread do the first sp_task */
                 /* FIXME: ensure the correct sequence for split

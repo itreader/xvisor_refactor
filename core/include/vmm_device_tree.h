@@ -168,14 +168,14 @@ struct vmm_device_tree_nidtable_entry {
 
 #ifndef __VMM_MODULES__
 
-#define VMM_DEVICE_TREE_NIDTBL_ENTRY(nid, _subsys, _name, _type, _compat, _data) \
-    __nidtbl struct vmm_device_tree_nidtable_entry __##nid = {                   \
-        .signature         = VMM_DEVICE_TREE_NIDTBL_SIGNATURE,                   \
-        .subsys            = (_subsys),                                          \
-        .nodeid.name       = (_name),                                            \
-        .nodeid.type       = (_type),                                            \
-        .nodeid.compatible = (_compat),                                          \
-        .nodeid.data       = (_data),                                            \
+#define VMM_DEVICE_TREE_NIDTBL_ENTRY(nid, _subsys, _name, _type, _compat, _data)                                                                     \
+    __nidtbl struct vmm_device_tree_nidtable_entry __##nid = {                                                                                       \
+        .signature         = VMM_DEVICE_TREE_NIDTBL_SIGNATURE,                                                                                       \
+        .subsys            = (_subsys),                                                                                                              \
+        .nodeid.name       = (_name),                                                                                                                \
+        .nodeid.type       = (_type),                                                                                                                \
+        .nodeid.compatible = (_compat),                                                                                                              \
+        .nodeid.data       = (_data),                                                                                                                \
     }
 
 #else
@@ -240,7 +240,7 @@ bool vmm_device_tree_have_attr(const vmm_device_tree_node_t *node);
 struct vmm_device_tree_attr *vmm_device_tree_next_attr(const vmm_device_tree_node_t *node, struct vmm_device_tree_attr *current);
 
 /** Itreate over each attribute of a device tree node */
-#define vmm_device_tree_for_each_attr(attr, node) \
+#define vmm_device_tree_for_each_attr(attr, node)                                                                                                    \
     for (attr = vmm_device_tree_next_attr(node, NULL); attr; attr = vmm_device_tree_next_attr(node, attr))
 
 /** Set an attribute for a device tree node */
@@ -387,10 +387,10 @@ const uint32_t *vmm_device_tree_next_u32(struct vmm_device_tree_attr *attr, cons
  */
 const char *vmm_device_tree_next_string(struct vmm_device_tree_attr *attr, const char *cur);
 
-#define vmm_device_tree_for_each_u32(np, attrname, attr, p, u) \
+#define vmm_device_tree_for_each_u32(np, attrname, attr, p, u)                                                                                       \
     for (attr = vmm_device_tree_getattr(np, attrname), p = vmm_device_tree_next_u32(attr, NULL, &u); p; p = vmm_device_tree_next_u32(attr, p, &u))
 
-#define vmm_device_tree_for_each_string(np, attrname, attr, s) \
+#define vmm_device_tree_for_each_string(np, attrname, attr, s)                                                                                       \
     for (attr = vmm_device_tree_getattr(np, attrname), s = vmm_device_tree_next_string(attr, NULL); s; s = vmm_device_tree_next_string(attr, s))
 
 /** Create a path string for a given node */
@@ -530,7 +530,7 @@ vmm_device_tree_node_t *vmm_device_tree_next_child(const vmm_device_tree_node_t 
  *  we will need use vmm_device_tree_dref_node() on child node of
  *  current iteration just before breaking-out loop.
  */
-#define vmm_device_tree_for_each_child(child, node) \
+#define vmm_device_tree_for_each_child(child, node)                                                                                                  \
     for (child = vmm_device_tree_next_child(node, NULL); child; child = vmm_device_tree_next_child(node, child))
 
 /** Find the child node by name for a given parent

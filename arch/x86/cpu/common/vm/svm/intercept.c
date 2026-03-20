@@ -281,9 +281,8 @@ static inline void emulate_guest_mmio_io(struct vcpu_hw_context *context, x86_de
 
     if (vmm_device_emulate_emulate_read(context->assoc_vcpu, fault_gphys, &guestrd, dinst->inst.gen_mov.op_size, VMM_DEVICE_EMULATE_NATIVE_ENDIAN) !=
         VMM_OK) {
-        vmm_printf(
-            "ERROR: Failed to emulate IO instruction in "
-            "guest.\n");
+        vmm_printf("ERROR: Failed to emulate IO instruction in "
+                   "guest.\n");
         goto guest_bad_fault;
     }
 
@@ -322,9 +321,8 @@ static inline void emulate_guest_mmio_io(struct vcpu_hw_context *context, x86_de
 
     if (vmm_device_emulate_emulate_write(context->assoc_vcpu, fault_gphys, &guestrd, dinst->inst.gen_mov.op_size, VMM_DEVICE_EMULATE_NATIVE_ENDIAN) !=
         VMM_OK) {
-        vmm_printf(
-            "ERROR: Failed to emulate IO instruction in "
-            "guest.\n");
+        vmm_printf("ERROR: Failed to emulate IO instruction in "
+                   "guest.\n");
         goto guest_bad_fault;
     }
 
@@ -883,9 +881,8 @@ void __handle_ioio(struct vcpu_hw_context *context)
 
     if (in_inst) {
         if (vmm_device_emulate_emulate_ioread(context->assoc_vcpu, io_port, &guest_rd, op_size / 8, VMM_DEVICE_EMULATE_NATIVE_ENDIAN) != VMM_OK) {
-            vmm_printf(
-                "Failed to emulate IO instruction in "
-                "guest.\n");
+            vmm_printf("Failed to emulate IO instruction in "
+                       "guest.\n");
             goto _fail;
         }
 
@@ -898,9 +895,8 @@ void __handle_ioio(struct vcpu_hw_context *context)
             wval = (uint32_t)context->vmcb->rax;
 
             if (vmm_device_emulate_emulate_iowrite(context->assoc_vcpu, io_port, &wval, op_size / 8, VMM_DEVICE_EMULATE_NATIVE_ENDIAN) != VMM_OK) {
-                vmm_printf(
-                    "Failed to emulate IO instruction in"
-                    " guest.\n");
+                vmm_printf("Failed to emulate IO instruction in"
+                           " guest.\n");
                 goto _fail;
             }
         }

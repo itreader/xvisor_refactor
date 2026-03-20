@@ -161,8 +161,8 @@
 #define SDHCI_INT_ERROR_MASK         0xFFFF8000
 
 #define SDHCI_INT_CMD_MASK           (SDHCI_INT_RESPONSE | SDHCI_INT_TIMEOUT | SDHCI_INT_CRC | SDHCI_INT_END_BIT | SDHCI_INT_INDEX)
-#define SDHCI_INT_DATA_MASK                                                                                                                \
-    (SDHCI_INT_DATA_END | SDHCI_INT_DMA_END | SDHCI_INT_DATA_AVAIL | SDHCI_INT_SPACE_AVAIL | SDHCI_INT_DATA_TIMEOUT | SDHCI_INT_DATA_CRC | \
+#define SDHCI_INT_DATA_MASK                                                                                                                          \
+    (SDHCI_INT_DATA_END | SDHCI_INT_DMA_END | SDHCI_INT_DATA_AVAIL | SDHCI_INT_SPACE_AVAIL | SDHCI_INT_DATA_TIMEOUT | SDHCI_INT_DATA_CRC |           \
      SDHCI_INT_DATA_END_BIT | SDHCI_INT_ADMA_ERROR)
 #define SDHCI_INT_ALL_MASK                   (0xFFFFFFFF)
 

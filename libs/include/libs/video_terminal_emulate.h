@@ -72,7 +72,7 @@ struct video_terminal_emulate_cell {
 #define VIDEO_TERMINAL_EMULATE_KEYFLAG_NUMLOCK    0x00000080
 #define VIDEO_TERMINAL_EMULATE_KEYFLAG_SCROLLLOCK 0x00000100
 
-#define VIDEO_TERMINAL_EMULATE_KEYFLAG_LOCKS \
+#define VIDEO_TERMINAL_EMULATE_KEYFLAG_LOCKS                                                                                                         \
     (VIDEO_TERMINAL_EMULATE_KEYFLAG_CAPSLOCK | VIDEO_TERMINAL_EMULATE_KEYFLAG_NUMLOCK | VIDEO_TERMINAL_EMULATE_KEYFLAG_SCROLLLOCK)
 
 struct video_terminal_emulate {

@@ -59,10 +59,10 @@ enum i8259_debug_log_levels {
 
 static uint32_t default_log_lvl = I8259_LOG_LVL_INFO;
 
-#define I8259_LOG(lvl, fmt, args...)                \
-    do {                                            \
-        if (I8259_LOG_LVL_##lvl <= default_log_lvl) \
-            vmm_printf("i8259: " fmt, ##args);      \
+#define I8259_LOG(lvl, fmt, args...)                                                                                                                 \
+    do {                                                                                                                                             \
+        if (I8259_LOG_LVL_##lvl <= default_log_lvl)                                                                                                  \
+            vmm_printf("i8259: " fmt, ##args);                                                                                                       \
     } while (0);
 
 #define DEBUG_IRQ_LATENCY 0

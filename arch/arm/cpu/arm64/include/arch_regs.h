@@ -195,38 +195,38 @@ struct arm_guest_private {
 /**
  *  VGIC support macros
  */
-#define arm_vgic_setup(vcpu, __save_func, __restore_func, __irq_pending_func, __private) \
-    do {                                                                                 \
-        arm_private(vcpu)->vgic_avail       = TRUE;                                      \
-        arm_private(vcpu)->vgic_save        = __save_func;                               \
-        arm_private(vcpu)->vgic_restore     = __restore_func;                            \
-        arm_private(vcpu)->vgic_irq_pending = __irq_pending_func;                        \
-        arm_private(vcpu)->vgic_private     = __private;                                 \
+#define arm_vgic_setup(vcpu, __save_func, __restore_func, __irq_pending_func, __private)                                                             \
+    do {                                                                                                                                             \
+        arm_private(vcpu)->vgic_avail       = TRUE;                                                                                                  \
+        arm_private(vcpu)->vgic_save        = __save_func;                                                                                           \
+        arm_private(vcpu)->vgic_restore     = __restore_func;                                                                                        \
+        arm_private(vcpu)->vgic_irq_pending = __irq_pending_func;                                                                                    \
+        arm_private(vcpu)->vgic_private     = __private;                                                                                             \
     } while (0)
-#define arm_vgic_cleanup(vcpu)                       \
-    do {                                             \
-        arm_private(vcpu)->vgic_avail       = FALSE; \
-        arm_private(vcpu)->vgic_save        = NULL;  \
-        arm_private(vcpu)->vgic_restore     = NULL;  \
-        arm_private(vcpu)->vgic_irq_pending = NULL;  \
-        arm_private(vcpu)->vgic_private     = NULL;  \
+#define arm_vgic_cleanup(vcpu)                                                                                                                       \
+    do {                                                                                                                                             \
+        arm_private(vcpu)->vgic_avail       = FALSE;                                                                                                 \
+        arm_private(vcpu)->vgic_save        = NULL;                                                                                                  \
+        arm_private(vcpu)->vgic_restore     = NULL;                                                                                                  \
+        arm_private(vcpu)->vgic_irq_pending = NULL;                                                                                                  \
+        arm_private(vcpu)->vgic_private     = NULL;                                                                                                  \
     } while (0)
 #define arm_vgic_avail(vcpu) (arm_private(vcpu)->vgic_avail)
-#define arm_vgic_save(vcpu)                 \
-    if (arm_vgic_avail(vcpu)) {             \
-        arm_private(vcpu)->vgic_save(vcpu); \
+#define arm_vgic_save(vcpu)                                                                                                                          \
+    if (arm_vgic_avail(vcpu)) {                                                                                                                      \
+        arm_private(vcpu)->vgic_save(vcpu);                                                                                                          \
     }
-#define arm_vgic_restore(vcpu)                 \
-    if (arm_vgic_avail(vcpu)) {                \
-        arm_private(vcpu)->vgic_restore(vcpu); \
+#define arm_vgic_restore(vcpu)                                                                                                                       \
+    if (arm_vgic_avail(vcpu)) {                                                                                                                      \
+        arm_private(vcpu)->vgic_restore(vcpu);                                                                                                       \
     }
-#define arm_vgic_irq_pending(vcpu)                           \
-    ({                                                       \
-        bool __r = FALSE;                                    \
-        if (arm_vgic_avail(vcpu)) {                          \
-            __r = arm_private(vcpu)->vgic_irq_pending(vcpu); \
-        }                                                    \
-        __r;                                                 \
+#define arm_vgic_irq_pending(vcpu)                                                                                                                   \
+    ({                                                                                                                                               \
+        bool __r = FALSE;                                                                                                                            \
+        if (arm_vgic_avail(vcpu)) {                                                                                                                  \
+            __r = arm_private(vcpu)->vgic_irq_pending(vcpu);                                                                                         \
+        }                                                                                                                                            \
+        __r;                                                                                                                                         \
     })
 #define arm_vgic_private(vcpu) (arm_private(vcpu)->vgic_private)
 

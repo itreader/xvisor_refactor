@@ -256,15 +256,15 @@ int vmm_device_driver_bus_unregister_notifier(vmm_bus_t *bus, vmm_notifier_block
  */
 #define VMM_BUS_NOTIFY_ADD_DEVICE 0x00000001   /* device added */
 #define VMM_BUS_NOTIFY_DEL_DEVICE 0x00000002   /* device removed */
-#define VMM_BUS_NOTIFY_BIND_DRIVER                                   \
-    0x00000003                                 /* driver about to be \
+#define VMM_BUS_NOTIFY_BIND_DRIVER                                                                                                                   \
+    0x00000003                                 /* driver about to be                                                                                 \
                               bound */
 #define VMM_BUS_NOTIFY_BOUND_DRIVER 0x00000004 /* driver bound to device */
-#define VMM_BUS_NOTIFY_UNBIND_DRIVER                                 \
-    0x00000005                                 /* driver about to be \
+#define VMM_BUS_NOTIFY_UNBIND_DRIVER                                                                                                                 \
+    0x00000005                                 /* driver about to be                                                                                 \
                                 unbound */
-#define VMM_BUS_NOTIFY_UNBOUND_DRIVER                               \
-    0x00000006                                 /* driver is unbound \
+#define VMM_BUS_NOTIFY_UNBOUND_DRIVER                                                                                                                \
+    0x00000006                                 /* driver is unbound                                                                                  \
                                 from the device */
 
 /** Initialize device */

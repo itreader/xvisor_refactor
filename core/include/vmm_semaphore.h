@@ -36,21 +36,19 @@ typedef struct vmm_semaphore {
 } vmm_semaphore_t;
 
 /** Initialize semaphore lock */
-#define INIT_SEMAPHORE(__sem, __lim, __val)            \
-    do {                                               \
-        (__sem)->limit = (__lim);                      \
-        (__sem)->value = (__val);                      \
-        INIT_LIST_HEAD(&((__sem)->res_list));          \
-        INIT_WAITQUEUE(&(__sem)->wait_queue, (__sem)); \
+#define INIT_SEMAPHORE(__sem, __lim, __val)                                                                                                          \
+    do {                                                                                                                                             \
+        (__sem)->limit = (__lim);                                                                                                                    \
+        (__sem)->value = (__val);                                                                                                                    \
+        INIT_LIST_HEAD(&((__sem)->res_list));                                                                                                        \
+        INIT_WAITQUEUE(&(__sem)->wait_queue, (__sem));                                                                                               \
     } while (0)
 
-#define __SEMAPHORE_INITIALIZER(__sem, __lim, __val)                         \
-    {                                                                        \
-        .limit      = (__lim),                                               \
-        .value      = (__val),                                               \
-        .res_list   = {&(__sem).res_list, &(__sem).res_list},                \
-        .wait_queue = __WAITQUEUE_INITIALIZER((__sem).wait_queue, &(__sem)), \
-}
+#define __SEMAPHORE_INITIALIZER(__sem, __lim, __val)                                                                                                 \
+    {                                                                                                                                                \
+        .limit = (__lim), .value = (__val), .res_list = {&(__sem).res_list, &(__sem).res_list},                                                      \
+        .wait_queue = __WAITQUEUE_INITIALIZER((__sem).wait_queue, &(__sem)),                                                                         \
+    }
 
 #define DEFINE_SEMAPHORE(__sem, __lim, __val) vmm_semaphore_t __sem = __SEMAPHORE_INITIALIZER(__sem, __lim, __val)
 

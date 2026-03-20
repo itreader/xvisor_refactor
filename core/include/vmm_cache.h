@@ -52,86 +52,86 @@
 #endif
 
 #ifndef ARCH_HAS_FLUSH_CACHE_ALL
-#define vmm_flush_cache_all() \
-    do {                      \
+#define vmm_flush_cache_all()                                                                                                                        \
+    do {                                                                                                                                             \
     } while (0)
 #else
 #define vmm_flush_cache_all() arch_flush_cache_all()
 #endif
 
 #ifndef ARCH_HAS_FLUSH_CACHE_RANGE
-#define vmm_flush_cache_range(start, end) \
-    do {                                  \
+#define vmm_flush_cache_range(start, end)                                                                                                            \
+    do {                                                                                                                                             \
     } while (0)
 #else
 #define vmm_flush_cache_range(start, end) arch_flush_cache_range(start, end)
 #endif
 
 #ifndef ARCH_HAS_FLUSH_CACHE_PAGE
-#define vmm_flush_cache_page(page_va) \
-    do {                              \
+#define vmm_flush_cache_page(page_va)                                                                                                                \
+    do {                                                                                                                                             \
     } while (0)
 #else
 #define vmm_flush_cache_page(page_va) arch_flush_cache_page(page_va)
 #endif
 
 #ifndef ARCH_HAS_FLUSH_ICACHE_RANGE
-#define vmm_flush_icache_range(start, end) \
-    do {                                   \
+#define vmm_flush_icache_range(start, end)                                                                                                           \
+    do {                                                                                                                                             \
     } while (0)
 #else
 #define vmm_flush_icache_range(start, end) arch_flush_icache_range(start, end)
 #endif
 
 #ifndef ARCH_HAS_FLUSH_ICACHE_PAGE
-#define vmm_flush_icache_page(page_va) \
-    do {                               \
+#define vmm_flush_icache_page(page_va)                                                                                                               \
+    do {                                                                                                                                             \
     } while (0)
 #else
 #define vmm_flush_icache_page(page_va) arch_flush_icache_page(page_va)
 #endif
 
 #ifndef ARCH_HAS_FLUSH_DCACHE_RANGE
-#define vmm_flush_dcache_range(start, end) \
-    do {                                   \
+#define vmm_flush_dcache_range(start, end)                                                                                                           \
+    do {                                                                                                                                             \
     } while (0)
 #else
 #define vmm_flush_dcache_range(start, end) arch_flush_dcache_range(start, end)
 #endif
 
 #ifndef ARCH_HAS_FLUSH_DCACHE_PAGE
-#define vmm_flush_dcache_page(page_va) \
-    do {                               \
+#define vmm_flush_dcache_page(page_va)                                                                                                               \
+    do {                                                                                                                                             \
     } while (0)
 #else
 #define vmm_flush_dcache_page(page_va) arch_flush_dcache_page(page_va)
 #endif
 
 #ifndef ARCH_HAS_INV_DCACHE_RANGE
-#define vmm_inv_dcache_range(start, end) \
-    do {                                 \
+#define vmm_inv_dcache_range(start, end)                                                                                                             \
+    do {                                                                                                                                             \
     } while (0)
 #else
 #define vmm_inv_dcache_range(start, end) arch_inv_dcache_range(start, end)
 #endif
 
 #ifndef ARCH_HAS_CLEAN_DCACHE_RANGE
-#define vmm_clean_dcache_range(start, end) \
-    do {                                   \
+#define vmm_clean_dcache_range(start, end)                                                                                                           \
+    do {                                                                                                                                             \
     } while (0)
 #else
 #define vmm_clean_dcache_range(start, end) arch_clean_dcache_range(start, end)
 #endif
 
 #ifndef ARCH_HAS_OUTERCACHE
-#define vmm_inv_outer_cache_range(start, end) \
-    do {                                      \
+#define vmm_inv_outer_cache_range(start, end)                                                                                                        \
+    do {                                                                                                                                             \
     } while (0)
-#define vmm_clean_outer_cache_range(start, end) \
-    do {                                        \
+#define vmm_clean_outer_cache_range(start, end)                                                                                                      \
+    do {                                                                                                                                             \
     } while (0)
-#define vmm_flush_outer_cache_range(start, end) \
-    do {                                        \
+#define vmm_flush_outer_cache_range(start, end)                                                                                                      \
+    do {                                                                                                                                             \
     } while (0)
 #else
 #define vmm_inv_outer_cache_range(start, end)   arch_inv_outer_cache_range(start, end)

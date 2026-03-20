@@ -80,7 +80,7 @@ asm("	.irp	num,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,
 #define Op2_shift 5
 #define Op2_mask  0x7
 
-#define sys_reg(op0, op1, crn, crm, op2) \
+#define sys_reg(op0, op1, crn, crm, op2)                                                                                                             \
     (((op0) << Op0_shift) | ((op1) << Op1_shift) | ((crn) << CRn_shift) | ((crm) << CRm_shift) | ((op2) << Op2_shift))
 
 #define sys_reg_Op0(id)                         (((id) >> Op0_shift) & Op0_mask)

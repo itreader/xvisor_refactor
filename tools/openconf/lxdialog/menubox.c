@@ -90,10 +90,10 @@ static void do_print_item(WINDOW *win, const char *item, int line_y, int selecte
     wrefresh(win);
 }
 
-#define print_item(index, choice, selected)                                   \
-    do {                                                                      \
-        item_set(index);                                                      \
-        do_print_item(menu, item_str(), choice, selected, !item_is_tag(':')); \
+#define print_item(index, choice, selected)                                                                                                          \
+    do {                                                                                                                                             \
+        item_set(index);                                                                                                                             \
+        do_print_item(menu, item_str(), choice, selected, !item_is_tag(':'));                                                                        \
     } while (0)
 
 /*

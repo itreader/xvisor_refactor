@@ -41,8 +41,8 @@
 #if defined(DEBUG)
 #define debug_print(fmt, args...) vmm_printf(fmt, ##args);
 #else
-#define debug_print(fmt, args...) \
-    {                             \
+#define debug_print(fmt, args...)                                                                                                                    \
+    {                                                                                                                                                \
     }
 #endif
 

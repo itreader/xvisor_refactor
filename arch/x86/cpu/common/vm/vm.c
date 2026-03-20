@@ -137,7 +137,7 @@ int cpu_init_vcpu_hw_context(struct cpuinfo_x86 *cpuinfo, struct vcpu_hw_context
 
     context->cpuinfo    = cpuinfo;
 
-    context->shadow_pgt = mmu_page_table_alloc(&host_page_table_ctl, PGTBL_STAGE_2);
+    context->shadow_pgt = mmu_page_table_alloc(&host_page_table_ctl, PAGE_TABLE_STAGE_2);
 
     if (!context->shadow_pgt) {
         X86_DEBUG_LOG(x86_vm_helper, LVL_DEBUG, "ERROR: Failed to allocate shadow page table for vcpu.\n");

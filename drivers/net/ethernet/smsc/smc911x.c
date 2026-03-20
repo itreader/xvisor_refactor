@@ -84,16 +84,16 @@ static int tx_fifo_kb = 8;
 #define POWER_DOWN 1
 
 #if SMC_DEBUG > 0
-#define DBG(n, args...)      \
-    do {                     \
-        if (SMC_DEBUG & (n)) \
-            printk(args);    \
+#define DBG(n, args...)                                                                                                                              \
+    do {                                                                                                                                             \
+        if (SMC_DEBUG & (n))                                                                                                                         \
+            printk(args);                                                                                                                            \
     } while (0)
 
 #define PRINTK(args...) printk(args)
 #else
-#define DBG(n, args...) \
-    do {                \
+#define DBG(n, args...)                                                                                                                              \
+    do {                                                                                                                                             \
     } while (0)
 #define PRINTK(args...) printk(KERN_DEBUG args)
 #endif
@@ -131,27 +131,27 @@ static void PRINT_PKT(uint8_t *buf, int length)
     printk("\n");
 }
 #else
-#define PRINT_PKT(x...) \
-    do {                \
+#define PRINT_PKT(x...)                                                                                                                              \
+    do {                                                                                                                                             \
     } while (0)
 #endif
 
 /* this enables an interrupt in the interrupt mask register */
-#define SMC_ENABLE_INT(lp, x)          \
-    do {                               \
-        uint32_t __mask;               \
-        __mask = SMC_GET_INT_EN((lp)); \
-        __mask |= (x);                 \
-        SMC_SET_INT_EN((lp), __mask);  \
+#define SMC_ENABLE_INT(lp, x)                                                                                                                        \
+    do {                                                                                                                                             \
+        uint32_t __mask;                                                                                                                             \
+        __mask = SMC_GET_INT_EN((lp));                                                                                                               \
+        __mask |= (x);                                                                                                                               \
+        SMC_SET_INT_EN((lp), __mask);                                                                                                                \
     } while (0)
 
 /* this disables an interrupt from the interrupt mask register */
-#define SMC_DISABLE_INT(lp, x)         \
-    do {                               \
-        uint32_t __mask;               \
-        __mask = SMC_GET_INT_EN((lp)); \
-        __mask &= ~(x);                \
-        SMC_SET_INT_EN((lp), __mask);  \
+#define SMC_DISABLE_INT(lp, x)                                                                                                                       \
+    do {                                                                                                                                             \
+        uint32_t __mask;                                                                                                                             \
+        __mask = SMC_GET_INT_EN((lp));                                                                                                               \
+        __mask &= ~(x);                                                                                                                              \
+        SMC_SET_INT_EN((lp), __mask);                                                                                                                \
     } while (0)
 
 /*

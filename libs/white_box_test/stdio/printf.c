@@ -53,16 +53,16 @@ static int wb_printf_run(struct white_box_test *test, vmm_char_device_t *cdev, u
     colors = FALSE;
 #endif
 
-#define _TEST(expect_, fmt_, ...)                                              \
-    do {                                                                       \
-        vmm_snprintf(buf, sizeof(buf), fmt_, ##__VA_ARGS__);                   \
-        vmm_cdev_printf(cdev, "Expecting [%s], wrote [%s]... ", expect_, buf); \
-        if (strcmp(buf, expect_) != 0) {                                       \
-            rc = VMM_EFAIL;                                                    \
-            vmm_cdev_printf(cdev, "FAIL!\n");                                  \
-        } else {                                                               \
-            vmm_cdev_printf(cdev, "ok\n");                                     \
-        }                                                                      \
+#define _TEST(expect_, fmt_, ...)                                                                                                                    \
+    do {                                                                                                                                             \
+        vmm_snprintf(buf, sizeof(buf), fmt_, ##__VA_ARGS__);                                                                                         \
+        vmm_cdev_printf(cdev, "Expecting [%s], wrote [%s]... ", expect_, buf);                                                                       \
+        if (strcmp(buf, expect_) != 0) {                                                                                                             \
+            rc = VMM_EFAIL;                                                                                                                          \
+            vmm_cdev_printf(cdev, "FAIL!\n");                                                                                                        \
+        } else {                                                                                                                                     \
+            vmm_cdev_printf(cdev, "ok\n");                                                                                                           \
+        }                                                                                                                                            \
     } while (0)
     /*===================================================================*/
 

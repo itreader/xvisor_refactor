@@ -206,9 +206,9 @@ struct pwm_lookup {
     enum pwm_polarity polarity;
 };
 
-#define PWM_LOOKUP(_provider, _index, _dev_id, _con_id, _period, _polarity)                                                    \
-    {                                                                                                                          \
-        .provider = _provider, .index = _index, .dev_id = _dev_id, .con_id = _con_id, .period = _period, .polarity = _polarity \
+#define PWM_LOOKUP(_provider, _index, _dev_id, _con_id, _period, _polarity)                                                                          \
+    {                                                                                                                                                \
+        .provider = _provider, .index = _index, .dev_id = _dev_id, .con_id = _con_id, .period = _period, .polarity = _polarity                       \
     }
 
 #if CONFIG_PWM

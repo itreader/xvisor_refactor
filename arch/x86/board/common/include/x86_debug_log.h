@@ -45,12 +45,12 @@ enum {
 
 #define X86_DEBUG_LOG_SUBSYS_LEVEL(subsys)             vmm_debug_##subsys##_log_lvl
 
-#define X86_DEBUG_LOG(subsys, lvl, fmt, args...)                         \
-    do {                                                                 \
-        extern DECLARE_X86_DEBUG_LOG_SUBSYS_LEVEL(subsys);               \
-        if (X86_DEBUG_LOG_##lvl <= X86_DEBUG_LOG_SUBSYS_LEVEL(subsys)) { \
-            vmm_printf(fmt, ##args);                                     \
-        }                                                                \
+#define X86_DEBUG_LOG(subsys, lvl, fmt, args...)                                                                                                     \
+    do {                                                                                                                                             \
+        extern DECLARE_X86_DEBUG_LOG_SUBSYS_LEVEL(subsys);                                                                                           \
+        if (X86_DEBUG_LOG_##lvl <= X86_DEBUG_LOG_SUBSYS_LEVEL(subsys)) {                                                                             \
+            vmm_printf(fmt, ##args);                                                                                                                 \
+        }                                                                                                                                            \
     } while (0);
 
 #endif

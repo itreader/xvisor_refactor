@@ -99,11 +99,11 @@ static ssize_t trackpoint_set_int_attr(struct psmouse *psmouse, void *data,
     return count;
 }
 
-#define TRACKPOINT_INT_ATTR(_name, _command)                       \
-    static struct trackpoint_attr_data trackpoint_attr_##_name = { \
-        .field_offset = offsetof(struct trackpoint_data, _name),   \
-        .command      = _command,                                  \
-    };                                                             \
+#define TRACKPOINT_INT_ATTR(_name, _command)                                                                                                         \
+    static struct trackpoint_attr_data trackpoint_attr_##_name = {                                                                                   \
+        .field_offset = offsetof(struct trackpoint_data, _name),                                                                                     \
+        .command      = _command,                                                                                                                    \
+    };                                                                                                                                               \
     PSMOUSE_DEFINE_ATTR(_name, S_IWUSR | S_IRUGO, &trackpoint_attr_##_name, trackpoint_show_int_attr, trackpoint_set_int_attr)
 
 static ssize_t trackpoint_set_bit_attr(struct psmouse *psmouse, void *data,
@@ -134,13 +134,13 @@ static ssize_t trackpoint_set_bit_attr(struct psmouse *psmouse, void *data,
     return count;
 }
 
-#define TRACKPOINT_BIT_ATTR(_name, _command, _mask, _inv)          \
-    static struct trackpoint_attr_data trackpoint_attr_##_name = { \
-        .field_offset = offsetof(struct trackpoint_data, _name),   \
-        .command      = _command,                                  \
-        .mask         = _mask,                                     \
-        .inverted     = _inv,                                      \
-    };                                                             \
+#define TRACKPOINT_BIT_ATTR(_name, _command, _mask, _inv)                                                                                            \
+    static struct trackpoint_attr_data trackpoint_attr_##_name = {                                                                                   \
+        .field_offset = offsetof(struct trackpoint_data, _name),                                                                                     \
+        .command      = _command,                                                                                                                    \
+        .mask         = _mask,                                                                                                                       \
+        .inverted     = _inv,                                                                                                                        \
+    };                                                                                                                                               \
     PSMOUSE_DEFINE_ATTR(_name, S_IWUSR | S_IRUGO, &trackpoint_attr_##_name, trackpoint_show_int_attr, trackpoint_set_bit_attr)
 
 TRACKPOINT_INT_ATTR(sensitivity, TP_SENS);

@@ -406,7 +406,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
     /* For both Orphan & Normal VCPUs */
     memset(arm_regs(vcpu), 0, sizeof(arch_regs_t));
     arm_regs(vcpu)->pc = vcpu->start_pc;
-    arm_regs(vcpu)->sp = vcpu->stack_va + (vcpu->stack_size - ARCH_CACHE_LINE_SIZE);
+    arm_regs(vcpu)->sp = vcpu->stack_virtual_address + (vcpu->stack_size - ARCH_CACHE_LINE_SIZE);
     arm_regs(vcpu)->sp = arm_regs(vcpu)->sp & ~0x7;
 
     if (!vcpu->is_normal) {
@@ -941,7 +941,7 @@ void arch_vcpu_regs_dump(vmm_char_device_t *cdev, vmm_vcpu_t *vcpu)
     /* Hypervisor context */
     vmm_cdev_printf(cdev, "Hypervisor EL2 Registers\n");
     vmm_cdev_printf(cdev, " %11s=0x%016lx %11s=0x%016lx\n", "HCR_EL2", p->hcr, "CPTR_EL2", p->cptr);
-    vmm_cdev_printf(cdev, " %11s=0x%016lx %11s=0x%016lx\n", "HSTR_EL2", p->hstr, "TTBR_EL2", arm_guest_private(vcpu->guest)->ttbl->table_pa);
+    vmm_cdev_printf(cdev, " %11s=0x%016lx %11s=0x%016lx\n", "HSTR_EL2", p->hstr, "TTBR_EL2", arm_guest_private(vcpu->guest)->ttbl->table_phy_addr);
 
     /* Print VFP context */
     cpu_vcpu_vfp_dump(cdev, vcpu);

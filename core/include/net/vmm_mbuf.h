@@ -194,14 +194,14 @@ struct vmm_mbuf {
  * the flag M_EXT is set upon success.
  */
 
-#define MEXTADD(m, buf, size, free, arg)             \
-    do {                                             \
-        MCLINITREFERENCE(m);                         \
-        (m)->m_data = (m)->m_extbuf = (void *)(buf); \
-        (m)->m_flags |= M_EXT_RW;                    \
-        (m)->m_ext.ext_size = (size);                \
-        (m)->m_ext.ext_free = (free);                \
-        (m)->m_ext.ext_arg  = (arg);                 \
+#define MEXTADD(m, buf, size, free, arg)                                                                                                             \
+    do {                                                                                                                                             \
+        MCLINITREFERENCE(m);                                                                                                                         \
+        (m)->m_data = (m)->m_extbuf = (void *)(buf);                                                                                                 \
+        (m)->m_flags |= M_EXT_RW;                                                                                                                    \
+        (m)->m_ext.ext_size = (size);                                                                                                                \
+        (m)->m_ext.ext_free = (free);                                                                                                                \
+        (m)->m_ext.ext_arg  = (arg);                                                                                                                 \
     } while (/* CONSTCOND */ 0)
 
 #define MEXTMALLOC(m, size, how) m_ext_get(m, size, how)
@@ -211,10 +211,10 @@ struct vmm_mbuf {
 /*
  * Reset the data pointer on an mbuf.
  */
-#define MRESETDATA(m)                \
-    do {                             \
-        (m)->m_data = (m)->m_extbuf; \
-        (m)->m_len  = 0;             \
+#define MRESETDATA(m)                                                                                                                                \
+    do {                                                                                                                                             \
+        (m)->m_data = (m)->m_extbuf;                                                                                                                 \
+        (m)->m_len  = 0;                                                                                                                             \
     } while (/* CONSTCOND */ 0)
 
 /*
@@ -222,10 +222,10 @@ struct vmm_mbuf {
  * Free a single mbuf and associated external storage.
  * Place the successor, if any, in n.
  */
-#define MFREE(m, n)        \
-    do {                   \
-        (n) = (m)->m_next; \
-        m_ext_free(m);     \
+#define MFREE(m, n)                                                                                                                                  \
+    do {                                                                                                                                             \
+        (n) = (m)->m_next;                                                                                                                           \
+        m_ext_free(m);                                                                                                                               \
     } while (/* CONSTCOND */ 0)
 
 #define MCLADDREFERENCE(o)       o->m_extref++

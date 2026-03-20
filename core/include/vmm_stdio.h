@@ -29,34 +29,34 @@
 
 #include <stdarg.h>
 
-#define BUG_ON(x)                                                                         \
-    do {                                                                                  \
-        if (unlikely(x)) {                                                                \
-            vmm_lemergency(NULL, "Bug in %s() at %s:%d\n", __func__, __FILE__, __LINE__); \
-            dump_stack_trace();                                                           \
-            __vmm_panic("Please reset the system ...\n");                                 \
-        }                                                                                 \
+#define BUG_ON(x)                                                                                                                                    \
+    do {                                                                                                                                             \
+        if (unlikely(x)) {                                                                                                                           \
+            vmm_lemergency(NULL, "Bug in %s() at %s:%d\n", __func__, __FILE__, __LINE__);                                                            \
+            dump_stack_trace();                                                                                                                      \
+            __vmm_panic("Please reset the system ...\n");                                                                                            \
+        }                                                                                                                                            \
     } while (0)
 
 #define BUG() BUG_ON(1)
 
-#define WARN_ON(x)                                                               \
-    ({                                                                           \
-        if (unlikely(x)) {                                                       \
-            vmm_lwarning(NULL, "%s() at %s:%d\n", __func__, __FILE__, __LINE__); \
-            dump_stack_trace();                                                  \
-        }                                                                        \
-        (x);                                                                     \
+#define WARN_ON(x)                                                                                                                                   \
+    ({                                                                                                                                               \
+        if (unlikely(x)) {                                                                                                                           \
+            vmm_lwarning(NULL, "%s() at %s:%d\n", __func__, __FILE__, __LINE__);                                                                     \
+            dump_stack_trace();                                                                                                                      \
+        }                                                                                                                                            \
+        (x);                                                                                                                                         \
     })
 
-#define WARN(x, msg...)                                                          \
-    ({                                                                           \
-        if (unlikely(x)) {                                                       \
-            vmm_lwarning(NULL, msg);                                             \
-            vmm_lwarning(NULL, "%s() at %s:%d\n", __func__, __FILE__, __LINE__); \
-            dump_stack_trace();                                                  \
-        }                                                                        \
-        (x);                                                                     \
+#define WARN(x, msg...)                                                                                                                              \
+    ({                                                                                                                                               \
+        if (unlikely(x)) {                                                                                                                           \
+            vmm_lwarning(NULL, msg);                                                                                                                 \
+            vmm_lwarning(NULL, "%s() at %s:%d\n", __func__, __FILE__, __LINE__);                                                                     \
+            dump_stack_trace();                                                                                                                      \
+        }                                                                                                                                            \
+        (x);                                                                                                                                         \
     })
 
 /** Representation of input history for use with (c)gets */
@@ -68,27 +68,27 @@ struct vmm_history {
 };
 
 /** Initialize vmm_history pointer h having l length and w width */
-#define INIT_HISTORY(h, l, w)                                     \
-    {                                                             \
-        int iter    = 0;                                          \
-        (h)->length = (l);                                        \
-        (h)->width  = (w);                                        \
-        (h)->table  = vmm_malloc((l) * sizeof(char *));           \
-        for (iter = 0; iter < (l); iter++) {                      \
-            (h)->table[iter]    = vmm_malloc((w) * sizeof(char)); \
-            (h)->table[iter][0] = '\0';                           \
-        }                                                         \
-        (h)->tail = 0;                                            \
+#define INIT_HISTORY(h, l, w)                                                                                                                        \
+    {                                                                                                                                                \
+        int iter    = 0;                                                                                                                             \
+        (h)->length = (l);                                                                                                                           \
+        (h)->width  = (w);                                                                                                                           \
+        (h)->table  = vmm_malloc((l) * sizeof(char *));                                                                                              \
+        for (iter = 0; iter < (l); iter++) {                                                                                                         \
+            (h)->table[iter]    = vmm_malloc((w) * sizeof(char));                                                                                    \
+            (h)->table[iter][0] = '\0';                                                                                                              \
+        }                                                                                                                                            \
+        (h)->tail = 0;                                                                                                                               \
     }
 
 /** Cleanup vmm_history pointer */
-#define CLEANUP_HISTORY(h)                           \
-    {                                                \
-        int iter = 0;                                \
-        for (iter = 0; iter < (h)->length; iter++) { \
-            vmm_free((h)->table[iter]);              \
-        }                                            \
-        vmm_free((h)->table);                        \
+#define CLEANUP_HISTORY(h)                                                                                                                           \
+    {                                                                                                                                                \
+        int iter = 0;                                                                                                                                \
+        for (iter = 0; iter < (h)->length; iter++) {                                                                                                 \
+            vmm_free((h)->table[iter]);                                                                                                              \
+        }                                                                                                                                            \
+        vmm_free((h)->table);                                                                                                                        \
     }
 
 struct vmm_char_device;
@@ -159,14 +159,14 @@ enum vmm_print_level {
 /** Print formatted string to character device */
 int __printf(3, 4) vmm_lprintf(enum vmm_print_level level, const char *prefix, const char *format, ...);
 
-#define vmm_lprintf_once(level, prefix, msg...) \
-    ({                                          \
-        static bool __print_once __read_mostly; \
-                                                \
-        if (!__print_once) {                    \
-            __print_once = TRUE;                \
-            vmm_lprintf(level, prefix, msg);    \
-        }                                       \
+#define vmm_lprintf_once(level, prefix, msg...)                                                                                                      \
+    ({                                                                                                                                               \
+        static bool __print_once __read_mostly;                                                                                                      \
+                                                                                                                                                     \
+        if (!__print_once) {                                                                                                                         \
+            __print_once = TRUE;                                                                                                                     \
+            vmm_lprintf(level, prefix, msg);                                                                                                         \
+        }                                                                                                                                            \
     })
 
 /** Print formatted string to default device if current
@@ -187,11 +187,11 @@ int __printf(3, 4) vmm_lprintf(enum vmm_print_level level, const char *prefix, c
  */
 void __noreturn __vmm_panic(const char *format, ...);
 
-#define vmm_panic(msg...)                             \
-    do {                                              \
-        vmm_lemergency(NULL, msg);                    \
-        dump_stack_trace();                           \
-        __vmm_panic("Please reset the system ...\n"); \
+#define vmm_panic(msg...)                                                                                                                            \
+    do {                                                                                                                                             \
+        vmm_lemergency(NULL, msg);                                                                                                                   \
+        dump_stack_trace();                                                                                                                          \
+        __vmm_panic("Please reset the system ...\n");                                                                                                \
     } while (0)
 
 /** Low-level scan characters function */

@@ -113,12 +113,12 @@ int riscv_isa_populate_string(uint64_t xlen, const uint64_t *isa_bitmap, char *o
         }
     }
 
-#define SET_ISA_EXT_MAP(name, bit)                          \
-    do {                                                    \
-        if (test_bit(bit, bmap)) {                          \
-            strncat(&out[pos], "_" name, out_sz - pos - 1); \
-            pos += strlen("_" name);                        \
-        }                                                   \
+#define SET_ISA_EXT_MAP(name, bit)                                                                                                                   \
+    do {                                                                                                                                             \
+        if (test_bit(bit, bmap)) {                                                                                                                   \
+            strncat(&out[pos], "_" name, out_sz - pos - 1);                                                                                          \
+            pos += strlen("_" name);                                                                                                                 \
+        }                                                                                                                                            \
     } while (false)
 
     SET_ISA_EXT_MAP("smaia", RISCV_ISA_EXT_SMAIA);
@@ -203,12 +203,12 @@ int riscv_isa_parse_string(const char *isa, uint64_t *out_xlen, uint64_t *out_bi
             continue;
         }
 
-#define SET_ISA_EXT_MAP(name, bit)      \
-    do {                                \
-        if (!strcmp(mstr, name)) {      \
-            __set_bit(bit, out_bitmap); \
-            continue;                   \
-        }                               \
+#define SET_ISA_EXT_MAP(name, bit)                                                                                                                   \
+    do {                                                                                                                                             \
+        if (!strcmp(mstr, name)) {                                                                                                                   \
+            __set_bit(bit, out_bitmap);                                                                                                              \
+            continue;                                                                                                                                \
+        }                                                                                                                                            \
     } while (false)
 
         SET_ISA_EXT_MAP("smaia", RISCV_ISA_EXT_SMAIA);

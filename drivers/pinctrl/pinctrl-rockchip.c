@@ -208,167 +208,167 @@ struct rockchip_pin_bank {
     uint32_t                    route_mask;
 };
 
-#define PIN_BANK(id, pins, label) \
-    {                             \
-        .bank_num = id,           \
-        .nr_pins  = pins,         \
-        .name     = label,        \
-        .iomux =                  \
-            {                     \
-                    {.offset = -1},   \
-                    {.offset = -1},   \
-                    {.offset = -1},   \
-                    {.offset = -1},   \
-                    },                    \
+#define PIN_BANK(id, pins, label)                                                                                                                    \
+    {                                                                                                                                                \
+        .bank_num = id,                                                                                                                              \
+        .nr_pins  = pins,                                                                                                                            \
+        .name     = label,                                                                                                                           \
+        .iomux =                                                                                                                                     \
+            {                                                                                                                                        \
+                    {.offset = -1},                                                                                                                      \
+                    {.offset = -1},                                                                                                                      \
+                    {.offset = -1},                                                                                                                      \
+                    {.offset = -1},                                                                                                                      \
+                    },                                                                                                                                       \
 }
 
-#define PIN_BANK_IOMUX_FLAGS(id, pins, label, iom0, iom1, iom2, iom3) \
-    {                                                                 \
-        .bank_num = id,                                               \
-        .nr_pins  = pins,                                             \
-        .name     = label,                                            \
-        .iomux =                                                      \
-            {                                                         \
-                    {.type = iom0, .offset = -1},                         \
-                    {.type = iom1, .offset = -1},                         \
-                    {.type = iom2, .offset = -1},                         \
-                    {.type = iom3, .offset = -1},                         \
-                    },                                                        \
+#define PIN_BANK_IOMUX_FLAGS(id, pins, label, iom0, iom1, iom2, iom3)                                                                                \
+    {                                                                                                                                                \
+        .bank_num = id,                                                                                                                              \
+        .nr_pins  = pins,                                                                                                                            \
+        .name     = label,                                                                                                                           \
+        .iomux =                                                                                                                                     \
+            {                                                                                                                                        \
+                    {.type = iom0, .offset = -1},                                                                                                        \
+                    {.type = iom1, .offset = -1},                                                                                                        \
+                    {.type = iom2, .offset = -1},                                                                                                        \
+                    {.type = iom3, .offset = -1},                                                                                                        \
+                    },                                                                                                                                       \
     }
 
-#define PIN_BANK_DRV_FLAGS(id, pins, label, type0, type1, type2, type3) \
-    {                                                                   \
-        .bank_num = id,                                                 \
-        .nr_pins  = pins,                                               \
-        .name     = label,                                              \
-        .iomux =                                                        \
-            {                                                           \
-                    {.offset = -1},                                         \
-                    {.offset = -1},                                         \
-                    {.offset = -1},                                         \
-                    {.offset = -1},                                         \
-                    },                                                          \
-        .drv =                                                          \
-            {                                                           \
-                    {.drv_type = type0, .offset = -1},                      \
-                    {.drv_type = type1, .offset = -1},                      \
-                    {.drv_type = type2, .offset = -1},                      \
-                    {.drv_type = type3, .offset = -1},                      \
-                    },                                                          \
+#define PIN_BANK_DRV_FLAGS(id, pins, label, type0, type1, type2, type3)                                                                              \
+    {                                                                                                                                                \
+        .bank_num = id,                                                                                                                              \
+        .nr_pins  = pins,                                                                                                                            \
+        .name     = label,                                                                                                                           \
+        .iomux =                                                                                                                                     \
+            {                                                                                                                                        \
+                    {.offset = -1},                                                                                                                      \
+                    {.offset = -1},                                                                                                                      \
+                    {.offset = -1},                                                                                                                      \
+                    {.offset = -1},                                                                                                                      \
+                    },                                                                                                                                       \
+        .drv =                                                                                                                                       \
+            {                                                                                                                                        \
+                    {.drv_type = type0, .offset = -1},                                                                                                   \
+                    {.drv_type = type1, .offset = -1},                                                                                                   \
+                    {.drv_type = type2, .offset = -1},                                                                                                   \
+                    {.drv_type = type3, .offset = -1},                                                                                                   \
+                    },                                                                                                                                       \
     }
 
-#define PIN_BANK_DRV_FLAGS_PULL_FLAGS(id, pins, label, drv0, drv1, drv2, drv3, pull0, pull1, pull2, pull3) \
-    {                                                                                                      \
-        .bank_num = id,                                                                                    \
-        .nr_pins  = pins,                                                                                  \
-        .name     = label,                                                                                 \
-        .iomux =                                                                                           \
-            {                                                                                              \
-                    {.offset = -1},                                                                            \
-                    {.offset = -1},                                                                            \
-                    {.offset = -1},                                                                            \
-                    {.offset = -1},                                                                            \
-                    },                                                                                             \
-        .drv =                                                                                             \
-            {                                                                                              \
-                    {.drv_type = drv0, .offset = -1},                                                          \
-                    {.drv_type = drv1, .offset = -1},                                                          \
-                    {.drv_type = drv2, .offset = -1},                                                          \
-                    {.drv_type = drv3, .offset = -1},                                                          \
-                    },                                                                                             \
-        .pull_type[0] = pull0,                                                                             \
-        .pull_type[1] = pull1,                                                                             \
-        .pull_type[2] = pull2,                                                                             \
-        .pull_type[3] = pull3,                                                                             \
+#define PIN_BANK_DRV_FLAGS_PULL_FLAGS(id, pins, label, drv0, drv1, drv2, drv3, pull0, pull1, pull2, pull3)                                           \
+    {                                                                                                                                                \
+        .bank_num = id,                                                                                                                              \
+        .nr_pins  = pins,                                                                                                                            \
+        .name     = label,                                                                                                                           \
+        .iomux =                                                                                                                                     \
+            {                                                                                                                                        \
+                    {.offset = -1},                                                                                                                      \
+                    {.offset = -1},                                                                                                                      \
+                    {.offset = -1},                                                                                                                      \
+                    {.offset = -1},                                                                                                                      \
+                    },                                                                                                                                       \
+        .drv =                                                                                                                                       \
+            {                                                                                                                                        \
+                    {.drv_type = drv0, .offset = -1},                                                                                                    \
+                    {.drv_type = drv1, .offset = -1},                                                                                                    \
+                    {.drv_type = drv2, .offset = -1},                                                                                                    \
+                    {.drv_type = drv3, .offset = -1},                                                                                                    \
+                    },                                                                                                                                       \
+        .pull_type[0] = pull0,                                                                                                                       \
+        .pull_type[1] = pull1,                                                                                                                       \
+        .pull_type[2] = pull2,                                                                                                                       \
+        .pull_type[3] = pull3,                                                                                                                       \
     }
 
-#define PIN_BANK_IOMUX_DRV_FLAGS(id, pins, label, iom0, iom1, iom2, iom3, drv0, drv1, drv2, drv3) \
-    {                                                                                             \
-        .bank_num = id,                                                                           \
-        .nr_pins  = pins,                                                                         \
-        .name     = label,                                                                        \
-        .iomux =                                                                                  \
-            {                                                                                     \
-                    {.type = iom0, .offset = -1},                                                     \
-                    {.type = iom1, .offset = -1},                                                     \
-                    {.type = iom2, .offset = -1},                                                     \
-                    {.type = iom3, .offset = -1},                                                     \
-                    },                                                                                    \
-        .drv =                                                                                    \
-            {                                                                                     \
-                    {.drv_type = drv0, .offset = -1},                                                 \
-                    {.drv_type = drv1, .offset = -1},                                                 \
-                    {.drv_type = drv2, .offset = -1},                                                 \
-                    {.drv_type = drv3, .offset = -1},                                                 \
-                    },                                                                                    \
+#define PIN_BANK_IOMUX_DRV_FLAGS(id, pins, label, iom0, iom1, iom2, iom3, drv0, drv1, drv2, drv3)                                                    \
+    {                                                                                                                                                \
+        .bank_num = id,                                                                                                                              \
+        .nr_pins  = pins,                                                                                                                            \
+        .name     = label,                                                                                                                           \
+        .iomux =                                                                                                                                     \
+            {                                                                                                                                        \
+                    {.type = iom0, .offset = -1},                                                                                                        \
+                    {.type = iom1, .offset = -1},                                                                                                        \
+                    {.type = iom2, .offset = -1},                                                                                                        \
+                    {.type = iom3, .offset = -1},                                                                                                        \
+                    },                                                                                                                                       \
+        .drv =                                                                                                                                       \
+            {                                                                                                                                        \
+                    {.drv_type = drv0, .offset = -1},                                                                                                    \
+                    {.drv_type = drv1, .offset = -1},                                                                                                    \
+                    {.drv_type = drv2, .offset = -1},                                                                                                    \
+                    {.drv_type = drv3, .offset = -1},                                                                                                    \
+                    },                                                                                                                                       \
     }
 
-#define PIN_BANK_IOMUX_FLAGS_OFFSET_DRV_FLAGS(id, pins, label, iom0, iom1, iom2, iom3, offset0, offset1, offset2, offset3, drv0, drv1, drv2, drv3) \
-    {                                                                                                                                              \
-        .bank_num = id,                                                                                                                            \
-        .nr_pins  = pins,                                                                                                                          \
-        .name     = label,                                                                                                                         \
-        .iomux =                                                                                                                                   \
-            {                                                                                                                                      \
-                    {.type = iom0, .offset = offset0},                                                                                                 \
-                    {.type = iom1, .offset = offset1},                                                                                                 \
-                    {.type = iom2, .offset = offset2},                                                                                                 \
-                    {.type = iom3, .offset = offset3},                                                                                                 \
-                    },                                                                                                                                     \
-        .drv =                                                                                                                                     \
-            {                                                                                                                                      \
-                    {.drv_type = drv0, .offset = -1},                                                                                                  \
-                    {.drv_type = drv1, .offset = -1},                                                                                                  \
-                    {.drv_type = drv2, .offset = -1},                                                                                                  \
-                    {.drv_type = drv3, .offset = -1},                                                                                                  \
-                    },                                                                                                                                     \
+#define PIN_BANK_IOMUX_FLAGS_OFFSET_DRV_FLAGS(id, pins, label, iom0, iom1, iom2, iom3, offset0, offset1, offset2, offset3, drv0, drv1, drv2, drv3)   \
+    {                                                                                                                                                \
+        .bank_num = id,                                                                                                                              \
+        .nr_pins  = pins,                                                                                                                            \
+        .name     = label,                                                                                                                           \
+        .iomux =                                                                                                                                     \
+            {                                                                                                                                        \
+                    {.type = iom0, .offset = offset0},                                                                                                   \
+                    {.type = iom1, .offset = offset1},                                                                                                   \
+                    {.type = iom2, .offset = offset2},                                                                                                   \
+                    {.type = iom3, .offset = offset3},                                                                                                   \
+                    },                                                                                                                                       \
+        .drv =                                                                                                                                       \
+            {                                                                                                                                        \
+                    {.drv_type = drv0, .offset = -1},                                                                                                    \
+                    {.drv_type = drv1, .offset = -1},                                                                                                    \
+                    {.drv_type = drv2, .offset = -1},                                                                                                    \
+                    {.drv_type = drv3, .offset = -1},                                                                                                    \
+                    },                                                                                                                                       \
     }
 
-#define PIN_BANK_IOMUX_FLAGS_DRV_FLAGS_OFFSET(id, pins, label, iom0, iom1, iom2, iom3, drv0, drv1, drv2, drv3, offset0, offset1, offset2, offset3) \
-    {                                                                                                                                              \
-        .bank_num = id,                                                                                                                            \
-        .nr_pins  = pins,                                                                                                                          \
-        .name     = label,                                                                                                                         \
-        .iomux =                                                                                                                                   \
-            {                                                                                                                                      \
-                    {.type = iom0, .offset = -1},                                                                                                      \
-                    {.type = iom1, .offset = -1},                                                                                                      \
-                    {.type = iom2, .offset = -1},                                                                                                      \
-                    {.type = iom3, .offset = -1},                                                                                                      \
-                    },                                                                                                                                     \
-        .drv =                                                                                                                                     \
-            {                                                                                                                                      \
-                    {.drv_type = drv0, .offset = offset0},                                                                                             \
-                    {.drv_type = drv1, .offset = offset1},                                                                                             \
-                    {.drv_type = drv2, .offset = offset2},                                                                                             \
-                    {.drv_type = drv3, .offset = offset3},                                                                                             \
-                    },                                                                                                                                     \
+#define PIN_BANK_IOMUX_FLAGS_DRV_FLAGS_OFFSET(id, pins, label, iom0, iom1, iom2, iom3, drv0, drv1, drv2, drv3, offset0, offset1, offset2, offset3)   \
+    {                                                                                                                                                \
+        .bank_num = id,                                                                                                                              \
+        .nr_pins  = pins,                                                                                                                            \
+        .name     = label,                                                                                                                           \
+        .iomux =                                                                                                                                     \
+            {                                                                                                                                        \
+                    {.type = iom0, .offset = -1},                                                                                                        \
+                    {.type = iom1, .offset = -1},                                                                                                        \
+                    {.type = iom2, .offset = -1},                                                                                                        \
+                    {.type = iom3, .offset = -1},                                                                                                        \
+                    },                                                                                                                                       \
+        .drv =                                                                                                                                       \
+            {                                                                                                                                        \
+                    {.drv_type = drv0, .offset = offset0},                                                                                               \
+                    {.drv_type = drv1, .offset = offset1},                                                                                               \
+                    {.drv_type = drv2, .offset = offset2},                                                                                               \
+                    {.drv_type = drv3, .offset = offset3},                                                                                               \
+                    },                                                                                                                                       \
     }
 
-#define PIN_BANK_IOMUX_FLAGS_DRV_FLAGS_OFFSET_PULL_FLAGS(                                                                            \
-    id, pins, label, iom0, iom1, iom2, iom3, drv0, drv1, drv2, drv3, offset0, offset1, offset2, offset3, pull0, pull1, pull2, pull3) \
-    {                                                                                                                                \
-        .bank_num = id,                                                                                                              \
-        .nr_pins  = pins,                                                                                                            \
-        .name     = label,                                                                                                           \
-        .iomux =                                                                                                                     \
-            {                                                                                                                        \
-                    {.type = iom0, .offset = -1},                                                                                        \
-                    {.type = iom1, .offset = -1},                                                                                        \
-                    {.type = iom2, .offset = -1},                                                                                        \
-                    {.type = iom3, .offset = -1},                                                                                        \
-                    },                                                                                                                       \
-        .drv =                                                                                                                       \
-            {                                                                                                                        \
-                    {.drv_type = drv0, .offset = offset0},                                                                               \
-                    {.drv_type = drv1, .offset = offset1},                                                                               \
-                    {.drv_type = drv2, .offset = offset2},                                                                               \
-                    {.drv_type = drv3, .offset = offset3},                                                                               \
-                    },                                                                                                                       \
-        .pull_type[0] = pull0,                                                                                                       \
-        .pull_type[1] = pull1,                                                                                                       \
-        .pull_type[2] = pull2,                                                                                                       \
-        .pull_type[3] = pull3,                                                                                                       \
+#define PIN_BANK_IOMUX_FLAGS_DRV_FLAGS_OFFSET_PULL_FLAGS(                                                                                            \
+    id, pins, label, iom0, iom1, iom2, iom3, drv0, drv1, drv2, drv3, offset0, offset1, offset2, offset3, pull0, pull1, pull2, pull3)                 \
+    {                                                                                                                                                \
+        .bank_num = id,                                                                                                                              \
+        .nr_pins  = pins,                                                                                                                            \
+        .name     = label,                                                                                                                           \
+        .iomux =                                                                                                                                     \
+            {                                                                                                                                        \
+                    {.type = iom0, .offset = -1},                                                                                                        \
+                    {.type = iom1, .offset = -1},                                                                                                        \
+                    {.type = iom2, .offset = -1},                                                                                                        \
+                    {.type = iom3, .offset = -1},                                                                                                        \
+                    },                                                                                                                                       \
+        .drv =                                                                                                                                       \
+            {                                                                                                                                        \
+                    {.drv_type = drv0, .offset = offset0},                                                                                               \
+                    {.drv_type = drv1, .offset = offset1},                                                                                               \
+                    {.drv_type = drv2, .offset = offset2},                                                                                               \
+                    {.drv_type = drv3, .offset = offset3},                                                                                               \
+                    },                                                                                                                                       \
+        .pull_type[0] = pull0,                                                                                                                       \
+        .pull_type[1] = pull1,                                                                                                                       \
+        .pull_type[2] = pull2,                                                                                                                       \
+        .pull_type[3] = pull3,                                                                                                                       \
     }
 
 /**

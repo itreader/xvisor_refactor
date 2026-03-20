@@ -139,12 +139,12 @@ extern const ip_addr_t ip_addr_broadcast;
 
 #if BYTE_ORDER == BIG_ENDIAN
 /** Set an IP address given by the four byte-parts */
-#define IP4_ADDR(ipaddr, a, b, c, d) \
+#define IP4_ADDR(ipaddr, a, b, c, d)                                                                                                                 \
     (ipaddr)->addr = ((u32_t)((a) & 0xff) << 24) | ((u32_t)((b) & 0xff) << 16) | ((u32_t)((c) & 0xff) << 8) | (u32_t)((d) & 0xff)
 #else
 /** Set an IP address given by the four byte-parts.
     Little-endian version that prevents the use of htonl. */
-#define IP4_ADDR(ipaddr, a, b, c, d) \
+#define IP4_ADDR(ipaddr, a, b, c, d)                                                                                                                 \
     (ipaddr)->addr = ((u32_t)((d) & 0xff) << 24) | ((u32_t)((c) & 0xff) << 16) | ((u32_t)((b) & 0xff) << 8) | (u32_t)((a) & 0xff)
 #endif
 
@@ -209,9 +209,9 @@ u8_t ip4_addr_netmask_valid(u32_t netmask);
 
 #define ip_addr_islinklocal(addr1) (((addr1)->addr & PP_HTONL(0xffff0000UL)) == PP_HTONL(0xa9fe0000UL))
 
-#define ip_addr_debug_print(debug, ipaddr)                                                                                                        \
-    LWIP_DEBUGF(                                                                                                                                  \
-        debug, ("%" U16_F ".%" U16_F ".%" U16_F ".%" U16_F, ipaddr != NULL ? ip4_addr1_16(ipaddr) : 0, ipaddr != NULL ? ip4_addr2_16(ipaddr) : 0, \
+#define ip_addr_debug_print(debug, ipaddr)                                                                                                           \
+    LWIP_DEBUGF(                                                                                                                                     \
+        debug, ("%" U16_F ".%" U16_F ".%" U16_F ".%" U16_F, ipaddr != NULL ? ip4_addr1_16(ipaddr) : 0, ipaddr != NULL ? ip4_addr2_16(ipaddr) : 0,    \
                 ipaddr != NULL ? ip4_addr3_16(ipaddr) : 0, ipaddr != NULL ? ip4_addr4_16(ipaddr) : 0))
 
 /* Get one byte from the 4-byte address */

@@ -56,11 +56,11 @@ struct memory_region {
 };
 
 struct gic_irq_state {
-    uint32_t enabled  : GIC_MAX_NCPU;
-    uint32_t pending  : GIC_MAX_NCPU;
-    uint32_t active   : GIC_MAX_NCPU;
-    uint32_t level    : GIC_MAX_NCPU;
-    uint32_t target   : GIC_MAX_NCPU;
+    uint32_t enabled : GIC_MAX_NCPU;
+    uint32_t pending : GIC_MAX_NCPU;
+    uint32_t active : GIC_MAX_NCPU;
+    uint32_t level : GIC_MAX_NCPU;
+    uint32_t target : GIC_MAX_NCPU;
     uint32_t priority : 8;
     uint32_t model    : 1; /* 0 = N:N, 1 = 1:N */
     uint32_t trigger  : 1; /* nonzero = edge triggered.  */

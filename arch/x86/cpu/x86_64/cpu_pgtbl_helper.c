@@ -37,7 +37,7 @@ static struct page_table *mmu_page_table_find(struct page_table_ctrl *ctrl, phys
 {
     int index;
 
-    table_pa &= ~(PGTBL_TABLE_SIZE - 1);
+    table_pa &= ~(PAGE_TABLE_SIZE - 1);
 
     if (table_pa == ctrl->page_table_pml4.table_pa) {
         return &ctrl->page_table_pml4;
@@ -51,7 +51,7 @@ static struct page_table *mmu_page_table_find(struct page_table_ctrl *ctrl, phys
 
     if ((ctrl->page_table_base_pa <= table_pa) && (table_pa <= (ctrl->page_table_base_pa + ctrl->page_table_max_size))) {
         table_pa = table_pa - ctrl->page_table_base_pa;
-        index    = table_pa >> PGTBL_TABLE_SIZE_SHIFT;
+        index    = table_pa >> PAGE_TABLE_SIZE_SHIFT;
 
         if (index < ctrl->page_table_max_count) {
             return &ctrl->page_table_array[index];
@@ -80,7 +80,7 @@ static int mmu_page_table_attach(struct page_table *parent, physical_addr_t map_
         return VMM_EFAIL;
     }
 
-    if ((parent->level == PGTBL_LAST_LEVEL) || (child->stage != parent->stage)) {
+    if ((parent->level == PAGE_TABLE_LAST_LEVEL) || (child->stage != parent->stage)) {
         return VMM_EFAIL;
     }
 
@@ -169,7 +169,7 @@ struct page_table *mmu_page_table_alloc(struct page_table_ctrl *ctrl, int stage)
 
     page_table->parent = NULL;
     page_table->stage  = stage;
-    page_table->level  = PGTBL_FIRST_LEVEL;
+    page_table->level  = PAGE_TABLE_FIRST_LEVEL;
     page_table->map_ia = 0;
     INIT_SPIN_LOCK(&page_table->table_lock);
     page_table->pte_count   = 0;
@@ -211,10 +211,10 @@ int mmu_page_table_free(struct page_table_ctrl *ctrl, struct page_table *page_ta
 
     vmm_spin_lock_irq_save(&page_table->table_lock, flags);
     page_table->pte_count = 0;
-    memset((void *)page_table->table_va, 0, PGTBL_TABLE_SIZE);
+    memset((void *)page_table->table_va, 0, PAGE_TABLE_SIZE);
     vmm_spin_unlock_irq_restore(&page_table->table_lock, flags);
 
-    page_table->level  = PGTBL_FIRST_LEVEL;
+    page_table->level  = PAGE_TABLE_FIRST_LEVEL;
     page_table->map_ia = 0;
 
     vmm_spin_lock_irq_save(&ctrl->alloc_lock, flags);
@@ -286,7 +286,7 @@ int mmu_get_page(struct page_table_ctrl *ctrl, struct page_table *page_table, ph
 
     index = mmu_level_index(ia, page_table->level);
 
-    if (page_table->level == PGTBL_LAST_LEVEL) {
+    if (page_table->level == PAGE_TABLE_LAST_LEVEL) {
         pre_index = mmu_level_index(ia, (page_table->level - 1));
         pgt_va    = page_table->table_va + (pre_index * PAGE_SIZE);
     } else {
@@ -302,7 +302,7 @@ int mmu_get_page(struct page_table_ctrl *ctrl, struct page_table *page_table, ph
         return VMM_EFAIL;
     }
 
-    if (page_table->level < PGTBL_LAST_LEVEL) {
+    if (page_table->level < PAGE_TABLE_LAST_LEVEL) {
         vmm_spin_unlock_irq_restore(&page_table->table_lock, flags);
         child = mmu_page_table_get_child(ctrl, page_table, ia, FALSE);
 
@@ -333,7 +333,7 @@ int mmu_unmap_page(struct page_table_ctrl *ctrl, struct page_table *page_table, 
         return VMM_EFAIL;
     }
 
-    if (page_table->level < PGTBL_LAST_LEVEL) {
+    if (page_table->level < PAGE_TABLE_LAST_LEVEL) {
         child = mmu_page_table_get_child(ctrl, page_table, ia, FALSE);
 
         if (!child) {
@@ -342,7 +342,7 @@ int mmu_unmap_page(struct page_table_ctrl *ctrl, struct page_table *page_table, 
 
         rc = mmu_unmap_page(ctrl, child, ia);
 
-        if ((page_table->pte_count == 0) && (page_table->level > PGTBL_FIRST_LEVEL)) {
+        if ((page_table->pte_count == 0) && (page_table->level > PAGE_TABLE_FIRST_LEVEL)) {
             mmu_page_table_free(ctrl, page_table);
         }
 
@@ -368,7 +368,7 @@ int mmu_unmap_page(struct page_table_ctrl *ctrl, struct page_table *page_table, 
     page_table->pte_count--;
     free_page_table = FALSE;
 
-    if ((page_table->pte_count == 0) && (page_table->level > PGTBL_FIRST_LEVEL)) {
+    if ((page_table->pte_count == 0) && (page_table->level > PAGE_TABLE_FIRST_LEVEL)) {
         free_page_table = TRUE;
     }
 
@@ -393,7 +393,7 @@ int mmu_map_page(struct page_table_ctrl *ctrl, struct page_table *page_table, ph
         return VMM_EFAIL;
     }
 
-    if (page_table->level < PGTBL_LAST_LEVEL) {
+    if (page_table->level < PAGE_TABLE_LAST_LEVEL) {
         child = mmu_page_table_get_child(ctrl, page_table, ia, TRUE);
 
         if (!child) {

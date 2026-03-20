@@ -42,34 +42,34 @@ int arch_cpu_irq_setup(void);
 /** Check whether IRQs are disabled
  *  Prototype: bool arch_cpu_irq_disabled(void);
  */
-#define arch_cpu_irq_disabled()                  \
-    ({                                           \
-        uint64_t __flgs = csr_read(CSR_SSTATUS); \
-        (__flgs & SSTATUS_SIE) ? TRUE : FALSE;   \
+#define arch_cpu_irq_disabled()                                                                                                                      \
+    ({                                                                                                                                               \
+        uint64_t __flgs = csr_read(CSR_SSTATUS);                                                                                                     \
+        (__flgs & SSTATUS_SIE) ? TRUE : FALSE;                                                                                                       \
     })
 
 /** Save IRQ flags and disable IRQ
  *  Prototype: void arch_cpu_irq_save(irq_flags_t flags);
  */
-#define arch_cpu_irq_save(flags)                            \
-    do {                                                    \
-        (flags) = csr_read_clear(CSR_SSTATUS, SSTATUS_SIE); \
+#define arch_cpu_irq_save(flags)                                                                                                                     \
+    do {                                                                                                                                             \
+        (flags) = csr_read_clear(CSR_SSTATUS, SSTATUS_SIE);                                                                                          \
     } while (0)
 
 /** Restore IRQ flags
  *  Prototype: void arch_cpu_irq_restore(irq_flags_t flags);
  */
-#define arch_cpu_irq_restore(flags)                  \
-    do {                                             \
-        csr_set(CSR_SSTATUS, (flags) & SSTATUS_SIE); \
+#define arch_cpu_irq_restore(flags)                                                                                                                  \
+    do {                                                                                                                                             \
+        csr_set(CSR_SSTATUS, (flags) & SSTATUS_SIE);                                                                                                 \
     } while (0)
 
 /** Wait for IRQ
  *  Prototype: void arch_cpu_wait_for_irq(void);
  */
-#define arch_cpu_wait_for_irq()      \
-    do {                             \
-        __asm__ __volatile__("wfi"); \
+#define arch_cpu_wait_for_irq()                                                                                                                      \
+    do {                                                                                                                                             \
+        __asm__ __volatile__("wfi");                                                                                                                 \
     } while (0)
 
 #endif

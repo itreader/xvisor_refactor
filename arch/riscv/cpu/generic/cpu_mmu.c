@@ -46,25 +46,25 @@ uint64_t riscv_stage1_mode = SATP_MODE_SV32;
 
 int arch_mmu_page_table_min_align_order(int stage)
 {
-    return PGTBL_PAGE_SIZE_SHIFT;
+    return PAGE_TABLE_PAGE_SIZE_SHIFT;
 }
 
 int arch_mmu_page_table_align_order(int stage, int level)
 {
     if (stage != MMU_STAGE1 && level == arch_mmu_start_level(stage)) {
-        return PGTBL_PAGE_SIZE_SHIFT + 2;
+        return PAGE_TABLE_PAGE_SIZE_SHIFT + 2;
     }
 
-    return PGTBL_PAGE_SIZE_SHIFT;
+    return PAGE_TABLE_PAGE_SIZE_SHIFT;
 }
 
 int arch_mmu_page_table_size_order(int stage, int level)
 {
     if (stage != MMU_STAGE1 && level == arch_mmu_start_level(stage)) {
-        return PGTBL_PAGE_SIZE_SHIFT + 2;
+        return PAGE_TABLE_PAGE_SIZE_SHIFT + 2;
     }
 
-    return PGTBL_PAGE_SIZE_SHIFT;
+    return PAGE_TABLE_PAGE_SIZE_SHIFT;
 }
 
 void arch_mmu_stage2_tlbflush(bool remote, bool use_vmid, uint32_t vmid, physical_addr_t gpa, physical_size_t gsz)
@@ -117,9 +117,9 @@ bool arch_mmu_valid_block_size(physical_size_t size)
 {
     if (
 #ifdef CONFIG_64BIT
-        (size == PGTBL_L4_BLOCK_SIZE) || (size == PGTBL_L3_BLOCK_SIZE) || (size == PGTBL_L2_BLOCK_SIZE) ||
+        (size == PAGE_TABLE_L4_BLOCK_SIZE) || (size == PAGE_TABLE_L3_BLOCK_SIZE) || (size == PAGE_TABLE_L2_BLOCK_SIZE) ||
 #endif
-        (size == PGTBL_L1_BLOCK_SIZE) || (size == PGTBL_L0_BLOCK_SIZE)) {
+        (size == PAGE_TABLE_L1_BLOCK_SIZE) || (size == PAGE_TABLE_L0_BLOCK_SIZE)) {
         return TRUE;
     }
 
@@ -173,113 +173,113 @@ physical_size_t arch_mmu_level_block_size(int stage, int level)
 {
     switch (level) {
         case 0:
-            return PGTBL_L0_BLOCK_SIZE;
+            return PAGE_TABLE_L0_BLOCK_SIZE;
 
         case 1:
-            return PGTBL_L1_BLOCK_SIZE;
+            return PAGE_TABLE_L1_BLOCK_SIZE;
 #ifdef CONFIG_64BIT
 
         case 2:
-            return PGTBL_L2_BLOCK_SIZE;
+            return PAGE_TABLE_L2_BLOCK_SIZE;
 
         case 3:
-            return PGTBL_L3_BLOCK_SIZE;
+            return PAGE_TABLE_L3_BLOCK_SIZE;
 
         case 4:
-            return PGTBL_L4_BLOCK_SIZE;
+            return PAGE_TABLE_L4_BLOCK_SIZE;
 #endif
 
         default:
             break;
     };
 
-    return PGTBL_L0_BLOCK_SIZE;
+    return PAGE_TABLE_L0_BLOCK_SIZE;
 }
 
 int arch_mmu_level_block_shift(int stage, int level)
 {
     switch (level) {
         case 0:
-            return PGTBL_L0_BLOCK_SHIFT;
+            return PAGE_TABLE_L0_BLOCK_SHIFT;
 
         case 1:
-            return PGTBL_L1_BLOCK_SHIFT;
+            return PAGE_TABLE_L1_BLOCK_SHIFT;
 #ifdef CONFIG_64BIT
 
         case 2:
-            return PGTBL_L2_BLOCK_SHIFT;
+            return PAGE_TABLE_L2_BLOCK_SHIFT;
 
         case 3:
-            return PGTBL_L3_BLOCK_SHIFT;
+            return PAGE_TABLE_L3_BLOCK_SHIFT;
 
         case 4:
-            return PGTBL_L4_BLOCK_SHIFT;
+            return PAGE_TABLE_L4_BLOCK_SHIFT;
 #endif
 
         default:
             break;
     };
 
-    return PGTBL_L0_BLOCK_SHIFT;
+    return PAGE_TABLE_L0_BLOCK_SHIFT;
 }
 
 physical_addr_t arch_mmu_level_map_mask(int stage, int level)
 {
     switch (level) {
         case 0:
-            return PGTBL_L0_MAP_MASK;
+            return PAGE_TABLE_L0_MAP_MASK;
 
         case 1:
-            return PGTBL_L1_MAP_MASK;
+            return PAGE_TABLE_L1_MAP_MASK;
 #ifdef CONFIG_64BIT
 
         case 2:
-            return PGTBL_L2_MAP_MASK;
+            return PAGE_TABLE_L2_MAP_MASK;
 
         case 3:
-            return PGTBL_L3_MAP_MASK;
+            return PAGE_TABLE_L3_MAP_MASK;
 
         case 4:
-            return PGTBL_L4_MAP_MASK;
+            return PAGE_TABLE_L4_MAP_MASK;
 #endif
 
         default:
             break;
     };
 
-    return PGTBL_L0_MAP_MASK;
+    return PAGE_TABLE_L0_MAP_MASK;
 }
 
 int arch_mmu_level_index(physical_addr_t ia, int stage, int level)
 {
-    int             shift = PGTBL_L0_INDEX_SHIFT;
-    physical_addr_t mask  = PGTBL_L0_INDEX_MASK;
+    int             shift = PAGE_TABLE_L0_INDEX_SHIFT;
+    physical_addr_t mask  = PAGE_TABLE_L0_INDEX_MASK;
 
     switch (level) {
         case 0:
-            mask  = PGTBL_L0_INDEX_MASK;
-            shift = PGTBL_L0_INDEX_SHIFT;
+            mask  = PAGE_TABLE_L0_INDEX_MASK;
+            shift = PAGE_TABLE_L0_INDEX_SHIFT;
             break;
 
         case 1:
-            mask  = PGTBL_L1_INDEX_MASK;
-            shift = PGTBL_L1_INDEX_SHIFT;
+            mask  = PAGE_TABLE_L1_INDEX_MASK;
+            shift = PAGE_TABLE_L1_INDEX_SHIFT;
             break;
 #ifdef CONFIG_64BIT
 
         case 2:
-            mask  = PGTBL_L2_INDEX_MASK;
-            shift = PGTBL_L2_INDEX_SHIFT;
+            mask  = PAGE_TABLE_L2_INDEX_MASK;
+            shift = PAGE_TABLE_L2_INDEX_SHIFT;
             break;
 
         case 3:
-            mask  = PGTBL_L3_INDEX_MASK;
-            shift = PGTBL_L3_INDEX_SHIFT;
+            mask  = PAGE_TABLE_L3_INDEX_MASK;
+            shift = PAGE_TABLE_L3_INDEX_SHIFT;
             break;
 
         case 4:
-            mask  = PGTBL_L4_INDEX_MASK;
-            shift = PGTBL_L4_INDEX_SHIFT;
+            mask  = PAGE_TABLE_L4_INDEX_MASK;
+            shift = PAGE_TABLE_L4_INDEX_SHIFT;
             break;
 #endif
 
@@ -298,27 +298,27 @@ int arch_mmu_level_index_shift(int stage, int level)
 {
     switch (level) {
         case 0:
-            return PGTBL_L0_INDEX_SHIFT;
+            return PAGE_TABLE_L0_INDEX_SHIFT;
 
         case 1:
-            return PGTBL_L1_INDEX_SHIFT;
+            return PAGE_TABLE_L1_INDEX_SHIFT;
 #ifdef CONFIG_64BIT
 
         case 2:
-            return PGTBL_L2_INDEX_SHIFT;
+            return PAGE_TABLE_L2_INDEX_SHIFT;
 
         case 3:
-            return PGTBL_L3_INDEX_SHIFT;
+            return PAGE_TABLE_L3_INDEX_SHIFT;
 
         case 4:
-            return PGTBL_L4_INDEX_SHIFT;
+            return PAGE_TABLE_L4_INDEX_SHIFT;
 #endif
 
         default:
             break;
     };
 
-    return PGTBL_L0_INDEX_SHIFT;
+    return PAGE_TABLE_L0_INDEX_SHIFT;
 }
 
 void arch_mmu_pgflags_set(arch_page_flags_t *flags, int stage, uint32_t mflags)
@@ -379,58 +379,58 @@ void arch_mmu_pte_clear(arch_pte_t *pte, int stage, int level)
 
 bool arch_mmu_pte_is_valid(arch_pte_t *pte, int stage, int level)
 {
-    return (*pte & PGTBL_PTE_VALID_MASK) ? TRUE : FALSE;
+    return (*pte & PAGE_TABLE_PTE_VALID_MASK) ? TRUE : FALSE;
 }
 
 physical_addr_t arch_mmu_pte_addr(arch_pte_t *pte, int stage, int level)
 {
-    return ((*pte & PGTBL_PTE_ADDR_MASK) >> PGTBL_PTE_ADDR_SHIFT) << PGTBL_PAGE_SIZE_SHIFT;
+    return ((*pte & PAGE_TABLE_PTE_ADDR_MASK) >> PAGE_TABLE_PTE_ADDR_SHIFT) << PAGE_TABLE_PAGE_SIZE_SHIFT;
 }
 
 void arch_mmu_pte_flags(arch_pte_t *pte, int stage, int level, arch_page_flags_t *out_flags)
 {
-    out_flags->rsw      = (*pte & PGTBL_PTE_RSW_MASK) >> PGTBL_PTE_RSW_SHIFT;
-    out_flags->dirty    = (*pte & PGTBL_PTE_DIRTY_MASK) >> PGTBL_PTE_DIRTY_SHIFT;
-    out_flags->accessed = (*pte & PGTBL_PTE_ACCESSED_MASK) >> PGTBL_PTE_ACCESSED_SHIFT;
-    out_flags->global   = (*pte & PGTBL_PTE_GLOBAL_MASK) >> PGTBL_PTE_GLOBAL_SHIFT;
-    out_flags->user     = (*pte & PGTBL_PTE_USER_MASK) >> PGTBL_PTE_USER_SHIFT;
-    out_flags->execute  = (*pte & PGTBL_PTE_EXECUTE_MASK) >> PGTBL_PTE_EXECUTE_SHIFT;
-    out_flags->write    = (*pte & PGTBL_PTE_WRITE_MASK) >> PGTBL_PTE_WRITE_SHIFT;
-    out_flags->read     = (*pte & PGTBL_PTE_READ_MASK) >> PGTBL_PTE_READ_SHIFT;
-    out_flags->valid    = (*pte & PGTBL_PTE_VALID_MASK) >> PGTBL_PTE_VALID_SHIFT;
+    out_flags->rsw      = (*pte & PAGE_TABLE_PTE_RSW_MASK) >> PAGE_TABLE_PTE_RSW_SHIFT;
+    out_flags->dirty    = (*pte & PAGE_TABLE_PTE_DIRTY_MASK) >> PAGE_TABLE_PTE_DIRTY_SHIFT;
+    out_flags->accessed = (*pte & PAGE_TABLE_PTE_ACCESSED_MASK) >> PAGE_TABLE_PTE_ACCESSED_SHIFT;
+    out_flags->global   = (*pte & PAGE_TABLE_PTE_GLOBAL_MASK) >> PAGE_TABLE_PTE_GLOBAL_SHIFT;
+    out_flags->user     = (*pte & PAGE_TABLE_PTE_USER_MASK) >> PAGE_TABLE_PTE_USER_SHIFT;
+    out_flags->execute  = (*pte & PAGE_TABLE_PTE_EXECUTE_MASK) >> PAGE_TABLE_PTE_EXECUTE_SHIFT;
+    out_flags->write    = (*pte & PAGE_TABLE_PTE_WRITE_MASK) >> PAGE_TABLE_PTE_WRITE_SHIFT;
+    out_flags->read     = (*pte & PAGE_TABLE_PTE_READ_MASK) >> PAGE_TABLE_PTE_READ_SHIFT;
+    out_flags->valid    = (*pte & PAGE_TABLE_PTE_VALID_MASK) >> PAGE_TABLE_PTE_VALID_SHIFT;
 }
 
 void arch_mmu_pte_set(arch_pte_t *pte, int stage, int level, physical_addr_t pa, arch_page_flags_t *flags)
 {
     *pte = pa & arch_mmu_level_map_mask(stage, level);
-    *pte = *pte >> PGTBL_PAGE_SIZE_SHIFT;
-    *pte = *pte << PGTBL_PTE_ADDR_SHIFT;
-    *pte |= ((arch_pte_t)flags->rsw << PGTBL_PTE_RSW_SHIFT) & PGTBL_PTE_RSW_MASK;
-    *pte |= ((arch_pte_t)flags->dirty << PGTBL_PTE_DIRTY_SHIFT) & PGTBL_PTE_DIRTY_MASK;
-    *pte |= ((arch_pte_t)flags->accessed << PGTBL_PTE_ACCESSED_SHIFT) & PGTBL_PTE_ACCESSED_MASK;
-    *pte |= ((arch_pte_t)flags->global << PGTBL_PTE_GLOBAL_SHIFT) & PGTBL_PTE_GLOBAL_MASK;
-    *pte |= ((arch_pte_t)flags->user << PGTBL_PTE_USER_SHIFT) & PGTBL_PTE_USER_MASK;
-    *pte |= ((arch_pte_t)flags->execute << PGTBL_PTE_EXECUTE_SHIFT) & PGTBL_PTE_EXECUTE_MASK;
-    *pte |= ((arch_pte_t)flags->write << PGTBL_PTE_WRITE_SHIFT) & PGTBL_PTE_WRITE_MASK;
-    *pte |= ((arch_pte_t)flags->read << PGTBL_PTE_READ_SHIFT) & PGTBL_PTE_READ_MASK;
-    *pte |= PGTBL_PTE_VALID_MASK;
+    *pte = *pte >> PAGE_TABLE_PAGE_SIZE_SHIFT;
+    *pte = *pte << PAGE_TABLE_PTE_ADDR_SHIFT;
+    *pte |= ((arch_pte_t)flags->rsw << PAGE_TABLE_PTE_RSW_SHIFT) & PAGE_TABLE_PTE_RSW_MASK;
+    *pte |= ((arch_pte_t)flags->dirty << PAGE_TABLE_PTE_DIRTY_SHIFT) & PAGE_TABLE_PTE_DIRTY_MASK;
+    *pte |= ((arch_pte_t)flags->accessed << PAGE_TABLE_PTE_ACCESSED_SHIFT) & PAGE_TABLE_PTE_ACCESSED_MASK;
+    *pte |= ((arch_pte_t)flags->global << PAGE_TABLE_PTE_GLOBAL_SHIFT) & PAGE_TABLE_PTE_GLOBAL_MASK;
+    *pte |= ((arch_pte_t)flags->user << PAGE_TABLE_PTE_USER_SHIFT) & PAGE_TABLE_PTE_USER_MASK;
+    *pte |= ((arch_pte_t)flags->execute << PAGE_TABLE_PTE_EXECUTE_SHIFT) & PAGE_TABLE_PTE_EXECUTE_MASK;
+    *pte |= ((arch_pte_t)flags->write << PAGE_TABLE_PTE_WRITE_SHIFT) & PAGE_TABLE_PTE_WRITE_MASK;
+    *pte |= ((arch_pte_t)flags->read << PAGE_TABLE_PTE_READ_SHIFT) & PAGE_TABLE_PTE_READ_MASK;
+    *pte |= PAGE_TABLE_PTE_VALID_MASK;
 }
 
 bool arch_mmu_pte_is_table(arch_pte_t *pte, int stage, int level)
 {
-    return (*pte & PGTBL_PTE_PERM_MASK) ? FALSE : TRUE;
+    return (*pte & PAGE_TABLE_PTE_PERM_MASK) ? FALSE : TRUE;
 }
 
 physical_addr_t arch_mmu_pte_table_addr(arch_pte_t *pte, int stage, int level)
 {
-    return ((*pte & PGTBL_PTE_ADDR_MASK) >> PGTBL_PTE_ADDR_SHIFT) << PGTBL_PAGE_SIZE_SHIFT;
+    return ((*pte & PAGE_TABLE_PTE_ADDR_MASK) >> PAGE_TABLE_PTE_ADDR_SHIFT) << PAGE_TABLE_PAGE_SIZE_SHIFT;
 }
 
 void arch_mmu_pte_set_table(arch_pte_t *pte, int stage, int level, physical_addr_t table_pa)
 {
-    *pte = table_pa >> PGTBL_PAGE_SIZE_SHIFT;
-    *pte = *pte << PGTBL_PTE_ADDR_SHIFT;
-    *pte |= PGTBL_PTE_VALID_MASK;
+    *pte = table_pa >> PAGE_TABLE_PAGE_SIZE_SHIFT;
+    *pte = *pte << PAGE_TABLE_PTE_ADDR_SHIFT;
+    *pte |= PAGE_TABLE_PTE_VALID_MASK;
 }
 
 int arch_mmu_test_nested_page_table(
@@ -448,11 +448,11 @@ int arch_mmu_test_nested_page_table(
     uint64_t               hstatus, stvec, vsatp, hgatp;
 
     hgatp = riscv_stage2_mode << HGATP_MODE_SHIFT;
-    hgatp |= (s2_table_pa >> PGTBL_PAGE_SIZE_SHIFT) & HGATP_PPN;
+    hgatp |= (s2_table_pa >> PAGE_TABLE_PAGE_SIZE_SHIFT) & HGATP_PPN;
 
     if (s1_avail) {
         vsatp = riscv_stage1_mode << SATP_MODE_SHIFT;
-        vsatp |= (s1_table_pa >> PGTBL_PAGE_SIZE_SHIFT) & SATP_PPN;
+        vsatp |= (s1_table_pa >> PAGE_TABLE_PAGE_SIZE_SHIFT) & SATP_PPN;
     } else {
         vsatp = 0;
     }
@@ -740,7 +740,7 @@ int arch_mmu_test_nested_page_table(
 physical_addr_t arch_mmu_stage2_current_page_table_addr(void)
 {
     uint64_t page_table_ppn = csr_read(CSR_HGATP) & HGATP_PPN;
-    return page_table_ppn << PGTBL_PAGE_SIZE_SHIFT;
+    return page_table_ppn << PAGE_TABLE_PAGE_SIZE_SHIFT;
 }
 
 uint32_t arch_mmu_stage2_current_vmid(void)
@@ -754,7 +754,7 @@ int arch_mmu_stage2_change_page_table(bool have_vmid, uint32_t vmid, physical_ad
 
     hgatp = riscv_stage2_mode << HGATP_MODE_SHIFT;
     hgatp |= ((uint64_t)vmid << HGATP_VMID_SHIFT) & HGATP_VMID;
-    hgatp |= (table_phys >> PGTBL_PAGE_SIZE_SHIFT) & HGATP_PPN;
+    hgatp |= (table_phys >> PAGE_TABLE_PAGE_SIZE_SHIFT) & HGATP_PPN;
 
     csr_write(CSR_HGATP, hgatp);
 

@@ -3,7 +3,7 @@
 
 /* Placeholder */
 
-#define preempt_enable() \
-    do {                 \
+#define preempt_enable()                                                                                                                             \
+    do {                                                                                                                                             \
     } while (0);
 #endif

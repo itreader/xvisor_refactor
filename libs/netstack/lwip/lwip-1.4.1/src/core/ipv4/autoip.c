@@ -86,9 +86,9 @@
 /** Pseudo random macro based on netif informations.
  * You could use "rand()" from the C Library if you define LWIP_AUTOIP_RAND in lwipopts.h */
 #ifndef LWIP_AUTOIP_RAND
-#define LWIP_AUTOIP_RAND(netif)                                                                                                             \
-    ((((u32_t)((netif->hwaddr[5]) & 0xff) << 24) | ((u32_t)((netif->hwaddr[3]) & 0xff) << 16) | ((u32_t)((netif->hwaddr[2]) & 0xff) << 8) | \
-      ((u32_t)((netif->hwaddr[4]) & 0xff))) +                                                                                               \
+#define LWIP_AUTOIP_RAND(netif)                                                                                                                      \
+    ((((u32_t)((netif->hwaddr[5]) & 0xff) << 24) | ((u32_t)((netif->hwaddr[3]) & 0xff) << 16) | ((u32_t)((netif->hwaddr[2]) & 0xff) << 8) |          \
+      ((u32_t)((netif->hwaddr[4]) & 0xff))) +                                                                                                        \
      (netif->autoip ? netif->autoip->tried_llipaddr : 0))
 #endif /* LWIP_AUTOIP_RAND */
 
@@ -97,7 +97,7 @@
  * If you want to override this, define it to something else in lwipopts.h.
  */
 #ifndef LWIP_AUTOIP_CREATE_SEED_ADDR
-#define LWIP_AUTOIP_CREATE_SEED_ADDR(netif) \
+#define LWIP_AUTOIP_CREATE_SEED_ADDR(netif)                                                                                                          \
     htonl(AUTOIP_RANGE_START + ((u32_t)(((u8_t)(netif->hwaddr[4])) | ((u32_t)((u8_t)(netif->hwaddr[5]))) << 8)))
 #endif /* LWIP_AUTOIP_CREATE_SEED_ADDR */
 

@@ -122,7 +122,7 @@
 #error "TCP_SND_QUEUELEN must be at least 2 for no-copy TCP writes to work"
 #endif
 #if (LWIP_TCP && ((TCP_MAXRTX > 12) || (TCP_SYNMAXRTX > 12)))
-#error \
+#error                                                                                                                                               \
     "If you want to use TCP, TCP_MAXRTX and TCP_SYNMAXRTX must less or equal to 12 (due to tcp_backoff table), so, you have to reduce them in your lwipopts.h"
 #endif
 #if (LWIP_TCP && TCP_LISTEN_BACKLOG && (TCP_DEFAULT_LISTEN_BACKLOG < 0) || (TCP_DEFAULT_LISTEN_BACKLOG > 0xff))
@@ -249,7 +249,7 @@
 #endif
 #else /* MEMP_MEM_MALLOC */
 #if MEMP_NUM_NETCONN > (MEMP_NUM_TCP_PCB + MEMP_NUM_TCP_PCB_LISTEN + MEMP_NUM_UDP_PCB + MEMP_NUM_RAW_PCB)
-#error \
+#error                                                                                                                                               \
     "lwip_sanity_check: WARNING: MEMP_NUM_NETCONN should be less than the sum of MEMP_NUM_{TCP,RAW,UDP}_PCB+MEMP_NUM_TCP_PCB_LISTEN. If you know what you are doing, define LWIP_DISABLE_MEMP_SANITY_CHECKS to 1 to disable this error."
 #endif
 #endif /* MEMP_MEM_MALLOC */
@@ -260,31 +260,31 @@
 #if !LWIP_DISABLE_TCP_SANITY_CHECKS
 #if LWIP_TCP
 #if !MEMP_MEM_MALLOC && (MEMP_NUM_TCP_SEG < TCP_SND_QUEUELEN)
-#error \
+#error                                                                                                                                               \
     "lwip_sanity_check: WARNING: MEMP_NUM_TCP_SEG should be at least as big as TCP_SND_QUEUELEN. If you know what you are doing, define LWIP_DISABLE_TCP_SANITY_CHECKS to 1 to disable this error."
 #endif
 #if TCP_SND_BUF < (2 * TCP_MSS)
-#error \
+#error                                                                                                                                               \
     "lwip_sanity_check: WARNING: TCP_SND_BUF must be at least as much as (2 * TCP_MSS) for things to work smoothly. If you know what you are doing, define LWIP_DISABLE_TCP_SANITY_CHECKS to 1 to disable this error."
 #endif
 #if TCP_SND_QUEUELEN < (2 * (TCP_SND_BUF / TCP_MSS))
-#error \
+#error                                                                                                                                               \
     "lwip_sanity_check: WARNING: TCP_SND_QUEUELEN must be at least as much as (2 * TCP_SND_BUF/TCP_MSS) for things to work. If you know what you are doing, define LWIP_DISABLE_TCP_SANITY_CHECKS to 1 to disable this error."
 #endif
 #if TCP_SNDLOWAT >= TCP_SND_BUF
-#error \
+#error                                                                                                                                               \
     "lwip_sanity_check: WARNING: TCP_SNDLOWAT must be less than TCP_SND_BUF. If you know what you are doing, define LWIP_DISABLE_TCP_SANITY_CHECKS to 1 to disable this error."
 #endif
 #if TCP_SNDQUEUELOWAT >= TCP_SND_QUEUELEN
-#error \
+#error                                                                                                                                               \
     "lwip_sanity_check: WARNING: TCP_SNDQUEUELOWAT must be less than TCP_SND_QUEUELEN. If you know what you are doing, define LWIP_DISABLE_TCP_SANITY_CHECKS to 1 to disable this error."
 #endif
 #if !MEMP_MEM_MALLOC && (TCP_WND > (PBUF_POOL_SIZE * (PBUF_POOL_BUFSIZE - (PBUF_LINK_HLEN + PBUF_IP_HLEN + PBUF_TRANSPORT_HLEN))))
-#error \
+#error                                                                                                                                               \
     "lwip_sanity_check: WARNING: TCP_WND is larger than space provided by PBUF_POOL_SIZE * (PBUF_POOL_BUFSIZE - protocol headers). If you know what you are doing, define LWIP_DISABLE_TCP_SANITY_CHECKS to 1 to disable this error."
 #endif
 #if TCP_WND < TCP_MSS
-#error \
+#error                                                                                                                                               \
     "lwip_sanity_check: WARNING: TCP_WND is smaller than MSS. If you know what you are doing, define LWIP_DISABLE_TCP_SANITY_CHECKS to 1 to disable this error."
 #endif
 #endif /* LWIP_TCP */

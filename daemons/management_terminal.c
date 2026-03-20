@@ -93,11 +93,10 @@ static int management_terminal_main(void *udata)
             }
 
             if (nr_bad_login_tries >= 5) {
-                vmm_printf(
-                    "Too many bad tries.\n"
-                    "Please give your fingers "
-                    "some rest and try again "
-                    "after 15 seconds.\n");
+                vmm_printf("Too many bad tries.\n"
+                           "Please give your fingers "
+                           "some rest and try again "
+                           "after 15 seconds.\n");
                 vmm_ssleep(15);
                 nr_bad_login_tries = 0;
             }

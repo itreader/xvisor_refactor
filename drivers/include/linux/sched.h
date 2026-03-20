@@ -32,11 +32,11 @@ typedef vmm_wait_queue_t wait_queue_head_t;
  * wake_up() has to be called after changing any variable that could
  * change the result of the wait condition.
  */
-#define wait_event(wait_queue, condition)                 \
-    do {                                                  \
-        if (condition)                                    \
-            break;                                        \
-        vmm_waitqueue_sleep_event(wait_queue, condition); \
+#define wait_event(wait_queue, condition)                                                                                                            \
+    do {                                                                                                                                             \
+        if (condition)                                                                                                                               \
+            break;                                                                                                                                   \
+        vmm_waitqueue_sleep_event(wait_queue, condition);                                                                                            \
     } while (0)
 
 /**
@@ -51,14 +51,14 @@ typedef vmm_wait_queue_t wait_queue_head_t;
  * The function returns 0 if the @timeout elapsed, and the remaining
  * jiffies if the condition evaluated to true before the timeout elapsed.
  */
-#define wait_event_timeout(wait_queue, cond, timeout)                     \
-    ({                                                                    \
-        uint64_t __r = timeout;                                           \
-        __r          = __r * (1000000000 / HZ);                           \
-        if (!(cond))                                                      \
-            vmm_waitqueue_sleep_event_timeout(&(wait_queue), cond, &__r); \
-        __r = udiv64(__r, (1000000000 / HZ));                             \
-        (uint64_t)__r;                                                    \
+#define wait_event_timeout(wait_queue, cond, timeout)                                                                                                \
+    ({                                                                                                                                               \
+        uint64_t __r = timeout;                                                                                                                      \
+        __r          = __r * (1000000000 / HZ);                                                                                                      \
+        if (!(cond))                                                                                                                                 \
+            vmm_waitqueue_sleep_event_timeout(&(wait_queue), cond, &__r);                                                                            \
+        __r = udiv64(__r, (1000000000 / HZ));                                                                                                        \
+        (uint64_t) __r;                                                                                                                              \
     })
 
 #define wake_up(wqptr) vmm_waitqueue_wakeall(wqptr)

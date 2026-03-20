@@ -350,7 +350,7 @@ static void cmd_host_extirq_stats(vmm_char_device_t *cdev)
     vmm_host_extend_irq_debug_dump(cdev);
 }
 
-static void cmd_host_aspace_info(vmm_char_device_t *cdev)
+static void cmd_host_addr_space_info(vmm_char_device_t *cdev)
 {
     uint32_t free  = vmm_host_memmap_hash_free_count();
     uint32_t total = vmm_host_memmap_hash_total_count();
@@ -359,7 +359,7 @@ static void cmd_host_aspace_info(vmm_char_device_t *cdev)
     vmm_cdev_printf(cdev, "Memmap Total Entry  : %u (0x%08x)\n", total, total);
     vmm_cdev_printf(cdev, "\n");
 
-    arch_cpu_aspace_print_info(cdev);
+    arch_cpu_addr_space_print_info(cdev);
 }
 
 static void cmd_host_ram_info(vmm_char_device_t *cdev)
@@ -732,7 +732,7 @@ static int cmd_host_exec(vmm_char_device_t *cdev, int argc, char **argv)
         }
     } else if ((strcmp(argv[1], "aspace") == 0) && (2 < argc)) {
         if (strcmp(argv[2], "info") == 0) {
-            cmd_host_aspace_info(cdev);
+            cmd_host_addr_space_info(cdev);
             return VMM_OK;
         }
     } else if ((strcmp(argv[1], "ram") == 0) && (2 < argc)) {

@@ -32,45 +32,45 @@
  * void arch_flush_cache_all(void)
  */
 #define ARCH_HAS_FLUSH_CACHE_ALL
-#define arch_flush_cache_all()     \
-    do {                           \
-        clean_invalidate_dcache(); \
+#define arch_flush_cache_all()                                                                                                                       \
+    do {                                                                                                                                             \
+        clean_invalidate_dcache();                                                                                                                   \
     } while (0)
 
 /* Prototype:
  * void arch_flush_cache_range(virtual_addr_t start, virtual_addr_t end)
  */
 #define ARCH_HAS_FLUSH_CACHE_RANGE
-#define arch_flush_cache_range(start, end)                 \
-    do {                                                   \
-        clean_invalidate_dcache_mva_range((start), (end)); \
+#define arch_flush_cache_range(start, end)                                                                                                           \
+    do {                                                                                                                                             \
+        clean_invalidate_dcache_mva_range((start), (end));                                                                                           \
     } while (0)
 
 /* Prototype:
  * void arch_flush_dcache_range(virtual_addr_t start, virtual_addr_t end)
  */
 #define ARCH_HAS_FLUSH_DCACHE_RANGE
-#define arch_flush_dcache_range(start, end)                \
-    do {                                                   \
-        clean_invalidate_dcache_mva_range((start), (end)); \
+#define arch_flush_dcache_range(start, end)                                                                                                          \
+    do {                                                                                                                                             \
+        clean_invalidate_dcache_mva_range((start), (end));                                                                                           \
     } while (0)
 
 /* Prototype:
  * void arch_inv_cache_range(virtual_addr_t start, virtual_addr_t end)
  */
 #define ARCH_HAS_INV_DCACHE_RANGE
-#define arch_inv_dcache_range(start, end)            \
-    do {                                             \
-        invalidate_dcache_mva_range((start), (end)); \
+#define arch_inv_dcache_range(start, end)                                                                                                            \
+    do {                                                                                                                                             \
+        invalidate_dcache_mva_range((start), (end));                                                                                                 \
     } while (0)
 
 /* Prototype:
  * void arch_clean_cache_range(virtual_addr_t start, virtual_addr_t end)
  */
 #define ARCH_HAS_CLEAN_DCACHE_RANGE
-#define arch_clean_dcache_range(start, end)     \
-    do {                                        \
-        clean_dcache_mva_range((start), (end)); \
+#define arch_clean_dcache_range(start, end)                                                                                                          \
+    do {                                                                                                                                             \
+        clean_dcache_mva_range((start), (end));                                                                                                      \
     } while (0)
 
 /* Prefetching support.

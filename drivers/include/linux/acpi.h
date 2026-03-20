@@ -99,7 +99,7 @@ enum acpi_address_range_id {
 typedef int (*acpi_table_table_handler)(struct acpi_table_header *table);
 
 typedef int (*acpi_table_entry_handler)(struct acpi_subtable_header *header,
-                                      const uint64_t end);
+                                        const uint64_t end);
 
 #ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
 void acpi_initrd_override(void *data, size_t size);
@@ -109,7 +109,7 @@ static inline void acpi_initrd_override(void *data, size_t size)
 }
 #endif
 
-#define BAD_MADT_ENTRY(entry, end) \
+#define BAD_MADT_ENTRY(entry, end)                                                                                                                   \
     ((!entry) || (uint64_t)entry + sizeof(*entry) > end || ((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
 
 char * __acpi_map_table (uint64_t phys_addr, uint64_t size);
@@ -437,8 +437,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *);
 #define acpi_disabled       1
 
 #define ACPI_COMPANION(dev) (NULL)
-#define ACPI_COMPANION_SET(dev, adev) \
-    do {                              \
+#define ACPI_COMPANION_SET(dev, adev)                                                                                                                \
+    do {                                                                                                                                             \
     } while (0)
 #define ACPI_HANDLE(dev) (NULL)
 
@@ -547,8 +547,8 @@ static inline void arch_reserve_mem_area(acpi_physical_address addr,
 }
 #endif /* CONFIG_X86 */
 #else
-#define acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl) \
-    do {                                                      \
+#define acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl)                                                                                        \
+    do {                                                                                                                                             \
     } while (0)
 #endif
 
@@ -674,18 +674,18 @@ __printf(3, 4) void __acpi_handle_debug(struct _ddebug *descriptor, acpi_handle 
 #define acpi_handle_debug(handle, fmt, ...) acpi_handle_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__)
 #else
 #if defined(CONFIG_DYNAMIC_DEBUG)
-#define acpi_handle_debug(handle, fmt, ...)                                       \
-    do {                                                                          \
-        DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);                           \
-        if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT))                    \
-            __acpi_handle_debug(&descriptor, handle, pr_fmt(fmt), ##__VA_ARGS__); \
+#define acpi_handle_debug(handle, fmt, ...)                                                                                                          \
+    do {                                                                                                                                             \
+        DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);                                                                                              \
+        if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT))                                                                                       \
+            __acpi_handle_debug(&descriptor, handle, pr_fmt(fmt), ##__VA_ARGS__);                                                                    \
     } while (0)
 #else
-#define acpi_handle_debug(handle, fmt, ...)                             \
-    ({                                                                  \
-        if (0)                                                          \
-            acpi_handle_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__); \
-        0;                                                              \
+#define acpi_handle_debug(handle, fmt, ...)                                                                                                          \
+    ({                                                                                                                                               \
+        if (0)                                                                                                                                       \
+            acpi_handle_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__);                                                                              \
+        0;                                                                                                                                           \
     })
 #endif
 #endif

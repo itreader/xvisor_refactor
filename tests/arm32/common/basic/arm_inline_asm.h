@@ -25,110 +25,110 @@
 
 #include <arch_types.h>
 
-#define read_sctlr()                                                                        \
-    ({                                                                                      \
-        uint32_t rval;                                                                      \
-        asm volatile(" mrc     p15, 0, %0, c1, c0, 0\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define read_sctlr()                                                                                                                                 \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c1, c0, 0\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define write_sctlr(val) asm volatile(" mcr     p15, 0, %0, c1, c0, 0\n\t" ::"r"((val)) : "memory", "cc")
 
-#define read_dacr()                                                                         \
-    ({                                                                                      \
-        uint32_t rval;                                                                      \
-        asm volatile(" mrc     p15, 0, %0, c3, c0, 0\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define read_dacr()                                                                                                                                  \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c3, c0, 0\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define write_dacr(val) asm volatile(" mcr     p15, 0, %0, c3, c0, 0\n\t" ::"r"((val)) : "memory", "cc")
 
-#define read_ttbr0()                                                                        \
-    ({                                                                                      \
-        uint32_t rval;                                                                      \
-        asm volatile(" mrc     p15, 0, %0, c2, c0, 0\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define read_ttbr0()                                                                                                                                 \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c2, c0, 0\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define write_ttbr0(val) asm volatile(" mcr     p15, 0, %0, c2, c0, 0\n\t" ::"r"((val)) : "memory", "cc")
 
-#define read_ttbr1()                                                                        \
-    ({                                                                                      \
-        uint32_t rval;                                                                      \
-        asm volatile(" mrc     p15, 0, %0, c2, c0, 1\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define read_ttbr1()                                                                                                                                 \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c2, c0, 1\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define write_ttbr1(val) asm volatile(" mcr     p15, 0, %0, c2, c0, 1\n\t" ::"r"((val)) : "memory", "cc")
 
-#define read_ttbcr()                                                                        \
-    ({                                                                                      \
-        uint32_t rval;                                                                      \
-        asm volatile(" mrc     p15, 0, %0, c2, c0, 2\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define read_ttbcr()                                                                                                                                 \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c2, c0, 2\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define write_ttbcr(val) asm volatile(" mcr     p15, 0, %0, c2, c0, 2\n\t" ::"r"((val)) : "memory", "cc")
 
-#define read_dfsr()                                                                         \
-    ({                                                                                      \
-        uint32_t rval;                                                                      \
-        asm volatile(" mrc     p15, 0, %0, c5, c0, 0\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define read_dfsr()                                                                                                                                  \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c5, c0, 0\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define write_dfsr(val) asm volatile(" mcr     p15, 0, %0, c5, c0, 0\n\t" ::"r"((val)) : "memory", "cc")
 
-#define read_ifsr()                                                                         \
-    ({                                                                                      \
-        uint32_t rval;                                                                      \
-        asm volatile(" mrc     p15, 0, %0, c5, c0, 1\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define read_ifsr()                                                                                                                                  \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c5, c0, 1\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define write_ifsr(val) asm volatile(" mcr     p15, 0, %0, c5, c0, 1\n\t" ::"r"((val)) : "memory", "cc")
 
-#define read_dfar()                                                                         \
-    ({                                                                                      \
-        uint32_t rval;                                                                      \
-        asm volatile(" mrc     p15, 0, %0, c6, c0, 0\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define read_dfar()                                                                                                                                  \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c6, c0, 0\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define write_dfar(val) asm volatile(" mcr     p15, 0, %0, c6, c0, 0\n\t" ::"r"((val)) : "memory", "cc")
 
-#define read_ifar()                                                                         \
-    ({                                                                                      \
-        uint32_t rval;                                                                      \
-        asm volatile(" mrc     p15, 0, %0, c6, c0, 2\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define read_ifar()                                                                                                                                  \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c6, c0, 2\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define write_ifar(val) asm volatile(" mcr     p15, 0, %0, c6, c0, 2\n\t" ::"r"((val)) : "memory", "cc")
 
-#define invalid_tlb()                                                                       \
-    ({                                                                                      \
-        uint32_t rval = 0;                                                                  \
-        asm volatile(" mcr     p15, 0, %0, c8, c7, 0\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define invalid_tlb()                                                                                                                                \
+    ({                                                                                                                                               \
+        uint32_t rval = 0;                                                                                                                           \
+        asm volatile(" mcr     p15, 0, %0, c8, c7, 0\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define invalid_tlb_line(va) asm volatile(" mcr     p15, 0, %0, c8, c7, 1\n\t" ::"r"((va)) : "memory", "cc")
 
-#define invalid_i_tlb()                                                                     \
-    ({                                                                                      \
-        uint32_t rval = 0;                                                                  \
-        asm volatile(" mcr     p15, 0, %0, c8, c5, 0\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define invalid_i_tlb()                                                                                                                              \
+    ({                                                                                                                                               \
+        uint32_t rval = 0;                                                                                                                           \
+        asm volatile(" mcr     p15, 0, %0, c8, c5, 0\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define invalid_i_tlb_line(va) asm volatile(" mcr     p15, 0, %0, c8, c5, 1\n\t" ::"r"((va)) : "memory", "cc")
 
-#define invalid_d_tlb()                                                                     \
-    ({                                                                                      \
-        uint32_t rval = 0;                                                                  \
-        asm volatile(" mcr     p15, 0, %0, c8, c6, 0\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                               \
+#define invalid_d_tlb()                                                                                                                              \
+    ({                                                                                                                                               \
+        uint32_t rval = 0;                                                                                                                           \
+        asm volatile(" mcr     p15, 0, %0, c8, c6, 0\n\t" : "=r"(rval) : : "memory", "cc");                                                          \
+        rval;                                                                                                                                        \
     })
 
 #define invalid_d_tlb_line(va) asm volatile(" mcr     p15, 0, %0, c8, c6, 1\n\t" ::"r"((va)) : "memory", "cc")

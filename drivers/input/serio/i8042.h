@@ -93,23 +93,23 @@
 
 #ifdef DEBUG
 static uint64_t i8042_start_time;
-#define dbg_init()                  \
-    do {                            \
-        i8042_start_time = jiffies; \
+#define dbg_init()                                                                                                                                   \
+    do {                                                                                                                                             \
+        i8042_start_time = jiffies;                                                                                                                  \
     } while (0)
-#define dbg(format, arg...)                                                                               \
-    do {                                                                                                  \
-        if (i8042_debug)                                                                                  \
-            printk(KERN_DEBUG KBUILD_MODNAME ": [%d] " format, (int)(jiffies - i8042_start_time), ##arg); \
+#define dbg(format, arg...)                                                                                                                          \
+    do {                                                                                                                                             \
+        if (i8042_debug)                                                                                                                             \
+            printk(KERN_DEBUG KBUILD_MODNAME ": [%d] " format, (int)(jiffies - i8042_start_time), ##arg);                                            \
     } while (0)
 #else
-#define dbg_init() \
-    do {           \
+#define dbg_init()                                                                                                                                   \
+    do {                                                                                                                                             \
     } while (0)
-#define dbg(format, arg...)                           \
-    do {                                              \
-        if (0)                                        \
-            printk(KERN_DEBUG pr_fmt(format), ##arg); \
+#define dbg(format, arg...)                                                                                                                          \
+    do {                                                                                                                                             \
+        if (0)                                                                                                                                       \
+            printk(KERN_DEBUG pr_fmt(format), ##arg);                                                                                                \
     } while (0)
 #endif
 

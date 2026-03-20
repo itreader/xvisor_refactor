@@ -59,44 +59,44 @@ int arch_cpu_irq_setup(void);
 /** Enable IRQ
  *  Prototype: void arch_cpu_irq_enable(void);
  */
-#define arch_cpu_irq_enable()                         \
-    do {                                              \
-        __asm__ __volatile__("sti\n\t" ::: "memory"); \
+#define arch_cpu_irq_enable()                                                                                                                        \
+    do {                                                                                                                                             \
+        __asm__ __volatile__("sti\n\t" ::: "memory");                                                                                                \
     } while (0)
 
 /** Disable IRQ
  *  Prototype: void arch_cpu_irq_disable(void);
  */
-#define arch_cpu_irq_disable()                        \
-    do {                                              \
-        __asm__ __volatile__("cli\n\t" ::: "memory"); \
+#define arch_cpu_irq_disable()                                                                                                                       \
+    do {                                                                                                                                             \
+        __asm__ __volatile__("cli\n\t" ::: "memory");                                                                                                \
     } while (0)
 
 /** FIXME: Check whether IRQs are disabled
  *  Prototype: bool arch_cpu_irq_disabled(void);
  */
-#define arch_cpu_irq_disabled()                           \
-    ({                                                    \
-        uint64_t flags = __arch_save_flags();             \
-        uint32_t df    = arch_irqs_disabled_flags(flags); \
-        df;                                               \
+#define arch_cpu_irq_disabled()                                                                                                                      \
+    ({                                                                                                                                               \
+        uint64_t flags = __arch_save_flags();                                                                                                        \
+        uint32_t df    = arch_irqs_disabled_flags(flags);                                                                                            \
+        df;                                                                                                                                          \
     })
 
 /** FIXME: Save IRQ flags and disable IRQ
  *  Prototype: void arch_cpu_irq_save(irq_flags_t flags);
  */
-#define arch_cpu_irq_save(flags)       \
-    do {                               \
-        (flags) = __arch_save_flags(); \
-        arch_cpu_irq_disable();        \
+#define arch_cpu_irq_save(flags)                                                                                                                     \
+    do {                                                                                                                                             \
+        (flags) = __arch_save_flags();                                                                                                               \
+        arch_cpu_irq_disable();                                                                                                                      \
     } while (0)
 
 /** FIXME: Restore IRQ flags
  *  Prototype: void arch_cpu_irq_restore(irq_flags_t flags);
  */
-#define arch_cpu_irq_restore(flags)  \
-    do {                             \
-        __arch_restore_flags(flags); \
+#define arch_cpu_irq_restore(flags)                                                                                                                  \
+    do {                                                                                                                                             \
+        __arch_restore_flags(flags);                                                                                                                 \
     } while (0)
 
 /** FIXME: Wait for IRQ

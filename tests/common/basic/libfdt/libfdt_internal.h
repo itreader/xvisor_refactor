@@ -55,11 +55,11 @@
 #define FDT_ALIGN(x, a) (((x) + (a) - 1) & ~((a) - 1))
 #define FDT_TAGALIGN(x) (FDT_ALIGN((x), FDT_TAGSIZE))
 
-#define FDT_CHECK_HEADER(fdt)                   \
-    {                                           \
-        int err;                                \
-        if ((err = fdt_check_header(fdt)) != 0) \
-            return err;                         \
+#define FDT_CHECK_HEADER(fdt)                                                                                                                        \
+    {                                                                                                                                                \
+        int err;                                                                                                                                     \
+        if ((err = fdt_check_header(fdt)) != 0)                                                                                                      \
+            return err;                                                                                                                              \
     }
 
 int         _fdt_check_node_offset(const void *fdt, int offset);

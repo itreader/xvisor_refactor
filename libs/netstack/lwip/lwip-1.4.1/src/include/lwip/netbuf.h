@@ -85,10 +85,10 @@ void  netbuf_first(struct netbuf *buf);
 #define netbuf_destport(buf)               (((buf)->flags & NETBUF_FLAG_DESTADDR) ? (buf)->toport_chksum : 0)
 #endif /* LWIP_NETBUF_RECVINFO */
 #if LWIP_CHECKSUM_ON_COPY
-#define netbuf_set_chksum(buf, chksum)             \
-    do {                                           \
-        (buf)->flags         = NETBUF_FLAG_CHKSUM; \
-        (buf)->toport_chksum = chksum;             \
+#define netbuf_set_chksum(buf, chksum)                                                                                                               \
+    do {                                                                                                                                             \
+        (buf)->flags         = NETBUF_FLAG_CHKSUM;                                                                                                   \
+        (buf)->toport_chksum = chksum;                                                                                                               \
     } while (0)
 #endif /* LWIP_CHECKSUM_ON_COPY */
 

@@ -38,13 +38,13 @@ struct mmu_lpae_entry_ctrl {
 extern uint8_t default_terminal_early_base[];
 #endif
 
-#define PGTBL_ROOT_SIZE   (1UL << ARCH_MMU_STAGE1_ROOT_SIZE_ORDER)
-#define PGTBL_ROOT_ENTCNT (PGTBL_ROOT_SIZE / sizeof(arch_pte_t))
+#define PAGE_TABLE_ROOT_SIZE   (1UL << ARCH_MMU_STAGE1_ROOT_SIZE_ORDER)
+#define PAGE_TABLE_ROOT_ENTCNT (PAGE_TABLE_ROOT_SIZE / sizeof(arch_pte_t))
 
-#define PGTBL_COUNT       ARCH_MMU_STAGE1_NONROOT_INITIAL_COUNT
-#define PGTBL_SIZE        (1UL << ARCH_MMU_STAGE1_NONROOT_SIZE_ORDER)
-#define PGTBL_SIZE_SHIFT  ARCH_MMU_STAGE1_NONROOT_SIZE_ORDER
-#define PGTBL_ENTCNT      (PGTBL_SIZE / sizeof(arch_pte_t))
+#define PAGE_TABLE_COUNT       ARCH_MMU_STAGE1_NONROOT_INITIAL_COUNT
+#define PAGE_TABLE_SIZE        (1UL << ARCH_MMU_STAGE1_NONROOT_SIZE_ORDER)
+#define PAGE_TABLE_SIZE_SHIFT  ARCH_MMU_STAGE1_NONROOT_SIZE_ORDER
+#define PAGE_TABLE_ENTCNT      (PAGE_TABLE_SIZE / sizeof(arch_pte_t))
 
 void __attribute__((section(".entry"))) __setup_initial_ttbl(
     struct mmu_lpae_entry_ctrl *lpae_entry, virtual_addr_t map_start, virtual_addr_t map_end, virtual_addr_t pa_start, uint32_t aindex,
@@ -70,12 +70,12 @@ void __attribute__((section(".entry"))) __setup_initial_ttbl(
             ttbl = (uint64_t *)(uint64_t)(ttbl[index] & TTBL_OUTADDR_MASK);
         } else {
             /* Allocate new level2 table */
-            if (lpae_entry->ttable_count == PGTBL_COUNT) {
+            if (lpae_entry->ttable_count == PAGE_TABLE_COUNT) {
                 while (1)
                     ; /* No initial table available */
             }
 
-            for (i = 0; i < PGTBL_ENTCNT; i++) {
+            for (i = 0; i < PAGE_TABLE_ENTCNT; i++) {
                 lpae_entry->next_ttbl[i] = 0x0ULL;
             }
 
@@ -83,7 +83,7 @@ void __attribute__((section(".entry"))) __setup_initial_ttbl(
             ttbl[index] |= (((virtual_addr_t)lpae_entry->next_ttbl) & TTBL_OUTADDR_MASK);
             ttbl[index] |= (TTBL_TABLE_MASK | TTBL_VALID_MASK);
             ttbl = lpae_entry->next_ttbl;
-            lpae_entry->next_ttbl += PGTBL_ENTCNT;
+            lpae_entry->next_ttbl += PAGE_TABLE_ENTCNT;
         }
 
         /* Setup level2 table */
@@ -94,12 +94,12 @@ void __attribute__((section(".entry"))) __setup_initial_ttbl(
             ttbl = (uint64_t *)(uint64_t)(ttbl[index] & TTBL_OUTADDR_MASK);
         } else {
             /* Allocate new level3 table */
-            if (lpae_entry->ttable_count == PGTBL_COUNT) {
+            if (lpae_entry->ttable_count == PAGE_TABLE_COUNT) {
                 while (1)
                     ; /* No initial table available */
             }
 
-            for (i = 0; i < PGTBL_ENTCNT; i++) {
+            for (i = 0; i < PAGE_TABLE_ENTCNT; i++) {
                 lpae_entry->next_ttbl[i] = 0x0ULL;
             }
 
@@ -107,7 +107,7 @@ void __attribute__((section(".entry"))) __setup_initial_ttbl(
             ttbl[index] |= (((virtual_addr_t)lpae_entry->next_ttbl) & TTBL_OUTADDR_MASK);
             ttbl[index] |= (TTBL_TABLE_MASK | TTBL_VALID_MASK);
             ttbl = lpae_entry->next_ttbl;
-            lpae_entry->next_ttbl += PGTBL_ENTCNT;
+            lpae_entry->next_ttbl += PAGE_TABLE_ENTCNT;
         }
 
         /* Setup level3 table */
@@ -134,21 +134,21 @@ void __attribute__((section(".entry"))) __setup_initial_ttbl(
  * Note: This functions cannot refer to any global variable &
  * functions to ensure that it can execute from anywhere.
  */
-#define to_load_pa(va)                               \
-    ({                                               \
-        virtual_addr_t _tva = (va);                  \
-        if (exec_start <= _tva && _tva < exec_end) { \
-            _tva = _tva - exec_start + load_start;   \
-        }                                            \
-        _tva;                                        \
+#define to_load_pa(va)                                                                                                                               \
+    ({                                                                                                                                               \
+        virtual_addr_t _tva = (va);                                                                                                                  \
+        if (exec_start <= _tva && _tva < exec_end) {                                                                                                 \
+            _tva = _tva - exec_start + load_start;                                                                                                   \
+        }                                                                                                                                            \
+        _tva;                                                                                                                                        \
     })
-#define to_exec_va(va)                               \
-    ({                                               \
-        virtual_addr_t _tva = (va);                  \
-        if (load_start <= _tva && _tva < load_end) { \
-            _tva = _tva - load_start + exec_start;   \
-        }                                            \
-        _tva;                                        \
+#define to_exec_va(va)                                                                                                                               \
+    ({                                                                                                                                               \
+        virtual_addr_t _tva = (va);                                                                                                                  \
+        if (load_start <= _tva && _tva < load_end) {                                                                                                 \
+            _tva = _tva - load_start + exec_start;                                                                                                   \
+        }                                                                                                                                            \
+        _tva;                                                                                                                                        \
     })
 
 #define SECTION_START(SECTION)      _##SECTION##_start
@@ -157,8 +157,8 @@ void __attribute__((section(".entry"))) __setup_initial_ttbl(
 #define SECTION_ADDR_START(SECTION) (virtual_addr_t) & SECTION_START(SECTION)
 #define SECTION_ADDR_END(SECTION)   (virtual_addr_t) & SECTION_END(SECTION)
 
-#define DECLARE_SECTION(SECTION)                  \
-    extern virtual_addr_t SECTION_START(SECTION); \
+#define DECLARE_SECTION(SECTION)                                                                                                                     \
+    extern virtual_addr_t SECTION_START(SECTION);                                                                                                    \
     extern virtual_addr_t SECTION_END(SECTION)
 
 DECLARE_SECTION(text);
@@ -167,9 +167,9 @@ DECLARE_SECTION(cpuinit);
 DECLARE_SECTION(spinlock);
 DECLARE_SECTION(rodata);
 
-#define SETUP_RO_SECTION(ENTRY, SECTION)                                                                                                   \
-    __setup_initial_ttbl(                                                                                                                  \
-        &(ENTRY), to_exec_va(SECTION_ADDR_START(SECTION)), to_exec_va(SECTION_ADDR_END(SECTION)), to_load_pa(SECTION_ADDR_START(SECTION)), \
+#define SETUP_RO_SECTION(ENTRY, SECTION)                                                                                                             \
+    __setup_initial_ttbl(                                                                                                                            \
+        &(ENTRY), to_exec_va(SECTION_ADDR_START(SECTION)), to_exec_va(SECTION_ADDR_END(SECTION)), to_load_pa(SECTION_ADDR_START(SECTION)),           \
         AINDEX_NORMAL_WB, FALSE)
 
 virtual_size_t __attribute__((section(".entry"))) _fdt_size(virtual_addr_t dtb_start)
@@ -204,13 +204,13 @@ void __attribute__((section(".entry"))) _setup_initial_ttbl(
     lpae_entry.next_ttbl                    = (uint64_t *)to_load_pa((virtual_addr_t)&stage1_page_table_nonroot);
 
     /* Invalidate stale contents of page tables in cache */
-    cpu_mmu_invalidate_range(lpae_entry.ttable_base, PGTBL_ROOT_SIZE);
-    cpu_mmu_invalidate_range((virtual_addr_t)lpae_entry.next_ttbl, PGTBL_COUNT * PGTBL_SIZE);
+    cpu_mmu_invalidate_range(lpae_entry.ttable_base, PAGE_TABLE_ROOT_SIZE);
+    cpu_mmu_invalidate_range((virtual_addr_t)lpae_entry.next_ttbl, PAGE_TABLE_COUNT * PAGE_TABLE_SIZE);
 
     /* Init first ttbl */
     root_ttbl = (uint64_t *)lpae_entry.ttable_base;
 
-    for (i = 0; i < PGTBL_ROOT_ENTCNT; i++) {
+    for (i = 0; i < PAGE_TABLE_ROOT_ENTCNT; i++) {
         root_ttbl[i] = 0x0ULL;
     }
 

@@ -108,10 +108,10 @@ struct arm_smmu_s2cr {
     uint8_t                    cbndx;
 };
 
-#define s2cr_init_val                                                \
-    (struct arm_smmu_s2cr)                                           \
-    {                                                                \
-        .type = disable_bypass ? S2CR_TYPE_FAULT : S2CR_TYPE_BYPASS, \
+#define s2cr_init_val                                                                                                                                \
+    (struct arm_smmu_s2cr)                                                                                                                           \
+    {                                                                                                                                                \
+        .type = disable_bypass ? S2CR_TYPE_FAULT : S2CR_TYPE_BYPASS,                                                                                 \
     }
 
 struct arm_smmu_cb {

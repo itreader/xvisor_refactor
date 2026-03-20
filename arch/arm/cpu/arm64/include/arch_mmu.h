@@ -34,12 +34,12 @@
 
 #define cpu_stage2_ttable_pa()            (mrs(vttbr_el2) & VTTBR_BADDR_MASK)
 #define cpu_stage2_vmid()                 ((mrs(vttbr_el2) & VTTBR_VMID_MASK) >> VTTBR_VMID_SHIFT)
-#define cpu_stage2_update(ttable_pa, vmid)                                 \
-    do {                                                                   \
-        uint64_t vttbr = 0x0;                                              \
-        vttbr |= ((uint64_t)(vmid) << VTTBR_VMID_SHIFT) & VTTBR_VMID_MASK; \
-        vttbr |= (ttable_pa) & VTTBR_BADDR_MASK;                           \
-        msr(vttbr_el2, vttbr);                                             \
+#define cpu_stage2_update(ttable_pa, vmid)                                                                                                           \
+    do {                                                                                                                                             \
+        uint64_t vttbr = 0x0;                                                                                                                        \
+        vttbr |= ((uint64_t)(vmid) << VTTBR_VMID_SHIFT) & VTTBR_VMID_MASK;                                                                           \
+        vttbr |= (ttable_pa) & VTTBR_BADDR_MASK;                                                                                                     \
+        msr(vttbr_el2, vttbr);                                                                                                                       \
     } while (0);
 
 static inline void cpu_mmu_sync_tte(uint64_t *tte)

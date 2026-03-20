@@ -75,61 +75,61 @@ void vj_compress_init(struct vjcompress *comp)
  * checks for zero (since zero has to be encoded in the long, 3 byte
  * form).
  */
-#define ENCODE(n)                        \
-    {                                    \
-        if ((u_short)(n) >= 256) {       \
-            *cp++ = 0;                   \
-            cp[1] = (uint8_t)(n);        \
-            cp[0] = (uint8_t)((n) >> 8); \
-            cp += 2;                     \
-        } else {                         \
-            *cp++ = (uint8_t)(n);        \
-        }                                \
+#define ENCODE(n)                                                                                                                                    \
+    {                                                                                                                                                \
+        if ((u_short)(n) >= 256) {                                                                                                                   \
+            *cp++ = 0;                                                                                                                               \
+            cp[1] = (uint8_t)(n);                                                                                                                    \
+            cp[0] = (uint8_t)((n) >> 8);                                                                                                             \
+            cp += 2;                                                                                                                                 \
+        } else {                                                                                                                                     \
+            *cp++ = (uint8_t)(n);                                                                                                                    \
+        }                                                                                                                                            \
     }
-#define ENCODEZ(n)                                      \
-    {                                                   \
-        if ((u_short)(n) >= 256 || (u_short)(n) == 0) { \
-            *cp++ = 0;                                  \
-            cp[1] = (uint8_t)(n);                       \
-            cp[0] = (uint8_t)((n) >> 8);                \
-            cp += 2;                                    \
-        } else {                                        \
-            *cp++ = (uint8_t)(n);                       \
-        }                                               \
-    }
-
-#define DECODEL(f)                                         \
-    {                                                      \
-        if (*cp == 0) {                                    \
-            u32_t tmp = ntohl(f) + ((cp[1] << 8) | cp[2]); \
-            (f)       = htonl(tmp);                        \
-            cp += 3;                                       \
-        } else {                                           \
-            u32_t tmp = ntohl(f) + (u32_t) * cp++;         \
-            (f)       = htonl(tmp);                        \
-        }                                                  \
+#define ENCODEZ(n)                                                                                                                                   \
+    {                                                                                                                                                \
+        if ((u_short)(n) >= 256 || (u_short)(n) == 0) {                                                                                              \
+            *cp++ = 0;                                                                                                                               \
+            cp[1] = (uint8_t)(n);                                                                                                                    \
+            cp[0] = (uint8_t)((n) >> 8);                                                                                                             \
+            cp += 2;                                                                                                                                 \
+        } else {                                                                                                                                     \
+            *cp++ = (uint8_t)(n);                                                                                                                    \
+        }                                                                                                                                            \
     }
 
-#define DECODES(f)                                                    \
-    {                                                                 \
-        if (*cp == 0) {                                               \
-            u_short tmp = ntohs(f) + (((u_short)cp[1] << 8) | cp[2]); \
-            (f)         = htons(tmp);                                 \
-            cp += 3;                                                  \
-        } else {                                                      \
-            u_short tmp = ntohs(f) + (u_short) * cp++;                \
-            (f)         = htons(tmp);                                 \
-        }                                                             \
+#define DECODEL(f)                                                                                                                                   \
+    {                                                                                                                                                \
+        if (*cp == 0) {                                                                                                                              \
+            u32_t tmp = ntohl(f) + ((cp[1] << 8) | cp[2]);                                                                                           \
+            (f)       = htonl(tmp);                                                                                                                  \
+            cp += 3;                                                                                                                                 \
+        } else {                                                                                                                                     \
+            u32_t tmp = ntohl(f) + (u32_t) * cp++;                                                                                                   \
+            (f)       = htonl(tmp);                                                                                                                  \
+        }                                                                                                                                            \
     }
 
-#define DECODEU(f)                                      \
-    {                                                   \
-        if (*cp == 0) {                                 \
-            (f) = htons(((u_short)cp[1] << 8) | cp[2]); \
-            cp += 3;                                    \
-        } else {                                        \
-            (f) = htons((u_short) * cp++);              \
-        }                                               \
+#define DECODES(f)                                                                                                                                   \
+    {                                                                                                                                                \
+        if (*cp == 0) {                                                                                                                              \
+            u_short tmp = ntohs(f) + (((u_short)cp[1] << 8) | cp[2]);                                                                                \
+            (f)         = htons(tmp);                                                                                                                \
+            cp += 3;                                                                                                                                 \
+        } else {                                                                                                                                     \
+            u_short tmp = ntohs(f) + (u_short) * cp++;                                                                                               \
+            (f)         = htons(tmp);                                                                                                                \
+        }                                                                                                                                            \
+    }
+
+#define DECODEU(f)                                                                                                                                   \
+    {                                                                                                                                                \
+        if (*cp == 0) {                                                                                                                              \
+            (f) = htons(((u_short)cp[1] << 8) | cp[2]);                                                                                              \
+            cp += 3;                                                                                                                                 \
+        } else {                                                                                                                                     \
+            (f) = htons((u_short) * cp++);                                                                                                           \
+        }                                                                                                                                            \
     }
 
 /*

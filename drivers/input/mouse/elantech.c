@@ -20,10 +20,10 @@
 #include <linux/slab.h>
 #include "psmouse.h"
 
-#define elantech_debug(fmt, ...)                                     \
-    do {                                                             \
-        if (etd->debug)                                              \
-            psmouse_printk(KERN_DEBUG, psmouse, fmt, ##__VA_ARGS__); \
+#define elantech_debug(fmt, ...)                                                                                                                     \
+    do {                                                                                                                                             \
+        if (etd->debug)                                                                                                                              \
+            psmouse_printk(KERN_DEBUG, psmouse, fmt, ##__VA_ARGS__);                                                                                 \
     } while (0)
 
 /*
@@ -1125,11 +1125,11 @@ static ssize_t elantech_set_int_attr(struct psmouse *psmouse,
     return count;
 }
 
-#define ELANTECH_INT_ATTR(_name, _register)                    \
-    static struct elantech_attr_data elantech_attr_##_name = { \
-        .field_offset = offsetof(struct elantech_data, _name), \
-        .reg          = _register,                             \
-    };                                                         \
+#define ELANTECH_INT_ATTR(_name, _register)                                                                                                          \
+    static struct elantech_attr_data elantech_attr_##_name = {                                                                                       \
+        .field_offset = offsetof(struct elantech_data, _name),                                                                                       \
+        .reg          = _register,                                                                                                                   \
+    };                                                                                                                                               \
     PSMOUSE_DEFINE_ATTR(_name, S_IWUSR | S_IRUGO, &elantech_attr_##_name, elantech_show_int_attr, elantech_set_int_attr)
 
 ELANTECH_INT_ATTR(reg_07, 0x07);

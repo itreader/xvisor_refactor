@@ -110,7 +110,7 @@
 #define insert_resource_conflict(parent, new)             vmm_insert_resource_conflict(parent, new)
 #define insert_resource(parent, new)                      vmm_insert_resource(parent, new)
 #define insert_resource_expand_to_fit(root, new)          vmm_insert_resource_expand_to_fit(root, new)
-#define allocate_resource(root, new, size, min, max, align, alignf, alignf_data) \
+#define allocate_resource(root, new, size, min, max, align, alignf, alignf_data)                                                                     \
     vmm_allocate_resource(root, new, size, min, max, align, alignf, alignf_data)
 #define lookup_resource(root, start)                    vmm_lookup_resource(root, start)
 #define adjust_resource(res, start, size)               vmm_adjust_resource(res, start, size)

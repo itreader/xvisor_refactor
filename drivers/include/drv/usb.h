@@ -260,7 +260,7 @@ int usb_get_usb2_hub_address_port(struct usb_device *dev, uint8_t *hub_addr, uin
  * @port1: portnum associated with child device
  * @child: child device pointer
  */
-#define usb_for_each_child(hdev, port1, child) \
+#define usb_for_each_child(hdev, port1, child)                                                                                                       \
     for (port1 = 1, child = usb_find_child(hdev, port1); port1 <= hdev->maxchild; child = usb_find_child(hdev, ++port1))
 
 /*-------------------------------------------------------------------*
@@ -376,7 +376,7 @@ struct usb_device_id {
  * This macro is used to create a struct usb_device_id that matches a
  * specific device, with a version range.
  */
-#define USB_DEVICE_VER(vend, prod, lo, hi) \
+#define USB_DEVICE_VER(vend, prod, lo, hi)                                                                                                           \
     .match_flags = USB_DEVICE_ID_MATCH_DEVICE_AND_VERSION, .idVendor = (vend), .idProduct = (prod), .bcdDevice_lo = (lo), .bcdDevice_hi = (hi)
 
 /**
@@ -388,7 +388,7 @@ struct usb_device_id {
  * This macro is used to create a struct usb_device_id that matches a
  * specific interface protocol of devices.
  */
-#define USB_DEVICE_INTERFACE_PROTOCOL(vend, prod, pr) \
+#define USB_DEVICE_INTERFACE_PROTOCOL(vend, prod, pr)                                                                                                \
     .match_flags = USB_DEVICE_ID_MATCH_DEVICE | USB_DEVICE_ID_MATCH_INT_PROTOCOL, .idVendor = (vend), .idProduct = (prod), .bInterfaceProtocol = (pr)
 
 /**
@@ -400,7 +400,7 @@ struct usb_device_id {
  * This macro is used to create a struct usb_device_id that matches a
  * specific interface number of devices.
  */
-#define USB_DEVICE_INTERFACE_NUMBER(vend, prod, num) \
+#define USB_DEVICE_INTERFACE_NUMBER(vend, prod, num)                                                                                                 \
     .match_flags = USB_DEVICE_ID_MATCH_DEVICE | USB_DEVICE_ID_MATCH_INT_NUMBER, .idVendor = (vend), .idProduct = (prod), .bInterfaceNumber = (num)
 
 /**
@@ -412,7 +412,7 @@ struct usb_device_id {
  * This macro is used to create a struct usb_device_id that matches a
  * specific class of devices.
  */
-#define USB_DEVICE_INFO(cl, sc, pr) \
+#define USB_DEVICE_INFO(cl, sc, pr)                                                                                                                  \
     .match_flags = USB_DEVICE_ID_MATCH_DEVICE_INFO, .bDeviceClass = (cl), .bDeviceSubClass = (sc), .bDeviceProtocol = (pr)
 
 /**
@@ -424,7 +424,7 @@ struct usb_device_id {
  * This macro is used to create a struct usb_device_id that matches a
  * specific class of interfaces.
  */
-#define USB_INTERFACE_INFO(cl, sc, pr) \
+#define USB_INTERFACE_INFO(cl, sc, pr)                                                                                                               \
     .match_flags = USB_DEVICE_ID_MATCH_INT_INFO, .bInterfaceClass = (cl), .bInterfaceSubClass = (sc), .bInterfaceProtocol = (pr)
 
 /**
@@ -441,8 +441,8 @@ struct usb_device_id {
  * This is especially useful when explicitly matching devices that have
  * vendor specific bDeviceClass values, but standards-compliant interfaces.
  */
-#define USB_DEVICE_AND_INTERFACE_INFO(vend, prod, cl, sc, pr)                                                                                   \
-    .match_flags = USB_DEVICE_ID_MATCH_INT_INFO | USB_DEVICE_ID_MATCH_DEVICE, .idVendor = (vend), .idProduct = (prod), .bInterfaceClass = (cl), \
+#define USB_DEVICE_AND_INTERFACE_INFO(vend, prod, cl, sc, pr)                                                                                        \
+    .match_flags = USB_DEVICE_ID_MATCH_INT_INFO | USB_DEVICE_ID_MATCH_DEVICE, .idVendor = (vend), .idProduct = (prod), .bInterfaceClass = (cl),      \
     .bInterfaceSubClass = (sc), .bInterfaceProtocol = (pr)
 
 /**
@@ -458,8 +458,8 @@ struct usb_device_id {
  * This is especially useful when explicitly matching devices that have
  * vendor specific bDeviceClass values, but standards-compliant interfaces.
  */
-#define USB_VENDOR_AND_INTERFACE_INFO(vend, cl, sc, pr)                                                                    \
-    .match_flags = USB_DEVICE_ID_MATCH_INT_INFO | USB_DEVICE_ID_MATCH_VENDOR, .idVendor = (vend), .bInterfaceClass = (cl), \
+#define USB_VENDOR_AND_INTERFACE_INFO(vend, cl, sc, pr)                                                                                              \
+    .match_flags = USB_DEVICE_ID_MATCH_INT_INFO | USB_DEVICE_ID_MATCH_VENDOR, .idVendor = (vend), .bInterfaceClass = (cl),                           \
     .bInterfaceSubClass = (sc), .bInterfaceProtocol = (pr)
 
 /* Stuff for dynamic usb ids */

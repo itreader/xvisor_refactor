@@ -24,13 +24,13 @@ void openconf_load(void)
         }
     }
 
-#define P(name, type, arg)                  \
-    {                                       \
-        name##_p = dlsym(handle, #name);    \
-        if ((error = dlerror())) {          \
-            fprintf(stderr, "%s\n", error); \
-            exit(1);                        \
-        }                                   \
+#define P(name, type, arg)                                                                                                                           \
+    {                                                                                                                                                \
+        name##_p = dlsym(handle, #name);                                                                                                             \
+        if ((error = dlerror())) {                                                                                                                   \
+            fprintf(stderr, "%s\n", error);                                                                                                          \
+            exit(1);                                                                                                                                 \
+        }                                                                                                                                            \
     }
 #include "openconf_proto.h"
 #undef P

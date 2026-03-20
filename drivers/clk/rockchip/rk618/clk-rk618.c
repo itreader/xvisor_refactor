@@ -39,9 +39,9 @@ struct clock_pll_data {
     uint64_t    flags;
 };
 
-#define PLL(_id, _name, _parent_name, _reg, _flags)                                          \
-    {                                                                                        \
-        .id = _id, .name = _name, .parent_name = _parent_name, .reg = _reg, .flags = _flags, \
+#define PLL(_id, _name, _parent_name, _reg, _flags)                                                                                                  \
+    {                                                                                                                                                \
+        .id = _id, .name = _name, .parent_name = _parent_name, .reg = _reg, .flags = _flags,                                                         \
     }
 
 struct clock_mux_data {
@@ -55,10 +55,10 @@ struct clock_mux_data {
     uint64_t           flags;
 };
 
-#define MUX(_id, _name, _parent_names, _reg, _shift, _width, _flags)                                                                     \
-    {                                                                                                                                    \
-        .id = _id, .name = _name, .parent_names = _parent_names, .num_parents = ARRAY_SIZE(_parent_names), .reg = _reg, .shift = _shift, \
-        .width = _width, .flags = _flags,                                                                                                \
+#define MUX(_id, _name, _parent_names, _reg, _shift, _width, _flags)                                                                                 \
+    {                                                                                                                                                \
+        .id = _id, .name = _name, .parent_names = _parent_names, .num_parents = ARRAY_SIZE(_parent_names), .reg = _reg, .shift = _shift,             \
+        .width = _width, .flags = _flags,                                                                                                            \
     }
 
 struct clock_gate_data {
@@ -70,9 +70,9 @@ struct clock_gate_data {
     uint64_t    flags;
 };
 
-#define GATE(_id, _name, _parent_name, _reg, _shift, _flags)                                                  \
-    {                                                                                                         \
-        .id = _id, .name = _name, .parent_name = _parent_name, .reg = _reg, .shift = _shift, .flags = _flags, \
+#define GATE(_id, _name, _parent_name, _reg, _shift, _flags)                                                                                         \
+    {                                                                                                                                                \
+        .id = _id, .name = _name, .parent_name = _parent_name, .reg = _reg, .shift = _shift, .flags = _flags,                                        \
     }
 
 struct clock_divider_data {
@@ -85,9 +85,9 @@ struct clock_divider_data {
     uint64_t    flags;
 };
 
-#define DIV(_id, _name, _parent_name, _reg, _shift, _width, _flags)                                                            \
-    {                                                                                                                          \
-        .id = _id, .name = _name, .parent_name = _parent_name, .reg = _reg, .shift = _shift, .width = _width, .flags = _flags, \
+#define DIV(_id, _name, _parent_name, _reg, _shift, _width, _flags)                                                                                  \
+    {                                                                                                                                                \
+        .id = _id, .name = _name, .parent_name = _parent_name, .reg = _reg, .shift = _shift, .width = _width, .flags = _flags,                       \
     }
 
 struct clock_composite_data {
@@ -106,17 +106,17 @@ struct clock_composite_data {
     uint64_t           flags;
 };
 
-#define COMPOSITE(_id, _name, _parent_names, _mux_reg, _mux_shift, _mux_width, _div_reg, _div_shift, _div_width, _gate_reg, _gate_shift, _flags) \
-    {                                                                                                                                            \
-        .id = _id, .name = _name, .parent_names = _parent_names, .num_parents = ARRAY_SIZE(_parent_names), .mux_reg = _mux_reg,                  \
-        .mux_shift = _mux_shift, .mux_width = _mux_width, .div_reg = _div_reg, .div_shift = _div_shift, .div_width = _div_width,                 \
-        .gate_reg = _gate_reg, .gate_shift = _gate_shift, .flags = _flags,                                                                       \
+#define COMPOSITE(_id, _name, _parent_names, _mux_reg, _mux_shift, _mux_width, _div_reg, _div_shift, _div_width, _gate_reg, _gate_shift, _flags)     \
+    {                                                                                                                                                \
+        .id = _id, .name = _name, .parent_names = _parent_names, .num_parents = ARRAY_SIZE(_parent_names), .mux_reg = _mux_reg,                      \
+        .mux_shift = _mux_shift, .mux_width = _mux_width, .div_reg = _div_reg, .div_shift = _div_shift, .div_width = _div_width,                     \
+        .gate_reg = _gate_reg, .gate_shift = _gate_shift, .flags = _flags,                                                                           \
     }
 
-#define COMPOSITE_NODIV(_id, _name, _parent_names, _mux_reg, _mux_shift, _mux_width, _gate_reg, _gate_shift, _flags)            \
-    {                                                                                                                           \
-        .id = _id, .name = _name, .parent_names = _parent_names, .num_parents = ARRAY_SIZE(_parent_names), .mux_reg = _mux_reg, \
-        .mux_shift = _mux_shift, .mux_width = _mux_width, .gate_reg = _gate_reg, .gate_shift = _gate_shift, .flags = _flags,    \
+#define COMPOSITE_NODIV(_id, _name, _parent_names, _mux_reg, _mux_shift, _mux_width, _gate_reg, _gate_shift, _flags)                                 \
+    {                                                                                                                                                \
+        .id = _id, .name = _name, .parent_names = _parent_names, .num_parents = ARRAY_SIZE(_parent_names), .mux_reg = _mux_reg,                      \
+        .mux_shift = _mux_shift, .mux_width = _mux_width, .gate_reg = _gate_reg, .gate_shift = _gate_shift, .flags = _flags,                         \
     }
 
 enum {

@@ -55,11 +55,11 @@ enum {
 
 static int gpex_default_log_lvl = GPEX_LOG_LVL_VERBOSE;
 
-#define GPEX_LOG(lvl, fmt, args...)                                 \
-    do {                                                            \
-        if (GPEX_LOG_##lvl <= gpex_default_log_lvl) {               \
-            vmm_printf("(%s:%d) " fmt, __func__, __LINE__, ##args); \
-        }                                                           \
+#define GPEX_LOG(lvl, fmt, args...)                                                                                                                  \
+    do {                                                                                                                                             \
+        if (GPEX_LOG_##lvl <= gpex_default_log_lvl) {                                                                                                \
+            vmm_printf("(%s:%d) " fmt, __func__, __LINE__, ##args);                                                                                  \
+        }                                                                                                                                            \
     } while (0);
 
 struct gpex_state {

@@ -710,7 +710,7 @@ struct pci_driver {
  * specific PCI class.  The vendor, device, subvendor, and subdevice
  * fields will be set to PCI_ANY_ID.
  */
-#define PCI_DEVICE_CLASS(dev_class, dev_class_mask) \
+#define PCI_DEVICE_CLASS(dev_class, dev_class_mask)                                                                                                  \
     .class = (dev_class), .class_mask = (dev_class_mask), .vendor = PCI_ANY_ID, .devid = PCI_ANY_ID, .subvendor = PCI_ANY_ID, .subdevice = PCI_ANY_ID
 
 /**
@@ -1340,15 +1340,15 @@ void pci_register_set_vga_state(arch_set_vga_state_t func);
  *  these as simple inline functions to avoid hair in drivers.
  */
 
-#define _PCI_NOP(o, s, t)                                                         \
-    static inline int pci_##o##_config_##s(struct pci_dev *dev, int where, t val) \
-    {                                                                             \
-        return PCIBIOS_FUNC_NOT_SUPPORTED;                                        \
+#define _PCI_NOP(o, s, t)                                                                                                                            \
+    static inline int pci_##o##_config_##s(struct pci_dev *dev, int where, t val)                                                                    \
+    {                                                                                                                                                \
+        return PCIBIOS_FUNC_NOT_SUPPORTED;                                                                                                           \
     }
 
-#define _PCI_NOP_ALL(o, x)        \
-    _PCI_NOP(o, byte, uint8_t x)  \
-    _PCI_NOP(o, word, uint16_t x) \
+#define _PCI_NOP_ALL(o, x)                                                                                                                           \
+    _PCI_NOP(o, byte, uint8_t x)                                                                                                                     \
+    _PCI_NOP(o, word, uint16_t x)                                                                                                                    \
     _PCI_NOP(o, dword, uint32_t x)
 _PCI_NOP_ALL(read, *)
 _PCI_NOP_ALL(write, )
@@ -1370,8 +1370,8 @@ static inline struct pci_dev *pci_get_class(uint32_t class, struct pci_dev *from
 
 #define pci_dev_present(ids) (0)
 #define no_pci_devices()     (1)
-#define pci_dev_put(dev) \
-    do {                 \
+#define pci_dev_put(dev)                                                                                                                             \
+    do {                                                                                                                                             \
     } while (0)
 
 static inline void pci_set_master(struct pci_dev *dev) {}
@@ -1470,8 +1470,8 @@ static inline int pci_request_regions(struct pci_dev *dev, const char *res_name)
 
 static inline void pci_release_regions(struct pci_dev *dev) {}
 
-#define pci_dma_burst_advice(pdev, strat, strategy_parameter) \
-    do {                                                      \
+#define pci_dma_burst_advice(pdev, strat, strategy_parameter)                                                                                        \
+    do {                                                                                                                                             \
     } while (0)
 
 static inline void pci_block_cfg_access(struct pci_dev *dev) {}
@@ -1526,11 +1526,11 @@ static inline int pci_get_new_domain_nr(void)
 #define pci_resource_start(dev, bar) ((dev)->resource[(bar)].start)
 #define pci_resource_end(dev, bar)   ((dev)->resource[(bar)].end)
 #define pci_resource_flags(dev, bar) ((dev)->resource[(bar)].flags)
-#define pci_resource_len(dev, bar)                                                                                 \
-    ((pci_resource_start((dev), (bar)) == 0 && pci_resource_end((dev), (bar)) == pci_resource_start((dev), (bar))) \
-         ? 0                                                                                                       \
-         :                                                                                                         \
-                                                                                                                   \
+#define pci_resource_len(dev, bar)                                                                                                                   \
+    ((pci_resource_start((dev), (bar)) == 0 && pci_resource_end((dev), (bar)) == pci_resource_start((dev), (bar)))                                   \
+         ? 0                                                                                                                                         \
+         :                                                                                                                                           \
+                                                                                                                                                     \
          (pci_resource_end((dev), (bar)) - pci_resource_start((dev), (bar)) + 1))
 
 /* Similar to the helpers above, these manipulate per-pci_dev
@@ -1593,25 +1593,25 @@ enum pci_fixup_pass {
 };
 
 /* Anonymous variables would be nice... */
-#define DECLARE_PCI_FIXUP_SECTION(section, name, vendor, device, class, class_shift, hook) \
-    static const struct pci_fixup __PASTE(__pci_fixup_##name, __LINE__) __used             \
+#define DECLARE_PCI_FIXUP_SECTION(section, name, vendor, device, class, class_shift, hook)                                                           \
+    static const struct pci_fixup __PASTE(__pci_fixup_##name, __LINE__) __used                                                                       \
         __attribute__((__section__(#section), aligned((sizeof(void *))))) = {vendor, device, class, class_shift, hook};
 
-#define DECLARE_PCI_FIXUP_CLASS_EARLY(vendor, device, class, class_shift, hook) \
+#define DECLARE_PCI_FIXUP_CLASS_EARLY(vendor, device, class, class_shift, hook)                                                                      \
     DECLARE_PCI_FIXUP_SECTION(.pci_fixup_early, hook, vendor, device, class, class_shift, hook)
-#define DECLARE_PCI_FIXUP_CLASS_HEADER(vendor, device, class, class_shift, hook) \
+#define DECLARE_PCI_FIXUP_CLASS_HEADER(vendor, device, class, class_shift, hook)                                                                     \
     DECLARE_PCI_FIXUP_SECTION(.pci_fixup_header, hook, vendor, device, class, class_shift, hook)
-#define DECLARE_PCI_FIXUP_CLASS_FINAL(vendor, device, class, class_shift, hook) \
+#define DECLARE_PCI_FIXUP_CLASS_FINAL(vendor, device, class, class_shift, hook)                                                                      \
     DECLARE_PCI_FIXUP_SECTION(.pci_fixup_final, hook, vendor, device, class, class_shift, hook)
-#define DECLARE_PCI_FIXUP_CLASS_ENABLE(vendor, device, class, class_shift, hook) \
+#define DECLARE_PCI_FIXUP_CLASS_ENABLE(vendor, device, class, class_shift, hook)                                                                     \
     DECLARE_PCI_FIXUP_SECTION(.pci_fixup_enable, hook, vendor, device, class, class_shift, hook)
-#define DECLARE_PCI_FIXUP_CLASS_RESUME(vendor, device, class, class_shift, hook) \
+#define DECLARE_PCI_FIXUP_CLASS_RESUME(vendor, device, class, class_shift, hook)                                                                     \
     DECLARE_PCI_FIXUP_SECTION(.pci_fixup_resume, resume##hook, vendor, device, class, class_shift, hook)
-#define DECLARE_PCI_FIXUP_CLASS_RESUME_EARLY(vendor, device, class, class_shift, hook) \
+#define DECLARE_PCI_FIXUP_CLASS_RESUME_EARLY(vendor, device, class, class_shift, hook)                                                               \
     DECLARE_PCI_FIXUP_SECTION(.pci_fixup_resume_early, resume_early##hook, vendor, device, class, class_shift, hook)
-#define DECLARE_PCI_FIXUP_CLASS_SUSPEND(vendor, device, class, class_shift, hook) \
+#define DECLARE_PCI_FIXUP_CLASS_SUSPEND(vendor, device, class, class_shift, hook)                                                                    \
     DECLARE_PCI_FIXUP_SECTION(.pci_fixup_suspend, suspend##hook, vendor, device, class, class_shift, hook)
-#define DECLARE_PCI_FIXUP_CLASS_SUSPEND_LATE(vendor, device, class, class_shift, hook) \
+#define DECLARE_PCI_FIXUP_CLASS_SUSPEND_LATE(vendor, device, class, class_shift, hook)                                                               \
     DECLARE_PCI_FIXUP_SECTION(.pci_fixup_suspend_late, suspend_late##hook, vendor, device, class, class_shift, hook)
 
 #define DECLARE_PCI_FIXUP_EARLY(vendor, device, hook)  DECLARE_PCI_FIXUP_SECTION(.pci_fixup_early, hook, vendor, device, PCI_ANY_ID, 0, hook)
@@ -1619,11 +1619,11 @@ enum pci_fixup_pass {
 #define DECLARE_PCI_FIXUP_FINAL(vendor, device, hook)  DECLARE_PCI_FIXUP_SECTION(.pci_fixup_final, hook, vendor, device, PCI_ANY_ID, 0, hook)
 #define DECLARE_PCI_FIXUP_ENABLE(vendor, device, hook) DECLARE_PCI_FIXUP_SECTION(.pci_fixup_enable, hook, vendor, device, PCI_ANY_ID, 0, hook)
 #define DECLARE_PCI_FIXUP_RESUME(vendor, device, hook) DECLARE_PCI_FIXUP_SECTION(.pci_fixup_resume, resume##hook, vendor, device, PCI_ANY_ID, 0, hook)
-#define DECLARE_PCI_FIXUP_RESUME_EARLY(vendor, device, hook) \
+#define DECLARE_PCI_FIXUP_RESUME_EARLY(vendor, device, hook)                                                                                         \
     DECLARE_PCI_FIXUP_SECTION(.pci_fixup_resume_early, resume_early##hook, vendor, device, PCI_ANY_ID, 0, hook)
-#define DECLARE_PCI_FIXUP_SUSPEND(vendor, device, hook) \
+#define DECLARE_PCI_FIXUP_SUSPEND(vendor, device, hook)                                                                                              \
     DECLARE_PCI_FIXUP_SECTION(.pci_fixup_suspend, suspend##hook, vendor, device, PCI_ANY_ID, 0, hook)
-#define DECLARE_PCI_FIXUP_SUSPEND_LATE(vendor, device, hook) \
+#define DECLARE_PCI_FIXUP_SUSPEND_LATE(vendor, device, hook)                                                                                         \
     DECLARE_PCI_FIXUP_SECTION(.pci_fixup_suspend_late, suspend_late##hook, vendor, device, PCI_ANY_ID, 0, hook)
 
 #ifdef CONFIG_PCI_QUIRKS

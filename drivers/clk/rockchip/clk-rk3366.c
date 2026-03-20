@@ -157,25 +157,25 @@ static const struct rockchip_cpuclock_reg_data rk3366_cpuclock_data = {
 #define RK3366_DIV_PCLK_DBG_MASK  0x1f
 #define RK3366_DIV_PCLK_DBG_SHIFT 8
 
-#define RK3366_CLKSEL0(_offs, _aclkm)                                                                                     \
-    {                                                                                                                     \
-        .reg = RK3368_CLKSEL_CON(0 + _offs), .val = HIWORD_UPDATE(_aclkm, RK3366_DIV_ACLKM_MASK, RK3366_DIV_ACLKM_SHIFT), \
+#define RK3366_CLKSEL0(_offs, _aclkm)                                                                                                                \
+    {                                                                                                                                                \
+        .reg = RK3368_CLKSEL_CON(0 + _offs), .val = HIWORD_UPDATE(_aclkm, RK3366_DIV_ACLKM_MASK, RK3366_DIV_ACLKM_SHIFT),                            \
     }
-#define RK3366_CLKSEL1(_offs, _atclk, _pdbg)                                              \
-    {                                                                                     \
-        .reg = RK3368_CLKSEL_CON(1 + _offs),                                              \
-        .val = HIWORD_UPDATE(_atclk, RK3366_DIV_ATCLK_MASK, RK3366_DIV_ATCLK_SHIFT) |     \
-               HIWORD_UPDATE(_pdbg, RK3366_DIV_PCLK_DBG_MASK, RK3366_DIV_PCLK_DBG_SHIFT), \
+#define RK3366_CLKSEL1(_offs, _atclk, _pdbg)                                                                                                         \
+    {                                                                                                                                                \
+        .reg = RK3368_CLKSEL_CON(1 + _offs),                                                                                                         \
+        .val = HIWORD_UPDATE(_atclk, RK3366_DIV_ATCLK_MASK, RK3366_DIV_ATCLK_SHIFT) |                                                                \
+               HIWORD_UPDATE(_pdbg, RK3366_DIV_PCLK_DBG_MASK, RK3366_DIV_PCLK_DBG_SHIFT),                                                            \
     }
 
 /* cluster_b: aclkm in clksel0, rest in clksel1 */
-#define RK3366_CPUCLK_RATE(_prate, _aclkm, _atclk, _pdbg) \
-    {                                                     \
-        .prate = _prate,                                  \
-        .divs  = {                                        \
-            RK3366_CLKSEL0(0, _aclkm),                   \
-            RK3366_CLKSEL1(0, _atclk, _pdbg),            \
-        },                                               \
+#define RK3366_CPUCLK_RATE(_prate, _aclkm, _atclk, _pdbg)                                                                                            \
+    {                                                                                                                                                \
+        .prate = _prate,                                                                                                                             \
+        .divs  = {                                                                                                                                   \
+            RK3366_CLKSEL0(0, _aclkm),                                                                                                              \
+            RK3366_CLKSEL1(0, _atclk, _pdbg),                                                                                                       \
+        },                                                                                                                                          \
     }
 
 static struct rockchip_cpuclock_rate_table rk3366_cpuclock_rates[] __initdata = {

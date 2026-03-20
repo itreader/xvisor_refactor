@@ -96,26 +96,26 @@ static inline uint64_t __raw_read64(const volatile void *addr)
     return val;
 }
 
-#define __io_rbr() \
-    do {           \
+#define __io_rbr()                                                                                                                                   \
+    do {                                                                                                                                             \
     } while (0)
-#define __io_rar() \
-    do {           \
+#define __io_rar()                                                                                                                                   \
+    do {                                                                                                                                             \
     } while (0)
-#define __io_rbw() \
-    do {           \
+#define __io_rbw()                                                                                                                                   \
+    do {                                                                                                                                             \
     } while (0)
-#define __io_raw() \
-    do {           \
+#define __io_raw()                                                                                                                                   \
+    do {                                                                                                                                             \
     } while (0)
 
-#define __io_br() \
-    do {          \
+#define __io_br()                                                                                                                                    \
+    do {                                                                                                                                             \
     } while (0)
 #define __io_ar() __asm__ __volatile__("fence i,r" : : : "memory");
 #define __io_bw() __asm__ __volatile__("fence w,o" : : : "memory");
-#define __io_aw() \
-    do {          \
+#define __io_aw()                                                                                                                                    \
+    do {                                                                                                                                             \
     } while (0)
 
 /*
@@ -158,47 +158,47 @@ static inline uint64_t __raw_read64(const volatile void *addr)
  * operation to memory address. All IO port read/write operations are
  * assumed to be little-endian.
  */
-#define arch_outb(v, p)           \
-    {                             \
-        __io_bw();                \
-        __raw_write8(__io(p), v); \
-        __io_aw();                \
+#define arch_outb(v, p)                                                                                                                              \
+    {                                                                                                                                                \
+        __io_bw();                                                                                                                                   \
+        __raw_write8(__io(p), v);                                                                                                                    \
+        __io_aw();                                                                                                                                   \
     }
-#define arch_outw(v, p)            \
-    {                              \
-        __io_bw();                 \
-        __raw_write16(__io(p), v); \
-        __io_aw();                 \
+#define arch_outw(v, p)                                                                                                                              \
+    {                                                                                                                                                \
+        __io_bw();                                                                                                                                   \
+        __raw_write16(__io(p), v);                                                                                                                   \
+        __io_aw();                                                                                                                                   \
     }
-#define arch_outl(v, p)            \
-    {                              \
-        __io_bw();                 \
-        __raw_write32(__io(p), v); \
-        __io_aw();                 \
+#define arch_outl(v, p)                                                                                                                              \
+    {                                                                                                                                                \
+        __io_bw();                                                                                                                                   \
+        __raw_write32(__io(p), v);                                                                                                                   \
+        __io_aw();                                                                                                                                   \
     }
-#define arch_inb(p)               \
-    ({                            \
-        uint8_t v;                \
-        __io_br();                \
-        v = __raw_read8(__io(p)); \
-        __io_ar();                \
-        v;                        \
+#define arch_inb(p)                                                                                                                                  \
+    ({                                                                                                                                               \
+        uint8_t v;                                                                                                                                   \
+        __io_br();                                                                                                                                   \
+        v = __raw_read8(__io(p));                                                                                                                    \
+        __io_ar();                                                                                                                                   \
+        v;                                                                                                                                           \
     })
-#define arch_inw(p)                \
-    ({                             \
-        uint16_t v;                \
-        __io_br();                 \
-        v = __raw_read16(__io(p)); \
-        __io_ar();                 \
-        v;                         \
+#define arch_inw(p)                                                                                                                                  \
+    ({                                                                                                                                               \
+        uint16_t v;                                                                                                                                  \
+        __io_br();                                                                                                                                   \
+        v = __raw_read16(__io(p));                                                                                                                   \
+        __io_ar();                                                                                                                                   \
+        v;                                                                                                                                           \
     })
-#define arch_inl(p)                \
-    ({                             \
-        uint32_t v;                \
-        __io_br();                 \
-        v = __raw_read32(__io(p)); \
-        __io_ar();                 \
-        v;                         \
+#define arch_inl(p)                                                                                                                                  \
+    ({                                                                                                                                               \
+        uint32_t v;                                                                                                                                  \
+        __io_br();                                                                                                                                   \
+        v = __raw_read32(__io(p));                                                                                                                   \
+        __io_ar();                                                                                                                                   \
+        v;                                                                                                                                           \
     })
 
 #define arch_outb_p(v, p) arch_outb((v), (p))
@@ -281,200 +281,200 @@ static inline void arch_outsl(uint64_t p, const void *b, int c)
  * Memory access primitives
  * ------------------------
  */
-#define arch_in_8(a)        \
-    ({                      \
-        uint8_t v;          \
-        __io_br();          \
-        v = __raw_read8(a); \
-        __io_ar();          \
-        v;                  \
+#define arch_in_8(a)                                                                                                                                 \
+    ({                                                                                                                                               \
+        uint8_t v;                                                                                                                                   \
+        __io_br();                                                                                                                                   \
+        v = __raw_read8(a);                                                                                                                          \
+        __io_ar();                                                                                                                                   \
+        v;                                                                                                                                           \
     })
-#define arch_out_8(a, v)    \
-    {                       \
-        __io_bw();          \
-        __raw_write8(a, v); \
-        __io_aw();          \
+#define arch_out_8(a, v)                                                                                                                             \
+    {                                                                                                                                                \
+        __io_bw();                                                                                                                                   \
+        __raw_write8(a, v);                                                                                                                          \
+        __io_aw();                                                                                                                                   \
     }
-#define arch_in_le16(a)      \
-    ({                       \
-        uint16_t v;          \
-        __io_br();           \
-        v = __raw_read16(a); \
-        __io_ar();           \
-        v;                   \
+#define arch_in_le16(a)                                                                                                                              \
+    ({                                                                                                                                               \
+        uint16_t v;                                                                                                                                  \
+        __io_br();                                                                                                                                   \
+        v = __raw_read16(a);                                                                                                                         \
+        __io_ar();                                                                                                                                   \
+        v;                                                                                                                                           \
     })
-#define arch_out_le16(a, v)  \
-    {                        \
-        __io_bw();           \
-        __raw_write16(a, v); \
-        __io_aw();           \
+#define arch_out_le16(a, v)                                                                                                                          \
+    {                                                                                                                                                \
+        __io_bw();                                                                                                                                   \
+        __raw_write16(a, v);                                                                                                                         \
+        __io_aw();                                                                                                                                   \
     }
-#define arch_in_be16(a)      \
-    ({                       \
-        uint16_t v;          \
-        __io_br();           \
-        v = __raw_read16(a); \
-        __io_ar();           \
-        rev16(v);            \
+#define arch_in_be16(a)                                                                                                                              \
+    ({                                                                                                                                               \
+        uint16_t v;                                                                                                                                  \
+        __io_br();                                                                                                                                   \
+        v = __raw_read16(a);                                                                                                                         \
+        __io_ar();                                                                                                                                   \
+        rev16(v);                                                                                                                                    \
     })
-#define arch_out_be16(a, v)           \
-    {                                 \
-        __io_bw();                    \
-        __raw_write16(a, (rev16(v))); \
+#define arch_out_be16(a, v)                                                                                                                          \
+    {                                                                                                                                                \
+        __io_bw();                                                                                                                                   \
+        __raw_write16(a, (rev16(v)));                                                                                                                \
     }
-#define arch_in_le32(a)      \
-    ({                       \
-        uint32_t v;          \
-        __io_br();           \
-        v = __raw_read32(a); \
-        __io_ar();           \
-        v;                   \
+#define arch_in_le32(a)                                                                                                                              \
+    ({                                                                                                                                               \
+        uint32_t v;                                                                                                                                  \
+        __io_br();                                                                                                                                   \
+        v = __raw_read32(a);                                                                                                                         \
+        __io_ar();                                                                                                                                   \
+        v;                                                                                                                                           \
     })
-#define arch_out_le32(a, v)  \
-    {                        \
-        __io_bw();           \
-        __raw_write32(a, v); \
-        __io_aw();           \
+#define arch_out_le32(a, v)                                                                                                                          \
+    {                                                                                                                                                \
+        __io_bw();                                                                                                                                   \
+        __raw_write32(a, v);                                                                                                                         \
+        __io_aw();                                                                                                                                   \
     }
-#define arch_in_be32(a)      \
-    ({                       \
-        uint32_t v;          \
-        __io_br();           \
-        v = __raw_read32(a); \
-        __io_ar();           \
-        rev32(v);            \
+#define arch_in_be32(a)                                                                                                                              \
+    ({                                                                                                                                               \
+        uint32_t v;                                                                                                                                  \
+        __io_br();                                                                                                                                   \
+        v = __raw_read32(a);                                                                                                                         \
+        __io_ar();                                                                                                                                   \
+        rev32(v);                                                                                                                                    \
     })
-#define arch_out_be32(a, v)         \
-    {                               \
-        __io_bw();                  \
-        __raw_write32(a, rev32(v)); \
+#define arch_out_be32(a, v)                                                                                                                          \
+    {                                                                                                                                                \
+        __io_bw();                                                                                                                                   \
+        __raw_write32(a, rev32(v));                                                                                                                  \
     }
-#define arch_in_le64(a)      \
-    ({                       \
-        uint64_t v;          \
-        __io_br();           \
-        v = __raw_read64(a); \
-        __io_ar();           \
-        v;                   \
+#define arch_in_le64(a)                                                                                                                              \
+    ({                                                                                                                                               \
+        uint64_t v;                                                                                                                                  \
+        __io_br();                                                                                                                                   \
+        v = __raw_read64(a);                                                                                                                         \
+        __io_ar();                                                                                                                                   \
+        v;                                                                                                                                           \
     })
-#define arch_out_le64(a, v)  \
-    {                        \
-        __io_bw();           \
-        __raw_write64(a, v); \
-        __io_aw();           \
+#define arch_out_le64(a, v)                                                                                                                          \
+    {                                                                                                                                                \
+        __io_bw();                                                                                                                                   \
+        __raw_write64(a, v);                                                                                                                         \
+        __io_aw();                                                                                                                                   \
     }
-#define arch_in_be64(a)      \
-    ({                       \
-        uint64_t v;          \
-        __io_br();           \
-        v = __raw_read64(a); \
-        __io_ar();           \
-        rev64(v);            \
+#define arch_in_be64(a)                                                                                                                              \
+    ({                                                                                                                                               \
+        uint64_t v;                                                                                                                                  \
+        __io_br();                                                                                                                                   \
+        v = __raw_read64(a);                                                                                                                         \
+        __io_ar();                                                                                                                                   \
+        rev64(v);                                                                                                                                    \
     })
-#define arch_out_be64(a, v)         \
-    {                               \
-        __io_bw();                  \
-        __raw_write64(a, rev64(v)); \
-        __io_aw();                  \
+#define arch_out_be64(a, v)                                                                                                                          \
+    {                                                                                                                                                \
+        __io_bw();                                                                                                                                   \
+        __raw_write64(a, rev64(v));                                                                                                                  \
+        __io_aw();                                                                                                                                   \
     }
 
-#define arch_in_8_relax(a)  \
-    ({                      \
-        uint8_t v;          \
-        __io_rbr();         \
-        v = __raw_read8(a); \
-        __io_rar();         \
-        v;                  \
+#define arch_in_8_relax(a)                                                                                                                           \
+    ({                                                                                                                                               \
+        uint8_t v;                                                                                                                                   \
+        __io_rbr();                                                                                                                                  \
+        v = __raw_read8(a);                                                                                                                          \
+        __io_rar();                                                                                                                                  \
+        v;                                                                                                                                           \
     })
-#define arch_out_8_relax(a, v) \
-    {                          \
-        __io_rbw();            \
-        __raw_write8(a, v);    \
-        __io_raw();            \
+#define arch_out_8_relax(a, v)                                                                                                                       \
+    {                                                                                                                                                \
+        __io_rbw();                                                                                                                                  \
+        __raw_write8(a, v);                                                                                                                          \
+        __io_raw();                                                                                                                                  \
     }
-#define arch_in_le16_relax(a) \
-    ({                        \
-        uint16_t v;           \
-        __io_rbr();           \
-        v = __raw_read16(a);  \
-        __io_rar();           \
-        v;                    \
+#define arch_in_le16_relax(a)                                                                                                                        \
+    ({                                                                                                                                               \
+        uint16_t v;                                                                                                                                  \
+        __io_rbr();                                                                                                                                  \
+        v = __raw_read16(a);                                                                                                                         \
+        __io_rar();                                                                                                                                  \
+        v;                                                                                                                                           \
     })
-#define arch_out_le16_relax(a, v) \
-    {                             \
-        __io_rbw();               \
-        __raw_write16(a, v);      \
-        __io_raw();               \
+#define arch_out_le16_relax(a, v)                                                                                                                    \
+    {                                                                                                                                                \
+        __io_rbw();                                                                                                                                  \
+        __raw_write16(a, v);                                                                                                                         \
+        __io_raw();                                                                                                                                  \
     }
-#define arch_in_be16_relax(a) \
-    ({                        \
-        uint16_t v;           \
-        __io_rbr();           \
-        v = __raw_read16(a);  \
-        __io_rar();           \
-        rev16(v);             \
+#define arch_in_be16_relax(a)                                                                                                                        \
+    ({                                                                                                                                               \
+        uint16_t v;                                                                                                                                  \
+        __io_rbr();                                                                                                                                  \
+        v = __raw_read16(a);                                                                                                                         \
+        __io_rar();                                                                                                                                  \
+        rev16(v);                                                                                                                                    \
     })
-#define arch_out_be16_relax(a, v)     \
-    {                                 \
-        __io_rbw();                   \
-        __raw_write16(a, (rev16(v))); \
-        __io_raw();                   \
+#define arch_out_be16_relax(a, v)                                                                                                                    \
+    {                                                                                                                                                \
+        __io_rbw();                                                                                                                                  \
+        __raw_write16(a, (rev16(v)));                                                                                                                \
+        __io_raw();                                                                                                                                  \
     }
-#define arch_in_le32_relax(a) \
-    ({                        \
-        uint32_t v;           \
-        __io_rbr();           \
-        v = __raw_read32(a);  \
-        __io_rar();           \
-        v;                    \
+#define arch_in_le32_relax(a)                                                                                                                        \
+    ({                                                                                                                                               \
+        uint32_t v;                                                                                                                                  \
+        __io_rbr();                                                                                                                                  \
+        v = __raw_read32(a);                                                                                                                         \
+        __io_rar();                                                                                                                                  \
+        v;                                                                                                                                           \
     })
-#define arch_out_le32_relax(a, v) \
-    {                             \
-        __io_rbw();               \
-        __raw_write32(a, v);      \
-        __io_raw();               \
+#define arch_out_le32_relax(a, v)                                                                                                                    \
+    {                                                                                                                                                \
+        __io_rbw();                                                                                                                                  \
+        __raw_write32(a, v);                                                                                                                         \
+        __io_raw();                                                                                                                                  \
     }
-#define arch_in_be32_relax(a) \
-    ({                        \
-        uint32_t v;           \
-        __io_rbr();           \
-        v = __raw_read32(a);  \
-        __io_rar();           \
-        rev32(v);             \
+#define arch_in_be32_relax(a)                                                                                                                        \
+    ({                                                                                                                                               \
+        uint32_t v;                                                                                                                                  \
+        __io_rbr();                                                                                                                                  \
+        v = __raw_read32(a);                                                                                                                         \
+        __io_rar();                                                                                                                                  \
+        rev32(v);                                                                                                                                    \
     })
-#define arch_out_be32_relax(a, v)   \
-    {                               \
-        __io_rbw();                 \
-        __raw_write32(a, rev32(v)); \
-        __io_raw();                 \
+#define arch_out_be32_relax(a, v)                                                                                                                    \
+    {                                                                                                                                                \
+        __io_rbw();                                                                                                                                  \
+        __raw_write32(a, rev32(v));                                                                                                                  \
+        __io_raw();                                                                                                                                  \
     }
-#define arch_in_le64_relax(a) \
-    ({                        \
-        uint64_t v;           \
-        __io_rbr();           \
-        v = __raw_read64(a);  \
-        __io_rar();           \
-        v;                    \
+#define arch_in_le64_relax(a)                                                                                                                        \
+    ({                                                                                                                                               \
+        uint64_t v;                                                                                                                                  \
+        __io_rbr();                                                                                                                                  \
+        v = __raw_read64(a);                                                                                                                         \
+        __io_rar();                                                                                                                                  \
+        v;                                                                                                                                           \
     })
-#define arch_out_le64_relax(a, v) \
-    {                             \
-        __io_rbw();               \
-        __raw_write64(a, v);      \
-        __io_raw();               \
+#define arch_out_le64_relax(a, v)                                                                                                                    \
+    {                                                                                                                                                \
+        __io_rbw();                                                                                                                                  \
+        __raw_write64(a, v);                                                                                                                         \
+        __io_raw();                                                                                                                                  \
     }
-#define arch_in_be64_relax(a) \
-    ({                        \
-        uint64_t v;           \
-        __io_rbr();           \
-        v = __raw_read64(a);  \
-        __io_rar();           \
-        rev64(v);             \
+#define arch_in_be64_relax(a)                                                                                                                        \
+    ({                                                                                                                                               \
+        uint64_t v;                                                                                                                                  \
+        __io_rbr();                                                                                                                                  \
+        v = __raw_read64(a);                                                                                                                         \
+        __io_rar();                                                                                                                                  \
+        rev64(v);                                                                                                                                    \
     })
-#define arch_out_be64_relax(a, v)   \
-    {                               \
-        __io_rbw();                 \
-        __raw_write64(a, rev64(v)); \
-        __io_raw();                 \
+#define arch_out_be64_relax(a, v)                                                                                                                    \
+    {                                                                                                                                                \
+        __io_rbw();                                                                                                                                  \
+        __raw_write64(a, rev64(v));                                                                                                                  \
+        __io_raw();                                                                                                                                  \
     }
 
 #endif

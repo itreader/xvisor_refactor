@@ -59,31 +59,31 @@ static inline void rb_insert_augmented(struct red_black_node *node, struct red_b
     __rb_insert_augmented(node, root, augment->rotate);
 }
 
-#define RB_DECLARE_CALLBACKS(rbstatic, rbname, rbstruct, rbfield, rbtype, rbaugmented, rbcompute)  \
-    static inline void rbname##_propagate(struct red_black_node *rb, struct red_black_node *stop)  \
-    {                                                                                              \
-        while (rb != stop) {                                                                       \
-            rbstruct *node      = rb_entry(rb, rbstruct, rbfield);                                 \
-            rbtype    augmented = rbcompute(node);                                                 \
-            if (node->rbaugmented == augmented)                                                    \
-                break;                                                                             \
-            node->rbaugmented = augmented;                                                         \
-            rb                = rb_parent(&node->rbfield);                                         \
-        }                                                                                          \
-    }                                                                                              \
-    static inline void rbname##_copy(struct red_black_node *rb_old, struct red_black_node *rb_new) \
-    {                                                                                              \
-        rbstruct *old    = rb_entry(rb_old, rbstruct, rbfield);                                    \
-        rbstruct *new    = rb_entry(rb_new, rbstruct, rbfield);                                    \
-        new->rbaugmented = old->rbaugmented;                                                       \
-    }                                                                                              \
-    static void rbname##_rotate(struct red_black_node *rb_old, struct red_black_node *rb_new)      \
-    {                                                                                              \
-        rbstruct *old    = rb_entry(rb_old, rbstruct, rbfield);                                    \
-        rbstruct *new    = rb_entry(rb_new, rbstruct, rbfield);                                    \
-        new->rbaugmented = old->rbaugmented;                                                       \
-        old->rbaugmented = rbcompute(old);                                                         \
-    }                                                                                              \
+#define RB_DECLARE_CALLBACKS(rbstatic, rbname, rbstruct, rbfield, rbtype, rbaugmented, rbcompute)                                                    \
+    static inline void rbname##_propagate(struct red_black_node *rb, struct red_black_node *stop)                                                    \
+    {                                                                                                                                                \
+        while (rb != stop) {                                                                                                                         \
+            rbstruct *node      = rb_entry(rb, rbstruct, rbfield);                                                                                   \
+            rbtype    augmented = rbcompute(node);                                                                                                   \
+            if (node->rbaugmented == augmented)                                                                                                      \
+                break;                                                                                                                               \
+            node->rbaugmented = augmented;                                                                                                           \
+            rb                = rb_parent(&node->rbfield);                                                                                           \
+        }                                                                                                                                            \
+    }                                                                                                                                                \
+    static inline void rbname##_copy(struct red_black_node *rb_old, struct red_black_node *rb_new)                                                   \
+    {                                                                                                                                                \
+        rbstruct *old    = rb_entry(rb_old, rbstruct, rbfield);                                                                                      \
+        rbstruct *new    = rb_entry(rb_new, rbstruct, rbfield);                                                                                      \
+        new->rbaugmented = old->rbaugmented;                                                                                                         \
+    }                                                                                                                                                \
+    static void rbname##_rotate(struct red_black_node *rb_old, struct red_black_node *rb_new)                                                        \
+    {                                                                                                                                                \
+        rbstruct *old    = rb_entry(rb_old, rbstruct, rbfield);                                                                                      \
+        rbstruct *new    = rb_entry(rb_new, rbstruct, rbfield);                                                                                      \
+        new->rbaugmented = old->rbaugmented;                                                                                                         \
+        old->rbaugmented = rbcompute(old);                                                                                                           \
+    }                                                                                                                                                \
     rbstatic const struct rb_augment_callbacks rbname = {rbname##_propagate, rbname##_copy, rbname##_rotate};
 
 #define RB_RED            0

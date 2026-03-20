@@ -32,53 +32,53 @@ int arch_cpu_irq_setup(void);
 /** Enable IRQ
  *  Prototype: void arch_cpu_irq_enable(void);
  */
-#define arch_cpu_irq_enable()                         \
-    do {                                              \
-        asm volatile("msr daifclr, #2" ::: "memory"); \
+#define arch_cpu_irq_enable()                                                                                                                        \
+    do {                                                                                                                                             \
+        asm volatile("msr daifclr, #2" ::: "memory");                                                                                                \
     } while (0)
 
 /** Disable IRQ
  *  Prototype: void arch_cpu_irq_disable(void);
  */
-#define arch_cpu_irq_disable()                        \
-    do {                                              \
-        asm volatile("msr daifset, #2" ::: "memory"); \
+#define arch_cpu_irq_disable()                                                                                                                       \
+    do {                                                                                                                                             \
+        asm volatile("msr daifset, #2" ::: "memory");                                                                                                \
     } while (0)
 
 /** Check whether IRQs are disabled
  *  Prototype: bool arch_cpu_irq_disabled(void);
  */
-#define arch_cpu_irq_disabled()                                       \
-    ({                                                                \
-        uint64_t __flgs;                                              \
-        asm volatile(" mrs %0, daif" : "=r"(__flgs)::"memory", "cc"); \
-        (__flgs & PSR_IRQ_DISABLED) ? TRUE : FALSE;                   \
+#define arch_cpu_irq_disabled()                                                                                                                      \
+    ({                                                                                                                                               \
+        uint64_t __flgs;                                                                                                                             \
+        asm volatile(" mrs %0, daif" : "=r"(__flgs)::"memory", "cc");                                                                                \
+        (__flgs & PSR_IRQ_DISABLED) ? TRUE : FALSE;                                                                                                  \
     })
 
 /** Save IRQ flags and disable IRQ
  *  Prototype: void arch_cpu_irq_save(irq_flags_t flags);
  */
-#define arch_cpu_irq_save(flags)                     \
-    do {                                             \
-        asm volatile("mrs  %0, daif\n\t"             \
-                     "msr  daifset, #2"              \
-                     : "=r"(flags)::"memory", "cc"); \
+#define arch_cpu_irq_save(flags)                                                                                                                     \
+    do {                                                                                                                                             \
+        asm volatile("mrs  %0, daif\n\t"                                                                                                             \
+                     "msr  daifset, #2"                                                                                                              \
+                     : "=r"(flags)::"memory", "cc");                                                                                                 \
     } while (0)
 
 /** Restore IRQ flags
  *  Prototype: void arch_cpu_irq_restore(irq_flags_t flags);
  */
-#define arch_cpu_irq_restore(flags)                                  \
-    do {                                                             \
-        asm volatile("msr  daif, %0" ::"r"(flags) : "memory", "cc"); \
+#define arch_cpu_irq_restore(flags)                                                                                                                  \
+    do {                                                                                                                                             \
+        asm volatile("msr  daif, %0" ::"r"(flags) : "memory", "cc");                                                                                 \
     } while (0)
 
 /** Wait for IRQ
  *  Prototype: void arch_cpu_wait_for_irq(void);
  */
-#define arch_cpu_wait_for_irq() \
-    do {                        \
-        asm volatile("wfi");    \
+#define arch_cpu_wait_for_irq()                                                                                                                      \
+    do {                                                                                                                                             \
+        asm volatile("wfi");                                                                                                                         \
     } while (0)
 
 #endif

@@ -137,8 +137,8 @@ static u8_t etharp_cached_entry;
 #endif /* ETHARP_SUPPORT_STATIC_ENTRIES */
 
 #if LWIP_NETIF_HWADDRHINT
-#define ETHARP_SET_HINT(netif, hint)                       \
-    if (((netif) != NULL) && ((netif)->addr_hint != NULL)) \
+#define ETHARP_SET_HINT(netif, hint)                                                                                                                 \
+    if (((netif) != NULL) && ((netif)->addr_hint != NULL))                                                                                           \
         *((netif)->addr_hint) = (hint);
 #else  /* LWIP_NETIF_HWADDRHINT */
 #define ETHARP_SET_HINT(netif, hint) (etharp_cached_entry = (hint))

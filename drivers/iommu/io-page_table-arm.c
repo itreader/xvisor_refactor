@@ -203,7 +203,7 @@ static arm_lpae_iopte_t *iopte_deref(arm_lpae_iopte_t pte, struct arm_lpae_io_pa
 
 #define iopte_prot(pte)    ((pte) & ARM_LPAE_PTE_ATTR_MASK)
 
-#define iopte_leaf(pte, l) \
+#define iopte_leaf(pte, l)                                                                                                                           \
     (l == (ARM_LPAE_MAX_LEVELS - 1) ? (iopte_type(pte, l) == ARM_LPAE_PTE_TYPE_PAGE) : (iopte_type(pte, l) == ARM_LPAE_PTE_TYPE_BLOCK))
 
 #define iopte_to_pfn(pte, d) (((pte) & ((1ULL << ARM_LPAE_MAX_ADDR_BITS) - 1)) >> (d)->pg_shift)
@@ -986,12 +986,12 @@ static void __init arm_lpae_dump_ops(struct io_page_table_ops *ops)
         data->levels, data->pgd_size, data->pg_shift, data->bits_per_level, data->pgd);
 }
 
-#define __FAIL(ops, i)                                                 \
-    ({                                                                 \
-        vmm_lwarning("selftest", "test failed for fmt idx %d\n", (i)); \
-        arm_lpae_dump_ops(ops);                                        \
-        selftest_running = FALSE;                                      \
-        VMM_EFAIL;                                                     \
+#define __FAIL(ops, i)                                                                                                                               \
+    ({                                                                                                                                               \
+        vmm_lwarning("selftest", "test failed for fmt idx %d\n", (i));                                                                               \
+        arm_lpae_dump_ops(ops);                                                                                                                      \
+        selftest_running = FALSE;                                                                                                                    \
+        VMM_EFAIL;                                                                                                                                   \
     })
 
 static int __init arm_lpae_run_tests(struct io_page_table_cfg *cfg)

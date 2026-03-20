@@ -385,8 +385,8 @@ struct input_keymap_entry {
 #define KEY_BRIGHTNESSUP           225
 #define KEY_MEDIA                  226
 
-#define KEY_SWITCHVIDEOMODE              \
-    227 /* Cycle between available video \
+#define KEY_SWITCHVIDEOMODE                                                                                                                          \
+    227 /* Cycle between available video                                                                                                             \
 outputs (Monitor/LCD/TV-out/etc) */
 #define KEY_KBDILLUMTOGGLE   228
 #define KEY_KBDILLUMDOWN     229
@@ -775,8 +775,8 @@ outputs (Monitor/LCD/TV-out/etc) */
 #define SW_LID               0x00             /* set = lid shut */
 #define SW_TABLET_MODE       0x01             /* set = tablet mode */
 #define SW_HEADPHONE_INSERT  0x02             /* set = inserted */
-#define SW_RFKILL_ALL                                                             \
-    0x03                                      /* rfkill master switch, type "any" \
+#define SW_RFKILL_ALL                                                                                                                                \
+    0x03                                      /* rfkill master switch, type "any"                                                                    \
                                  set = radio enabled */
 #define SW_RADIO                SW_RFKILL_ALL /* deprecated */
 #define SW_MICROPHONE_INSERT    0x04          /* set = inserted */
@@ -1258,17 +1258,17 @@ void input_alloc_absinfo(input_device_t *dev);
 
 void input_set_abs_params(input_device_t *dev, uint32_t axis, int min, int max, int fuzz, int flat);
 
-#define INPUT_GENERATE_ABS_ACCESSORS(_suffix, _item)                                        \
-    static inline int input_abs_get_##_suffix(input_device_t *dev, uint32_t axis)           \
-    {                                                                                       \
-        return dev->absinfo ? dev->absinfo[axis]._item : 0;                                 \
-    }                                                                                       \
-                                                                                            \
-    static inline void input_abs_set_##_suffix(input_device_t *dev, uint32_t axis, int val) \
-    {                                                                                       \
-        input_alloc_absinfo(dev);                                                           \
-        if (dev->absinfo)                                                                   \
-            dev->absinfo[axis]._item = val;                                                 \
+#define INPUT_GENERATE_ABS_ACCESSORS(_suffix, _item)                                                                                                 \
+    static inline int input_abs_get_##_suffix(input_device_t *dev, uint32_t axis)                                                                    \
+    {                                                                                                                                                \
+        return dev->absinfo ? dev->absinfo[axis]._item : 0;                                                                                          \
+    }                                                                                                                                                \
+                                                                                                                                                     \
+    static inline void input_abs_set_##_suffix(input_device_t *dev, uint32_t axis, int val)                                                          \
+    {                                                                                                                                                \
+        input_alloc_absinfo(dev);                                                                                                                    \
+        if (dev->absinfo)                                                                                                                            \
+            dev->absinfo[axis]._item = val;                                                                                                          \
     }
 
 INPUT_GENERATE_ABS_ACCESSORS(val, value)

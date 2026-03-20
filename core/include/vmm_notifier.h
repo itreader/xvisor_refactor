@@ -96,12 +96,15 @@ typedef struct vmm_atomic_notifier_chain {
     vmm_notifier_block_t *head;
 } vmm_atomic_notifier_chain_t;
 
-#define ATOMIC_INIT_NOTIFIER_CHAIN(name) \
-    do {                                 \
-        INIT_SPIN_LOCK(&(name)->lock);   \
-        (name)->head = NULL;             \
+#define ATOMIC_INIT_NOTIFIER_CHAIN(name)                                                                                                             \
+    do {                                                                                                                                             \
+        INIT_SPIN_LOCK(&(name)->lock);                                                                                                               \
+        (name)->head = NULL;                                                                                                                         \
     } while (0)
-#define ATOMIC_NOTIFIER_INIT(name)  {.lock = __SPINLOCK_INITIALIZER(name.lock), .head = NULL}
+#define ATOMIC_NOTIFIER_INIT(name)                                                                                                                   \
+    {                                                                                                                                                \
+        .lock = __SPINLOCK_INITIALIZER(name.lock), .head = NULL                                                                                      \
+    }
 #define ATOMIC_NOTIFIER_CHAIN(name) vmm_atomic_notifier_chain_t name = ATOMIC_NOTIFIER_INIT(name)
 
 /**
@@ -150,12 +153,15 @@ typedef struct vmm_blocking_notifier_chain {
     vmm_notifier_block_t *head;
 } vmm_blocking_notifier_chain_t;
 
-#define BLOCKING_INIT_NOTIFIER_CHAIN(name)    \
-    do {                                      \
-        INIT_SEMAPHORE(&(name)->rwsem, 1, 1); \
-        (name)->head = NULL;                  \
+#define BLOCKING_INIT_NOTIFIER_CHAIN(name)                                                                                                           \
+    do {                                                                                                                                             \
+        INIT_SEMAPHORE(&(name)->rwsem, 1, 1);                                                                                                        \
+        (name)->head = NULL;                                                                                                                         \
     } while (0)
-#define BLOCKING_NOTIFIER_INIT(name)  {.rwsem = __SEMAPHORE_INITIALIZER((name).rwsem, 1, 1), .head = NULL}
+#define BLOCKING_NOTIFIER_INIT(name)                                                                                                                 \
+    {                                                                                                                                                \
+        .rwsem = __SEMAPHORE_INITIALIZER((name).rwsem, 1, 1), .head = NULL                                                                           \
+    }
 #define BLOCKING_NOTIFIER_CHAIN(name) vmm_blocking_notifier_chain_t name = BLOCKING_NOTIFIER_INIT(name)
 
 /**
@@ -213,11 +219,14 @@ struct vmm_raw_notifier_chain {
     vmm_notifier_block_t *head;
 };
 
-#define RAW_INIT_NOTIFIER_CHAIN(name) \
-    do {                              \
-        (name)->head = NULL;          \
+#define RAW_INIT_NOTIFIER_CHAIN(name)                                                                                                                \
+    do {                                                                                                                                             \
+        (name)->head = NULL;                                                                                                                         \
     } while (0)
-#define RAW_NOTIFIER_INIT(name)  {.head = NULL}
+#define RAW_NOTIFIER_INIT(name)                                                                                                                      \
+    {                                                                                                                                                \
+        .head = NULL                                                                                                                                 \
+    }
 #define RAW_NOTIFIER_CHAIN(name) struct vmm_raw_notifier_chain name = RAW_NOTIFIER_INIT(name)
 
 /**

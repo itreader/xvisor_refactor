@@ -80,8 +80,8 @@ static const struct alps_nibble_commands alps_v4_nibble_commands[] = {
 #define ALPS_FW_BK_1      0x10                                                         /* front & back buttons present */
 #define ALPS_FW_BK_2      0x20                                                         /* front & back buttons present */
 #define ALPS_FOUR_BUTTONS 0x40                                                         /* 4 direction button present */
-#define ALPS_PS2_INTERLEAVED                                                                                                  \
-    0x80                                                                               /* 3-byte PS/2 packet interleaved with \
+#define ALPS_PS2_INTERLEAVED                                                                                                                         \
+    0x80                                                                               /* 3-byte PS/2 packet interleaved with                        \
                                                                               6-byte ALPS packet */
 
 static const struct alps_model_info alps_model_data[] = {

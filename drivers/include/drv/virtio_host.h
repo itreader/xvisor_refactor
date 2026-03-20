@@ -61,10 +61,10 @@ struct virtio_host_iovec {
 };
 
 /** Initialize VirtIO host IO vector */
-#define VIRTIO_HOST_INIT_IOVEC(__iovec, __buf, __buf_len) \
-    do {                                                  \
-        (__iovec)->buf     = (__buf);                     \
-        (__iovec)->buf_len = (__buf_len);                 \
+#define VIRTIO_HOST_INIT_IOVEC(__iovec, __buf, __buf_len)                                                                                            \
+    do {                                                                                                                                             \
+        (__iovec)->buf     = (__buf);                                                                                                                \
+        (__iovec)->buf_len = (__buf_len);                                                                                                            \
         while (0)
 
 /** VirtIO host descriptor state */
@@ -609,56 +609,56 @@ static inline uint64_t cpu_to_virtio64(struct virtio_host_device *vdev, uint64_t
     return __cpu_to_virtio64(virtio_host_is_little_endian(vdev), val);
 }
 
-#define virtio_cread(vdev, structname, member, ptr)                          \
-    do {                                                                     \
-        switch (sizeof(*ptr)) {                                              \
-            case 1:                                                          \
-                *(ptr) = virtio_cread8(vdev, offsetof(structname, member));  \
-                break;                                                       \
-            case 2:                                                          \
-                *(ptr) = virtio_cread16(vdev, offsetof(structname, member)); \
-                break;                                                       \
-            case 4:                                                          \
-                *(ptr) = virtio_cread32(vdev, offsetof(structname, member)); \
-                break;                                                       \
-            case 8:                                                          \
-                *(ptr) = virtio_cread64(vdev, offsetof(structname, member)); \
-                break;                                                       \
-            default:                                                         \
-                BUG();                                                       \
-        }                                                                    \
+#define virtio_cread(vdev, structname, member, ptr)                                                                                                  \
+    do {                                                                                                                                             \
+        switch (sizeof(*ptr)) {                                                                                                                      \
+            case 1:                                                                                                                                  \
+                *(ptr) = virtio_cread8(vdev, offsetof(structname, member));                                                                          \
+                break;                                                                                                                               \
+            case 2:                                                                                                                                  \
+                *(ptr) = virtio_cread16(vdev, offsetof(structname, member));                                                                         \
+                break;                                                                                                                               \
+            case 4:                                                                                                                                  \
+                *(ptr) = virtio_cread32(vdev, offsetof(structname, member));                                                                         \
+                break;                                                                                                                               \
+            case 8:                                                                                                                                  \
+                *(ptr) = virtio_cread64(vdev, offsetof(structname, member));                                                                         \
+                break;                                                                                                                               \
+            default:                                                                                                                                 \
+                BUG();                                                                                                                               \
+        }                                                                                                                                            \
     } while (0)
 
 /* Conditional config space accessors. */
-#define virtio_cread_feature(vdev, fbit, structname, member, ptr) \
-    ({                                                            \
-        int _r = VMM_OK;                                          \
-        if (!virtio_host_has_feature(vdev, fbit))                 \
-            _r = VMM_ENOENT;                                      \
-        else                                                      \
-            virtio_cread((vdev), structname, member, ptr);        \
-        _r;                                                       \
+#define virtio_cread_feature(vdev, fbit, structname, member, ptr)                                                                                    \
+    ({                                                                                                                                               \
+        int _r = VMM_OK;                                                                                                                             \
+        if (!virtio_host_has_feature(vdev, fbit))                                                                                                    \
+            _r = VMM_ENOENT;                                                                                                                         \
+        else                                                                                                                                         \
+            virtio_cread((vdev), structname, member, ptr);                                                                                           \
+        _r;                                                                                                                                          \
     })
 
 /* Config space accessors. */
-#define virtio_cwrite(vdev, structname, member, ptr)                         \
-    do {                                                                     \
-        switch (sizeof(*ptr)) {                                              \
-            case 1:                                                          \
-                virtio_cwrite8(vdev, offsetof(structname, member), *(ptr));  \
-                break;                                                       \
-            case 2:                                                          \
-                virtio_cwrite16(vdev, offsetof(structname, member), *(ptr)); \
-                break;                                                       \
-            case 4:                                                          \
-                virtio_cwrite32(vdev, offsetof(structname, member), *(ptr)); \
-                break;                                                       \
-            case 8:                                                          \
-                virtio_cwrite64(vdev, offsetof(structname, member), *(ptr)); \
-                break;                                                       \
-            default:                                                         \
-                BUG();                                                       \
-        }                                                                    \
+#define virtio_cwrite(vdev, structname, member, ptr)                                                                                                 \
+    do {                                                                                                                                             \
+        switch (sizeof(*ptr)) {                                                                                                                      \
+            case 1:                                                                                                                                  \
+                virtio_cwrite8(vdev, offsetof(structname, member), *(ptr));                                                                          \
+                break;                                                                                                                               \
+            case 2:                                                                                                                                  \
+                virtio_cwrite16(vdev, offsetof(structname, member), *(ptr));                                                                         \
+                break;                                                                                                                               \
+            case 4:                                                                                                                                  \
+                virtio_cwrite32(vdev, offsetof(structname, member), *(ptr));                                                                         \
+                break;                                                                                                                               \
+            case 8:                                                                                                                                  \
+                virtio_cwrite64(vdev, offsetof(structname, member), *(ptr));                                                                         \
+                break;                                                                                                                               \
+            default:                                                                                                                                 \
+                BUG();                                                                                                                               \
+        }                                                                                                                                            \
     } while (0)
 
 /* Read @count fields, @bytes each. */

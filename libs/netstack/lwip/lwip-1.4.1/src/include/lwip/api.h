@@ -197,20 +197,20 @@ struct netconn {
 };
 
 /** Register an Network connection event */
-#define API_EVENT(c, e, l)       \
-    if (c->callback) {           \
-        (*c->callback)(c, e, l); \
+#define API_EVENT(c, e, l)                                                                                                                           \
+    if (c->callback) {                                                                                                                               \
+        (*c->callback)(c, e, l);                                                                                                                     \
     }
 
 /** Set conn->last_err to err but don't overwrite fatal errors */
-#define NETCONN_SET_SAFE_ERR(conn, err)        \
-    do {                                       \
-        SYS_ARCH_DECL_PROTECT(lev);            \
-        SYS_ARCH_PROTECT(lev);                 \
-        if (!ERR_IS_FATAL((conn)->last_err)) { \
-            (conn)->last_err = err;            \
-        }                                      \
-        SYS_ARCH_UNPROTECT(lev);               \
+#define NETCONN_SET_SAFE_ERR(conn, err)                                                                                                              \
+    do {                                                                                                                                             \
+        SYS_ARCH_DECL_PROTECT(lev);                                                                                                                  \
+        SYS_ARCH_PROTECT(lev);                                                                                                                       \
+        if (!ERR_IS_FATAL((conn)->last_err)) {                                                                                                       \
+            (conn)->last_err = err;                                                                                                                  \
+        }                                                                                                                                            \
+        SYS_ARCH_UNPROTECT(lev);                                                                                                                     \
     } while (0);
 
 /* Network connection functions: */
@@ -252,25 +252,25 @@ err_t netconn_gethostbyname(const char *name, ip_addr_t *addr);
 #define netconn_recv_bufsize(conn) ((conn)->recv_bufsize)
 
 /** Set the blocking status of netconn calls (@todo: write/send is missing) */
-#define netconn_set_nonblocking(conn, val)               \
-    do {                                                 \
-        if (val) {                                       \
-            (conn)->flags |= NETCONN_FLAG_NON_BLOCKING;  \
-        } else {                                         \
-            (conn)->flags &= ~NETCONN_FLAG_NON_BLOCKING; \
-        }                                                \
+#define netconn_set_nonblocking(conn, val)                                                                                                           \
+    do {                                                                                                                                             \
+        if (val) {                                                                                                                                   \
+            (conn)->flags |= NETCONN_FLAG_NON_BLOCKING;                                                                                              \
+        } else {                                                                                                                                     \
+            (conn)->flags &= ~NETCONN_FLAG_NON_BLOCKING;                                                                                             \
+        }                                                                                                                                            \
     } while (0)
 /** Get the blocking status of netconn calls (@todo: write/send is missing) */
 #define netconn_is_nonblocking(conn) (((conn)->flags & NETCONN_FLAG_NON_BLOCKING) != 0)
 
 /** TCP: Set the no-auto-recved status of netconn calls (see NETCONN_FLAG_NO_AUTO_RECVED) */
-#define netconn_set_noautorecved(conn, val)                \
-    do {                                                   \
-        if (val) {                                         \
-            (conn)->flags |= NETCONN_FLAG_NO_AUTO_RECVED;  \
-        } else {                                           \
-            (conn)->flags &= ~NETCONN_FLAG_NO_AUTO_RECVED; \
-        }                                                  \
+#define netconn_set_noautorecved(conn, val)                                                                                                          \
+    do {                                                                                                                                             \
+        if (val) {                                                                                                                                   \
+            (conn)->flags |= NETCONN_FLAG_NO_AUTO_RECVED;                                                                                            \
+        } else {                                                                                                                                     \
+            (conn)->flags &= ~NETCONN_FLAG_NO_AUTO_RECVED;                                                                                           \
+        }                                                                                                                                            \
     } while (0)
 /** TCP: Get the no-auto-recved status of netconn calls (see NETCONN_FLAG_NO_AUTO_RECVED) */
 #define netconn_get_noautorecved(conn) (((conn)->flags & NETCONN_FLAG_NO_AUTO_RECVED) != 0)

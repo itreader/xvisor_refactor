@@ -66,9 +66,9 @@
  */
 #define SNMP_ENTERPRISE_ID 26381
 #define SNMP_SYSOBJID_LEN  7
-#define SNMP_SYSOBJID                        \
-    {                                        \
-        1, 3, 6, 1, 4, 1, SNMP_ENTERPRISE_ID \
+#define SNMP_SYSOBJID                                                                                                                                \
+    {                                                                                                                                                \
+        1, 3, 6, 1, 4, 1, SNMP_ENTERPRISE_ID                                                                                                         \
     }
 
 #ifndef SNMP_SYSSERVICES

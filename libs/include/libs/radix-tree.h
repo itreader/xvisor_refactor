@@ -79,18 +79,18 @@ struct radix_tree_root {
     struct radix_tree_node *rnode;
 };
 
-#define RADIX_TREE_INIT(name)                                                \
-    {                                                                        \
-        .height = 0, .lock = __RWLOCK_INITIALIZER(name.lock), .rnode = NULL, \
+#define RADIX_TREE_INIT(name)                                                                                                                        \
+    {                                                                                                                                                \
+        .height = 0, .lock = __RWLOCK_INITIALIZER(name.lock), .rnode = NULL,                                                                         \
     }
 
 #define RADIX_TREE(name, mask) struct radix_tree_root name = RADIX_TREE_INIT(name)
 
-#define INIT_RADIX_TREE(root, mask)  \
-    do {                             \
-        (root)->height = 0;          \
-        INIT_RW_LOCK(&(root)->lock); \
-        (root)->rnode = NULL;        \
+#define INIT_RADIX_TREE(root, mask)                                                                                                                  \
+    do {                                                                                                                                             \
+        (root)->height = 0;                                                                                                                          \
+        INIT_RW_LOCK(&(root)->lock);                                                                                                                 \
+        (root)->rnode = NULL;                                                                                                                        \
     } while (0)
 
 /**
@@ -252,7 +252,7 @@ static inline void **radix_tree_next_slot(void **slot, struct radix_tree_iter *i
  *
  * Locks can be released and reacquired between iterations.
  */
-#define radix_tree_for_each_chunk(slot, root, iter, start, flags) \
+#define radix_tree_for_each_chunk(slot, root, iter, start, flags)                                                                                    \
     for (slot = radix_tree_iter_init(iter, start); (slot = radix_tree_next_chunk(root, iter, flags));)
 
 /**
@@ -277,7 +277,7 @@ static inline void **radix_tree_next_slot(void **slot, struct radix_tree_iter *i
  *
  * @slot points to radix tree slot, @iter->index contains its index.
  */
-#define radix_tree_for_each_slot(slot, root, iter, start) \
+#define radix_tree_for_each_slot(slot, root, iter, start)                                                                                            \
     for (slot = radix_tree_iter_init(iter, start); slot || (slot = radix_tree_next_chunk(root, iter, 0)); slot = radix_tree_next_slot(slot, iter, 0))
 
 /**
@@ -290,8 +290,8 @@ static inline void **radix_tree_next_slot(void **slot, struct radix_tree_iter *i
  *
  * @slot points to radix tree slot, @iter->index contains its index.
  */
-#define radix_tree_for_each_contig(slot, root, iter, start)                                                                    \
-    for (slot = radix_tree_iter_init(iter, start); slot || (slot = radix_tree_next_chunk(root, iter, RADIX_TREE_ITER_CONTIG)); \
+#define radix_tree_for_each_contig(slot, root, iter, start)                                                                                          \
+    for (slot = radix_tree_iter_init(iter, start); slot || (slot = radix_tree_next_chunk(root, iter, RADIX_TREE_ITER_CONTIG));                       \
          slot = radix_tree_next_slot(slot, iter, RADIX_TREE_ITER_CONTIG))
 
 /**
@@ -305,8 +305,8 @@ static inline void **radix_tree_next_slot(void **slot, struct radix_tree_iter *i
  *
  * @slot points to radix tree slot, @iter->index contains its index.
  */
-#define radix_tree_for_each_tagged(slot, root, iter, start, tag)                                                                     \
-    for (slot = radix_tree_iter_init(iter, start); slot || (slot = radix_tree_next_chunk(root, iter, RADIX_TREE_ITER_TAGGED | tag)); \
+#define radix_tree_for_each_tagged(slot, root, iter, start, tag)                                                                                     \
+    for (slot = radix_tree_iter_init(iter, start); slot || (slot = radix_tree_next_chunk(root, iter, RADIX_TREE_ITER_TAGGED | tag));                 \
          slot = radix_tree_next_slot(slot, iter, RADIX_TREE_ITER_TAGGED))
 
 #endif /* __RADIX_TREE_H */

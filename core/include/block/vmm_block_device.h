@@ -117,18 +117,18 @@ struct vmm_request_queue {
     void *private;
 };
 
-#define INIT_REQUEST_QUEUE(__rq, __max_pending, __peek_cache, __make_request, __abort_request, __flush_request, __private) \
-    do {                                                                                                                   \
-        INIT_SPIN_LOCK(&(__rq)->lock);                                                                                     \
-        (__rq)->max_pending   = (__max_pending);                                                                           \
-        (__rq)->pending_count = 0;                                                                                         \
-        (__rq)->backlog_count = 0;                                                                                         \
-        INIT_LIST_HEAD(&(__rq)->backlog_list);                                                                             \
-        (__rq)->peek_cache    = (__peek_cache);                                                                            \
-        (__rq)->make_request  = (__make_request);                                                                          \
-        (__rq)->abort_request = (__abort_request);                                                                         \
-        (__rq)->flush_cache   = (__flush_request);                                                                         \
-        (__rq)->private       = (__private);                                                                               \
+#define INIT_REQUEST_QUEUE(__rq, __max_pending, __peek_cache, __make_request, __abort_request, __flush_request, __private)                           \
+    do {                                                                                                                                             \
+        INIT_SPIN_LOCK(&(__rq)->lock);                                                                                                               \
+        (__rq)->max_pending   = (__max_pending);                                                                                                     \
+        (__rq)->pending_count = 0;                                                                                                                   \
+        (__rq)->backlog_count = 0;                                                                                                                   \
+        INIT_LIST_HEAD(&(__rq)->backlog_list);                                                                                                       \
+        (__rq)->peek_cache    = (__peek_cache);                                                                                                      \
+        (__rq)->make_request  = (__make_request);                                                                                                    \
+        (__rq)->abort_request = (__abort_request);                                                                                                   \
+        (__rq)->flush_cache   = (__flush_request);                                                                                                   \
+        (__rq)->private       = (__private);                                                                                                         \
     } while (0)
 
 /* Block device flags */

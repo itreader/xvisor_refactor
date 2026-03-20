@@ -60,7 +60,7 @@ typedef uint32_t timer_id_t;
 #define HPET_TIMER_BLOCK(_timer_id) ((_timer_id & HPET_TIMER_BLOCK_MASK) >> HPET_TIMER_BLOCK_SHIFT)
 #define HPET_TIMER(_timer_id)       ((_timer_id & HPET_TIMER_MASK))
 #define HPET_TIMER_CHIP(_timer_id)  ((_timer_id & HPET_TIMER_CHIP_MASK) >> HPET_TIMER_CHIP_SHIFT)
-#define MK_TIMER_ID(_chip, _block, _timer) \
+#define MK_TIMER_ID(_chip, _block, _timer)                                                                                                           \
     ((timer_id_t)((_chip << HPET_TIMER_CHIP_SHIFT) | (_block << HPET_TIMER_BLOCK_SHIFT) | (_timer & HPET_TIMER_MASK)))
 
 #define DEFAULT_HPET_SYS_TIMER MK_TIMER_ID(0, 0, 0) /* system timer (chip 0, block 0, timer 0) */

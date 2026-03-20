@@ -35,10 +35,10 @@ struct vmm_completion {
 typedef struct vmm_completion vmm_completion_t;
 
 /** Initialize completion event */
-#define INIT_COMPLETION(cptr)                        \
-    do {                                             \
-        (cptr)->done = 0;                            \
-        INIT_WAITQUEUE(&(cptr)->wait_queue, (cptr)); \
+#define INIT_COMPLETION(cptr)                                                                                                                        \
+    do {                                                                                                                                             \
+        (cptr)->done = 0;                                                                                                                            \
+        INIT_WAITQUEUE(&(cptr)->wait_queue, (cptr));                                                                                                 \
     } while (0)
 
 /** Re-initialize completion event.
@@ -46,15 +46,14 @@ typedef struct vmm_completion vmm_completion_t;
  * This macro should be used to reinitialize a completion structure so it can
  * be reused. This is especially important after complete_all() is used.
  */
-#define REINIT_COMPLETION(cptr) \
-    do {                        \
-        (cptr)->done = 0;       \
+#define REINIT_COMPLETION(cptr)                                                                                                                      \
+    do {                                                                                                                                             \
+        (cptr)->done = 0;                                                                                                                            \
     } while (0)
 
-#define __COMPLETION_INITIALIZER(cmpl)                                     \
-    {                                                                      \
-        .done       = 0,                                                   \
-        .wait_queue = __WAITQUEUE_INITIALIZER((cmpl).wait_queue, &(cmpl)), \
+#define __COMPLETION_INITIALIZER(cmpl)                                                                                                               \
+    {                                                                                                                                                \
+        .done = 0, .wait_queue = __WAITQUEUE_INITIALIZER((cmpl).wait_queue, &(cmpl)),                                                                \
     }
 
 #define DECLARE_COMPLETION(cmpl) vmm_completion_t cmpl = __COMPLETION_INITIALIZER(cmpl)

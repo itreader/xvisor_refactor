@@ -79,21 +79,21 @@ static uint32_t crc32_le(uint32_t crc, unsigned char const *p, uint32_t len)
 #undef DEBUG_LAN9118
 
 #ifdef DEBUG_LAN9118
-#define DPRINTF(fmt, ...)               \
-    do {                                \
-        vmm_printf(fmt, ##__VA_ARGS__); \
+#define DPRINTF(fmt, ...)                                                                                                                            \
+    do {                                                                                                                                             \
+        vmm_printf(fmt, ##__VA_ARGS__);                                                                                                              \
     } while (0)
-#define BADF(fmt, ...)                                     \
-    do {                                                   \
-        vmm_printf("lan9118: error: " fmt, ##__VA_ARGS__); \
+#define BADF(fmt, ...)                                                                                                                               \
+    do {                                                                                                                                             \
+        vmm_printf("lan9118: error: " fmt, ##__VA_ARGS__);                                                                                           \
     } while (0)
 #else
-#define DPRINTF(fmt, ...) \
-    do {                  \
+#define DPRINTF(fmt, ...)                                                                                                                            \
+    do {                                                                                                                                             \
     } while (0)
-#define BADF(fmt, ...)                                     \
-    do {                                                   \
-        vmm_printf("lan9118: error: " fmt, ##__VA_ARGS__); \
+#define BADF(fmt, ...)                                                                                                                               \
+    do {                                                                                                                                             \
+        vmm_printf("lan9118: error: " fmt, ##__VA_ARGS__);                                                                                           \
     } while (0)
 #endif
 

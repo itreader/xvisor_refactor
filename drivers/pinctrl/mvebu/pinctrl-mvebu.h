@@ -144,9 +144,9 @@ struct mvebu_pinctrl_soc_info {
         .mpp_gpio_req = _func##_gpio_req, .mpp_gpio_dir = _func##_gpio_dir,                                                                          \
     }
 
-#define _MPP_VAR_FUNCTION(_val, _name, _subname, _mask)                                \
-    {                                                                                  \
-        .val = _val, .name = _name, .subname = _subname, .variant = _mask, .flags = 0, \
+#define _MPP_VAR_FUNCTION(_val, _name, _subname, _mask)                                                                                              \
+    {                                                                                                                                                \
+        .val = _val, .name = _name, .subname = _subname, .variant = _mask, .flags = 0,                                                               \
     }
 
 #if defined(CONFIG_DEBUG_FS)
@@ -157,14 +157,14 @@ struct mvebu_pinctrl_soc_info {
 
 #define MPP_FUNCTION(_val, _name, _subname) MPP_VAR_FUNCTION(_val, _name, _subname, (uint8_t) - 1)
 
-#define MPP_MODE(_id, ...)                                                          \
-    {                                                                               \
-        .pid = _id, .settings = (struct mvebu_mpp_ctrl_setting[]){__VA_ARGS__, {}}, \
+#define MPP_MODE(_id, ...)                                                                                                                           \
+    {                                                                                                                                                \
+        .pid = _id, .settings = (struct mvebu_mpp_ctrl_setting[]){__VA_ARGS__, {}},                                                                  \
     }
 
-#define MPP_GPIO_RANGE(_id, _pinbase, _gpiobase, _npins)                                           \
-    {                                                                                              \
-        .name = "mvebu-gpio", .id = _id, .pin_base = _pinbase, .base = _gpiobase, .npins = _npins, \
+#define MPP_GPIO_RANGE(_id, _pinbase, _gpiobase, _npins)                                                                                             \
+    {                                                                                                                                                \
+        .name = "mvebu-gpio", .id = _id, .pin_base = _pinbase, .base = _gpiobase, .npins = _npins,                                                   \
     }
 
 #define MVEBU_MPPS_PER_REG 8

@@ -55,10 +55,10 @@ struct red_black_root {
 
 #define rb_parent(r) ((struct red_black_node *)((r)->__red_black_parent_color & ~3))
 
-#define RB_ROOT             \
-    (struct red_black_root) \
-    {                       \
-        NULL,               \
+#define RB_ROOT                                                                                                                                      \
+    (struct red_black_root)                                                                                                                          \
+    {                                                                                                                                                \
+        NULL,                                                                                                                                        \
     }
 #define rb_entry(ptr, type, member) container_of(ptr, type, member)
 
@@ -92,10 +92,10 @@ static inline void rb_link_node(struct red_black_node *node, struct red_black_no
     *rb_link                       = node;
 }
 
-#define rb_entry_safe(ptr, type, member)                  \
-    ({                                                    \
-        typeof(ptr) ____ptr = (ptr);                      \
-        ____ptr ? rb_entry(____ptr, type, member) : NULL; \
+#define rb_entry_safe(ptr, type, member)                                                                                                             \
+    ({                                                                                                                                               \
+        typeof(ptr) ____ptr = (ptr);                                                                                                                 \
+        ____ptr ? rb_entry(____ptr, type, member) : NULL;                                                                                            \
     })
 
 /**
@@ -107,12 +107,12 @@ static inline void rb_link_node(struct red_black_node *node, struct red_black_no
  * @root:   'red_black_root *' of the red_black_tree.
  * @field:  the name of the red_black_node field within 'type'.
  */
-#define red_black_tree_postorder_for_each_entry_safe(pos, n, root, field)            \
-    for (pos = rb_entry_safe(rb_first_postorder(root), typeof(*pos), field);         \
-         pos && ({                                                                   \
-             n = rb_entry_safe(rb_next_postorder(&pos->field), typeof(*pos), field); \
-             1;                                                                      \
-         });                                                                         \
+#define red_black_tree_postorder_for_each_entry_safe(pos, n, root, field)                                                                            \
+    for (pos = rb_entry_safe(rb_first_postorder(root), typeof(*pos), field);                                                                         \
+         pos && ({                                                                                                                                   \
+             n = rb_entry_safe(rb_next_postorder(&pos->field), typeof(*pos), field);                                                                 \
+             1;                                                                                                                                      \
+         });                                                                                                                                         \
          pos = n)
 
 #endif /* __RBTREE_H */

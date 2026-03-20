@@ -92,10 +92,10 @@ struct arm_v7s_io_page_table {
 #define ARM_V7S_LVL_MASK(lvl)        ((uint32_t)(~0U << ARM_V7S_LVL_SHIFT(lvl)))
 #define ARM_V7S_TABLE_MASK           ((uint32_t)(~0U << ARM_V7S_TABLE_SHIFT))
 #define _ARM_V7S_IDX_MASK(lvl)       (ARM_V7S_PTES_PER_LVL(lvl) - 1)
-#define ARM_V7S_LVL_IDX(addr, lvl)                                           \
-    ({                                                                       \
-        int _l = lvl;                                                        \
-        ((uint32_t)(addr) >> ARM_V7S_LVL_SHIFT(_l)) & _ARM_V7S_IDX_MASK(_l); \
+#define ARM_V7S_LVL_IDX(addr, lvl)                                                                                                                   \
+    ({                                                                                                                                               \
+        int _l = lvl;                                                                                                                                \
+        ((uint32_t)(addr) >> ARM_V7S_LVL_SHIFT(_l)) & _ARM_V7S_IDX_MASK(_l);                                                                         \
     })
 
 /*
@@ -764,11 +764,11 @@ static struct iommu_gather_ops dummy_tlb_ops = {
     .tlb_sync      = dummy_tlb_sync,
 };
 
-#define __FAIL(ops)                                   \
-    ({                                                \
-        vmm_lwarning("selftest", "arm-v7s failed\n"); \
-        selftest_running = FALSE;                     \
-        VMM_EFAIL;                                    \
+#define __FAIL(ops)                                                                                                                                  \
+    ({                                                                                                                                               \
+        vmm_lwarning("selftest", "arm-v7s failed\n");                                                                                                \
+        selftest_running = FALSE;                                                                                                                    \
+        VMM_EFAIL;                                                                                                                                   \
     })
 
 static int __init arm_v7s_do_selftests(void)

@@ -27,45 +27,45 @@
 #include <arch_types.h>
 #include <arm_inline_asm.h>
 
-#define arch_read_cntfrq()                                                                   \
-    ({                                                                                       \
-        uint32_t rval;                                                                       \
-        asm volatile(" mrc     p15, 0, %0, c14, c0, 0\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                                \
+#define arch_read_cntfrq()                                                                                                                           \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c14, c0, 0\n\t" : "=r"(rval) : : "memory", "cc");                                                         \
+        rval;                                                                                                                                        \
     })
 
-#define arch_read_cntv_ctl()                                                                 \
-    ({                                                                                       \
-        uint32_t rval;                                                                       \
-        asm volatile(" mrc     p15, 0, %0, c14, c3, 1\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                                \
+#define arch_read_cntv_ctl()                                                                                                                         \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c14, c3, 1\n\t" : "=r"(rval) : : "memory", "cc");                                                         \
+        rval;                                                                                                                                        \
     })
 
 #define arch_write_cntv_ctl(val) asm volatile(" mcr     p15, 0, %0, c14, c3, 1\n\t" ::"r"((val)) : "memory", "cc")
 
-#define arch_read_cntv_cval()                                                                      \
-    ({                                                                                             \
-        uint32_t v1, v2;                                                                           \
-        asm volatile(" mrrc     p15, 3, %0, %1, c14\n\t" : "=r"(v1), "=r"(v2) : : "memory", "cc"); \
-        (((uint64_t)v2 << 32) + (uint64_t)v1);                                                     \
+#define arch_read_cntv_cval()                                                                                                                        \
+    ({                                                                                                                                               \
+        uint32_t v1, v2;                                                                                                                             \
+        asm volatile(" mrrc     p15, 3, %0, %1, c14\n\t" : "=r"(v1), "=r"(v2) : : "memory", "cc");                                                   \
+        (((uint64_t)v2 << 32) + (uint64_t)v1);                                                                                                       \
     })
 
 #define arch_write_cntv_cval(val) asm volatile(" mcrr     p15, 3, %0, %1, c14\n\t" ::"r"((val) & 0xFFFFFFFF), "r"((val) >> 32) : "memory", "cc")
 
-#define arch_read_cntv_tval()                                                                \
-    ({                                                                                       \
-        uint32_t rval;                                                                       \
-        asm volatile(" mrc     p15, 0, %0, c14, c3, 0\n\t" : "=r"(rval) : : "memory", "cc"); \
-        rval;                                                                                \
+#define arch_read_cntv_tval()                                                                                                                        \
+    ({                                                                                                                                               \
+        uint32_t rval;                                                                                                                               \
+        asm volatile(" mrc     p15, 0, %0, c14, c3, 0\n\t" : "=r"(rval) : : "memory", "cc");                                                         \
+        rval;                                                                                                                                        \
     })
 
 #define arch_write_cntv_tval(val) asm volatile(" mcr     p15, 0, %0, c14, c3, 0\n\t" ::"r"((val)) : "memory", "cc")
 
-#define arch_read_cntvct()                                                                         \
-    ({                                                                                             \
-        uint32_t v1, v2;                                                                           \
-        asm volatile(" mrrc     p15, 1, %0, %1, c14\n\t" : "=r"(v1), "=r"(v2) : : "memory", "cc"); \
-        (((uint64_t)v2 << 32) + (uint64_t)v1);                                                     \
+#define arch_read_cntvct()                                                                                                                           \
+    ({                                                                                                                                               \
+        uint32_t v1, v2;                                                                                                                             \
+        asm volatile(" mrrc     p15, 1, %0, %1, c14\n\t" : "=r"(v1), "=r"(v2) : : "memory", "cc");                                                   \
+        (((uint64_t)v2 << 32) + (uint64_t)v1);                                                                                                       \
     })
 
 #endif /* __ARCH_GENERIC_TIMER_H__ */

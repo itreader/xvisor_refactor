@@ -185,7 +185,9 @@ static int cistpl_funce_func(struct mmc_card *card, struct sdio_func *func, cons
 static const struct cis_tpl cis_tpl_funce_list[] = {
     {0x00, 4, cistpl_funce_common},
     {0x01, 0, cistpl_funce_func},
-    {0x04, 1 + 1 + 6, /* CISTPL_FUNCE_LAN_NODE_ID */},
+    {0x04,
+     1 + 1 + 6,
+     /* CISTPL_FUNCE_LAN_NODE_ID */},
 };
 
 static int cistpl_funce(struct mmc_card *card, struct sdio_func *func, const unsigned char *buf, unsigned size)
@@ -199,9 +201,11 @@ static int cistpl_funce(struct mmc_card *card, struct sdio_func *func, const uns
 
 /* Known TPL_CODEs table for CIS tuples */
 static const struct cis_tpl cis_tpl_list[] = {
-    {0x15, 3, /* cistpl_vers_1 */},
+    {0x15,
+     3, /* cistpl_vers_1 */},
     {0x20, 4, cistpl_manfid},
-    {0x21, 2, /* cistpl_funcid */},
+    {0x21,
+     2, /* cistpl_funcid */},
     {0x22, 0, cistpl_funce},
 };
 

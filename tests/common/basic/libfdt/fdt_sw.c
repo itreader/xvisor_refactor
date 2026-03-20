@@ -65,11 +65,11 @@ static int _fdt_sw_check_header(void *fdt)
     return 0;
 }
 
-#define FDT_SW_CHECK_HEADER(fdt)                    \
-    {                                               \
-        int err;                                    \
-        if ((err = _fdt_sw_check_header(fdt)) != 0) \
-            return err;                             \
+#define FDT_SW_CHECK_HEADER(fdt)                                                                                                                     \
+    {                                                                                                                                                \
+        int err;                                                                                                                                     \
+        if ((err = _fdt_sw_check_header(fdt)) != 0)                                                                                                  \
+            return err;                                                                                                                              \
     }
 
 static void *_fdt_grab_space(void *fdt, size_t len)

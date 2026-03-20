@@ -293,35 +293,35 @@ static const struct rockchip_cpuclock_reg_data rk3399_cpuclkb_data = {
 #define RK3399_DIV_PCLK_DBG_MASK  0x1f
 #define RK3399_DIV_PCLK_DBG_SHIFT 8
 
-#define RK3399_CLKSEL0(_offs, _aclkm)                                                                                     \
-    {                                                                                                                     \
-        .reg = RK3399_CLKSEL_CON(0 + _offs), .val = HIWORD_UPDATE(_aclkm, RK3399_DIV_ACLKM_MASK, RK3399_DIV_ACLKM_SHIFT), \
+#define RK3399_CLKSEL0(_offs, _aclkm)                                                                                                                \
+    {                                                                                                                                                \
+        .reg = RK3399_CLKSEL_CON(0 + _offs), .val = HIWORD_UPDATE(_aclkm, RK3399_DIV_ACLKM_MASK, RK3399_DIV_ACLKM_SHIFT),                            \
     }
-#define RK3399_CLKSEL1(_offs, _atclk, _pdbg)                                              \
-    {                                                                                     \
-        .reg = RK3399_CLKSEL_CON(1 + _offs),                                              \
-        .val = HIWORD_UPDATE(_atclk, RK3399_DIV_ATCLK_MASK, RK3399_DIV_ATCLK_SHIFT) |     \
-               HIWORD_UPDATE(_pdbg, RK3399_DIV_PCLK_DBG_MASK, RK3399_DIV_PCLK_DBG_SHIFT), \
+#define RK3399_CLKSEL1(_offs, _atclk, _pdbg)                                                                                                         \
+    {                                                                                                                                                \
+        .reg = RK3399_CLKSEL_CON(1 + _offs),                                                                                                         \
+        .val = HIWORD_UPDATE(_atclk, RK3399_DIV_ATCLK_MASK, RK3399_DIV_ATCLK_SHIFT) |                                                                \
+               HIWORD_UPDATE(_pdbg, RK3399_DIV_PCLK_DBG_MASK, RK3399_DIV_PCLK_DBG_SHIFT),                                                            \
     }
 
 /* cluster_l: aclkm in clksel0, rest in clksel1 */
-#define RK3399_CPUCLKL_RATE(_prate, _aclkm, _atclk, _pdbg) \
-    {                                                      \
-        .prate = _prate##U,                                \
-        .divs  = {                                         \
-            RK3399_CLKSEL0(0, _aclkm),                    \
-            RK3399_CLKSEL1(0, _atclk, _pdbg),             \
-        },                                                \
+#define RK3399_CPUCLKL_RATE(_prate, _aclkm, _atclk, _pdbg)                                                                                           \
+    {                                                                                                                                                \
+        .prate = _prate##U,                                                                                                                          \
+        .divs  = {                                                                                                                                   \
+            RK3399_CLKSEL0(0, _aclkm),                                                                                                              \
+            RK3399_CLKSEL1(0, _atclk, _pdbg),                                                                                                       \
+        },                                                                                                                                          \
     }
 
 /* cluster_b: aclkm in clksel2, rest in clksel3 */
-#define RK3399_CPUCLKB_RATE(_prate, _aclkm, _atclk, _pdbg) \
-    {                                                      \
-        .prate = _prate##U,                                \
-        .divs  = {                                         \
-            RK3399_CLKSEL0(2, _aclkm),                    \
-            RK3399_CLKSEL1(2, _atclk, _pdbg),             \
-        },                                                \
+#define RK3399_CPUCLKB_RATE(_prate, _aclkm, _atclk, _pdbg)                                                                                           \
+    {                                                                                                                                                \
+        .prate = _prate##U,                                                                                                                          \
+        .divs  = {                                                                                                                                   \
+            RK3399_CLKSEL0(2, _aclkm),                                                                                                              \
+            RK3399_CLKSEL1(2, _atclk, _pdbg),                                                                                                       \
+        },                                                                                                                                          \
     }
 
 static struct rockchip_cpuclock_rate_table rk3399_cpuclkl_rates[] __initdata = {

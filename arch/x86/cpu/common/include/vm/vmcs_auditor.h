@@ -713,10 +713,10 @@ typedef struct bx_VMCS_GUEST_STATE {
 #endif
 } VMCS_GUEST_STATE;
 
-#define BX_NOTIFY_PHY_MEMORY_ACCESS(paddr, size, memtype, rw, why, dataptr)                      \
-    {                                                                                            \
-        BX_INSTR_PHY_ACCESS(BX_CPU_ID, (paddr), (size), (memtype), (rw));                        \
-        BX_DBG_PHY_MEMORY_ACCESS(BX_CPU_ID, (paddr), (size), (memtype), (rw), (why), (dataptr)); \
+#define BX_NOTIFY_PHY_MEMORY_ACCESS(paddr, size, memtype, rw, why, dataptr)                                                                          \
+    {                                                                                                                                                \
+        BX_INSTR_PHY_ACCESS(BX_CPU_ID, (paddr), (size), (memtype), (rw));                                                                            \
+        BX_DBG_PHY_MEMORY_ACCESS(BX_CPU_ID, (paddr), (size), (memtype), (rw), (why), (dataptr));                                                     \
     }
 
 enum {
@@ -1085,8 +1085,8 @@ typedef struct bx_VMCS {
 #define BX_VMX_INTERRUPTS_BLOCKED_SMI_BLOCKED (1 << 2)
 #define BX_VMX_INTERRUPTS_BLOCKED_NMI_BLOCKED (1 << 3)
 
-#define BX_VMX_INTERRUPTIBILITY_STATE_MASK                                                                            \
-    (BX_VMX_INTERRUPTS_BLOCKED_BY_STI | BX_VMX_INTERRUPTS_BLOCKED_BY_MOV_SS | BX_VMX_INTERRUPTS_BLOCKED_SMI_BLOCKED | \
+#define BX_VMX_INTERRUPTIBILITY_STATE_MASK                                                                                                           \
+    (BX_VMX_INTERRUPTS_BLOCKED_BY_STI | BX_VMX_INTERRUPTS_BLOCKED_BY_MOV_SS | BX_VMX_INTERRUPTS_BLOCKED_SMI_BLOCKED |                                \
      BX_VMX_INTERRUPTS_BLOCKED_NMI_BLOCKED)
 
 //
@@ -1114,8 +1114,8 @@ typedef struct bx_VMCS {
 //
 
 #define VMX_MSR_VMX_BASIC_LO    (BX_CPU_THIS_PTR vmcs_map->get_vmcs_revision_id())
-#define VMX_MSR_VMX_BASIC_HI                                                                                             \
-    (VMX_VMCS_AREA_SIZE | ((!is_cpu_extension_supported(BX_ISA_LONG_MODE)) << 16) | (BX_MEMTYPE_WB << 18) | (1 << 22)) | \
+#define VMX_MSR_VMX_BASIC_HI                                                                                                                         \
+    (VMX_VMCS_AREA_SIZE | ((!is_cpu_extension_supported(BX_ISA_LONG_MODE)) << 16) | (BX_MEMTYPE_WB << 18) | (1 << 22)) |                             \
         ((BX_SUPPORT_VMX >= 2) ? (1 << 23) : 0)
 
 #define VMX_MSR_VMX_BASIC                   ((((Bit64u)VMX_MSR_VMX_BASIC_HI) << 32) | VMX_MSR_VMX_BASIC_LO)
@@ -1253,8 +1253,8 @@ typedef struct bx_VMCS {
 // Rate to increase VMX preemtion timer
 #define VMX_MISC_PREEMPTION_TIMER_RATE            (0)
 
-#define VMX_MSR_MISC                                                                                                                 \
-    (VMX_MISC_PREEMPTION_TIMER_RATE | VMX_MISC_STORE_LMA_TO_X86_64_GUEST_VMENTRY_CONTROL | VMX_SUPPORT_VMENTER_TO_NON_ACTIVE_STATE | \
+#define VMX_MSR_MISC                                                                                                                                 \
+    (VMX_MISC_PREEMPTION_TIMER_RATE | VMX_MISC_STORE_LMA_TO_X86_64_GUEST_VMENTRY_CONTROL | VMX_SUPPORT_VMENTER_TO_NON_ACTIVE_STATE |                 \
      (VMX_CR3_TARGET_MAX_CNT << 16) | (BX_SUPPORT_VMX_EXTENSION(BX_VMX_VMCS_SHADOWING) ? VMX_MISC_SUPPORT_VMWRITE_READ_ONLY_FIELDS : 0))
 
 //

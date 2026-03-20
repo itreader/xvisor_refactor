@@ -67,19 +67,19 @@ static struct rockchip_pll_rate_table rk3308_pll_rates[] = {
 #define RK3308_DIV_PCLK_DBG_MASK  0xf
 #define RK3308_DIV_PCLK_DBG_SHIFT 8
 
-#define RK3308_CLKSEL0(_aclock_core, _pclock_dbg)                                               \
-    {                                                                                           \
-        .reg = RK3308_CLKSEL_CON(0),                                                            \
-        .val = HIWORD_UPDATE(_aclock_core, RK3308_DIV_ACLKM_MASK, RK3308_DIV_ACLKM_SHIFT) |     \
-               HIWORD_UPDATE(_pclock_dbg, RK3308_DIV_PCLK_DBG_MASK, RK3308_DIV_PCLK_DBG_SHIFT), \
+#define RK3308_CLKSEL0(_aclock_core, _pclock_dbg)                                                                                                    \
+    {                                                                                                                                                \
+        .reg = RK3308_CLKSEL_CON(0),                                                                                                                 \
+        .val = HIWORD_UPDATE(_aclock_core, RK3308_DIV_ACLKM_MASK, RK3308_DIV_ACLKM_SHIFT) |                                                          \
+               HIWORD_UPDATE(_pclock_dbg, RK3308_DIV_PCLK_DBG_MASK, RK3308_DIV_PCLK_DBG_SHIFT),                                                      \
     }
 
-#define RK3308_CPUCLK_RATE(_prate, _aclock_core, _pclock_dbg) \
-    {                                                         \
-        .prate = _prate,                                      \
-        .divs  = {                                            \
-            RK3308_CLKSEL0(_aclock_core, _pclock_dbg),       \
-        },                                                   \
+#define RK3308_CPUCLK_RATE(_prate, _aclock_core, _pclock_dbg)                                                                                        \
+    {                                                                                                                                                \
+        .prate = _prate,                                                                                                                             \
+        .divs  = {                                                                                                                                   \
+            RK3308_CLKSEL0(_aclock_core, _pclock_dbg),                                                                                              \
+        },                                                                                                                                          \
     }
 
 static struct rockchip_cpuclock_rate_table rk3308_cpuclock_rates[] __initdata = {

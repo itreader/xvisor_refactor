@@ -25,8 +25,8 @@
 #include <linux/timer.h>
 #include <linux/workqueue.h>
 
-#define PHY_BASIC_FEATURES                                                                                                                    \
-    (SUPPORTED_10baseT_Half | SUPPORTED_10baseT_Full | SUPPORTED_100baseT_Half | SUPPORTED_100baseT_Full | SUPPORTED_Autoneg | SUPPORTED_TP | \
+#define PHY_BASIC_FEATURES                                                                                                                           \
+    (SUPPORTED_10baseT_Half | SUPPORTED_10baseT_Full | SUPPORTED_100baseT_Half | SUPPORTED_100baseT_Full | SUPPORTED_Autoneg | SUPPORTED_TP |        \
      SUPPORTED_MII)
 
 #define PHY_GBIT_FEATURES    (PHY_BASIC_FEATURES | SUPPORTED_1000baseT_Half | SUPPORTED_1000baseT_Full)

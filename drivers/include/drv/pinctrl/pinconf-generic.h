@@ -180,10 +180,7 @@ static inline uint64_t pinconf_to_config_packed(enum pin_config_param param, uin
 #ifdef CONFIG_GENERIC_PINCONF
 
 #ifdef CONFIG_DEBUG_FS
-#define PCONFDUMP(a, b, c, d)                               \
-    {                                                       \
-        .param = a, .display = b, .format = c, .has_arg = d \
-    }
+#define PCONFDUMP(a, b, c, d) {.param = a, .display = b, .format = c, .has_arg = d}
 
 struct pin_config_item {
     const enum pin_config_param param;
@@ -197,6 +194,7 @@ struct pin_config_item {
 
 #include <drv/pinctrl/machine.h>
 #include <vmm_device_driver.h>
+#include "core.h"
 struct pinctrl_device;
 typedef struct pinctrl_device pinctrl_device_t;
 struct pinctrl_map;

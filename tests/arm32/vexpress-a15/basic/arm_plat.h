@@ -57,23 +57,23 @@
 /*
  * Interrupts.  Those in {} are for AMBA devices
  */
-#define IRQ_CT_CA15X4_HDLCD \
-    {                       \
-        76                  \
+#define IRQ_CT_CA15X4_HDLCD                                                                                                                          \
+    {                                                                                                                                                \
+        76                                                                                                                                           \
     }
-#define IRQ_CT_CA15X4_DMC \
-    {                     \
-        -1                \
+#define IRQ_CT_CA15X4_DMC                                                                                                                            \
+    {                                                                                                                                                \
+        -1                                                                                                                                           \
     }
-#define IRQ_CT_CA15X4_SMC \
-    {                     \
-        77, 78            \
+#define IRQ_CT_CA15X4_SMC                                                                                                                            \
+    {                                                                                                                                                \
+        77, 78                                                                                                                                       \
     }
 #define IRQ_CT_CA15X4_TIMER0 80
 #define IRQ_CT_CA15X4_TIMER1 81
-#define IRQ_CT_CA15X4_GPIO \
-    {                      \
-        82                 \
+#define IRQ_CT_CA15X4_GPIO                                                                                                                           \
+    {                                                                                                                                                \
+        82                                                                                                                                           \
     }
 #define IRQ_CT_CA15X4_PMU_CPU0   92
 #define IRQ_CT_CA15X4_PMU_CPU1   93
@@ -173,53 +173,53 @@
 /*
  * Interrupts.  Those in {} are for AMBA devices
  */
-#define IRQ_V2M_WDT \
-    {               \
-        (32 + 0)    \
+#define IRQ_V2M_WDT                                                                                                                                  \
+    {                                                                                                                                                \
+        (32 + 0)                                                                                                                                     \
     }
 #define IRQ_V2M_TIMER0 (32 + 2)
 #define IRQ_V2M_TIMER1 (32 + 2)
 #define IRQ_V2M_TIMER2 (32 + 3)
 #define IRQ_V2M_TIMER3 (32 + 3)
-#define IRQ_V2M_RTC \
-    {               \
-        (32 + 4)    \
+#define IRQ_V2M_RTC                                                                                                                                  \
+    {                                                                                                                                                \
+        (32 + 4)                                                                                                                                     \
     }
-#define IRQ_V2M_UART0 \
-    {                 \
-        (32 + 5)      \
+#define IRQ_V2M_UART0                                                                                                                                \
+    {                                                                                                                                                \
+        (32 + 5)                                                                                                                                     \
     }
-#define IRQ_V2M_UART1 \
-    {                 \
-        (32 + 6)      \
+#define IRQ_V2M_UART1                                                                                                                                \
+    {                                                                                                                                                \
+        (32 + 6)                                                                                                                                     \
     }
-#define IRQ_V2M_UART2 \
-    {                 \
-        (32 + 7)      \
+#define IRQ_V2M_UART2                                                                                                                                \
+    {                                                                                                                                                \
+        (32 + 7)                                                                                                                                     \
     }
-#define IRQ_V2M_UART3 \
-    {                 \
-        (32 + 8)      \
+#define IRQ_V2M_UART3                                                                                                                                \
+    {                                                                                                                                                \
+        (32 + 8)                                                                                                                                     \
     }
-#define IRQ_V2M_MMCI        \
-    {                       \
-        (32 + 9), (32 + 10) \
+#define IRQ_V2M_MMCI                                                                                                                                 \
+    {                                                                                                                                                \
+        (32 + 9), (32 + 10)                                                                                                                          \
     }
-#define IRQ_V2M_AACI \
-    {                \
-        (32 + 11)    \
+#define IRQ_V2M_AACI                                                                                                                                 \
+    {                                                                                                                                                \
+        (32 + 11)                                                                                                                                    \
     }
-#define IRQ_V2M_KMI0 \
-    {                \
-        (32 + 12)    \
+#define IRQ_V2M_KMI0                                                                                                                                 \
+    {                                                                                                                                                \
+        (32 + 12)                                                                                                                                    \
     }
-#define IRQ_V2M_KMI1 \
-    {                \
-        (32 + 13)    \
+#define IRQ_V2M_KMI1                                                                                                                                 \
+    {                                                                                                                                                \
+        (32 + 13)                                                                                                                                    \
     }
-#define IRQ_V2M_CLCD \
-    {                \
-        (32 + 14)    \
+#define IRQ_V2M_CLCD                                                                                                                                 \
+    {                                                                                                                                                \
+        (32 + 14)                                                                                                                                    \
     }
 #define IRQ_V2M_LAN9118           (32 + 15)
 #define IRQ_V2M_ISP1761           (32 + 16)

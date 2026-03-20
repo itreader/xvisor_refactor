@@ -20,11 +20,11 @@
 
 #define sprintf     vmm_sprintf
 
-#define might_sleep() \
-    do {              \
+#define might_sleep()                                                                                                                                \
+    do {                                                                                                                                             \
     } while (0);
-#define might_sleep_if(cond) \
-    do {                     \
+#define might_sleep_if(cond)                                                                                                                         \
+    do {                                                                                                                                             \
     } while (0);
 
 #define simple_strtoul strtoul

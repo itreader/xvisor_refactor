@@ -417,19 +417,19 @@ struct sunxi_pinctrl {
     pinctrl_device_t              *pctl_dev;
 };
 
-#define SUNXI_PIN(_pin, ...)                                                       \
-    {                                                                              \
-        .pin = _pin, .functions = (struct sunxi_desc_function[]){__VA_ARGS__, {}}, \
+#define SUNXI_PIN(_pin, ...)                                                                                                                         \
+    {                                                                                                                                                \
+        .pin = _pin, .functions = (struct sunxi_desc_function[]){__VA_ARGS__, {}},                                                                   \
     }
 
-#define SUNXI_FUNCTION(_val, _name)    \
-    {                                  \
-        .name = _name, .muxval = _val, \
+#define SUNXI_FUNCTION(_val, _name)                                                                                                                  \
+    {                                                                                                                                                \
+        .name = _name, .muxval = _val,                                                                                                               \
     }
 
-#define SUNXI_FUNCTION_IRQ(_val, _irq)                 \
-    {                                                  \
-        .name = "irq", .muxval = _val, .irqnum = _irq, \
+#define SUNXI_FUNCTION_IRQ(_val, _irq)                                                                                                               \
+    {                                                                                                                                                \
+        .name = "irq", .muxval = _val, .irqnum = _irq,                                                                                               \
     }
 
 /*

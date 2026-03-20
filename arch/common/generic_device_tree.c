@@ -383,7 +383,7 @@ int __init arch_device_tree_populate(vmm_device_tree_node_t **root)
     }
 
     for (off = 0; off < device_tree_virt_size; off += VMM_PAGE_SIZE) {
-        arch_cpu_aspace_unmap(device_tree_virt_base + off);
+        arch_cpu_addr_space_unmap(device_tree_virt_base + off);
     }
 
     return vmm_host_ram_free(device_tree_phys_base, device_tree_virt_size);

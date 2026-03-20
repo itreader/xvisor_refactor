@@ -208,7 +208,7 @@ bool arch_mmu_pte_is_table(arch_pte_t *pte, int stage, int level);
 
 physical_addr_t arch_mmu_pte_table_addr(arch_pte_t *pte, int stage, int level);
 
-void arch_mmu_pte_set_table(arch_pte_t *pte, int stage, int level, physical_addr_t table_pa);
+void arch_mmu_pte_set_table(arch_pte_t *pte, int stage, int level, physical_addr_t table_phy_addr);
 
 int arch_mmu_test_nested_page_table(
     physical_addr_t s2_table_pa, bool s1_avail, physical_addr_t s1_table_pa, uint32_t flags, virtual_addr_t addr, physical_addr_t *out_addr,

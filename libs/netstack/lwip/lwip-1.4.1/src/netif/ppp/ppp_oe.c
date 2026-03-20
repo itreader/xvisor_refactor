@@ -82,15 +82,15 @@
 #include <string.h>
 
 /* Add a 16 bit unsigned value to a buffer pointed to by PTR */
-#define PPPOE_ADD_16(PTR, VAL)      \
-    *(PTR)++ = (u8_t)((VAL) / 256); \
+#define PPPOE_ADD_16(PTR, VAL)                                                                                                                       \
+    *(PTR)++ = (u8_t)((VAL) / 256);                                                                                                                  \
     *(PTR)++ = (u8_t)((VAL) % 256)
 
 /* Add a complete PPPoE header to the buffer pointed to by PTR */
-#define PPPOE_ADD_HEADER(PTR, CODE, SESS, LEN) \
-    *(PTR)++ = PPPOE_VERTYPE;                  \
-    *(PTR)++ = (CODE);                         \
-    PPPOE_ADD_16(PTR, SESS);                   \
+#define PPPOE_ADD_HEADER(PTR, CODE, SESS, LEN)                                                                                                       \
+    *(PTR)++ = PPPOE_VERTYPE;                                                                                                                        \
+    *(PTR)++ = (CODE);                                                                                                                               \
+    PPPOE_ADD_16(PTR, SESS);                                                                                                                         \
     PPPOE_ADD_16(PTR, LEN)
 
 #define PPPOE_DISC_TIMEOUT (5 * 1000)  /* base for quick timeout calculation */

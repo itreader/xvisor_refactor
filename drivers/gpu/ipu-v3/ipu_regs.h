@@ -229,10 +229,10 @@ extern int g_ipu_hw_rev;
 #define DC_MAP_CONF_PTR(n)          IPU_DC_REG(0x0108 + ((n) & ~0x1) * 2)
 #define DC_MAP_CONF_VAL(n)          IPU_DC_REG(0x0144 + ((n) & ~0x1) * 2)
 
-#define _RL_CH_2_OFFSET(ch)    \
-    (((ch) == 0)               \
-         ? 8                   \
-         : (((ch) == 1) ? 0x24 \
+#define _RL_CH_2_OFFSET(ch)                                                                                                                          \
+    (((ch) == 0)                                                                                                                                     \
+         ? 8                                                                                                                                         \
+         : (((ch) == 1) ? 0x24                                                                                                                       \
                         : (((ch) == 2) ? 0x40 : (((ch) == 5) ? 0x64 : (((ch) == 6) ? 0x80 : (((ch) == 8) ? 0x9C : (((ch) == 9) ? 0xBC : (-1))))))))
 #define DC_RL_CH(ch, evt)   IPU_DC_REG(_RL_CH_2_OFFSET(ch) + ((evt) & ~0x1) * 2)
 
@@ -267,10 +267,10 @@ extern int g_ipu_hw_rev;
 #define DC_EVEN_UGDE3       18
 #define DC_ODD_UGDE3        19
 
-#define dc_ch_offset(ch)                                                                  \
-    ({                                                                                    \
-        const uint8_t _offset[] = {0, 0x1C, 0x38, 0x54, 0x58, 0x5C, 0x78, 0, 0x94, 0xB4}; \
-        _offset[ch];                                                                      \
+#define dc_ch_offset(ch)                                                                                                                             \
+    ({                                                                                                                                               \
+        const uint8_t _offset[] = {0, 0x1C, 0x38, 0x54, 0x58, 0x5C, 0x78, 0, 0x94, 0xB4};                                                            \
+        _offset[ch];                                                                                                                                 \
     })
 #define DC_WR_CH_CONF(ch)        IPU_DC_REG(dc_ch_offset(ch))
 #define DC_WR_CH_ADDR(ch)        IPU_DC_REG(dc_ch_offset(ch) + 4)

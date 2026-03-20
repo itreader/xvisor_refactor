@@ -21,6 +21,7 @@
  */
 #ifndef __PINCTRL_UTILS_H__
 #define __PINCTRL_UTILS_H__
+#include <arch_types.h>
 
 int pinctrl_utils_reserve_map(pinctrl_device_t *pctldev, struct pinctrl_map **map, unsigned *reserved_maps, unsigned *num_maps, unsigned reserve);
 int pinctrl_utils_add_map_mux(

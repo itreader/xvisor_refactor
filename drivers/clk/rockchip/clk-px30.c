@@ -67,19 +67,19 @@ static struct rockchip_pll_rate_table px30_pll_rates[] = {
 #define PX30_DIV_PCLK_DBG_MASK  0xf
 #define PX30_DIV_PCLK_DBG_SHIFT 8
 
-#define PX30_CLKSEL0(_aclock_core, _pclock_dbg)                                             \
-    {                                                                                       \
-        .reg = PX30_CLKSEL_CON(0),                                                          \
-        .val = HIWORD_UPDATE(_aclock_core, PX30_DIV_ACLKM_MASK, PX30_DIV_ACLKM_SHIFT) |     \
-               HIWORD_UPDATE(_pclock_dbg, PX30_DIV_PCLK_DBG_MASK, PX30_DIV_PCLK_DBG_SHIFT), \
+#define PX30_CLKSEL0(_aclock_core, _pclock_dbg)                                                                                                      \
+    {                                                                                                                                                \
+        .reg = PX30_CLKSEL_CON(0),                                                                                                                   \
+        .val = HIWORD_UPDATE(_aclock_core, PX30_DIV_ACLKM_MASK, PX30_DIV_ACLKM_SHIFT) |                                                              \
+               HIWORD_UPDATE(_pclock_dbg, PX30_DIV_PCLK_DBG_MASK, PX30_DIV_PCLK_DBG_SHIFT),                                                          \
     }
 
-#define PX30_CPUCLK_RATE(_prate, _aclock_core, _pclock_dbg) \
-    {                                                       \
-        .prate = _prate,                                    \
-        .divs  = {                                          \
-            PX30_CLKSEL0(_aclock_core, _pclock_dbg),       \
-        },                                                 \
+#define PX30_CPUCLK_RATE(_prate, _aclock_core, _pclock_dbg)                                                                                          \
+    {                                                                                                                                                \
+        .prate = _prate,                                                                                                                             \
+        .divs  = {                                                                                                                                   \
+            PX30_CLKSEL0(_aclock_core, _pclock_dbg),                                                                                                \
+        },                                                                                                                                          \
     }
 
 static struct rockchip_cpuclock_rate_table px30_cpuclock_rates[] __initdata = {

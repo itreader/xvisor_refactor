@@ -79,11 +79,11 @@
 #define VMM_VIRTIO_NET_F_CTRL_RX       18 /* Control channel RX mode support */
 #define VMM_VIRTIO_NET_F_CTRL_VLAN     19 /* Control channel VLAN filtering */
 #define VMM_VIRTIO_NET_F_CTRL_RX_EXTRA 20 /* Extra RX mode control support */
-#define VMM_VIRTIO_NET_F_GUEST_ANNOUNCE                                       \
-    21                                    /* Guest can announce device on the \
+#define VMM_VIRTIO_NET_F_GUEST_ANNOUNCE                                                                                                              \
+    21                                    /* Guest can announce device on the                                                                        \
                                            * network */
-#define VMM_VIRTIO_NET_F_MQ                                               \
-    22                                    /* Device supports Receive Flow \
+#define VMM_VIRTIO_NET_F_MQ                                                                                                                          \
+    22                                    /* Device supports Receive Flow                                                                            \
                                            * Steering */
 #define VMM_VIRTIO_NET_F_CTRL_MAC_ADDR 23 /* Set MAC address */
 

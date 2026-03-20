@@ -441,8 +441,7 @@ static void smsc95xx_set_multicast(struct usb_net_device *private)
     /* disable */
     /* private->mac_cr &= ~(MAC_CR_PRMS_ | MAC_CR_MCPAS_ | MAC_CR_HPFILT_); */
     /* Enable */
-  private
-    ->mac_cr |= (MAC_CR_PRMS_ | MAC_CR_MCPAS_ | MAC_CR_HPFILT_);
+    private->mac_cr |= (MAC_CR_PRMS_ | MAC_CR_MCPAS_ | MAC_CR_HPFILT_);
 }
 
 /* starts the TX path */
@@ -451,8 +450,7 @@ static void smsc95xx_start_tx_path(struct usb_device *udev, struct usb_net_devic
     uint32_t reg_val;
 
     /* Enable Tx at MAC */
-  private
-    ->mac_cr |= MAC_CR_TXEN_;
+    private->mac_cr |= MAC_CR_TXEN_;
 
     smsc95xx_write_reg(udev, MAC_CR, private->mac_cr);
 
@@ -464,8 +462,7 @@ static void smsc95xx_start_tx_path(struct usb_device *udev, struct usb_net_devic
 /* Starts the Receive path */
 static void smsc95xx_start_rx_path(struct usb_device *udev, struct usb_net_device *private)
 {
-  private
-    ->mac_cr |= MAC_CR_RXEN_;
+    private->mac_cr |= MAC_CR_RXEN_;
     smsc95xx_write_reg(udev, MAC_CR, private->mac_cr);
 }
 

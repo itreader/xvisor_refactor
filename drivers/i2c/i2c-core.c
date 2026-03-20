@@ -2654,7 +2654,7 @@ static int32_t i2c_smbus_xfer_emulated(
             if (read_write == I2C_SMBUS_READ) {
                 msg[1].flags |= I2C_M_RECV_LEN;
                 msg[1].len = 1; /* block length will be added by
-                               the underlying bus driver */
+                                           the underlying bus driver */
             } else {
                 msg[0].len = data->block[0] + 2;
 
@@ -2687,7 +2687,7 @@ static int32_t i2c_smbus_xfer_emulated(
 
             msg[1].flags |= I2C_M_RECV_LEN;
             msg[1].len = 1; /* block length will be added by
-                           the underlying bus driver */
+                                       the underlying bus driver */
             break;
 
         case I2C_SMBUS_I2C_BLOCK_DATA:

@@ -663,23 +663,23 @@ struct flash_info {
 #define SECT_4K_PMC   0x10 /* OPCODE_BE_4K_PMC works uniformly */
 };
 
-#define INFO(_jedec_id, _ext_id, _sector_size, _n_sectors, _flags) \
-    ((kernel_ulong_t) & (struct flash_info){                       \
-                            .jedec_id    = (_jedec_id),            \
-                            .ext_id      = (_ext_id),              \
-                            .sector_size = (_sector_size),         \
-                            .n_sectors   = (_n_sectors),           \
-                            .page_size   = 256,                    \
-                            .flags       = (_flags),               \
+#define INFO(_jedec_id, _ext_id, _sector_size, _n_sectors, _flags)                                                                                   \
+    ((kernel_ulong_t) & (struct flash_info){                                                                                                         \
+                            .jedec_id    = (_jedec_id),                                                                                              \
+                            .ext_id      = (_ext_id),                                                                                                \
+                            .sector_size = (_sector_size),                                                                                           \
+                            .n_sectors   = (_n_sectors),                                                                                             \
+                            .page_size   = 256,                                                                                                      \
+                            .flags       = (_flags),                                                                                                 \
                         })
 
-#define CAT25_INFO(_sector_size, _n_sectors, _page_size, _addr_width, _flags) \
-    ((kernel_ulong_t) & (struct flash_info){                                  \
-                            .sector_size = (_sector_size),                    \
-                            .n_sectors   = (_n_sectors),                      \
-                            .page_size   = (_page_size),                      \
-                            .addr_width  = (_addr_width),                     \
-                            .flags       = (_flags),                          \
+#define CAT25_INFO(_sector_size, _n_sectors, _page_size, _addr_width, _flags)                                                                        \
+    ((kernel_ulong_t) & (struct flash_info){                                                                                                         \
+                            .sector_size = (_sector_size),                                                                                           \
+                            .n_sectors   = (_n_sectors),                                                                                             \
+                            .page_size   = (_page_size),                                                                                             \
+                            .addr_width  = (_addr_width),                                                                                            \
+                            .flags       = (_flags),                                                                                                 \
                         })
 
 /* NOTE: double check command sets and memory organization when you add

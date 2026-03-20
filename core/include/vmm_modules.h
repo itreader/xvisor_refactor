@@ -98,39 +98,39 @@ struct vmm_symbol {
 
 #ifdef __VMM_MODULES__
 
-#define __VMM_DECLARE_MODULE(_var, _name, _desc, _author, _license, _ipriority, _init, _exit) \
-    __modtbl vmm_module_t _var = {                                                            \
-        .signature = VMM_MODULE_SIGNATURE,                                                    \
-        .name      = stringify(_name),                                                        \
-        .desc      = _desc,                                                                   \
-        .author    = _author,                                                                 \
-        .license   = _license,                                                                \
-        .ipriority = _ipriority,                                                              \
-        .init      = _init,                                                                   \
-        .exit      = _exit,                                                                   \
-        .head      = LIST_HEAD_INIT(_var.head),                                               \
+#define __VMM_DECLARE_MODULE(_var, _name, _desc, _author, _license, _ipriority, _init, _exit)                                                        \
+    __modtbl vmm_module_t _var = {                                                                                                                   \
+        .signature = VMM_MODULE_SIGNATURE,                                                                                                           \
+        .name      = stringify(_name),                                                                                                               \
+        .desc      = _desc,                                                                                                                          \
+        .author    = _author,                                                                                                                        \
+        .license   = _license,                                                                                                                       \
+        .ipriority = _ipriority,                                                                                                                     \
+        .init      = _init,                                                                                                                          \
+        .exit      = _exit,                                                                                                                          \
+        .head      = LIST_HEAD_INIT(_var.head),                                                                                                      \
     }
 
-#define __VMM_EXPORT_SYMBOL(sym, _type)             \
-    __symtbl struct vmm_symbol __exported_##sym = { \
-        .name = #sym,                               \
-        .addr = (virtual_addr_t) & sym,             \
-        .type = (_type),                            \
+#define __VMM_EXPORT_SYMBOL(sym, _type)                                                                                                              \
+    __symtbl struct vmm_symbol __exported_##sym = {                                                                                                  \
+        .name = #sym,                                                                                                                                \
+        .addr = (virtual_addr_t) & sym,                                                                                                              \
+        .type = (_type),                                                                                                                             \
     }
 
 #else
 
-#define __VMM_DECLARE_MODULE(_var, _name, _desc, _author, _license, _ipriority, _init, _exit) \
-    __modtbl vmm_module_t _var = {                                                            \
-        .signature = VMM_MODULE_SIGNATURE,                                                    \
-        .name      = stringify(_name),                                                        \
-        .desc      = _desc,                                                                   \
-        .author    = _author,                                                                 \
-        .license   = "GPL",                                                                   \
-        .ipriority = _ipriority,                                                              \
-        .init      = _init,                                                                   \
-        .exit      = _exit,                                                                   \
-        .head      = LIST_HEAD_INIT(_var.head),                                               \
+#define __VMM_DECLARE_MODULE(_var, _name, _desc, _author, _license, _ipriority, _init, _exit)                                                        \
+    __modtbl vmm_module_t _var = {                                                                                                                   \
+        .signature = VMM_MODULE_SIGNATURE,                                                                                                           \
+        .name      = stringify(_name),                                                                                                               \
+        .desc      = _desc,                                                                                                                          \
+        .author    = _author,                                                                                                                        \
+        .license   = "GPL",                                                                                                                          \
+        .ipriority = _ipriority,                                                                                                                     \
+        .init      = _init,                                                                                                                          \
+        .exit      = _exit,                                                                                                                          \
+        .head      = LIST_HEAD_INIT(_var.head),                                                                                                      \
     }
 
 #define __VMM_EXPORT_SYMBOL(sym, _type)
@@ -139,10 +139,10 @@ struct vmm_symbol {
 
 #define MODTBL_VAR(NAME) MACRO_CONCAT2(MACRO_CONCAT(__modtable__, NAME), __LINE__)
 
-#define VMM_DECLARE_MODULE(_desc, _author, _license, _ipriority, _init, _exit) \
+#define VMM_DECLARE_MODULE(_desc, _author, _license, _ipriority, _init, _exit)                                                                       \
     __VMM_DECLARE_MODULE(MODTBL_VAR(VMM_MODNAME), VMM_MODNAME, _desc, _author, _license, _ipriority, _init, _exit)
 
-#define VMM_DECLARE_MODULE2(_name, _desc, _author, _license, _ipriority, _init, _exit) \
+#define VMM_DECLARE_MODULE2(_name, _desc, _author, _license, _ipriority, _init, _exit)                                                               \
     __VMM_DECLARE_MODULE(MODTBL_VAR(_name), _name, _desc, _author, _license, _ipriority, _init, _exit)
 
 #define VMM_EXPORT_SYMBOL(sym)            __VMM_EXPORT_SYMBOL(sym, VMM_SYMBOL_ANY)

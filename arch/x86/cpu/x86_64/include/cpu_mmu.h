@@ -248,7 +248,7 @@ struct page_table {
     int                level;
     int                stage;
     physical_addr_t    map_ia;
-    physical_addr_t    table_pa;
+    physical_addr_t    table_phy_addr;
     vmm_spinlock_t     table_lock; /*< Lock to protect table contents,
                           entry_cnt, child_count, and child_list
                       */

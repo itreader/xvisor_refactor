@@ -52,11 +52,11 @@ static inline void rep_nop(void)
 
 #define rdtscl(low) __asm__ __volatile__("rdtsc" : "=a"(low)::"edx")
 
-#define rdtscll(val)                                       \
-    do {                                                   \
-        uint32_t __a, __d;                                 \
-        asm volatile("rdtsc" : "=a"(__a), "=d"(__d));      \
-        (val) = ((uint64_t)__a) | (((uint64_t)__d) << 32); \
+#define rdtscll(val)                                                                                                                                 \
+    do {                                                                                                                                             \
+        uint32_t __a, __d;                                                                                                                           \
+        asm volatile("rdtsc" : "=a"(__a), "=d"(__d));                                                                                                \
+        (val) = ((uint64_t)__a) | (((uint64_t)__d) << 32);                                                                                           \
     } while (0);
 
 #endif /* _PROCESSOR_H */

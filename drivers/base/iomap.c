@@ -50,16 +50,16 @@ static void bad_io_access(uint64_t port, const char *access)
 /*
  * Ugly macros are a way of life.
  */
-#define IO_COND(addr, is_pio, is_mmio)          \
-    do {                                        \
-        uint64_t port = (uint64_t __force)addr; \
-        if (port >= PIO_RESERVED) {             \
-            is_mmio;                            \
-        } else if (port > PIO_OFFSET) {         \
-            port &= PIO_MASK;                   \
-            is_pio;                             \
-        } else                                  \
-            bad_io_access(port, #is_pio);       \
+#define IO_COND(addr, is_pio, is_mmio)                                                                                                               \
+    do {                                                                                                                                             \
+        uint64_t port = (uint64_t __force)addr;                                                                                                      \
+        if (port >= PIO_RESERVED) {                                                                                                                  \
+            is_mmio;                                                                                                                                 \
+        } else if (port > PIO_OFFSET) {                                                                                                              \
+            port &= PIO_MASK;                                                                                                                        \
+            is_pio;                                                                                                                                  \
+        } else                                                                                                                                       \
+            bad_io_access(port, #is_pio);                                                                                                            \
     } while (0)
 
 #ifndef pio_read16be

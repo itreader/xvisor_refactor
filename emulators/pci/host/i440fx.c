@@ -93,11 +93,11 @@ enum {
 
 static int i440fx_default_log_lvl = I440FX_LOG_LVL_VERBOSE;
 
-#define I440FX_LOG(lvl, fmt, args...)                               \
-    do {                                                            \
-        if (I440FX_LOG_##lvl <= i440fx_default_log_lvl) {           \
-            vmm_printf("(%s:%d) " fmt, __func__, __LINE__, ##args); \
-        }                                                           \
+#define I440FX_LOG(lvl, fmt, args...)                                                                                                                \
+    do {                                                                                                                                             \
+        if (I440FX_LOG_##lvl <= i440fx_default_log_lvl) {                                                                                            \
+            vmm_printf("(%s:%d) " fmt, __func__, __LINE__, ##args);                                                                                  \
+        }                                                                                                                                            \
     } while (0);
 
 typedef struct i440fx_dev_registers {

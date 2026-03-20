@@ -61,22 +61,22 @@
 #endif /* LWIP_DHCP */
 
 #if LWIP_NETIF_STATUS_CALLBACK
-#define NETIF_STATUS_CALLBACK(n)     \
-    do {                             \
-        if (n->status_callback) {    \
-            (n->status_callback)(n); \
-        }                            \
+#define NETIF_STATUS_CALLBACK(n)                                                                                                                     \
+    do {                                                                                                                                             \
+        if (n->status_callback) {                                                                                                                    \
+            (n->status_callback)(n);                                                                                                                 \
+        }                                                                                                                                            \
     } while (0)
 #else
 #define NETIF_STATUS_CALLBACK(n)
 #endif /* LWIP_NETIF_STATUS_CALLBACK */
 
 #if LWIP_NETIF_LINK_CALLBACK
-#define NETIF_LINK_CALLBACK(n)     \
-    do {                           \
-        if (n->link_callback) {    \
-            (n->link_callback)(n); \
-        }                          \
+#define NETIF_LINK_CALLBACK(n)                                                                                                                       \
+    do {                                                                                                                                             \
+        if (n->link_callback) {                                                                                                                      \
+            (n->link_callback)(n);                                                                                                                   \
+        }                                                                                                                                            \
     } while (0)
 #else
 #define NETIF_LINK_CALLBACK(n)

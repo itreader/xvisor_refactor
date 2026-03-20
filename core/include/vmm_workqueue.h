@@ -68,34 +68,29 @@ struct vmm_delayed_work {
     vmm_timer_event_t event;
 };
 
-#define INIT_WORK(w, _f)                          \
-    do {                                          \
-        INIT_SPIN_LOCK(&(w)->lock);               \
-        INIT_LIST_HEAD(&(w)->head);               \
-        (w)->flags      = VMM_WORK_STATE_CREATED; \
-        (w)->wait_queue = NULL;                   \
-        (w)->func       = _f;                     \
+#define INIT_WORK(w, _f)                                                                                                                             \
+    do {                                                                                                                                             \
+        INIT_SPIN_LOCK(&(w)->lock);                                                                                                                  \
+        INIT_LIST_HEAD(&(w)->head);                                                                                                                  \
+        (w)->flags      = VMM_WORK_STATE_CREATED;                                                                                                    \
+        (w)->wait_queue = NULL;                                                                                                                      \
+        (w)->func       = _f;                                                                                                                        \
     } while (0)
 
-#define INIT_DELAYED_WORK(w, _f)                   \
-    do {                                           \
-        INIT_WORK(&(w)->work, _f);                 \
-        INIT_TIMER_EVENT(&(w)->event, NULL, NULL); \
+#define INIT_DELAYED_WORK(w, _f)                                                                                                                     \
+    do {                                                                                                                                             \
+        INIT_WORK(&(w)->work, _f);                                                                                                                   \
+        INIT_TIMER_EVENT(&(w)->event, NULL, NULL);                                                                                                   \
     } while (0)
 
-#define __WORK_INITIALIZER(n, f)                        \
-    {                                                   \
-        .lock       = __SPINLOCK_INITIALIZER((n).lock), \
-        .flags      = VMM_WORK_STATE_CREATED,           \
-        .head       = {&(n).head, &(n).head},           \
-        .wait_queue = NULL,                             \
-        .func       = (f),                              \
-}
+#define __WORK_INITIALIZER(n, f)                                                                                                                     \
+    {                                                                                                                                                \
+        .lock = __SPINLOCK_INITIALIZER((n).lock), .flags = VMM_WORK_STATE_CREATED, .head = {&(n).head, &(n).head}, .wait_queue = NULL, .func = (f),  \
+    }
 
-#define __DELAYED_WORK_INITIALIZER(n, f)                           \
-    {                                                              \
-        .work  = __WORK_INITIALIZER((n).work, f),                  \
-        .event = __TIMER_EVENT_INITIALIZER((n).event, NULL, NULL), \
+#define __DELAYED_WORK_INITIALIZER(n, f)                                                                                                             \
+    {                                                                                                                                                \
+        .work = __WORK_INITIALIZER((n).work, f), .event = __TIMER_EVENT_INITIALIZER((n).event, NULL, NULL),                                          \
     }
 
 #define DECLARE_WORK(n, f)         vmm_work_t n = __WORK_INITIALIZER(n, f)
@@ -105,9 +100,9 @@ struct vmm_delayed_work {
 /*
  * initialize a work item's function pointer
  */
-#define PREPARE_WORK(_work, _func) \
-    do {                           \
-        (_work)->func = (_func);   \
+#define PREPARE_WORK(_work, _func)                                                                                                                   \
+    do {                                                                                                                                             \
+        (_work)->func = (_func);                                                                                                                     \
     } while (0)
 
 /** Check if work is new */

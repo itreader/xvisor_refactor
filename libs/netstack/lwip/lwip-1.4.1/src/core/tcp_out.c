@@ -60,10 +60,10 @@
 /* Define some copy-macros for checksum-on-copy so that the code looks
    nicer by preventing too many ifdef's. */
 #if TCP_CHECKSUM_ON_COPY
-#define TCP_DATA_COPY(dst, src, len, seg)                                                             \
-    do {                                                                                              \
-        tcp_seg_add_chksum(LWIP_CHKSUM_COPY(dst, src, len), len, &seg->chksum, &seg->chksum_swapped); \
-        seg->flags |= TF_SEG_DATA_CHECKSUMMED;                                                        \
+#define TCP_DATA_COPY(dst, src, len, seg)                                                                                                            \
+    do {                                                                                                                                             \
+        tcp_seg_add_chksum(LWIP_CHKSUM_COPY(dst, src, len), len, &seg->chksum, &seg->chksum_swapped);                                                \
+        seg->flags |= TF_SEG_DATA_CHECKSUMMED;                                                                                                       \
     } while (0)
 #define TCP_DATA_COPY2(dst, src, len, chksum, chksum_swapped) tcp_seg_add_chksum(LWIP_CHKSUM_COPY(dst, src, len), len, chksum, chksum_swapped);
 #else  /* TCP_CHECKSUM_ON_COPY*/

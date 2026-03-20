@@ -20,7 +20,7 @@
 #include <linux/net_tstamp.h>
 #include <linux/ptp_clock_kernel.h>
 
-#if defined(CONFIG_M523x) || defined(CONFIG_M527x) || defined(CONFIG_M528x) || defined(CONFIG_M520x) || defined(CONFIG_M532x) || \
+#if defined(CONFIG_M523x) || defined(CONFIG_M527x) || defined(CONFIG_M528x) || defined(CONFIG_M520x) || defined(CONFIG_M532x) ||                     \
     defined(CONFIG_ARCH_MXC) || defined(CONFIG_SOC_IMX28)
 /*
  *  Just figures, Motorola would have to change the offsets for

@@ -191,12 +191,12 @@
 #define HIDELEG_WRITEABLE   HVIP_WRITEABLE
 #define HIDELEG_DEFAULT     HIDELEG_WRITEABLE
 
-#define HEDELEG_WRITEABLE                                                                                                                         \
-    ((_UL(1) << CAUSE_MISALIGNED_FETCH) | (_UL(1) << CAUSE_FETCH_ACCESS) | (_UL(1) << CAUSE_ILLEGAL_INSTRUCTION) | (_UL(1) << CAUSE_BREAKPOINT) | \
-     (_UL(1) << CAUSE_MISALIGNED_LOAD) | (_UL(1) << CAUSE_LOAD_ACCESS) | (_UL(1) << CAUSE_MISALIGNED_STORE) | (_UL(1) << CAUSE_STORE_ACCESS) |    \
+#define HEDELEG_WRITEABLE                                                                                                                            \
+    ((_UL(1) << CAUSE_MISALIGNED_FETCH) | (_UL(1) << CAUSE_FETCH_ACCESS) | (_UL(1) << CAUSE_ILLEGAL_INSTRUCTION) | (_UL(1) << CAUSE_BREAKPOINT) |    \
+     (_UL(1) << CAUSE_MISALIGNED_LOAD) | (_UL(1) << CAUSE_LOAD_ACCESS) | (_UL(1) << CAUSE_MISALIGNED_STORE) | (_UL(1) << CAUSE_STORE_ACCESS) |       \
      (_UL(1) << CAUSE_USER_ECALL) | (_UL(1) << CAUSE_FETCH_PAGE_FAULT) | (_UL(1) << CAUSE_LOAD_PAGE_FAULT) | (_UL(1) << CAUSE_STORE_PAGE_FAULT))
-#define HEDELEG_DEFAULT                                                                                                                      \
-    ((_UL(1) << CAUSE_MISALIGNED_FETCH) | (_UL(1) << CAUSE_BREAKPOINT) | (_UL(1) << CAUSE_USER_ECALL) | (_UL(1) << CAUSE_FETCH_PAGE_FAULT) | \
+#define HEDELEG_DEFAULT                                                                                                                              \
+    ((_UL(1) << CAUSE_MISALIGNED_FETCH) | (_UL(1) << CAUSE_BREAKPOINT) | (_UL(1) << CAUSE_USER_ECALL) | (_UL(1) << CAUSE_FETCH_PAGE_FAULT) |         \
      (_UL(1) << CAUSE_LOAD_PAGE_FAULT) | (_UL(1) << CAUSE_STORE_PAGE_FAULT))
 
 #define HCOUNTEREN_WRITEABLE _UL(0xffffffff)
@@ -1065,32 +1065,32 @@
 #define INSN_GET_RD(insn)        (((insn) >> 7) & 0x1f)
 #define INSN_GET_IMM(insn)       ((int64_t)(((insn) << 32) >> 52))
 
-#define INSN_SET_RS1(insn, val)             \
-    do {                                    \
-        (insn) &= ~(0x1fUL << 15);          \
-        (insn) |= (((val) & 0x1fUL) << 15); \
+#define INSN_SET_RS1(insn, val)                                                                                                                      \
+    do {                                                                                                                                             \
+        (insn) &= ~(0x1fUL << 15);                                                                                                                   \
+        (insn) |= (((val) & 0x1fUL) << 15);                                                                                                          \
     } while (0)
-#define INSN_SET_RS2(insn, val)             \
-    do {                                    \
-        (insn) &= ~(0x1fUL << 20);          \
-        (insn) |= (((val) & 0x1fUL) << 20); \
+#define INSN_SET_RS2(insn, val)                                                                                                                      \
+    do {                                                                                                                                             \
+        (insn) &= ~(0x1fUL << 20);                                                                                                                   \
+        (insn) |= (((val) & 0x1fUL) << 20);                                                                                                          \
     } while (0)
-#define INSN_SET_RD(insn, val)             \
-    do {                                   \
-        (insn) &= ~(0x1fUL << 7);          \
-        (insn) |= (((val) & 0x1fUL) << 7); \
+#define INSN_SET_RD(insn, val)                                                                                                                       \
+    do {                                                                                                                                             \
+        (insn) &= ~(0x1fUL << 7);                                                                                                                    \
+        (insn) |= (((val) & 0x1fUL) << 7);                                                                                                           \
     } while (0)
-#define INSN_SET_I_IMM(insn, val)            \
-    do {                                     \
-        (insn) &= ~(0xfffUL << 20);          \
-        (insn) |= (((val) & 0xfffUL) << 20); \
+#define INSN_SET_I_IMM(insn, val)                                                                                                                    \
+    do {                                                                                                                                             \
+        (insn) &= ~(0xfffUL << 20);                                                                                                                  \
+        (insn) |= (((val) & 0xfffUL) << 20);                                                                                                         \
     } while (0)
-#define INSN_SET_S_IMM(insn, val)                  \
-    do {                                           \
-        (insn) &= ~(0x1fUL << 7);                  \
-        (insn) |= (((val) & 0x1fUL) << 7);         \
-        (insn) &= ~(0x7fUL << 25);                 \
-        (insn) |= ((((val) >> 5) & 0x7fUL) << 25); \
+#define INSN_SET_S_IMM(insn, val)                                                                                                                    \
+    do {                                                                                                                                             \
+        (insn) &= ~(0x1fUL << 7);                                                                                                                    \
+        (insn) |= (((val) & 0x1fUL) << 7);                                                                                                           \
+        (insn) &= ~(0x7fUL << 25);                                                                                                                   \
+        (insn) |= ((((val) >> 5) & 0x7fUL) << 25);                                                                                                   \
     } while (0)
 
 #define INSN_GET_C_RD(insn)               INSN_GET_RD(insn)

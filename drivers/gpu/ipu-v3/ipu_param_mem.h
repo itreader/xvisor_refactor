@@ -43,106 +43,106 @@ struct ipu_ch_param {
 
 #define _param_word(base, w)       (((struct ipu_ch_param *)(base))->word[(w)].data)
 
-#define ipu_ch_param_set_field(base, w, bit, size, v)                     \
-    {                                                                     \
-        int i   = (bit) / 32;                                             \
-        int off = (bit) % 32;                                             \
-        _param_word(base, w)[i] |= (v) << off;                            \
-        if (((bit) + (size) - 1) / 32 > i) {                              \
-            _param_word(base, w)[i + 1] |= (v) >> (off ? (32 - off) : 0); \
-        }                                                                 \
+#define ipu_ch_param_set_field(base, w, bit, size, v)                                                                                                \
+    {                                                                                                                                                \
+        int i   = (bit) / 32;                                                                                                                        \
+        int off = (bit) % 32;                                                                                                                        \
+        _param_word(base, w)[i] |= (v) << off;                                                                                                       \
+        if (((bit) + (size) - 1) / 32 > i) {                                                                                                         \
+            _param_word(base, w)[i + 1] |= (v) >> (off ? (32 - off) : 0);                                                                            \
+        }                                                                                                                                            \
     }
 
-#define ipu_ch_param_set_field_io(base, w, bit, size, v)       \
-    {                                                          \
-        int      i   = (bit) / 32;                             \
-        int      off = (bit) % 32;                             \
-        unsigned reg_offset;                                   \
-        uint32_t temp;                                         \
-        reg_offset = sizeof(struct ipu_ch_param_word) * w / 4; \
-        reg_offset += i;                                       \
-        temp = readl((uint32_t *)base + reg_offset);           \
-        temp |= (v) << off;                                    \
-        writel(temp, (uint32_t *)base + reg_offset);           \
-        if (((bit) + (size) - 1) / 32 > i) {                   \
-            reg_offset++;                                      \
-            temp = readl((uint32_t *)base + reg_offset);       \
-            temp |= (v) >> (off ? (32 - off) : 0);             \
-            writel(temp, (uint32_t *)base + reg_offset);       \
-        }                                                      \
+#define ipu_ch_param_set_field_io(base, w, bit, size, v)                                                                                             \
+    {                                                                                                                                                \
+        int      i   = (bit) / 32;                                                                                                                   \
+        int      off = (bit) % 32;                                                                                                                   \
+        unsigned reg_offset;                                                                                                                         \
+        uint32_t temp;                                                                                                                               \
+        reg_offset = sizeof(struct ipu_ch_param_word) * w / 4;                                                                                       \
+        reg_offset += i;                                                                                                                             \
+        temp = readl((uint32_t *)base + reg_offset);                                                                                                 \
+        temp |= (v) << off;                                                                                                                          \
+        writel(temp, (uint32_t *)base + reg_offset);                                                                                                 \
+        if (((bit) + (size) - 1) / 32 > i) {                                                                                                         \
+            reg_offset++;                                                                                                                            \
+            temp = readl((uint32_t *)base + reg_offset);                                                                                             \
+            temp |= (v) >> (off ? (32 - off) : 0);                                                                                                   \
+            writel(temp, (uint32_t *)base + reg_offset);                                                                                             \
+        }                                                                                                                                            \
     }
 
-#define ipu_ch_param_mod_field(base, w, bit, size, v)                             \
-    {                                                                             \
-        int      i    = (bit) / 32;                                               \
-        int      off  = (bit) % 32;                                               \
-        uint32_t mask = (1UL << size) - 1;                                        \
-        uint32_t temp = _param_word(base, w)[i];                                  \
-        temp &= ~(mask << off);                                                   \
-        _param_word(base, w)[i] = temp | (v) << off;                              \
-        if (((bit) + (size) - 1) / 32 > i) {                                      \
-            temp = _param_word(base, w)[i + 1];                                   \
-            temp &= ~(mask >> (32 - off));                                        \
-            _param_word(base, w)[i + 1] = temp | ((v) >> (off ? (32 - off) : 0)); \
-        }                                                                         \
+#define ipu_ch_param_mod_field(base, w, bit, size, v)                                                                                                \
+    {                                                                                                                                                \
+        int      i    = (bit) / 32;                                                                                                                  \
+        int      off  = (bit) % 32;                                                                                                                  \
+        uint32_t mask = (1UL << size) - 1;                                                                                                           \
+        uint32_t temp = _param_word(base, w)[i];                                                                                                     \
+        temp &= ~(mask << off);                                                                                                                      \
+        _param_word(base, w)[i] = temp | (v) << off;                                                                                                 \
+        if (((bit) + (size) - 1) / 32 > i) {                                                                                                         \
+            temp = _param_word(base, w)[i + 1];                                                                                                      \
+            temp &= ~(mask >> (32 - off));                                                                                                           \
+            _param_word(base, w)[i + 1] = temp | ((v) >> (off ? (32 - off) : 0));                                                                    \
+        }                                                                                                                                            \
     }
 
-#define ipu_ch_param_mod_field_io(base, w, bit, size, v)       \
-    {                                                          \
-        int      i    = (bit) / 32;                            \
-        int      off  = (bit) % 32;                            \
-        uint32_t mask = (1UL << size) - 1;                     \
-        unsigned reg_offset;                                   \
-        uint32_t temp;                                         \
-        reg_offset = sizeof(struct ipu_ch_param_word) * w / 4; \
-        reg_offset += i;                                       \
-        temp = readl((uint32_t *)base + reg_offset);           \
-        temp &= ~(mask << off);                                \
-        temp |= (v) << off;                                    \
-        writel(temp, (uint32_t *)base + reg_offset);           \
-        if (((bit) + (size) - 1) / 32 > i) {                   \
-            reg_offset++;                                      \
-            temp = readl((uint32_t *)base + reg_offset);       \
-            temp &= ~(mask >> (32 - off));                     \
-            temp |= ((v) >> (off ? (32 - off) : 0));           \
-            writel(temp, (uint32_t *)base + reg_offset);       \
-        }                                                      \
+#define ipu_ch_param_mod_field_io(base, w, bit, size, v)                                                                                             \
+    {                                                                                                                                                \
+        int      i    = (bit) / 32;                                                                                                                  \
+        int      off  = (bit) % 32;                                                                                                                  \
+        uint32_t mask = (1UL << size) - 1;                                                                                                           \
+        unsigned reg_offset;                                                                                                                         \
+        uint32_t temp;                                                                                                                               \
+        reg_offset = sizeof(struct ipu_ch_param_word) * w / 4;                                                                                       \
+        reg_offset += i;                                                                                                                             \
+        temp = readl((uint32_t *)base + reg_offset);                                                                                                 \
+        temp &= ~(mask << off);                                                                                                                      \
+        temp |= (v) << off;                                                                                                                          \
+        writel(temp, (uint32_t *)base + reg_offset);                                                                                                 \
+        if (((bit) + (size) - 1) / 32 > i) {                                                                                                         \
+            reg_offset++;                                                                                                                            \
+            temp = readl((uint32_t *)base + reg_offset);                                                                                             \
+            temp &= ~(mask >> (32 - off));                                                                                                           \
+            temp |= ((v) >> (off ? (32 - off) : 0));                                                                                                 \
+            writel(temp, (uint32_t *)base + reg_offset);                                                                                             \
+        }                                                                                                                                            \
     }
 
-#define ipu_ch_param_read_field(base, w, bit, size)   \
-    ({                                                \
-        uint32_t temp2;                               \
-        int      i     = (bit) / 32;                  \
-        int      off   = (bit) % 32;                  \
-        uint32_t mask  = (1UL << size) - 1;           \
-        uint32_t temp1 = _param_word(base, w)[i];     \
-        temp1          = mask & (temp1 >> off);       \
-        if (((bit) + (size) - 1) / 32 > i) {          \
-            temp2 = _param_word(base, w)[i + 1];      \
-            temp2 &= mask >> (off ? (32 - off) : 0);  \
-            temp1 |= temp2 << (off ? (32 - off) : 0); \
-        }                                             \
-        temp1;                                        \
+#define ipu_ch_param_read_field(base, w, bit, size)                                                                                                  \
+    ({                                                                                                                                               \
+        uint32_t temp2;                                                                                                                              \
+        int      i     = (bit) / 32;                                                                                                                 \
+        int      off   = (bit) % 32;                                                                                                                 \
+        uint32_t mask  = (1UL << size) - 1;                                                                                                          \
+        uint32_t temp1 = _param_word(base, w)[i];                                                                                                    \
+        temp1          = mask & (temp1 >> off);                                                                                                      \
+        if (((bit) + (size) - 1) / 32 > i) {                                                                                                         \
+            temp2 = _param_word(base, w)[i + 1];                                                                                                     \
+            temp2 &= mask >> (off ? (32 - off) : 0);                                                                                                 \
+            temp1 |= temp2 << (off ? (32 - off) : 0);                                                                                                \
+        }                                                                                                                                            \
+        temp1;                                                                                                                                       \
     })
 
-#define ipu_ch_param_read_field_io(base, w, bit, size)         \
-    ({                                                         \
-        uint32_t temp1, temp2;                                 \
-        int      i    = (bit) / 32;                            \
-        int      off  = (bit) % 32;                            \
-        uint32_t mask = (1UL << size) - 1;                     \
-        unsigned reg_offset;                                   \
-        reg_offset = sizeof(struct ipu_ch_param_word) * w / 4; \
-        reg_offset += i;                                       \
-        temp1 = readl((uint32_t *)base + reg_offset);          \
-        temp1 = mask & (temp1 >> off);                         \
-        if (((bit) + (size) - 1) / 32 > i) {                   \
-            reg_offset++;                                      \
-            temp2 = readl((uint32_t *)base + reg_offset);      \
-            temp2 &= mask >> (off ? (32 - off) : 0);           \
-            temp1 |= temp2 << (off ? (32 - off) : 0);          \
-        }                                                      \
-        temp1;                                                 \
+#define ipu_ch_param_read_field_io(base, w, bit, size)                                                                                               \
+    ({                                                                                                                                               \
+        uint32_t temp1, temp2;                                                                                                                       \
+        int      i    = (bit) / 32;                                                                                                                  \
+        int      off  = (bit) % 32;                                                                                                                  \
+        uint32_t mask = (1UL << size) - 1;                                                                                                           \
+        unsigned reg_offset;                                                                                                                         \
+        reg_offset = sizeof(struct ipu_ch_param_word) * w / 4;                                                                                       \
+        reg_offset += i;                                                                                                                             \
+        temp1 = readl((uint32_t *)base + reg_offset);                                                                                                \
+        temp1 = mask & (temp1 >> off);                                                                                                               \
+        if (((bit) + (size) - 1) / 32 > i) {                                                                                                         \
+            reg_offset++;                                                                                                                            \
+            temp2 = readl((uint32_t *)base + reg_offset);                                                                                            \
+            temp2 &= mask >> (off ? (32 - off) : 0);                                                                                                 \
+            temp1 |= temp2 << (off ? (32 - off) : 0);                                                                                                \
+        }                                                                                                                                            \
+        temp1;                                                                                                                                       \
     })
 
 static inline int __ipu_ch_get_third_buf_cpmem_num(int ch)

@@ -120,10 +120,10 @@ static struct platform_device_id fec_devtype[] = {
         .driver_data = FEC_QUIRK_ENET_MAC | FEC_QUIRK_HAS_GBIT |
         FEC_QUIRK_HAS_BUFDESC_EX | FEC_QUIRK_HAS_CSUM |
         FEC_QUIRK_HAS_VLAN | FEC_QUIRK_ERR006358,
-#else   /* 0 */
+#else /* 0 */
      /* FIXME: TEMPORARY */
         .driver_data = FEC_QUIRK_ENET_MAC | FEC_QUIRK_HAS_GBIT | FEC_QUIRK_HAS_CSUM | FEC_QUIRK_HAS_VLAN | FEC_QUIRK_ERR006358,
-#endif  /* 0 */
+#endif /* 0 */
      },
     {
      .name        = "mvf600-fec",

@@ -99,18 +99,18 @@ struct pinctrl_map {
 
 /* Convenience macros to create mapping table entries */
 
-#define PIN_MAP_DUMMY_STATE(dev, state)                                   \
-    {                                                                     \
-        .dev_name = dev, .name = state, .type = PIN_MAP_TYPE_DUMMY_STATE, \
+#define PIN_MAP_DUMMY_STATE(dev, state)                                                                                                              \
+    {                                                                                                                                                \
+        .dev_name = dev, .name = state, .type = PIN_MAP_TYPE_DUMMY_STATE,                                                                            \
     }
 
-#define PIN_MAP_MUX_GROUP(dev, state, pinctrl, grp, func)                                         \
-    {                                                                                             \
-        .dev_name = dev, .name = state, .type = PIN_MAP_TYPE_MUX_GROUP, .ctrl_dev_name = pinctrl, \
-        .data.mux = {                                                                             \
-            .group    = grp,                                                                      \
-            .function = func,                                                                     \
-        },                                                                                        \
+#define PIN_MAP_MUX_GROUP(dev, state, pinctrl, grp, func)                                                                                            \
+    {                                                                                                                                                \
+        .dev_name = dev, .name = state, .type = PIN_MAP_TYPE_MUX_GROUP, .ctrl_dev_name = pinctrl,                                                    \
+        .data.mux = {                                                                                                                                \
+            .group    = grp,                                                                                                                         \
+            .function = func,                                                                                                                        \
+        },                                                                                                                                           \
     }
 
 #define PIN_MAP_MUX_GROUP_DEFAULT(dev, pinctrl, grp, func) PIN_MAP_MUX_GROUP(dev, PINCTRL_STATE_DEFAULT, pinctrl, grp, func)
@@ -119,14 +119,14 @@ struct pinctrl_map {
 
 #define PIN_MAP_MUX_GROUP_HOG_DEFAULT(dev, grp, func)      PIN_MAP_MUX_GROUP(dev, PINCTRL_STATE_DEFAULT, dev, grp, func)
 
-#define PIN_MAP_CONFIGS_PIN(dev, state, pinctrl, pin, cfgs)                                         \
-    {                                                                                               \
-        .dev_name = dev, .name = state, .type = PIN_MAP_TYPE_CONFIGS_PIN, .ctrl_dev_name = pinctrl, \
-        .data.configs = {                                                                           \
-            .group_or_pin = pin,                                                                    \
-            .configs      = cfgs,                                                                   \
-            .num_configs  = ARRAY_SIZE(cfgs),                                                       \
-        },                                                                                          \
+#define PIN_MAP_CONFIGS_PIN(dev, state, pinctrl, pin, cfgs)                                                                                          \
+    {                                                                                                                                                \
+        .dev_name = dev, .name = state, .type = PIN_MAP_TYPE_CONFIGS_PIN, .ctrl_dev_name = pinctrl,                                                  \
+        .data.configs = {                                                                                                                            \
+            .group_or_pin = pin,                                                                                                                     \
+            .configs      = cfgs,                                                                                                                    \
+            .num_configs  = ARRAY_SIZE(cfgs),                                                                                                        \
+        },                                                                                                                                           \
     }
 
 #define PIN_MAP_CONFIGS_PIN_DEFAULT(dev, pinctrl, pin, cfgs) PIN_MAP_CONFIGS_PIN(dev, PINCTRL_STATE_DEFAULT, pinctrl, pin, cfgs)
@@ -135,14 +135,14 @@ struct pinctrl_map {
 
 #define PIN_MAP_CONFIGS_PIN_HOG_DEFAULT(dev, pin, cfgs)      PIN_MAP_CONFIGS_PIN(dev, PINCTRL_STATE_DEFAULT, dev, pin, cfgs)
 
-#define PIN_MAP_CONFIGS_GROUP(dev, state, pinctrl, grp, cfgs)                                         \
-    {                                                                                                 \
-        .dev_name = dev, .name = state, .type = PIN_MAP_TYPE_CONFIGS_GROUP, .ctrl_dev_name = pinctrl, \
-        .data.configs = {                                                                             \
-            .group_or_pin = grp,                                                                      \
-            .configs      = cfgs,                                                                     \
-            .num_configs  = ARRAY_SIZE(cfgs),                                                         \
-        },                                                                                            \
+#define PIN_MAP_CONFIGS_GROUP(dev, state, pinctrl, grp, cfgs)                                                                                        \
+    {                                                                                                                                                \
+        .dev_name = dev, .name = state, .type = PIN_MAP_TYPE_CONFIGS_GROUP, .ctrl_dev_name = pinctrl,                                                \
+        .data.configs = {                                                                                                                            \
+            .group_or_pin = grp,                                                                                                                     \
+            .configs      = cfgs,                                                                                                                    \
+            .num_configs  = ARRAY_SIZE(cfgs),                                                                                                        \
+        },                                                                                                                                           \
     }
 
 #define PIN_MAP_CONFIGS_GROUP_DEFAULT(dev, pinctrl, grp, cfgs) PIN_MAP_CONFIGS_GROUP(dev, PINCTRL_STATE_DEFAULT, pinctrl, grp, cfgs)

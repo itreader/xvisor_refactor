@@ -26,13 +26,13 @@
 
 #include <arch_types.h>
 
-#define __io_br() \
-    do {          \
+#define __io_br()                                                                                                                                    \
+    do {                                                                                                                                             \
     } while (0)
 #define __io_ar() __asm__ __volatile__("fence i,r" : : : "memory");
 #define __io_bw() __asm__ __volatile__("fence w,o" : : : "memory");
-#define __io_aw() \
-    do {          \
+#define __io_aw()                                                                                                                                    \
+    do {                                                                                                                                             \
     } while (0)
 
 static inline uint32_t arch_readl(void *addr)

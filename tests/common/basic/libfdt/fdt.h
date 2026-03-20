@@ -46,8 +46,8 @@ struct fdt_property {
 
 #define FDT_BEGIN_NODE 0x1        /* Start node: full name */
 #define FDT_END_NODE   0x2        /* End node */
-#define FDT_PROP                                         \
-    0x3                           /* Property: name off, \
+#define FDT_PROP                                                                                                                                     \
+    0x3                           /* Property: name off,                                                                                             \
                              size, content */
 #define FDT_NOP              0x4  /* nop */
 #define FDT_END              0x9
