@@ -255,7 +255,7 @@ struct vmcs *current_vmcs(physical_addr_t *phys)
         return NULL;
     }
 
-    if (vmm_host_pa2va(vmcs_phys, &vmcs_virt) != VMM_OK) {
+    if (vmm_host_physicalAddr_to_virtualAddr(vmcs_phys, &vmcs_virt) != VMM_OK) {
         X86_DEBUG_LOG(vmcs, LVL_ERR, "%s: Could not find virtual address for current VMCS\n", __func__);
         return NULL;
     }
@@ -837,7 +837,7 @@ int vmx_add_host_load_msr(struct vcpu_hw_context *context, uint32_t msr)
 
     if (msr_area == NULL) {
         if ((msr_area = (struct vmx_msr_entry *)vmm_host_alloc_pages(1, VMM_MEMORY_FLAGS_IO)) == NULL) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         context->host_msr_area = msr_area;

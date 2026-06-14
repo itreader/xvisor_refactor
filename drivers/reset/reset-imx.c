@@ -121,7 +121,7 @@ void imx_set_cpu_jump(int cpu, void *jump_addr)
     cpu = cpu_logical_map(cpu);
 #endif /* 0 */
 
-    if (VMM_OK != vmm_host_va2pa((virtual_addr_t)jump_addr, &paddr)) {
+    if (VMM_OK != vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)jump_addr, &paddr)) {
         vmm_printf("Failed to get cpu jump physical address (0x%p)\n", jump_addr);
     }
 

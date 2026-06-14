@@ -102,19 +102,19 @@ static int cmd_i2c_common(vmm_char_device_t *cdev, int argc, char **argv, struct
 
     if (argc < 3) {
         cmd_i2c_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     id = atoi(argv[2]);
 
     if (id < 0) {
         cmd_i2c_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (NULL == (*adap = i2c_get_adapter(id))) {
         vmm_cdev_printf(cdev, "Failed to get adapter %d\n", id);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     *funcs = i2c_get_functionality(*adap);
@@ -214,7 +214,7 @@ static int cmd_i2c_detect(vmm_char_device_t *cdev, int argc, char **argv)
         vmm_cdev_printf(
             cdev, "Error: Bus doesn't support detection "
                   "commands\n");
-        err = VMM_EFAIL;
+        err = VMM_ERR_FAIL;
         goto out;
     }
 
@@ -337,7 +337,7 @@ static int cmd_i2c_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 fail:
     cmd_i2c_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_i2c = {

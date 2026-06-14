@@ -52,7 +52,7 @@ static int aw_timer_force_reset(void)
     uint32_t mode;
 
     if (!aw_base) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Clear & disable watchdog */

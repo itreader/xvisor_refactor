@@ -254,7 +254,7 @@ static int smsc95xx_write_reg(struct usb_device *udev, uint32_t index, uint32_t 
 
     if (len != sizeof(data)) {
         vmm_printf("smsc95xx_write_reg failed: index=%d, data=%d, len=%d", index, data, len);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;
@@ -272,7 +272,7 @@ static int smsc95xx_read_reg(struct usb_device *udev, uint32_t index, uint32_t *
 
     if (len != sizeof(*data)) {
         vmm_printf("smsc95xx_read_reg failed: index=%d, len=%d", index, len);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     *data = vmm_le32_to_cpu(tmpbuf);
@@ -293,7 +293,7 @@ static int smsc95xx_phy_wait_not_busy(struct usb_device *udev)
         }
     } while (vmm_timer_timestamp() < timeout);
 
-    return VMM_ETIMEDOUT;
+    return VMM_ERR_TIMEDOUT;
 }
 
 static int smsc95xx_mdio_read(struct usb_device *udev, int phy_id, int idx)
@@ -303,7 +303,7 @@ static int smsc95xx_mdio_read(struct usb_device *udev, int phy_id, int idx)
     /* confirm MII not busy */
     if (smsc95xx_phy_wait_not_busy(udev)) {
         vmm_printf("MII is busy in smsc95xx_mdio_read\n");
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     /* set the address, index & direction (read from PHY) */
@@ -312,7 +312,7 @@ static int smsc95xx_mdio_read(struct usb_device *udev, int phy_id, int idx)
 
     if (smsc95xx_phy_wait_not_busy(udev)) {
         vmm_printf("Timed out reading MII reg %02X\n", idx);
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     smsc95xx_read_reg(udev, MII_DATA, &val);
@@ -500,7 +500,7 @@ static int smsc95xx_init_common(struct usb_device *udev, struct usb_net_device *
 
     if (timeout >= 100) {
         vmm_printf("timeout waiting for completion of Lite Reset\n");
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     write_buf = PM_CTL_PHY_RST_;
@@ -525,7 +525,7 @@ static int smsc95xx_init_common(struct usb_device *udev, struct usb_net_device *
 
     if (timeout >= 100) {
         vmm_printf("timeout waiting for PHY Reset\n");
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     if (is_valid_ether_addr(enetaddr)) {
@@ -536,7 +536,7 @@ static int smsc95xx_init_common(struct usb_device *udev, struct usb_net_device *
     if (!dev->have_hwaddr) {
         vmm_printf("Error: SMSC95xx: No MAC address set - set usbethaddr\n");
         // return -EADDRNOTAVAIL;
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     ret = smsc95xx_write_hwaddr_common(udev, dev, enetaddr);
@@ -729,7 +729,7 @@ static int smsc95xx_init_common(struct usb_device *udev, struct usb_net_device *
         }
     } else {
         vmm_printf("unable to connect.\n");
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;
@@ -744,7 +744,7 @@ static int smsc95xx_send_common(struct usb_net_device *ndev, void *packet, int l
     uint8_t __cacheline_aligned msg[(PKTSIZE + sizeof(tx_cmd_a) + sizeof(tx_cmd_b))];
 
     if (length > PKTSIZE) {
-        return VMM_ENOSPC;
+        return VMM_ERR_NOSPC;
     }
 
     tx_cmd_a = (uint32_t)length | TX_CMD_A_FIRST_SEG_ | TX_CMD_A_LAST_SEG_;
@@ -986,21 +986,21 @@ static int smsc95xx_probe(struct usb_interface *intf, const struct usb_device_id
      */
     if (intf->no_of_ep != 3) {
         vmm_printf("Invalid device detected\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Update curent settings of usb interface */
     rc = usb_set_interface(udev, intf->desc.bInterfaceNumber, 0);
 
     if (rc) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     /* Alloc usb network instance */
     unet = vmm_zalloc(sizeof(*unet));
 
     if (!unet) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     for (int i = 0; i < intf->no_of_ep; i++) {
@@ -1025,7 +1025,7 @@ static int smsc95xx_probe(struct usb_interface *intf, const struct usb_device_id
     /* Do some basic sanity checks, and bail if we find a problem */
     if (usb_set_interface(udev, iface_desc->bInterfaceNumber, 0) || !unet->ep_in || !unet->ep_out || !unet->ep_int) {
         vmm_printf("Problems with device\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     nd = alloc_etherdev(sizeof(struct usb_net_device));
@@ -1033,7 +1033,7 @@ static int smsc95xx_probe(struct usb_interface *intf, const struct usb_device_id
     if (!nd) {
         vmm_free(unet);
         vmm_printf("%s: could not allocate net device.\n", __func__);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     usb_ref_device(udev);
@@ -1059,7 +1059,7 @@ static int smsc95xx_probe(struct usb_interface *intf, const struct usb_device_id
         vmm_free(unet);
         free_netdev(nd);
         vmm_printf("%s: Registering netdev failed!\n", __func__);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
 #if DEBUG
@@ -1073,7 +1073,7 @@ static int smsc95xx_probe(struct usb_interface *intf, const struct usb_device_id
         vmm_free(unet);
         free_netdev(nd);
         vmm_printf("%s Error: Not able to create Rx thread\n", __func__);
-        return VMM_ENOSPC;
+        return VMM_ERR_NOSPC;
     } else {
         /* Mark thread as running */
         unet->rx_thread_state = task_running;

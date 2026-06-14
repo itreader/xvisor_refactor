@@ -95,7 +95,7 @@ int virtio_pci_config_read(struct virtio_pci_dev *m, uint32_t offset, void *dst,
 
         default:
             vmm_printf("%s: guest=%s invalid offset=0x%x\n", __func__, m->guest->name, offset);
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     }
 
@@ -151,7 +151,7 @@ static int virtio_pci_config_write(struct virtio_pci_dev *m, uint32_t offset, vo
 
         default:
             vmm_printf("%s: guest=%s invalid offset=0x%x\n", __func__, m->guest->name, offset);
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     }
 
@@ -187,7 +187,7 @@ static int virtio_pci_emulator_probe(struct pci_device *pdev, struct vmm_guest *
 
     /* sanitize device ID */
     if ((pdev->device_id > VIRTIO_MAX_DEVICE_ID) || (pdev->device_id < VIRTIO_MIN_DEVICE_ID)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Virtio device */
@@ -286,7 +286,7 @@ static int virtio_pci_bar_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     vdev = vmm_zalloc(sizeof(struct virtio_pci_dev));
 
     if (!vdev) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto virtio_pci_probe_done;
     }
 

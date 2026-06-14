@@ -124,7 +124,7 @@ static inline int vmx_handle_guest_realmode_page_fault(struct vcpu_hw_context *c
             "ERROR: Size of the available mapping less "
             "than page size (%lu)\n",
             availsz);
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto guest_bad_fault;
     }
 
@@ -145,7 +145,7 @@ static inline int vmx_handle_guest_realmode_page_fault(struct vcpu_hw_context *c
         rc = ept_create_pte_map(context, gla, hphys_addr, PAGE_SIZE, (EPT_PROT_READ | EPT_PROT_WRITE | EPT_PROT_EXEC_S));
         X86_DEBUG_LOG(vtx_intercept, LVL_DEBUG, "ept_create_pte_map returned with %d\n", rc);
     } else {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
     }
 
 guest_bad_fault:
@@ -168,12 +168,12 @@ static inline int vmx_handle_guest_protected_mode_page_fault(struct vcpu_hw_cont
 
     if (rc) {
         X86_DEBUG_LOG(vtx_intercept, LVL_ERR, "ERROR: No region mapped to guest physical 0x%" PRIx64 "\n", fault_gphys);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (availsz < PAGE_SIZE) {
         X86_DEBUG_LOG(vtx_intercept, LVL_ERR, "ERROR: Size of the available mapping less than page size (%lu)\n", availsz);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     fault_gphys &= PAGE_MASK;
@@ -319,7 +319,7 @@ static inline int vmx_handle_io_instruction_exit(struct vcpu_hw_context *context
     return VMM_OK;
 
 guest_bad_fault:
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static inline int vmx_handle_crx_exit(struct vcpu_hw_context *context)
@@ -396,7 +396,7 @@ static inline int vmx_handle_crx_exit(struct vcpu_hw_context *context)
     return VMM_OK;
 
 guest_bad_fault:
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 uint64_t ext_intrs = 0;
@@ -412,7 +412,7 @@ int vmx_handle_vmexit(struct vcpu_hw_context *context, uint32_t exit_reason)
                     return vmx_handle_guest_realmode_page_fault(context);
                 } else {
                     X86_DEBUG_LOG(vtx_intercept, LVL_ERR, "(Realmode pagefault) VMX reported invalid linear address.\n");
-                    return VMM_EFAIL;
+                    return VMM_ERR_FAIL;
                 }
             } else { /* Protected mode */
                 return vmx_handle_guest_protected_mode_page_fault(context);
@@ -446,7 +446,7 @@ int vmx_handle_vmexit(struct vcpu_hw_context *context, uint32_t exit_reason)
     }
 
 guest_bad_fault:
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 void vmx_vcpu_exit(struct vcpu_hw_context *context)

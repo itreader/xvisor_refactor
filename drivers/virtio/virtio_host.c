@@ -142,7 +142,7 @@ static physical_addr_t virtio_map_one(const struct virtio_host_queue *vq, struct
     physical_addr_t pa;
 
     if (!virtio_use_dma_api(vq->vdev)) {
-        rc = vmm_host_va2pa((virtual_addr_t)iv->buf, &pa);
+        rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)iv->buf, &pa);
         BUG_ON(rc);
         return pa;
     }
@@ -187,7 +187,7 @@ void virtio_host_queue_dump_vring(struct virtio_host_queue *vq)
         virtio16_to_cpu(vq->vdev, *last_idx));
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_dump_vring);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_dump_vring);
 
 static int virtio_host_queue_add(
     struct virtio_host_queue *vq, struct virtio_host_iovec *ivs[], uint32_t total_ivs, uint32_t out_ivs, uint32_t in_ivs, void *data)
@@ -201,7 +201,7 @@ static int virtio_host_queue_add(
     BUG_ON(data == NULL);
 
     if (unlikely(vq->broken)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     BUG_ON(total_ivs > vq->vring.num);
@@ -227,7 +227,7 @@ static int virtio_host_queue_add(
             vq->notify(vq);
         }
 
-        return VMM_ENOSPC;
+        return VMM_ERR_NOSPC;
     }
 
     /* Add output buffers to descriptors */
@@ -292,21 +292,21 @@ int virtio_host_queue_add_iovecs(struct virtio_host_queue *vq, struct virtio_hos
     return virtio_host_queue_add(vq, ivs, out_ivs + in_ivs, out_ivs, in_ivs, data);
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_add_iovecs);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_add_iovecs);
 
 int virtio_host_queue_add_outbuf(struct virtio_host_queue *vq, struct virtio_host_iovec *iv, uint32_t num, void *data)
 {
     return virtio_host_queue_add(vq, &iv, num, 1, 0, data);
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_add_outbuf);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_add_outbuf);
 
 int virtio_host_queue_add_inbuf(struct virtio_host_queue *vq, struct virtio_host_iovec *iv, uint32_t num, void *data)
 {
     return virtio_host_queue_add(vq, &iv, num, 0, 1, data);
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_add_inbuf);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_add_inbuf);
 
 #define virtio_avail_event(vr) (*(uint16_t *)&(vr)->used->ring[(vr)->num])
 
@@ -332,7 +332,7 @@ bool virtio_host_queue_kick_prepare(struct virtio_host_queue *vq)
     return needs_kick;
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_kick_prepare);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_kick_prepare);
 
 bool virtio_host_queue_notify(struct virtio_host_queue *vq)
 {
@@ -349,7 +349,7 @@ bool virtio_host_queue_notify(struct virtio_host_queue *vq)
     return TRUE;
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_notify);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_notify);
 
 bool virtio_host_queue_kick(struct virtio_host_queue *vq)
 {
@@ -360,7 +360,7 @@ bool virtio_host_queue_kick(struct virtio_host_queue *vq)
     return TRUE;
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_kick);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_kick);
 
 static void detach_buf(struct virtio_host_queue *vq, uint32_t head)
 {
@@ -443,7 +443,7 @@ void *virtio_host_queue_get_buf(struct virtio_host_queue *vq, uint32_t *len)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_get_buf);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_get_buf);
 
 bool virtio_host_queue_have_buf(struct virtio_host_queue *vq)
 {
@@ -451,7 +451,7 @@ bool virtio_host_queue_have_buf(struct virtio_host_queue *vq)
     return vq->last_used_idx != virtio16_to_cpu(vq->vdev, vq->vring.used->idx);
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_have_buf);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_have_buf);
 
 vmm_irq_return_t virtio_host_queue_interrupt(int irq, void *_vq)
 {
@@ -475,7 +475,7 @@ vmm_irq_return_t virtio_host_queue_interrupt(int irq, void *_vq)
     return VMM_IRQ_HANDLED;
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_interrupt);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_interrupt);
 
 static struct virtio_host_queue *__virtio_host_new_queue(
     uint32_t index, struct vmm_vring vring, struct virtio_host_device *vdev, bool weak_barriers, virtio_host_queue_notify_t notify,
@@ -548,7 +548,7 @@ static void *virtio_host_alloc_queue(struct virtio_host_device *vdev, size_t siz
 
             memset((void *)queue, 0, size);
 
-            rc = vmm_host_va2pa(queue, &queue_phys_addr);
+            rc = vmm_host_virtualAddr_to_physicalAddr(queue, &queue_phys_addr);
 
             if (rc) {
                 vmm_page_pool_free(VMM_PAGE_POOL_NORMAL, (virtual_addr_t)queue, VMM_SIZE_TO_PAGE(size));
@@ -576,28 +576,28 @@ uint64_t virtio_host_queue_get_desc_addr(struct virtio_host_queue *vq)
     return vq->vring.desc_pa;
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_get_desc_addr);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_get_desc_addr);
 
 uint64_t virtio_host_queue_get_used_addr(struct virtio_host_queue *vq)
 {
     return vq->vring.used_pa;
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_get_used_addr);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_get_used_addr);
 
 uint64_t virtio_host_queue_get_avail_addr(struct virtio_host_queue *vq)
 {
     return vq->vring.avail_pa;
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_get_avail_addr);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_get_avail_addr);
 
 uint32_t virtio_host_queue_get_vring_size(struct virtio_host_queue *vq)
 {
     return vq->vring.num;
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_queue_get_vring_size);
+VMM_ERR_XPORT_SYMBOL(virtio_host_queue_get_vring_size);
 
 struct virtio_host_queue *virtio_host_create_queue(
     uint32_t index, uint32_t num, uint32_t vring_align, struct virtio_host_device *vdev, bool weak_barriers, virtio_host_queue_notify_t notify,
@@ -638,7 +638,7 @@ struct virtio_host_queue *virtio_host_create_queue(
     return vq;
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_create_queue);
+VMM_ERR_XPORT_SYMBOL(virtio_host_create_queue);
 
 void virtio_host_destroy_queue(struct virtio_host_queue *vq)
 {
@@ -647,7 +647,7 @@ void virtio_host_destroy_queue(struct virtio_host_queue *vq)
     vmm_free(vq);
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_destroy_queue);
+VMM_ERR_XPORT_SYMBOL(virtio_host_destroy_queue);
 
 /* ========== VirtIO host device driver APIs ========== */
 
@@ -682,7 +682,7 @@ void virtio_host_transport_features(struct virtio_host_device *vdev)
     }
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_transport_features);
+VMM_ERR_XPORT_SYMBOL(virtio_host_transport_features);
 
 static void __virtio_host_config_changed(struct virtio_host_device *vdev)
 {
@@ -704,7 +704,7 @@ void virtio_host_config_changed(struct virtio_host_device *vdev)
     vmm_spin_unlock_irq_restore(&vdev->config_lock, flags);
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_config_changed);
+VMM_ERR_XPORT_SYMBOL(virtio_host_config_changed);
 
 static void virtio_host_config_disable(struct virtio_host_device *vdev)
 {
@@ -748,7 +748,7 @@ static int virtio_host_finalize_features(struct virtio_host_device *vdev)
 
     if (!(status & VMM_VIRTIO_CONFIG_S_FEATURES_OK)) {
         vmm_lerror(vdev->dev.name, "virtio: device refuses features: %x\n", status);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     return 0;
@@ -885,7 +885,7 @@ int virtio_host_add_device(struct virtio_host_device *vdev, const struct virtio_
     int err;
 
     if (!vdev || !config) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Assign a unique device index and hence name. */
@@ -926,7 +926,7 @@ out:
     return err;
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_add_device);
+VMM_ERR_XPORT_SYMBOL(virtio_host_add_device);
 
 void virtio_host_remove_device(struct virtio_host_device *vdev)
 {
@@ -940,24 +940,24 @@ void virtio_host_remove_device(struct virtio_host_device *vdev)
     ida_simple_remove(&virtio_index_ida, index);
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_remove_device);
+VMM_ERR_XPORT_SYMBOL(virtio_host_remove_device);
 
 int virtio_host_register_driver(struct virtio_host_driver *vdrv)
 {
     if (!vdrv) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vdrv->drv.bus = &virtio_host_bus;
 
     if (strlcpy(vdrv->drv.name, vdrv->name, sizeof(vdrv->drv.name)) >= sizeof(vdrv->drv.name)) {
-        return VMM_EOVERFLOW;
+        return VMM_ERR_OVERFLOW;
     }
 
     return vmm_device_driver_register_driver(&vdrv->drv);
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_register_driver);
+VMM_ERR_XPORT_SYMBOL(virtio_host_register_driver);
 
 void virtio_host_unregister_driver(struct virtio_host_driver *vdrv)
 {
@@ -968,7 +968,7 @@ void virtio_host_unregister_driver(struct virtio_host_driver *vdrv)
     vmm_device_driver_unregister_driver(&vdrv->drv);
 }
 
-VMM_EXPORT_SYMBOL(virtio_host_unregister_driver);
+VMM_ERR_XPORT_SYMBOL(virtio_host_unregister_driver);
 
 static int __init virtio_host_init(void)
 {

@@ -58,7 +58,7 @@
     do {                                                                                                                                             \
         DPRINTF((__cdev), "%s: Allocating %d Host pages ", (__test)->name, (__page_count));                                                          \
         *(__output_va_ptr) = vmm_host_alloc_pages((__page_count), (__mem_flags));                                                                    \
-        (__rc)             = vmm_host_va2pa(*(__output_va_ptr), (__output_pa_ptr));                                                                  \
+        (__rc)             = vmm_host_virtualAddr_to_physicalAddr(*(__output_va_ptr), (__output_pa_ptr));                                                                  \
         DPRINTF((__cdev), "(error %d)%s", (__rc), (__rc) ? "\n" : " ");                                                                              \
         if (__rc) {                                                                                                                                  \
             goto __fail_label;                                                                                                                       \
@@ -72,11 +72,11 @@
         vmm_host_free_pages(*(__va_ptr), (__page_count));                                                                                            \
     } while (0)
 
-#define nested_mmu_test_alloc_hugepages(__cdev, __test, __rc, __fail_label, __page_count, __mem_flags, __output_va_ptr, __output_pa_ptr)             \
+#define nested_mmu_test_alloc_huge_pages(__cdev, __test, __rc, __fail_label, __page_count, __mem_flags, __output_va_ptr, __output_pa_ptr)             \
     do {                                                                                                                                             \
-        DPRINTF((__cdev), "%s: Allocating %d Host hugepages ", (__test)->name, (__page_count));                                                      \
-        *(__output_va_ptr) = vmm_host_alloc_hugepages((__page_count), (__mem_flags));                                                                \
-        (__rc)             = vmm_host_va2pa(*(__output_va_ptr), (__output_pa_ptr));                                                                  \
+        DPRINTF((__cdev), "%s: Allocating %d Host huge_pages ", (__test)->name, (__page_count));                                                      \
+        *(__output_va_ptr) = vmm_host_alloc_huge_pages((__page_count), (__mem_flags));                                                                \
+        (__rc)             = vmm_host_virtualAddr_to_physicalAddr(*(__output_va_ptr), (__output_pa_ptr));                                                                  \
         DPRINTF((__cdev), "(error %d)%s", (__rc), (__rc) ? "\n" : " ");                                                                              \
         if (__rc) {                                                                                                                                  \
             goto __fail_label;                                                                                                                       \
@@ -84,10 +84,10 @@
         DPRINTF((__cdev), "(0x%" PRIPADDR ")\n", *(__output_pa_ptr));                                                                                \
     } while (0)
 
-#define nested_mmu_test_free_hugepages(__cdev, __test, __va_ptr, __pa_ptr, __page_count)                                                             \
+#define nested_mmu_test_free_huge_pages(__cdev, __test, __va_ptr, __pa_ptr, __page_count)                                                             \
     do {                                                                                                                                             \
-        DPRINTF((__cdev), "%s: Freeing %d Host hugepages (0x%" PRIPADDR ")\n", (__test)->name, (__page_count), *(__pa_ptr));                         \
-        vmm_host_free_hugepages(*(__va_ptr), (__page_count));                                                                                        \
+        DPRINTF((__cdev), "%s: Freeing %d Host huge_pages (0x%" PRIPADDR ")\n", (__test)->name, (__page_count), *(__pa_ptr));                         \
+        vmm_host_free_huge_pages(*(__va_ptr), (__page_count));                                                                                        \
     } while (0)
 
 #define nested_mmu_test_alloc_page_table(__cdev, __test, __rc, __fail_label, __stage, __output_page_table_double_ptr)                                \
@@ -96,7 +96,7 @@
         *(__output_page_table_double_ptr) = mmu_page_table_alloc((__stage), -1, MMU_ATTR_REMOTE_TLB_FLUSH, 0);                                       \
         DPRINTF((__cdev), "%s", (!*(__output_page_table_double_ptr)) ? "(failed)\n" : "");                                                           \
         if (!*(__output_page_table_double_ptr)) {                                                                                                    \
-            (__rc) = VMM_ENOMEM;                                                                                                                     \
+            (__rc) = VMM_ERR_NOMEM;                                                                                                                     \
             goto __fail_label;                                                                                                                       \
         }                                                                                                                                            \
         DPRINTF((__cdev), "(0x%" PRIPADDR ")\n", mmu_page_table_physical_addr(*(__output_page_table_double_ptr)));                                   \

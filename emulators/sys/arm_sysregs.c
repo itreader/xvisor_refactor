@@ -247,7 +247,7 @@ static int arm_sysregs_reg_read(struct arm_sysregs *s, uint32_t offset, uint32_t
 
         case 0xa0: /* SYS_CFGDATA */
             if (board_id(s) != BOARD_ID_VEXPRESS) {
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
             } else {
                 *dst = s->sys_cfgdata;
             }
@@ -256,7 +256,7 @@ static int arm_sysregs_reg_read(struct arm_sysregs *s, uint32_t offset, uint32_t
 
         case 0xa4: /* SYS_CFGCTRL */
             if (board_id(s) != BOARD_ID_VEXPRESS) {
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
             } else {
                 *dst = s->sys_cfgctrl;
             }
@@ -265,7 +265,7 @@ static int arm_sysregs_reg_read(struct arm_sysregs *s, uint32_t offset, uint32_t
 
         case 0xa8: /* SYS_CFGSTAT */
             if (board_id(s) != BOARD_ID_VEXPRESS) {
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
             } else {
                 *dst = s->sys_cfgstat;
             }
@@ -277,7 +277,7 @@ static int arm_sysregs_reg_read(struct arm_sysregs *s, uint32_t offset, uint32_t
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     }
 
@@ -627,7 +627,7 @@ static int arm_sysregs_reg_write(struct arm_sysregs *s, uint32_t offset, uint32_
 
         case 0xa0: /* SYS_CFGDATA */
             if (board_id(s) != BOARD_ID_VEXPRESS) {
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
                 break;
             }
 
@@ -637,7 +637,7 @@ static int arm_sysregs_reg_write(struct arm_sysregs *s, uint32_t offset, uint32_
 
         case 0xa4: /* SYS_CFGCTRL */
             if (board_id(s) != BOARD_ID_VEXPRESS) {
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
                 break;
             }
 
@@ -677,7 +677,7 @@ static int arm_sysregs_reg_write(struct arm_sysregs *s, uint32_t offset, uint32_
 
         case 0xa8: /* SYS_CFGSTAT */
             if (board_id(s) != BOARD_ID_VEXPRESS) {
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
                 break;
             }
 
@@ -689,7 +689,7 @@ static int arm_sysregs_reg_write(struct arm_sysregs *s, uint32_t offset, uint32_
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     }
 
@@ -835,7 +835,7 @@ static int arm_sysregs_emulator_probe(struct vmm_guest *guest, vmm_emulate_devic
     s = vmm_zalloc(sizeof(struct arm_sysregs));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto arm_sysregs_emulator_probe_done;
     }
 
@@ -854,7 +854,7 @@ static int arm_sysregs_emulator_probe(struct vmm_guest *guest, vmm_emulate_devic
             s->db_voltage = vmm_zalloc(sizeof(uint32_t) * s->db_num_vsensors);
 
             if (!s->db_voltage) {
-                rc = VMM_ENOMEM;
+                rc = VMM_ERR_NOMEM;
                 goto arm_sysregs_emulator_probe_freestate_fail;
             }
 
@@ -869,7 +869,7 @@ static int arm_sysregs_emulator_probe(struct vmm_guest *guest, vmm_emulate_devic
             s->db_clock = vmm_zalloc(sizeof(uint32_t) * s->db_num_clocks);
 
             if (!s->db_clock) {
-                rc = VMM_ENOMEM;
+                rc = VMM_ERR_NOMEM;
                 goto arm_sysregs_emulator_probe_freevolt_fail;
             }
 
@@ -878,7 +878,7 @@ static int arm_sysregs_emulator_probe(struct vmm_guest *guest, vmm_emulate_devic
             if (!s->db_clock_reset) {
                 vmm_free(s->db_clock);
                 s->db_clock = NULL;
-                rc          = VMM_ENOMEM;
+                rc          = VMM_ERR_NOMEM;
                 goto arm_sysregs_emulator_probe_freevolt_fail;
             }
 
@@ -934,7 +934,7 @@ static int arm_sysregs_emulator_remove(vmm_emulate_device_t *edev)
     struct arm_sysregs *s = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_device_emulate_unregister_irqchip(s->guest, s->mux_in_irq[0], &arm_sysregs_irqchip, s);

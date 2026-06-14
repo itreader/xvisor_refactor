@@ -56,7 +56,7 @@ int mtd_char_device_ioctl(vmm_char_device_t *cdev, int cmd, void *arg)
 
             if (mtd_erase(mtd, &info)) {
                 dev_err(&cdev->dev, "Erasing at 0x%08X failed\n", off);
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             vmm_completion_wait_timeout(&compl, &timeout);
@@ -64,7 +64,7 @@ int mtd_char_device_ioctl(vmm_char_device_t *cdev, int cmd, void *arg)
 
         default:
             dev_err(&cdev->dev, "Unknown command 0x%X\n", cmd);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
@@ -77,7 +77,7 @@ uint32_t mtd_char_device_read(vmm_char_device_t *cdev, uint8_t *dest, size_t len
 
     if (mtd_read(mtd, *off, len, &retlen, dest)) {
         dev_err(&cdev->dev, "Writing at 0x%p failed\n", off);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *off += retlen;
@@ -95,12 +95,12 @@ uint32_t mtd_char_device_write(vmm_char_device_t *cdev, uint8_t *src, size_t len
 
     if (mtd_block_isbad(mtd, block)) {
         dev_err(&cdev->dev, "Block at %" PRIX32 " failed\n", block);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (mtd_write(mtd, *off, len, &retlen, src)) {
         dev_err(&cdev->dev, "Writing at 0x%p failed\n", off);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *off += retlen;

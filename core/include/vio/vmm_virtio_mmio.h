@@ -18,7 +18,7 @@
  *
  * @file vmm_virtio_mmio.h
  * @author Pranav Sawargaonkar (pranav.sawargaonkar@gmail.com)
- * @brief VirtIO MMIO Transport Interface
+ * @brief VirtIO MMIO传输层接口
  */
 
 #ifndef __VMM_VIRTIO_MMIO_H__
@@ -121,30 +121,33 @@
 #define VMM_VIRTIO_MMIO_MAX_CONFIG          1
 #define VMM_VIRTIO_MMIO_IO_SIZE             0x200
 
+/**
+ * @brief VirtIO MMIO配置空间，定义MMIO设备的寄存器和特性
+ */
 struct vmm_virtio_mmio_config {
-    char     magic[4];
-    uint32_t version;
-    uint32_t device_id;
-    uint32_t vendor_id;
-    uint32_t host_features;
-    uint32_t host_features_sel;
-    uint32_t reserved_1[2];
-    uint32_t guest_features;
-    uint32_t guest_features_sel;
-    uint32_t guest_page_size;
-    uint32_t reserved_2;
-    uint32_t queue_sel;
-    uint32_t queue_num_max;
-    uint32_t queue_num;
-    uint32_t queue_align;
-    uint32_t queue_pfn;
-    uint32_t reserved_3[3];
-    uint32_t queue_notify;
-    uint32_t reserved_4[3];
-    uint32_t interrupt_state;
-    uint32_t interrupt_ack;
-    uint32_t reserved_5[2];
-    uint32_t status;
+    char     magic[4]; /**< 魔术值 */
+    uint32_t version; /**< 版本号 */
+    uint32_t device_id; /**< 设备ID */
+    uint32_t vendor_id; /**< 厂商ID */
+    uint32_t host_features; /**< 主机特性 */
+    uint32_t host_features_sel; /**< host_features_sel成员 */
+    uint32_t reserved_1[2]; /**< reserved_1成员 */
+    uint32_t guest_features; /**< 客户机特性 */
+    uint32_t guest_features_sel; /**< guest_features_sel成员 */
+    uint32_t guest_page_size; /**< guest_page_size成员 */
+    uint32_t reserved_2; /**< reserved_2成员 */
+    uint32_t queue_sel; /**< 队列选择 */
+    uint32_t queue_num_max; /**< 队列最大数量 */
+    uint32_t queue_num; /**< 队列数量 */
+    uint32_t queue_align; /**< 队列对齐 */
+    uint32_t queue_pfn; /**< 队列页帧号 */
+    uint32_t reserved_3[3]; /**< reserved_3成员 */
+    uint32_t queue_notify; /**< queue_notify成员 */
+    uint32_t reserved_4[3]; /**< reserved_4成员 */
+    uint32_t interrupt_state; /**< interrupt_state成员 */
+    uint32_t interrupt_ack; /**< 中断应答 */
+    uint32_t reserved_5[2]; /**< reserved_5成员 */
+    uint32_t status; /**< 状态 */
 } __attribute__((packed));
 
 #endif /* __VMM_VIRTIO_MMIO_H__ */

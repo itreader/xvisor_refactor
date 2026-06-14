@@ -18,7 +18,7 @@
  *
  * @file vmm_virtio.c
  * @author Pranav Sawargaonkar (pranav.sawargaonkar@gmail.com)
- * @brief VirtIO Para-virtualization Framework Implementation
+ * @brief VirtIO半虚拟化框架实现
  */
 
 #include <libs/mathlib.h>
@@ -55,60 +55,100 @@ static LIST_HEAD(virtio_emu_list);
 
 struct vmm_guest *vmm_virtio_queue_guest(struct vmm_virtio_queue *vq)
 {
-    return (vq) ? vq->guest : NULL;
+    return (vq) ? vq->guest : NULL; /**< NULL成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_guest);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_guest);
 
+/**
+ * @brief 获取VirtIO队列描述符的数量
+ * @param vq VirtIO队列指针
+ * @return 数量值
+ */
 uint32_t vmm_virtio_queue_desc_count(struct vmm_virtio_queue *vq)
 {
     return (vq) ? vq->desc_count : 0;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_desc_count);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_desc_count);
 
+/**
+ * @brief VirtIO队列对齐设置
+ * @param vq VirtIO队列指针
+ * @return 数量值
+ */
 uint32_t vmm_virtio_queue_align(struct vmm_virtio_queue *vq)
 {
     return (vq) ? vq->align : 0;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_align);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_align);
 
+/**
+ * @brief 获取VirtIO队列的客户机页帧号
+ * @param vq VirtIO队列指针
+ * @return 获取到的值，失败返回错误码
+ */
 physical_addr_t vmm_virtio_queue_guest_pfn(struct vmm_virtio_queue *vq)
 {
     return (vq) ? vq->guest_pfn : 0;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_guest_pfn);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_guest_pfn);
 
+/**
+ * @brief 获取VirtIO队列的客户机页大小
+ * @param vq VirtIO队列指针
+ * @return 大小值（字节）
+ */
 physical_size_t vmm_virtio_queue_guest_page_size(struct vmm_virtio_queue *vq)
 {
     return (vq) ? vq->guest_page_size : 0;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_guest_page_size);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_guest_page_size);
 
+/**
+ * @brief 获取VirtIO队列的客户机物理地址
+ * @param vq VirtIO队列指针
+ * @return 大小值（字节）
+ */
 physical_addr_t vmm_virtio_queue_guest_addr(struct vmm_virtio_queue *vq)
 {
     return (vq) ? vq->guest_addr : 0;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_guest_addr);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_guest_addr);
 
+/**
+ * @brief 获取VirtIO队列的主机虚拟地址
+ * @param vq VirtIO队列指针
+ * @return 获取到的值，失败返回错误码
+ */
 physical_addr_t vmm_virtio_queue_host_addr(struct vmm_virtio_queue *vq)
 {
     return (vq) ? vq->host_addr : 0;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_host_addr);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_host_addr);
 
+/**
+ * @brief 获取VirtIO队列的总大小
+ * @param vq VirtIO队列指针
+ * @return 大小值（字节）
+ */
 physical_size_t vmm_virtio_queue_total_size(struct vmm_virtio_queue *vq)
 {
     return (vq) ? vq->total_size : 0;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_total_size);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_total_size);
 
+/**
+ * @brief 获取VirtIO队列的最大描述符的数量
+ * @param vq VirtIO队列指针
+ * @return 数量值
+ */
 uint32_t vmm_virtio_queue_max_desc(struct vmm_virtio_queue *vq)
 {
     if (!vq || !vq->guest) {
@@ -118,29 +158,41 @@ uint32_t vmm_virtio_queue_max_desc(struct vmm_virtio_queue *vq)
     return vq->desc_count;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_max_desc);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_max_desc);
 
+/**
+ * @brief 获取VirtIO队列的desc
+ * @param vq VirtIO队列指针
+ * @param indx 索引值
+* @param desc MSI描述符结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtio_queue_get_desc(struct vmm_virtio_queue *vq, uint16_t indx, struct vmm_vring_desc *desc)
 {
     uint32_t        ret;
     physical_addr_t desc_pa;
 
     if (!vq || !vq->guest || !desc) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     desc_pa = vq->vring.desc_pa + indx * sizeof(*desc);
     ret     = vmm_guest_memory_read(vq->guest, desc_pa, desc, sizeof(*desc), TRUE);
 
     if (ret != sizeof(*desc)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_get_desc);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_get_desc);
 
+/**
+ * @brief 从VirtIO可用环中弹出一个描述符
+ * @param vq VirtIO队列指针
+ * @return 获取到的值，失败返回错误码
+ */
 uint16_t vmm_virtio_queue_pop(struct vmm_virtio_queue *vq)
 {
     uint16_t        val;
@@ -164,8 +216,13 @@ uint16_t vmm_virtio_queue_pop(struct vmm_virtio_queue *vq)
     return val;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_pop);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_pop);
 
+/**
+ * @brief 检查VirtIO队列是否可用
+ * @param vq VirtIO队列指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_virtio_queue_available(struct vmm_virtio_queue *vq)
 {
     uint16_t        val;
@@ -187,13 +244,21 @@ bool vmm_virtio_queue_available(struct vmm_virtio_queue *vq)
     return val != vq->last_avail_idx;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_available);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_available);
 
+/**
+ * @brief 判断VirtIO队列是否需要通知
+ * @param vq VirtIO队列指针
+ * @return 可用返回TRUE，不可用返回FALSE
+ */
 bool vmm_virtio_queue_should_signal(struct vmm_virtio_queue *vq)
 {
     uint32_t        ret;
-    uint16_t        old_idx, new_idx, event_idx;
-    physical_addr_t used_pa, avail_pa;
+    uint16_t old_idx;
+    uint16_t new_idx;
+    uint16_t event_idx;
+    physical_addr_t used_pa;
+    physical_addr_t avail_pa;
 
     if (!vq || !vq->guest) {
         return FALSE;
@@ -225,8 +290,12 @@ bool vmm_virtio_queue_should_signal(struct vmm_virtio_queue *vq)
     return FALSE;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_should_signal);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_should_signal);
 
+/**
+ * @brief 设置VirtIO队列的可用事件索引
+ * @param vq VirtIO队列指针
+ */
 void vmm_virtio_queue_set_avail_event(struct vmm_virtio_queue *vq)
 {
     uint16_t        val;
@@ -246,14 +315,21 @@ void vmm_virtio_queue_set_avail_event(struct vmm_virtio_queue *vq)
     }
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_set_avail_event);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_set_avail_event);
 
+/**
+ * @brief 设置VirtIO队列的已用元素
+ * @param vq VirtIO队列指针
+ * @param head 头部索引
+ * @param len 大小
+ */
 void vmm_virtio_queue_set_used_elem(struct vmm_virtio_queue *vq, uint32_t head, uint32_t len)
 {
     uint32_t                   ret;
     uint16_t                   used_idx;
     struct vmm_vring_used_elem used_elem;
-    physical_addr_t            used_idx_pa, used_elem_pa;
+    physical_addr_t used_idx_pa;
+    physical_addr_t used_elem_pa;
 
     if (!vq || !vq->guest) {
         return;
@@ -284,15 +360,25 @@ void vmm_virtio_queue_set_used_elem(struct vmm_virtio_queue *vq, uint32_t head, 
     }
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_set_used_elem);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_set_used_elem);
 
+/**
+ * @brief VirtIO队列设置完成检查
+ * @param vq VirtIO队列指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_virtio_queue_setup_done(struct vmm_virtio_queue *vq)
 {
     return (vq) ? ((vq->guest) ? TRUE : FALSE) : FALSE;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_setup_done);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_setup_done);
 
+/**
+ * @brief 清理VirtIO队列中的已处理描述符
+ * @param vq VirtIO队列指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtio_queue_cleanup(struct vmm_virtio_queue *vq)
 {
     if (!vq || !vq->guest) {
@@ -317,65 +403,77 @@ done:
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_cleanup);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_cleanup);
 
+/**
+ * @brief 设置VirtIO队列
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtio_queue_setup(
     struct vmm_virtio_queue *vq, struct vmm_guest *guest, physical_addr_t guest_pfn, physical_size_t guest_page_size, uint32_t desc_count,
     uint32_t align)
 {
-    int             rc = VMM_OK;
-    uint32_t        reg_flags;
-    physical_addr_t guest_physical_addr, hphys_addr;
-    physical_size_t gphys_size, avail_size;
+    int             rc = VMM_OK; /**< VMM_OK成员 */
+    uint32_t        reg_flags; /**< reg_flags成员 */
+    physical_addr_t guest_physical_addr, hphys_addr; /**< 主机物理地址 */
+    physical_size_t gphys_size, avail_size; /**< avail_size成员 */
 
     if (!vq || !guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     if ((rc = vmm_virtio_queue_cleanup(vq))) {
-        vmm_printf("%s: cleanup failed\n", __func__);
-        return rc;
+        vmm_printf("%s: cleanup failed\n", __func__); /**< __func__)成员 */
+        return rc; /**< rc */
     }
 
-    guest_physical_addr = guest_pfn * guest_page_size;
-    gphys_size          = vmm_vring_size(desc_count, align);
+    guest_physical_addr = guest_pfn * guest_page_size; /**< guest_page_size成员 */
+    gphys_size          = vmm_vring_size(desc_count, align); /**< align)成员 */
 
     if ((rc = vmm_guest_physical_map(guest, guest_physical_addr, gphys_size, &hphys_addr, &avail_size, &reg_flags))) {
-        vmm_printf("%s: vmm_guest_physical_map() failed\n", __func__);
-        return VMM_EFAIL;
+        vmm_printf("%s: vmm_guest_physical_map() failed\n", __func__); /**< __func__)成员 */
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     if (!(reg_flags & VMM_REGION_IS_RAM)) {
-        vmm_printf("%s: region is not backed by RAM\n", __func__);
-        return VMM_EINVALID;
+        vmm_printf("%s: region is not backed by RAM\n", __func__); /**< __func__)成员 */
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     if (avail_size < gphys_size) {
-        vmm_printf("%s: available size less than required size\n", __func__);
-        return VMM_EINVALID;
+        vmm_printf("%s: available size less than required size\n", __func__); /**< __func__)成员 */
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
-    vmm_vring_init(&vq->vring, desc_count, NULL, guest_physical_addr, align);
+    vmm_vring_init(&vq->vring, desc_count, NULL, guest_physical_addr, align); /**< align)成员 */
 
-    vq->guest           = guest;
-    vq->desc_count      = desc_count;
-    vq->align           = align;
-    vq->guest_pfn       = guest_pfn;
-    vq->guest_page_size = guest_page_size;
+    vq->guest           = guest; /**< 客户机 */
+    vq->desc_count      = desc_count; /**< desc_count成员 */
+    vq->align           = align; /**< align成员 */
+    vq->guest_pfn       = guest_pfn; /**< guest_pfn成员 */
+    vq->guest_page_size = guest_page_size; /**< guest_page_size成员 */
 
-    vq->guest_addr      = guest_physical_addr;
-    vq->host_addr       = hphys_addr;
-    vq->total_size      = gphys_size;
+    vq->guest_addr      = guest_physical_addr; /**< 客户机物理地址 */
+    vq->host_addr       = hphys_addr; /**< 主机物理地址 */
+    vq->total_size      = gphys_size; /**< gphys_size成员 */
 
-    return VMM_OK;
+    return VMM_OK; /**< VMM_OK成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_setup);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_setup);
 
 /*
  * Each buffer in the virtqueues is actually a chain of descriptors.  This
  * function returns the next descriptor in the chain, max descriptor count
  * if we're at the end.
+ */
+/**
+ * @brief 获取描述符链中的下一个描述符索引
+ * @param vq VirtIO队列指针
+ * @param desc 虚拟环形队列描述符数组
+ * @param i 当前描述符索引
+ * @param max 最大描述符数量
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 static unsigned next_desc(struct vmm_virtio_queue *vq, struct vmm_vring_desc *desc, uint32_t i, uint32_t max)
 {
@@ -398,18 +496,22 @@ static unsigned next_desc(struct vmm_virtio_queue *vq, struct vmm_vring_desc *de
     return next;
 }
 
+/**
+ * @brief 获取VirtIO队列的头部IO向量
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtio_queue_get_head_iovec(
     struct vmm_virtio_queue *vq, uint16_t head, struct vmm_virtio_iovec *iov, uint32_t *ret_iov_cnt, uint32_t *ret_total_len, uint16_t *ret_head)
 {
-    int                   i, rc = VMM_OK;
-    uint16_t              idx, max;
-    struct vmm_vring_desc desc;
+    int                   i, rc = VMM_OK; /**< VMM_OK成员 */
+    uint16_t              idx, max; /**< 最大值 */
+    struct vmm_vring_desc desc; /**< 描述 */
 
     if (!vq || !vq->guest || !iov) {
-        goto fail;
+        goto fail; /**< fail成员 */
     }
 
-    idx = head;
+    idx = head; /**< 链表头 */
 
     if (ret_iov_cnt) {
         *ret_iov_cnt = 0;
@@ -423,31 +525,31 @@ int vmm_virtio_queue_get_head_iovec(
         *ret_head = 0;
     }
 
-    max = vmm_virtio_queue_max_desc(vq);
+    max = vmm_virtio_queue_max_desc(vq); /**< vmm_virtio_queue_max_desc(vq)成员 */
 
-    rc  = vmm_virtio_queue_get_desc(vq, idx, &desc);
+    rc  = vmm_virtio_queue_get_desc(vq, idx, &desc); /**< &desc)成员 */
 
     if (rc) {
-        vmm_printf("%s: failed to get descriptor idx=%d error=%d\n", __func__, idx, rc);
-        goto fail;
+        vmm_printf("%s: failed to get descriptor idx=%d error=%d\n", __func__, idx, rc); /**< rc)成员 */
+        goto fail; /**< fail成员 */
     }
 
     if (desc.flags & VMM_VRING_DESC_F_INDIRECT) {
 #if 0
-        max = desc[idx].len / sizeof(struct vring_desc);
-        desc = guest_flat_to_host(kvm, desc[idx].addr);
-        idx = 0;
+        max = desc[idx].len / sizeof(struct vring_desc); /**< 描述 */
+        desc = guest_flat_to_host(kvm, desc[idx].addr); /**< 描述 */
+        idx = 0; /**< 0 */
 #endif
-        vmm_printf("%s: indirect descriptor not supported idx=%d\n", __func__, idx);
-        rc = VMM_ENOTSUPP;
-        goto fail;
+        vmm_printf("%s: indirect descriptor not supported idx=%d\n", __func__, idx); /**< idx)成员 */
+        rc = VMM_ERR_NOTSUPP; /**< VMM_ERR_NOTSUPP成员 */
+        goto fail; /**< fail成员 */
     }
 
-    i = 0;
+    i = 0; /**< 0 */
 
     do {
-        iov[i].addr = desc.addr;
-        iov[i].len  = desc.len;
+        iov[i].addr = desc.addr; /**< iov成员 */
+        iov[i].len  = desc.len; /**< iov成员 */
 
         if (ret_total_len) {
             *ret_total_len += desc.len;
@@ -460,7 +562,7 @@ int vmm_virtio_queue_get_head_iovec(
         }
 
         i++;
-    } while ((idx = next_desc(vq, &desc, idx, max)) != max);
+    } while ((idx = next_desc(vq, &desc, idx, max)) != max); /**< max)成员 */
 
     if (ret_iov_cnt) {
         *ret_iov_cnt = i;
@@ -472,7 +574,7 @@ int vmm_virtio_queue_get_head_iovec(
         *ret_head = head;
     }
 
-    return VMM_OK;
+    return VMM_OK; /**< VMM_OK成员 */
 
 fail:
 
@@ -484,24 +586,39 @@ fail:
         *ret_total_len = 0;
     }
 
-    return rc;
+    return rc; /**< rc */
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_get_head_iovec);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_get_head_iovec);
 
+/**
+ * @brief 获取VirtIO队列的iovec
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtio_queue_get_iovec(
     struct vmm_virtio_queue *vq, struct vmm_virtio_iovec *iov, uint32_t *ret_iov_cnt, uint32_t *ret_total_len, uint16_t *ret_head)
 {
-    uint16_t head = vmm_virtio_queue_pop(vq);
+    uint16_t head = vmm_virtio_queue_pop(vq); /**< vmm_virtio_queue_pop(vq)成员 */
 
-    return vmm_virtio_queue_get_head_iovec(vq, head, iov, ret_iov_cnt, ret_total_len, ret_head);
+    return vmm_virtio_queue_get_head_iovec(vq, head, iov, ret_iov_cnt, ret_total_len, ret_head); /**< ret_head)成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_queue_get_iovec);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_queue_get_iovec);
 
+/**
+ * @brief 从VirtIO的iovec向量读取数据到缓冲区
+ * @param dev 设备结构体指针
+ * @param iov IO向量数组
+ * @param iov_cnt IO向量数量
+ * @param buf 数据缓冲区指针
+ * @param buf_len 大小
+ * @return 成功返回实际读取的字节数，失败返回0
+ */
 uint32_t vmm_virtio_iovec_to_buf_read(struct vmm_virtio_device *dev, struct vmm_virtio_iovec *iov, uint32_t iov_cnt, void *buf, uint32_t buf_len)
 {
-    uint32_t i = 0, pos = 0, len = 0;
+    uint32_t i = 0;
+    uint32_t pos = 0;
+    uint32_t len = 0;
 
     for (i = 0; i < iov_cnt && pos < buf_len; i++) {
         len = ((buf_len - pos) < iov[i].len) ? (buf_len - pos) : iov[i].len;
@@ -518,11 +635,22 @@ uint32_t vmm_virtio_iovec_to_buf_read(struct vmm_virtio_device *dev, struct vmm_
     return pos;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_iovec_to_buf_read);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_iovec_to_buf_read);
 
+/**
+ * @brief 将缓冲区数据写入VirtIO的iovec向量
+ * @param dev 设备结构体指针
+ * @param iov IO向量数组
+ * @param iov_cnt IO向量数量
+ * @param buf 数据缓冲区指针
+ * @param buf_len 大小
+ * @return 成功返回实际写入的字节数，失败返回0
+ */
 uint32_t vmm_virtio_buf_to_iovec_write(struct vmm_virtio_device *dev, struct vmm_virtio_iovec *iov, uint32_t iov_cnt, void *buf, uint32_t buf_len)
 {
-    uint32_t i = 0, pos = 0, len = 0;
+    uint32_t i = 0;
+    uint32_t pos = 0;
+    uint32_t len = 0;
 
     for (i = 0; i < iov_cnt && pos < buf_len; i++) {
         len = ((buf_len - pos) < iov[i].len) ? (buf_len - pos) : iov[i].len;
@@ -539,11 +667,19 @@ uint32_t vmm_virtio_buf_to_iovec_write(struct vmm_virtio_device *dev, struct vmm
     return pos;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_buf_to_iovec_write);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_buf_to_iovec_write);
 
+/**
+ * @brief VirtIO IO向量填充零
+ * @param dev 设备结构体指针
+ * @param iov IO向量数组
+ * @param iov_cnt IO向量数量
+ */
 void vmm_virtio_iovec_fill_zeros(struct vmm_virtio_device *dev, struct vmm_virtio_iovec *iov, uint32_t iov_cnt)
 {
-    uint32_t i = 0, pos = 0, len = 0;
+    uint32_t i = 0;
+    uint32_t pos = 0;
+    uint32_t len = 0;
     uint8_t  zeros[16];
 
     memset(zeros, 0, sizeof(zeros));
@@ -565,10 +701,15 @@ void vmm_virtio_iovec_fill_zeros(struct vmm_virtio_device *dev, struct vmm_virti
     }
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_iovec_fill_zeros);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_iovec_fill_zeros);
 
 /* ========== VirtIO device and emulator implementations ========== */
 
+/**
+ * @brief   复位VirtIO设备模拟器
+ * @param dev 设备结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __virtio_reset_emulator(struct vmm_virtio_device *dev)
 {
     if (dev && dev->emu && dev->emu->reset) {
@@ -578,6 +719,12 @@ static int __virtio_reset_emulator(struct vmm_virtio_device *dev)
     return VMM_OK;
 }
 
+/**
+ * @brief   连接VirtIO设备模拟器
+ * @param dev 设备结构体指针
+ * @param emu 模拟设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __virtio_connect_emulator(struct vmm_virtio_device *dev, struct vmm_virtio_emulator *emu)
 {
     if (dev && emu && emu->connect) {
@@ -587,6 +734,10 @@ static int __virtio_connect_emulator(struct vmm_virtio_device *dev, struct vmm_v
     return VMM_OK;
 }
 
+/**
+ * @brief   断开VirtIO设备模拟器
+ * @param dev 设备结构体指针
+ */
 static void __virtio_disconnect_emulator(struct vmm_virtio_device *dev)
 {
     if (dev && dev->emu && dev->emu->disconnect) {
@@ -594,6 +745,14 @@ static void __virtio_disconnect_emulator(struct vmm_virtio_device *dev)
     }
 }
 
+/**
+ * @brief   从VirtIO模拟器读取配置
+ * @param dev 设备结构体指针
+ * @param offset 偏移量（字节）
+ * @param dst 目标缓冲区指针
+ * @param dst_len 大小
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __virtio_config_read_emulator(struct vmm_virtio_device *dev, uint32_t offset, void *dst, uint32_t dst_len)
 {
     if (dev && dev->emu && dev->emu->read_config) {
@@ -603,6 +762,14 @@ static int __virtio_config_read_emulator(struct vmm_virtio_device *dev, uint32_t
     return VMM_OK;
 }
 
+/**
+ * @brief   向VirtIO模拟器写入配置
+ * @param dev 设备结构体指针
+ * @param offset 偏移量（字节）
+ * @param src 源设备树节点
+ * @param src_len 大小
+ * @return 成功读取的字节数，失败返回错误码
+ */
 static int __virtio_config_write_emulator(struct vmm_virtio_device *dev, uint32_t offset, void *src, uint32_t src_len)
 {
     if (dev && dev->emu && dev->emu->write_config) {
@@ -612,6 +779,12 @@ static int __virtio_config_write_emulator(struct vmm_virtio_device *dev, uint32_
     return VMM_OK;
 }
 
+/**
+ * @brief VirtIO设备匹配函数
+ * @param ids ID数组指针
+ * @param dev 设备结构体指针
+ * @return 成功写入的字节数，失败返回错误码
+ */
 static bool __virtio_match_device(const struct vmm_virtio_device_id *ids, struct vmm_virtio_device *dev)
 {
     while (ids->type) {
@@ -625,9 +798,15 @@ static bool __virtio_match_device(const struct vmm_virtio_device_id *ids, struct
     return FALSE;
 }
 
+/**
+ * @brief   绑定VirtIO设备模拟器
+ * @param dev 设备结构体指针
+ * @param emu 模拟设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __virtio_bind_emulator(struct vmm_virtio_device *dev, struct vmm_virtio_emulator *emu)
 {
-    int rc = VMM_EINVALID;
+    int rc = VMM_ERR_INVALID;
 
     if (__virtio_match_device(emu->id_table, dev)) {
         dev->emu = emu;
@@ -640,12 +819,17 @@ static int __virtio_bind_emulator(struct vmm_virtio_device *dev, struct vmm_virt
     return rc;
 }
 
+/**
+ * @brief   查找VirtIO设备模拟器
+ * @param dev 设备结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __virtio_find_emulator(struct vmm_virtio_device *dev)
 {
     struct vmm_virtio_emulator *emu;
 
     if (!dev || dev->emu) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     list_for_each_entry(emu, &virtio_emu_list, node)
@@ -655,9 +839,13 @@ static int __virtio_find_emulator(struct vmm_virtio_device *dev)
         }
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
+/**
+ * @brief   附加VirtIO设备模拟器
+ * @param emu 模拟设备指针
+ */
 static void __virtio_attach_emulator(struct vmm_virtio_emulator *emu)
 {
     struct vmm_virtio_device *dev;
@@ -674,33 +862,59 @@ static void __virtio_attach_emulator(struct vmm_virtio_emulator *emu)
     }
 }
 
+/**
+ * @brief 读取VirtIO设备的配置空间数据
+ * @param dev 设备结构体指针
+ * @param offset 偏移量（字节）
+ * @param dst 目标缓冲区指针
+ * @param dst_len 大小
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtio_config_read(struct vmm_virtio_device *dev, uint32_t offset, void *dst, uint32_t dst_len)
 {
     return __virtio_config_read_emulator(dev, offset, dst, dst_len);
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_config_read);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_config_read);
 
+/**
+ * @brief 写入VirtIO设备的配置空间数据
+ * @param dev 设备结构体指针
+ * @param offset 偏移量（字节）
+ * @param src 源设备树节点
+ * @param src_len 大小
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtio_config_write(struct vmm_virtio_device *dev, uint32_t offset, void *src, uint32_t src_len)
 {
     return __virtio_config_write_emulator(dev, offset, src, src_len);
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_config_write);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_config_write);
 
+/**
+ * @brief 复位virtio
+ * @param dev 设备结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtio_reset(struct vmm_virtio_device *dev)
 {
     return __virtio_reset_emulator(dev);
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_reset);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_reset);
 
+/**
+ * @brief 注册VirtIO设备
+ * @param dev 设备结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtio_register_device(struct vmm_virtio_device *dev)
 {
     int rc = VMM_OK;
 
     if (!dev || !dev->tra) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     INIT_LIST_HEAD(&dev->node);
@@ -717,8 +931,12 @@ int vmm_virtio_register_device(struct vmm_virtio_device *dev)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_register_device);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_register_device);
 
+/**
+ * @brief 注销VirtIO设备
+ * @param dev 设备结构体指针
+ */
 void vmm_virtio_unregister_device(struct vmm_virtio_device *dev)
 {
     if (!dev) {
@@ -733,15 +951,20 @@ void vmm_virtio_unregister_device(struct vmm_virtio_device *dev)
     vmm_mutex_unlock(&virtio_mutex);
 }
 
-VMM_EXPORT_SYMBOL(virtio_unregister_device);
+VMM_ERR_XPORT_SYMBOL(virtio_unregister_device);
 
+/**
+ * @brief 注册VirtIO模拟器
+ * @param emu 模拟设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtio_register_emulator(struct vmm_virtio_emulator *emu)
 {
     bool                        found;
     struct vmm_virtio_emulator *vemu;
 
     if (!emu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     vemu  = NULL;
@@ -759,7 +982,7 @@ int vmm_virtio_register_emulator(struct vmm_virtio_emulator *emu)
 
     if (found) {
         vmm_mutex_unlock(&virtio_mutex);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     INIT_LIST_HEAD(&emu->node);
@@ -772,8 +995,12 @@ int vmm_virtio_register_emulator(struct vmm_virtio_emulator *emu)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_register_emulator);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_register_emulator);
 
+/**
+ * @brief 注销VirtIO模拟器
+ * @param emu 模拟设备指针
+ */
 void vmm_virtio_unregister_emulator(struct vmm_virtio_emulator *emu)
 {
     struct vmm_virtio_device *dev;
@@ -793,14 +1020,22 @@ void vmm_virtio_unregister_emulator(struct vmm_virtio_emulator *emu)
     vmm_mutex_unlock(&virtio_mutex);
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtio_unregister_emulator);
+VMM_ERR_XPORT_SYMBOL(vmm_virtio_unregister_emulator);
 
+/**
+ * @brief 初始化VirtIO核心
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __init vmm_virtio_core_init(void)
 {
     /* Nothing to be done */
     return VMM_OK;
 }
 
+/**
+ * @brief VirtIO核心子系统退出清理
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __exit vmm_virtio_core_exit(void)
 {
     /* Nothing to be done */

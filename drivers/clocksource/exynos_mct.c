@@ -296,7 +296,7 @@ static int __init exynos4_clock_chip_init(vmm_device_tree_node_t *node)
     irq = vmm_device_tree_irq_parse_map(node, 0);
 
     if (!irq) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (!exynos4_sys_timer) {
@@ -497,7 +497,7 @@ static int exynos4_local_timer_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, ui
         irq = vmm_device_tree_irq_parse_map(mct_node, 1 + cpu);
 
         if (!irq) {
-            return VMM_ENODEV;
+            return VMM_ERR_NODEV;
         }
 
         rc = vmm_host_irq_register(irq, mevt->name, exynos4_mct_tick_isr, mevt);
@@ -517,7 +517,7 @@ static int exynos4_local_timer_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, ui
         irq = vmm_device_tree_irq_parse_map(mct_node, 1);
 
         if (!irq) {
-            return VMM_ENODEV;
+            return VMM_ERR_NODEV;
         }
 
         rc = vmm_host_irq_register(irq, "mct_tick_local", exynos4_mct_tick_isr, mevt);
@@ -546,7 +546,7 @@ static int __init exynos4_local_timer_init(vmm_device_tree_node_t *node)
         irq = vmm_device_tree_irq_parse_map(node, 1);
 
         if (!irq) {
-            return VMM_ENODEV;
+            return VMM_ERR_NODEV;
         }
 
         if (vmm_host_irq_is_per_cpu(vmm_host_irq_get(irq))) {

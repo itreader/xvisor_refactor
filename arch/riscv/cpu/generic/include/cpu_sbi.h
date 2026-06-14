@@ -41,7 +41,7 @@ struct sbiret sbi_ecall(int ext, int fid, uint64_t arg0, uint64_t arg1, uint64_t
 /**
  * Convert SBI spec error code into Xvisor error code
  *
- * @return VMM_Exxx error code OR VMM_OK
+ * @return VMM_ERR_xxx error code OR VMM_OK
  */
 int sbi_err_map_xvisor_errno(int err);
 
@@ -159,7 +159,7 @@ void sbi_remote_hfence_vvma_asid(const uint64_t *hart_mask, uint64_t start, uint
  * Check given SBI extension is supported or not.
  *
  * @param ext extension ID
- * @return >= 0 for supported AND VMM_ENOTSUPP for not-supported
+ * @return >= 0 for supported AND VMM_ERR_NOTSUPP for not-supported
  */
 int sbi_probe_extension(long ext);
 
@@ -194,7 +194,7 @@ uint64_t sbi_minor_version(void);
 /**
  * Initialize SBI library
  *
- * @return VMM_OK on success AND VMM_Exxx error code on failure
+ * @return VMM_OK on success AND VMM_ERR_xxx error code on failure
  */
 int sbi_init(void);
 
@@ -202,7 +202,7 @@ int sbi_init(void);
 /**
  * Initialize SBI IPI driver
  *
- * @return VMM_OK on success AND VMM_Exxx error code on failure
+ * @return VMM_OK on success AND VMM_ERR_xxx error code on failure
  */
 int sbi_ipi_init(void);
 #else

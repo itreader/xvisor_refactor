@@ -203,7 +203,7 @@ static void *vexpress_sysreg_config_func_get(vmm_device_t *dev, vmm_device_tree_
     uint32_t                            position = 0;
     uint32_t                            dcc      = 0;
     uint32_t                            func_device[2];
-    int                                 err = VMM_EFAULT;
+    int                                 err = VMM_ERR_FAULT;
 
     if (dev && !node) {
         node = dev->of_node;
@@ -249,13 +249,13 @@ static int vexpress_sysreg_config_func_exec(void *func, int offset, bool write, 
     uint32_t                            command;
 
     if (WARN_ON(!vexpress_sysreg_base)) {
-        return VMM_ENOENT;
+        return VMM_ERR_NOENT;
     }
 
     command = vmm_readl(vexpress_sysreg_base + SYS_CFGCTRL);
 
     if (WARN_ON(command & SYS_CFGCTRL_START)) {
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     command = SYS_CFGCTRL_START;
@@ -306,7 +306,7 @@ static int vexpress_sysreg_config_func_exec(void *func, int offset, bool write, 
         status = VEXPRESS_CONFIG_STATUS_DONE;
 
         if (cfgstat & SYS_CFGSTAT_ERR) {
-            status = VMM_EINVALID;
+            status = VMM_ERR_INVALID;
         }
     }
 
@@ -326,11 +326,11 @@ static void vexpress_sysreg_config_complete(vmm_timer_event_t *ev)
     uint32_t cfgstat = vmm_readl(vexpress_sysreg_base + SYS_CFGSTAT);
 
     if (cfgstat & SYS_CFGSTAT_ERR) {
-        status = VMM_EINVALID;
+        status = VMM_ERR_INVALID;
     }
 
     if (!vexpress_sysreg_config_tries--) {
-        status = VMM_ETIMEDOUT;
+        status = VMM_ERR_TIMEDOUT;
     }
 
     if (status < 0) {
@@ -510,7 +510,7 @@ static int vexpress_sysreg_probe(vmm_device_t *dev)
 
     if (!vexpress_sysreg_base) {
         vmm_printf("%s: Failed to obtain base address!\n", __func__);
-        return VMM_EFAULT;
+        return VMM_ERR_FAULT;
     }
 
     INIT_TIMER_EVENT(&vexpress_sysreg_config_timer, vexpress_sysreg_config_complete, NULL);

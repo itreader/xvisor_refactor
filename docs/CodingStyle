@@ -423,7 +423,7 @@ int fun(int a)
 	char *buffer = vmm_malloc(SIZE);
 
 	if (buffer == NULL)
-		return VMM_EFAIL;
+		return VMM_ERR_FAIL;
 
 	if (condition1) {
 		while (loop1) {
@@ -618,7 +618,7 @@ Things to avoid when using macros:
 #define FOO(x)					\
 	do {					\
 		if (blah(x) < 0)		\
-			return VMM_EFAIL;	\
+			return VMM_ERR_FAIL;	\
 	} while(0)
 
 is a _very_ bad idea.  It looks like a function call but exits the "calling"
@@ -715,7 +715,7 @@ something it would have done anyway.
 Functions can return values of many different kinds, and one of the
 most common is a value indicating whether the function succeeded or
 failed.  Such a value can be represented as an error-code integer
-(VMM_Exxx = failure, VMM_OK = success) or a "succeeded" boolean (0 = failure,
+(VMM_ERR_xxx = failure, VMM_OK = success) or a "succeeded" boolean (0 = failure,
 non-zero = success).
 
 Mixing up these two sorts of representations is a fertile source of
@@ -729,7 +729,7 @@ convention:
 	is a predicate, the function should return a "succeeded" boolean.
 
 For example, "add work" is a command, and the add_work() function returns 0
-for success or VMM_EBUSY for failure.  In the same way, "Ring buffer is empty" 
+for success or VMM_ERR_BUSY for failure.  In the same way, "Ring buffer is empty" 
 is a predicate, and the fifo_isempty() function returns 1 (TRUE) if 
 ring buffer is empty and 0 (FALSE) if it is not-empty.
 

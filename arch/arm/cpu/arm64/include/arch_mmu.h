@@ -114,9 +114,9 @@ static inline void cpu_mmu_at_test_exec(
     msr(par_el1, 0x0);
 
     if (write) {
-        va2pa_at(VA2PA_STAGE12, VA2PA_EL1, VA2PA_WR, addr);
+        virtualAddr_to_physicalAddr_at(VA2PA_STAGE12, VA2PA_EL1, VA2PA_WR, addr);
     } else {
-        va2pa_at(VA2PA_STAGE12, VA2PA_EL1, VA2PA_RD, addr);
+        virtualAddr_to_physicalAddr_at(VA2PA_STAGE12, VA2PA_EL1, VA2PA_RD, addr);
     }
 
     par       = mrs(par_el1);

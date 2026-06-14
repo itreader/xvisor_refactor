@@ -85,7 +85,7 @@ static int simple_frame_buffer_display_pixeldata(
     struct simple_frame_buffer_state *s = vmm_virtual_display_private(vdis);
 
     if (!s->fb_base_avail) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     gpa = s->fb_base;
@@ -97,11 +97,11 @@ static int simple_frame_buffer_display_pixeldata(
     }
 
     if (!(flags & VMM_REGION_REAL) || !(flags & VMM_REGION_MEMORY) || !(flags & VMM_REGION_IS_RAM)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (hsz < gsz) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_pixelformat_init_default(pf, s->bits_per_pixel);
@@ -238,7 +238,7 @@ static int simple_frame_buffer_emulator_read(vmm_emulate_device_t *edev, physica
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -250,7 +250,7 @@ static int simple_frame_buffer_emulator_read(vmm_emulate_device_t *edev, physica
 static int simple_frame_buffer_emulator_write(vmm_emulate_device_t *edev, physical_addr_t offset, uint32_t regmask, uint32_t regval, uint32_t size)
 {
     /* We don't allow writes */
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 static int simple_frame_buffer_emulator_reset(vmm_emulate_device_t *edev)
@@ -335,7 +335,7 @@ static int simple_frame_buffer_emulator_probe(struct vmm_guest *guest, vmm_emula
     s = vmm_zalloc(sizeof(struct simple_frame_buffer_state));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto simple_frame_buffer_emulator_probe_fail;
     }
 
@@ -416,7 +416,7 @@ skip_match:
     }
 
     if (!str) {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto simple_frame_buffer_emulator_probe_freestate_fail;
     }
 
@@ -463,7 +463,7 @@ skip_match:
         s->bppmode         = DRAWFN_BPP_32;
         s->format          = DRAWFN_FORMAT_BGR;
     } else {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto simple_frame_buffer_emulator_probe_freestate_fail;
     }
 
@@ -477,7 +477,7 @@ skip_match:
         } else if (strcmp(str, "bblp") == 0) {
             s->order = DRAWFN_ORDER_BBLP;
         } else {
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             goto simple_frame_buffer_emulator_probe_freestate_fail;
         }
     } else {
@@ -488,7 +488,7 @@ skip_match:
         s->stride = s->width * s->bytes_per_pixel;
     } else {
         if (s->stride < (s->width * s->bytes_per_pixel)) {
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             goto simple_frame_buffer_emulator_probe_freestate_fail;
         }
     }
@@ -497,7 +497,7 @@ skip_match:
     strlcat(name, "/", sizeof(name));
 
     if (strlcat(name, edev->node->name, sizeof(name)) >= sizeof(name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto simple_frame_buffer_emulator_probe_freestate_fail;
     }
 
@@ -512,7 +512,7 @@ skip_match:
     s->vdis = vmm_virtual_display_create(name, &simple_frame_buffer_ops, s);
 
     if (!s->vdis) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto simple_frame_buffer_emulator_probe_unreg_client_fail;
     }
 
@@ -534,7 +534,7 @@ static int simple_frame_buffer_emulator_remove(vmm_emulate_device_t *edev)
     struct simple_frame_buffer_state *s  = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_virtual_display_destroy(s->vdis);

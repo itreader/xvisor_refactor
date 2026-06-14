@@ -18,7 +18,7 @@
  *
  * @file vmm_netport.h
  * @author Sukanto Ghosh <sukantoghosh@gmail.com>
- * @brief Switch interface layer API.
+ * @brief 交换接口层API
  */
 
 #ifndef __VMM_NETPORT_H_
@@ -45,13 +45,16 @@ struct vmm_netswitch;
 struct vmm_netport;
 struct vmm_mbuf;
 
+/**
+ * @brief 网络端口懒加载结构，延迟初始化端口资源
+ */
 struct vmm_netport_lazy {
-    struct vmm_netport *port;
-    atomic_t            sched_count;
-    double_list_t       head;
-    int                 budget;
-    void               *arg;
-    void (*xfer)(struct vmm_netport *, void *, int);
+    struct vmm_netport *port; /**< 端口 */
+    atomic_t            sched_count; /**< sched_count成员 */
+    double_list_t       head; /**< 链表头 */
+    int                 budget; /**< budget成员 */
+    void               *arg; /**< 参数 */
+    void (*xfer)(struct vmm_netport *, void *, int); /**< 传输 */
 };
 
 #define INIT_NETPORT_LAZY(__lazy, __port, __budget, __arg, __xfer)                                                                                   \
@@ -64,25 +67,28 @@ struct vmm_netport_lazy {
         (__lazy)->xfer   = (__xfer);                                                                                                                 \
     } while (0)
 
+/**
+ * @brief 网络端口结构，描述一个虚拟网络接口的收发和配置
+ */
 struct vmm_netport {
-    double_list_t         head;
-    char                  name[VMM_FIELD_NAME_SIZE];
-    uint32_t              queue_size;
-    int                   flags;
-    int                   mtu;
-    uint8_t               macaddr[6];
-    struct vmm_netswitch *nsw;
-    vmm_device_t          dev;
+    double_list_t         head; /**< 链表头 */
+    char                  name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
+    uint32_t              queue_size; /**< queue_size成员 */
+    int                   flags; /**< 标志位 */
+    int                   mtu; /**< 最大传输单元 */
+    uint8_t               macaddr[6]; /**< MAC地址 */
+    struct vmm_netswitch *nsw; /**< 网络交换 */
+    vmm_device_t          dev; /**< 设备 */
 
     /* Link status changed */
-    void (*link_changed)(struct vmm_netport *);
+    void (*link_changed)(struct vmm_netport *); /**< link_changed成员 */
     /* Callback to determine if the port can RX */
-    int (*can_receive)(struct vmm_netport *);
+    int (*can_receive)(struct vmm_netport *); /**< can_receive成员 */
     /* Handle RX from switch to port */
-    vmm_spinlock_t switch2port_xfer_lock;
-    int (*switch2port_xfer)(struct vmm_netport *, struct vmm_mbuf *);
+    vmm_spinlock_t switch2port_xfer_lock; /**< switch2port_xfer_lock成员 */
+    int (*switch2port_xfer)(struct vmm_netport *, struct vmm_mbuf *); /**< switch2port_xfer成员 */
     /* Port private data */
-    void *private;
+    void *private; /**< 私有数据 */
 };
 
 #define list_port(node) (container_of((node), struct vmm_netport, head))
@@ -90,22 +96,43 @@ struct vmm_netport {
 /** Allocate new netport */
 struct vmm_netport *vmm_netport_alloc(char *name, uint32_t queue_size);
 
-/** Free netport */
+/**
+ * @brief 释放网络端口
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netport_free(struct vmm_netport *port);
 
-/** Register netport to networking framework */
+/**
+ * @brief 注册网络端口
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netport_register(struct vmm_netport *port);
 
-/** Unregister netport from networking framework */
+/**
+ * @brief 注销网络端口
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netport_unregister(struct vmm_netport *port);
 
 /** Find a netport in networking framework */
 struct vmm_netport *vmm_netport_find(const char *name);
 
-/** Iterate over each netport in networking framework */
+/**
+ * @brief 网络端口 遍历
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netport_iterate(struct vmm_netport *start, void *data, int (*fn)(struct vmm_netport *dev, void *data));
 
-/** Count number of netports */
+/**
+ * @brief 获取网络端口的数量
+ * @return 数量值
+ */
 uint32_t vmm_netport_count(void);
 
 /** Get pointer to port mac address */

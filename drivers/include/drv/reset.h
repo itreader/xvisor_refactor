@@ -85,22 +85,22 @@ static inline void reset_control_put(struct reset_control *rstc)
 
 static inline int device_reset_optional(vmm_device_t *dev)
 {
-    return VMM_ENOSYS;
+    return VMM_ERR_NOSYS;
 }
 
 static inline struct reset_control *reset_control_get_optional(vmm_device_t *dev, const char *id)
 {
-    return VMM_ERR_PTR(VMM_ENOSYS);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOSYS);
 }
 
 static inline struct reset_control *devm_reset_control_get_optional(vmm_device_t *dev, const char *id)
 {
-    return VMM_ERR_PTR(VMM_ENOSYS);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOSYS);
 }
 
 static inline struct reset_control *of_reset_control_get(vmm_device_tree_node_t *node, const char *id)
 {
-    return VMM_ERR_PTR(VMM_ENOSYS);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOSYS);
 }
 
 #endif /* CONFIG_RESET_CONTROLLER */

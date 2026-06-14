@@ -93,7 +93,7 @@ static struct syscon *of_syscon_register(vmm_device_tree_node_t *np)
     syscon = vmm_zalloc(sizeof(*syscon));
 
     if (!syscon) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     vmm_device_tree_ref_node(np);
@@ -106,7 +106,7 @@ static struct syscon *of_syscon_register(vmm_device_tree_node_t *np)
         vmm_lerror(np->name, "failed to get register space address\n");
         vmm_device_tree_dref_node(np);
         vmm_free(syscon);
-        return VMM_ERR_PTR(ret);
+        return VMM_ERR_RR_PTR(ret);
     }
 
     ret = vmm_device_tree_regsize(np, &size, 0);
@@ -115,7 +115,7 @@ static struct syscon *of_syscon_register(vmm_device_tree_node_t *np)
         vmm_lerror(np->name, "failed to get register space size\n");
         vmm_device_tree_dref_node(np);
         vmm_free(syscon);
-        return VMM_ERR_PTR(ret);
+        return VMM_ERR_RR_PTR(ret);
     }
 
     ret = vmm_device_tree_request_regmap(np, &va, 0, "syscon");
@@ -124,7 +124,7 @@ static struct syscon *of_syscon_register(vmm_device_tree_node_t *np)
         vmm_lerror(np->name, "failed to map register space\n");
         vmm_device_tree_dref_node(np);
         vmm_free(syscon);
-        return VMM_ERR_PTR(ret);
+        return VMM_ERR_RR_PTR(ret);
     }
 
     syscon->base = (void *)va;
@@ -160,7 +160,7 @@ static struct syscon *of_syscon_register(vmm_device_tree_node_t *np)
         vmm_device_tree_regunmap_release(np, va, 0);
         vmm_device_tree_dref_node(np);
         vmm_free(syscon);
-        return VMM_ERR_CAST(syscon->regmap);
+        return VMM_ERR_RR_CAST(syscon->regmap);
     }
 
     vmm_spin_lock_irq_save(&syscon_list_slock, flags);
@@ -220,13 +220,13 @@ struct regmap *syscon_node_to_regmap(vmm_device_tree_node_t *np)
     struct syscon *syscon = node_to_syscon(np);
 
     if (VMM_IS_ERR(syscon)) {
-        return VMM_ERR_CAST(syscon);
+        return VMM_ERR_RR_CAST(syscon);
     }
 
     return syscon->regmap;
 }
 
-VMM_EXPORT_SYMBOL(syscon_node_to_regmap);
+VMM_ERR_XPORT_SYMBOL(syscon_node_to_regmap);
 
 struct regmap *syscon_regmap_lookup_by_compatible(const char *s)
 {
@@ -236,7 +236,7 @@ struct regmap *syscon_regmap_lookup_by_compatible(const char *s)
     syscon_np = vmm_device_tree_find_compatible(NULL, NULL, s);
 
     if (!syscon_np) {
-        return VMM_ERR_PTR(VMM_ENODEV);
+        return VMM_ERR_RR_PTR(VMM_ERR_NODEV);
     }
 
     regmap = syscon_node_to_regmap(syscon_np);
@@ -245,7 +245,7 @@ struct regmap *syscon_regmap_lookup_by_compatible(const char *s)
     return regmap;
 }
 
-VMM_EXPORT_SYMBOL(syscon_regmap_lookup_by_compatible);
+VMM_ERR_XPORT_SYMBOL(syscon_regmap_lookup_by_compatible);
 
 static int syscon_match_pdevname(vmm_device_t *dev, void *data)
 {
@@ -260,7 +260,7 @@ struct regmap *syscon_regmap_lookup_by_pdevname(const char *s)
     dev = vmm_device_driver_bus_find_device(&platform_bus, NULL, (void *)s, syscon_match_pdevname);
 
     if (!dev) {
-        return VMM_ERR_PTR(VMM_EPROBE_DEFER);
+        return VMM_ERR_RR_PTR(VMM_ERR_PROBE_DEFER);
     }
 
     syscon = vmm_device_driver_get_data(dev);
@@ -268,7 +268,7 @@ struct regmap *syscon_regmap_lookup_by_pdevname(const char *s)
     return syscon->regmap;
 }
 
-VMM_EXPORT_SYMBOL(syscon_regmap_lookup_by_pdevname);
+VMM_ERR_XPORT_SYMBOL(syscon_regmap_lookup_by_pdevname);
 
 struct regmap *syscon_regmap_lookup_by_phandle(vmm_device_tree_node_t *np, const char *property)
 {
@@ -282,7 +282,7 @@ struct regmap *syscon_regmap_lookup_by_phandle(vmm_device_tree_node_t *np, const
     }
 
     if (!syscon_np) {
-        return VMM_ERR_PTR(VMM_ENODEV);
+        return VMM_ERR_RR_PTR(VMM_ERR_NODEV);
     }
 
     regmap = syscon_node_to_regmap(syscon_np);
@@ -291,7 +291,7 @@ struct regmap *syscon_regmap_lookup_by_phandle(vmm_device_tree_node_t *np, const
     return regmap;
 }
 
-VMM_EXPORT_SYMBOL(syscon_regmap_lookup_by_phandle);
+VMM_ERR_XPORT_SYMBOL(syscon_regmap_lookup_by_phandle);
 
 static int syscon_probe(vmm_device_t *dev)
 {

@@ -19,7 +19,7 @@
  * @file vmm_load_balancer_crude.c
  * @author Jean-Christophe Dubois (jcd@tribudubois.net)
  * @author Anup Patel (anup@brainfault.org)
- * @brief source file for crude load balancing algo
+ * @brief 简单负载均衡算法源文件
  *
  * This is a very simple and lazy "load balancer". It will balance
  * VCPUs based on host CPU utilization. It does not consider the
@@ -55,23 +55,33 @@
 #define MODULE_INIT      crude_init
 #define MODULE_EXIT      crude_exit
 
+/**
+ * @brief 简单负载均衡控制结构，跟踪各主机CPU上VCPU的存活/活跃计数和空闲时间
+ */
 struct crude_control {
-    uint32_t alive_count[CONFIG_CPU_COUNT][VMM_VCPU_MAX_PRIORITY + 1];
-    uint32_t active_count[CONFIG_CPU_COUNT][VMM_VCPU_MAX_PRIORITY + 1];
-    uint64_t idle_ns[CONFIG_CPU_COUNT];
-    uint64_t idle_period_ns[CONFIG_CPU_COUNT];
-    uint32_t idle_percent[CONFIG_CPU_COUNT];
+    uint32_t alive_count[CONFIG_CPU_COUNT][VMM_VCPU_MAX_PRIORITY + 1]; /**< 存活计数 */
+    uint32_t active_count[CONFIG_CPU_COUNT][VMM_VCPU_MAX_PRIORITY + 1]; /**< 活跃计数 */
+    uint64_t idle_ns[CONFIG_CPU_COUNT]; /**< idle_ns成员 */
+    uint64_t idle_period_ns[CONFIG_CPU_COUNT]; /**< idle_period_ns成员 */
+    uint32_t idle_percent[CONFIG_CPU_COUNT]; /**< idle_percent成员 */
 };
 
+/**
+ * @brief VCPU迭代回调：统计各主机CPU上各优先级VCPU的存活数和活跃数
+ * @param vcpu 当前遍历的VCPU指针
+ * @param private crude_control结构体指针
+ * @return 成功返回VMM_OK
+ */
 static int crude_analyze_count_iter(vmm_vcpu_t *vcpu, void *private)
 {
-    uint32_t              host_cpu, state;
+    uint32_t host_cpu;
+    uint32_t state;
     struct crude_control *crude = private;
 
     state                       = vmm_manager_vcpu_get_state(vcpu);
 
     if (state != VMM_VCPU_STATE_READY && state != VMM_VCPU_STATE_RUNNING && state != VMM_VCPU_STATE_PAUSED) {
-        return VMM_OK;
+        return VMM_OK; /**< VMM_OK成员 */
     }
 
     vmm_manager_vcpu_get_hcpu(vcpu, &host_cpu);
@@ -85,6 +95,10 @@ static int crude_analyze_count_iter(vmm_vcpu_t *vcpu, void *private)
     return VMM_OK;
 }
 
+/**
+ * @brief 遍历所有VCPU，统计各主机CPU上的存活和活跃VCPU计数
+ * @param crude 负载均衡控制结构指针
+ */
 static void crude_analyze_count(struct crude_control *crude)
 {
     memset(crude->alive_count, 0, sizeof(crude->alive_count));
@@ -93,6 +107,10 @@ static void crude_analyze_count(struct crude_control *crude)
     vmm_manager_vcpu_iterate(crude_analyze_count_iter, crude);
 }
 
+/**
+ * @brief 计算各主机CPU的空闲时间和空闲百分比
+ * @param crude 负载均衡控制结构指针
+ */
 static void crude_analyze_idle(struct crude_control *crude)
 {
     uint32_t host_cpu;
@@ -110,13 +128,16 @@ static void crude_analyze_idle(struct crude_control *crude)
 }
 
 /**
- * Find out best idle host_cpu.
- *
- * A best idle host_cpu is a host_cpu who spends maximum time in idle.
+ * @brief 查找空闲百分比最高的主机CPU
+ * @param crude 负载均衡控制结构指针
+ * @return 空闲率最高的主机CPU编号
  */
 static uint32_t crude_best_idle_hcpu(struct crude_control *crude)
 {
-    uint32_t host_cpu, idle, best_hcpu, best_hcpu_idle;
+    uint32_t host_cpu;
+    uint32_t idle;
+    uint32_t best_hcpu;
+    uint32_t best_hcpu_idle;
 
     best_hcpu      = vmm_smp_processor_id();
     best_hcpu_idle = crude->idle_percent[best_hcpu];
@@ -135,17 +156,19 @@ static uint32_t crude_best_idle_hcpu(struct crude_control *crude)
 }
 
 /**
- * Find out worst idle host_cpu.
- *
- * A worst idle host_cpu is a host_cpu who spends least time in idle.
- *
- * If two hcpus have same idle time then host_cpu with more number
- * of active VCPUs is considered worst among the two hcpus.
+ * @brief 查找负载最重的主机CPU（空闲率最低且活跃VCPU数最多）
+ * @param crude 负载均衡控制结构指针
+ * @return 负载最重的主机CPU编号
  */
 static uint32_t crude_worst_idle_hcpu(struct crude_control *crude)
 {
-    uint32_t p, host_cpu, count, idle;
-    uint32_t worst_hcpu, worst_hcpu_count, worst_hcpu_idle;
+    uint32_t p;
+    uint32_t host_cpu;
+    uint32_t count;
+    uint32_t idle;
+    uint32_t worst_hcpu;
+    uint32_t worst_hcpu_count;
+    uint32_t worst_hcpu_idle;
 
     worst_hcpu      = vmm_smp_processor_id();
     worst_hcpu_idle = crude->idle_percent[worst_hcpu];
@@ -176,24 +199,34 @@ static uint32_t crude_worst_idle_hcpu(struct crude_control *crude)
     return worst_hcpu;
 }
 
+/**
+ * @brief 负载均衡迁移上下文，记录待迁移VCPU的优先级、状态及新旧主机CPU
+ */
 struct crude_balance_hcpu {
-    struct crude_control *crude;
-    uint8_t               prio;
-    uint32_t              state;
-    uint32_t              old_hcpu;
-    uint32_t              new_hcpu;
-    uint32_t              done;
+    struct crude_control *crude; /**< crude成员 */
+    uint8_t               prio; /**< 优先级 */
+    uint32_t              state; /**< 状态 */
+    uint32_t              old_hcpu; /**< old_hcpu成员 */
+    uint32_t              new_hcpu; /**< new_hcpu成员 */
+    uint32_t              done; /**< 完成标志 */
 };
 
+/**
+ * @brief VCPU迭代回调：将匹配条件的VCPU从过载CPU迁移到空闲CPU
+ * @param vcpu 当前遍历的VCPU指针
+ * @param private crude_balance_hcpu迁移上下文指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int crude_balance_hcpu_iter(vmm_vcpu_t *vcpu, void *private)
 {
     int                        rc;
-    uint32_t                   host_cpu, state;
+    uint32_t host_cpu;
+    uint32_t state;
     const vmm_cpumask_t       *aff;
     struct crude_balance_hcpu *crude_bhp = private;
 
     if (crude_bhp->done) {
-        return VMM_OK;
+        return VMM_OK; /**< VMM_OK成员 */
     }
 
     if (crude_bhp->prio != vcpu->priority) {
@@ -235,11 +268,17 @@ static int crude_balance_hcpu_iter(vmm_vcpu_t *vcpu, void *private)
     return VMM_OK;
 }
 
+/**
+ * @brief 执行一轮负载均衡：分析负载并将VCPU从过载CPU迁移到空闲CPU
+ * @param algo 负载均衡算法实例指针
+ */
 static void crude_balance(struct vmm_load_balancer_algo *algo)
 {
     uint8_t                   prio;
-    uint32_t                  best_hcpu, best_hcpu_idle;
-    uint32_t                  worst_hcpu, worst_hcpu_idle;
+    uint32_t best_hcpu;
+    uint32_t best_hcpu_idle;
+    uint32_t worst_hcpu;
+    uint32_t worst_hcpu_idle;
     struct crude_balance_hcpu crude_bhp;
     struct crude_control     *crude = vmm_load_balancer_get_algo_private(algo);
 
@@ -279,6 +318,11 @@ static void crude_balance(struct vmm_load_balancer_algo *algo)
     }
 }
 
+/**
+ * @brief 启动负载均衡算法，分配控制结构
+ * @param algo 负载均衡算法实例指针
+ * @return 成功返回VMM_OK，失败返回VMM_ERR_NOMEM
+ */
 static int crude_start(struct vmm_load_balancer_algo *algo)
 {
     struct crude_control *crude;
@@ -286,7 +330,7 @@ static int crude_start(struct vmm_load_balancer_algo *algo)
     crude = vmm_zalloc(sizeof(*crude));
 
     if (!crude) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM; /**< VMM_ERR_NOMEM成员 */
     }
 
     vmm_load_balancer_set_algo_private(algo, crude);
@@ -294,6 +338,10 @@ static int crude_start(struct vmm_load_balancer_algo *algo)
     return VMM_OK;
 }
 
+/**
+ * @brief 停止负载均衡算法，释放控制结构
+ * @param algo 负载均衡算法实例指针
+ */
 static void crude_stop(struct vmm_load_balancer_algo *algo)
 {
     struct crude_control *crude = vmm_load_balancer_get_algo_private(algo);
@@ -314,11 +362,18 @@ static struct vmm_load_balancer_algo crude = {
     .stop    = crude_stop,
 };
 
+/**
+ * @brief 简单负载均衡器模块初始化，注册算法
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __init crude_init(void)
 {
     return vmm_load_balancer_register_algo(&crude);
 }
 
+/**
+ * @brief 简单负载均衡器模块退出，注销算法
+ */
 static void __exit crude_exit(void)
 {
     vmm_load_balancer_unregister_algo(&crude);

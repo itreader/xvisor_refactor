@@ -67,7 +67,7 @@ int arch_elf_apply_relocate(struct elf32_shdr *sechdrs, const char *strtab, uint
                 "%s: section %u reloc %u: "
                 "bad relocation sym offset\n",
                 mod->name, relindex, i);
-            return VMM_ENOEXEC;
+            return VMM_ERR_NOEXEC;
         }
 
         sym     = ((Elf32_Sym *)symsec->sh_addr) + offset;
@@ -78,7 +78,7 @@ int arch_elf_apply_relocate(struct elf32_shdr *sechdrs, const char *strtab, uint
                 "%s: section %u reloc %u sym '%s': out of "
                 "bounds relocation, offset %d size %u\n",
                 mod->name, relindex, i, symname, rel->r_offset, dstsec->sh_size);
-            return VMM_ENOEXEC;
+            return VMM_ERR_NOEXEC;
         }
 
         loc = dstsec->sh_addr + rel->r_offset;
@@ -108,7 +108,7 @@ int arch_elf_apply_relocate(struct elf32_shdr *sechdrs, const char *strtab, uint
                         "%s: section %u reloc %u sym '%s': "
                         "relocation %u out of range (%" PRIADDR " -> %#x)\n",
                         mod->name, relindex, i, symname, ELF32_R_TYPE(rel->r_info), loc, sym->st_value);
-                    return VMM_ENOEXEC;
+                    return VMM_ERR_NOEXEC;
                 }
 
                 offset >>= 2;
@@ -149,7 +149,7 @@ int arch_elf_apply_relocate(struct elf32_shdr *sechdrs, const char *strtab, uint
 
             default:
                 vmm_printf("%s: unknown relocation: %u\n", mod->name, ELF32_R_TYPE(rel->r_info));
-                return VMM_ENOEXEC;
+                return VMM_ERR_NOEXEC;
         }
     }
 
@@ -159,5 +159,5 @@ int arch_elf_apply_relocate(struct elf32_shdr *sechdrs, const char *strtab, uint
 int arch_elf_apply_relocate_add(Elf32_Shdr *sechdrs, const char *strtab, uint32_t symindex, uint32_t relsec, vmm_module_t *mod)
 {
     vmm_printf("module %s: ADD RELOCATION unsupported\n", mod->name);
-    return VMM_ENOEXEC;
+    return VMM_ERR_NOEXEC;
 }

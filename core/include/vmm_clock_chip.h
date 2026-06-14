@@ -18,7 +18,7 @@
  *
  * @file vmm_clock_chip.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief Interface for clockchip management
+ * @brief 时钟芯片管理接口
  */
 #ifndef _VMM_CLOCKCHIP_H__
 #define _VMM_CLOCKCHIP_H__
@@ -31,8 +31,11 @@
 
 /* Clock chip mode commands */
 /* 时钟芯片模式 */
+/**
+ * @brief 时钟芯片工作模式，定义时钟芯片的回调接口和特性
+ */
 enum vmm_clock_chip_mode {
-    VMM_CLOCKCHIP_MODE_UNUSED = 0,
+    VMM_CLOCKCHIP_MODE_UNUSED = 0, /**< 0 */
     VMM_CLOCKCHIP_MODE_SHUTDOWN,
     VMM_CLOCKCHIP_MODE_PERIODIC,
     VMM_CLOCKCHIP_MODE_ONESHOT,
@@ -71,24 +74,24 @@ typedef struct vmm_clock_chip vmm_clock_chip_t;
  * @next_event:     local storage for the next event in oneshot mode
  */
 struct vmm_clock_chip {
-    double_list_t        head;
-    const char          *name;
-    uint32_t             hirq;
-    int                  rating;
-    const vmm_cpumask_t *cpumask;
-    uint32_t             features;
-    uint32_t             freq;
-    uint32_t             mult;
-    uint32_t             shift;
-    uint64_t             max_delta_ns;
-    uint64_t             min_delta_ns;
-    void (*event_handler)(vmm_clock_chip_t *cc);
-    void (*set_mode)(vmm_clock_chip_mode_e mode, vmm_clock_chip_t *cc);
-    int (*set_next_event)(uint64_t evt, vmm_clock_chip_t *cc);
-    vmm_clock_chip_mode_e mode;
-    uint32_t              bound_on;
-    uint64_t              next_event;
-    void *private;
+    double_list_t        head; /**< 链表头 */
+    const char          *name; /**< 名称 */
+    uint32_t             hirq; /**< 主机中断 */
+    int                  rating; /**< rating成员 */
+    const vmm_cpumask_t *cpumask; /**< CPU掩码 */
+    uint32_t             features; /**< 特性 */
+    uint32_t             freq; /**< 频率 */
+    uint32_t             mult; /**< 乘数/多播 */
+    uint32_t             shift; /**< shift成员 */
+    uint64_t             max_delta_ns; /**< max_delta_ns成员 */
+    uint64_t             min_delta_ns; /**< min_delta_ns成员 */
+    void (*event_handler)(vmm_clock_chip_t *cc); /**< event_handler成员 */
+    void (*set_mode)(vmm_clock_chip_mode_e mode, vmm_clock_chip_t *cc); /**< set_mode成员 */
+    int (*set_next_event)(uint64_t evt, vmm_clock_chip_t *cc); /**< set_next_event成员 */
+    vmm_clock_chip_mode_e mode; /**< 模式 */
+    uint32_t              bound_on; /**< bound_on成员 */
+    uint64_t              next_event; /**< next_event成员 */
+    void *private; /**< 私有数据 */
 };
 
 #define VMM_NSEC_PER_SEC 1000000000UL
@@ -100,32 +103,13 @@ typedef int (*vmm_clock_chip_init_t)(vmm_device_tree_node_t *);
 #define VMM_CLOCKCHIP_INIT_DECLARE(name, compat, fn) VMM_DEVICE_TREE_NIDTBL_ENTRY(name, "clockchip", "", "", compat, fn)
 
 /**
- * clocks_calc_mult_shift - calculate mult/shift factors for scaled math of clocks
- * @mult:   pointer to mult variable
- * @shift:  pointer to shift variable
- * @from:   frequency to convert from
- * @to:     frequency to convert to
- * @maxsec: guaranteed runtime conversion range in seconds
- *
- * The function evaluates the shift/mult pair for the scaled math
- * operations of clocksources and clockevents.
- *
- * @to and @from are frequency values in HZ. For clock sources @to is
- * VMM_NSEC_PER_SEC == 1GHz and @from is the counter frequency. For clock
- * event @to is the counter frequency and @from is VMM_NSEC_PER_SEC.
- *
- * The @maxsec conversion range argument controls the time frame in
- * seconds which must be covered by the runtime conversion with the
- * calculated mult and shift factors. This guarantees that no 64bit
- * overflow happens when the input value of the conversion is
- * multiplied with the calculated mult factor. Larger ranges may
- * reduce the conversion accuracy by chosing smaller mult and shift
- * factors.
+ * @brief 计算时钟缩放运算的乘数/移位因子
  */
 static inline void vmm_clocks_calc_mult_shift(uint32_t *mult, uint32_t *shift, uint32_t from, uint32_t to, uint32_t maxsec)
 {
     uint64_t tmp;
-    uint32_t sft, sftacc = 32;
+    uint32_t sft;
+    uint32_t sftacc = 32;
 
     /*
      * Calculate the shift factor which is limiting the conversion
@@ -156,7 +140,9 @@ static inline void vmm_clocks_calc_mult_shift(uint32_t *mult, uint32_t *shift, u
     *shift = sft;
 }
 
-/** Convert kHz clockchip to clockchip mult */
+/**
+ * @brief 将kHz频率转换为时钟芯片乘数
+ */
 static inline uint32_t vmm_clock_chip_khz2mult(uint32_t khz, uint32_t shift)
 {
     uint64_t tmp = ((uint64_t)khz) << shift;
@@ -164,7 +150,9 @@ static inline uint32_t vmm_clock_chip_khz2mult(uint32_t khz, uint32_t shift)
     return (uint32_t)tmp;
 }
 
-/** Convert Hz clockchip to clockchip mult */
+/**
+ * @brief 将Hz频率转换为时钟芯片乘数
+ */
 static inline uint32_t vmm_clock_chip_hz2mult(uint32_t hz, uint32_t shift)
 {
     uint64_t tmp = ((uint64_t)hz) << shift;
@@ -172,47 +160,97 @@ static inline uint32_t vmm_clock_chip_hz2mult(uint32_t hz, uint32_t shift)
     return (uint32_t)tmp;
 }
 
-/** Get frequency of clockchip */
+/**
+ * @brief 获取时钟芯片的频率
+ */
 static inline uint32_t vmm_clock_chip_frequency(vmm_clock_chip_t *cc)
 {
     return (cc) ? cc->freq : 0;
 }
 
-/** Convert tick delta to nanoseconds */
+/**
+ * @brief 将时钟刻度差值转换为纳秒
+ */
 static inline uint64_t vmm_clock_chip_delta2ns(uint64_t delta, vmm_clock_chip_t *cc)
 {
     uint64_t tmp = (uint64_t)delta << cc->shift;
+/**
+ * @brief udiv64
+ * @param tmp 临时变量
+ * @param cc->mult 参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
     return udiv64(tmp, cc->mult);
 }
 
-/** Set event handler for clockchip */
+/**
+ * @brief 设置时钟芯片的事件处理回调
+ * @param cc 时钟芯片结构体指针
+ * @param (*event_handler 指针参数
+ */
 void vmm_clock_chip_set_event_handler(vmm_clock_chip_t *cc, void (*event_handler)(vmm_clock_chip_t *));
 
-/** Program clockchip for next event after delta nanoseconds */
+/**
+ * @brief 编程时钟芯片的定时事件
+ * @param cc 时钟芯片结构体指针
+ * @param now_ns 当前时间（纳秒）
+ * @param expires_ns 到期时间（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_clock_chip_program_event(vmm_clock_chip_t *cc, uint64_t now_ns, uint64_t expires_ns);
 
-/** Change mode of clockchip */
+/**
+ * @brief 设置时钟芯片的mode
+ * @param cc 时钟芯片结构体指针
+ * @param mode 操作模式
+ */
 void vmm_clock_chip_set_mode(vmm_clock_chip_t *cc, vmm_clock_chip_mode_e mode);
 
-/** Register clockchip */
+/**
+ * @brief 注册时钟芯片
+ * @param cc 时钟芯片结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_clock_chip_register(vmm_clock_chip_t *cc);
 
-/** Register clockchip */
+/**
+ * @brief 注销时钟芯片
+ * @param cc 时钟芯片结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_clock_chip_unregister(vmm_clock_chip_t *cc);
 
-/** Find best rated clockchip for given host CPU and bind it */
+/**
+ * @brief 为时钟芯片绑定最佳时钟源
+ * @param host_cpu 主机CPU编号
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_clock_chip_t *vmm_clock_chip_bind_best(uint32_t host_cpu);
 
-/** Unbind clockchip from host CPU */
+/**
+ * @brief 解绑时钟芯片
+ * @param cc 时钟芯片结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_clock_chip_unbind(vmm_clock_chip_t *cc);
 
-/** Retrive clockchip with given index */
+/**
+ * @brief 获取时钟芯片实例
+ * @param index 数组中的索引位置
+ * @return 目标对象指针，不存在返回NULL
+ */
 vmm_clock_chip_t *vmm_clock_chip_get(int index);
 
-/** Count number of clockchips */
+/**
+ * @brief 获取时钟芯片的数量
+ * @return 数量值
+ */
 uint32_t vmm_clock_chip_count(void);
 
-/** Initialize clockchip management subsystem */
+/**
+ * @brief 初始化时钟芯片
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_clock_chip_init(void);
 
 #endif

@@ -59,18 +59,18 @@ int sbi_err_map_xvisor_errno(int err)
             return 0;
 
         case SBI_ERR_DENIED:
-            return VMM_EACCESS;
+            return VMM_ERR_ACCESS;
 
         case SBI_ERR_INVALID_PARAM:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
 
         case SBI_ERR_INVALID_ADDRESS:
-            return VMM_EFAULT;
+            return VMM_ERR_FAULT;
 
         case SBI_ERR_NOT_SUPPORTED:
         case SBI_ERR_FAILED:
         default:
-            return VMM_ENOTSUPP;
+            return VMM_ERR_NOTSUPP;
     };
 }
 
@@ -158,7 +158,7 @@ static int __sbi_rfence_v01(uint64_t fid, const uint64_t *hart_mask, uint64_t st
 
         default:
             vmm_printf("%s: unknown function ID [%lu]\n", __func__, fid);
-            result = VMM_EINVALID;
+            result = VMM_ERR_INVALID;
             break;
     };
 
@@ -269,7 +269,7 @@ static int __sbi_rfence_v02_real(uint64_t fid, uint64_t hmask, uint64_t hbase, u
 
         default:
             vmm_printf("%s: unknown function ID [%lu]\n", __func__, fid);
-            result = VMM_EINVALID;
+            result = VMM_ERR_INVALID;
             break;
     };
 
@@ -399,7 +399,7 @@ int sbi_probe_extension(long extid)
         return ret.value;
     }
 
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 int sbi_spec_is_0_1(void)
@@ -433,7 +433,7 @@ static int sbi_default_terminal_getc(uint8_t *ch)
     int rch = sbi_console_getchar();
 
     if (rch < 0) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     *ch = rch;

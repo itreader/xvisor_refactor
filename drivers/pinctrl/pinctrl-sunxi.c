@@ -550,8 +550,8 @@ static int sunxi_pinctrl_irq_set_type(
 {
     struct sunxi_pinctrl *pctl = irq_data_get_irq_chip_data(d);
 #if 0
-    uint32_t reg = sunxi_irq_cfg_reg(d->hwirq);
-    uint8_t index = sunxi_irq_cfg_offset(d->hwirq);
+    uint32_t reg = sunxi_irq_cfg_reg(d->hw_irq_num);
+    uint8_t index = sunxi_irq_cfg_offset(d->hw_irq_num);
 #else
     uint32_t reg   = sunxi_irq_cfg_reg(d->num - pctl->irq_start);
     uint8_t  index = sunxi_irq_cfg_offset(d->num - pctl->irq_start);
@@ -600,10 +600,10 @@ static void sunxi_pinctrl_irq_mask_ack(struct irq_data *d)
 {
     struct sunxi_pinctrl *pctl = irq_data_get_irq_chip_data(d);
 #if 0
-    uint32_t ctrl_reg = sunxi_irq_ctrl_reg(d->hwirq);
-    uint8_t ctrl_idx = sunxi_irq_ctrl_offset(d->hwirq);
-    uint32_t status_reg = sunxi_irq_status_reg(d->hwirq);
-    uint8_t status_idx = sunxi_irq_status_offset(d->hwirq);
+    uint32_t ctrl_reg = sunxi_irq_ctrl_reg(d->hw_irq_num);
+    uint8_t ctrl_idx = sunxi_irq_ctrl_offset(d->hw_irq_num);
+    uint32_t status_reg = sunxi_irq_status_reg(d->hw_irq_num);
+    uint8_t status_idx = sunxi_irq_status_offset(d->hw_irq_num);
 #else
     uint32_t ctrl_reg   = sunxi_irq_ctrl_reg(d->num - pctl->irq_start);
     uint8_t  ctrl_idx   = sunxi_irq_ctrl_offset(d->num - pctl->irq_start);
@@ -630,8 +630,8 @@ static void sunxi_pinctrl_irq_mask(struct irq_data *d)
 {
     struct sunxi_pinctrl *pctl = irq_data_get_irq_chip_data(d);
 #if 0
-    uint32_t reg = sunxi_irq_ctrl_reg(d->hwirq);
-    uint8_t idx = sunxi_irq_ctrl_offset(d->hwirq);
+    uint32_t reg = sunxi_irq_ctrl_reg(d->hw_irq_num);
+    uint8_t idx = sunxi_irq_ctrl_offset(d->hw_irq_num);
 #else
     uint32_t reg = sunxi_irq_ctrl_reg(d->num - pctl->irq_start);
     uint8_t  idx = sunxi_irq_ctrl_offset(d->num - pctl->irq_start);
@@ -654,8 +654,8 @@ static void sunxi_pinctrl_irq_unmask(struct irq_data *d)
     struct sunxi_pinctrl       *pctl = irq_data_get_irq_chip_data(d);
     struct sunxi_desc_function *func;
 #if 0
-    uint32_t reg = sunxi_irq_ctrl_reg(d->hwirq);
-    uint8_t idx = sunxi_irq_ctrl_offset(d->hwirq);
+    uint32_t reg = sunxi_irq_ctrl_reg(d->hw_irq_num);
+    uint8_t idx = sunxi_irq_ctrl_offset(d->hw_irq_num);
 #else
     uint32_t reg = sunxi_irq_ctrl_reg(d->num - pctl->irq_start);
     uint8_t  idx = sunxi_irq_ctrl_offset(d->num - pctl->irq_start);
@@ -667,7 +667,7 @@ static void sunxi_pinctrl_irq_unmask(struct irq_data *d)
     func = sunxi_pinctrl_desc_find_function_by_pin(
         pctl,
 #if 0
-               pctl->irq_array[d->hwirq],
+               pctl->irq_array[d->hw_irq_num],
 #else
         pctl->irq_array[d->num - pctl->irq_start],
 #endif
@@ -675,7 +675,7 @@ static void sunxi_pinctrl_irq_unmask(struct irq_data *d)
 
     /* Change muxing to INT mode */
 #if 0
-    sunxi_pmx_set(pctl->pctl_dev, pctl->irq_array[d->hwirq], func->muxval);
+    sunxi_pmx_set(pctl->pctl_dev, pctl->irq_array[d->hw_irq_num], func->muxval);
 #else
     sunxi_pmx_set(pctl->pctl_dev, pctl->irq_array[d->num - pctl->irq_start], func->muxval);
 #endif

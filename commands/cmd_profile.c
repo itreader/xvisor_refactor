@@ -236,12 +236,12 @@ static int cmd_profile_dump(vmm_char_device_t *cdev, char *filter_mode)
 
     if (stat_array == NULL) {
         vmm_cdev_printf(cdev, "Profiler stat pointer is NULL\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (vmm_profiler_isactive()) {
         vmm_cdev_printf(cdev, "Can't dump while profiler is active\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (filter_mode != NULL) {
@@ -259,7 +259,7 @@ static int cmd_profile_dump(vmm_char_device_t *cdev, char *filter_mode)
 
     if (cmp_function == NULL) {
         cmd_profile_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!cmd_profile_updated) {
@@ -351,7 +351,7 @@ static int cmd_profile_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 fail:
     cmd_profile_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_profile = {

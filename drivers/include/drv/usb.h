@@ -485,7 +485,7 @@ struct usb_dynid {
  *  usb_set_intfdata() to associate driver-specific data with the
  *  interface.  It may also use usb_set_interface() to specify the
  *  appropriate altsetting.  If unwilling to manage the interface,
- *  return VMM_ENODEV, if genuine IO errors occurred, an appropriate
+ *  return VMM_ERR_NODEV, if genuine IO errors occurred, an appropriate
  *  negative errno value.
  * @disconnect: Called when the interface is no longer accessible, usually
  *  because its device has been (or is being) disconnected or the

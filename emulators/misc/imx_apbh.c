@@ -127,7 +127,7 @@ static int apbh_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ed
 
     if (NULL == s) {
         vmm_lerror("APBH", "failed to allocate memory");
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto end;
     }
 

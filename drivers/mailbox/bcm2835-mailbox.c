@@ -183,7 +183,7 @@ static int bcm2835_mbox_probe(vmm_device_t *dev)
     mbox = vmm_devm_zalloc(dev, sizeof(*mbox));
 
     if (mbox == NULL) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     INIT_SPIN_LOCK(&mbox->lock);
@@ -192,7 +192,7 @@ static int bcm2835_mbox_probe(vmm_device_t *dev)
 
     if (!mbox->irq) {
         vmm_lerror(dev->name, "Failed to parse and map IRQ\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if ((ret = vmm_host_irq_register(mbox->irq, dev->name, bcm2835_mbox_irq, mbox))) {
@@ -222,7 +222,7 @@ static int bcm2835_mbox_probe(vmm_device_t *dev)
         vmm_lerror(dev->name, "Failed to allocate mailbox channels\n");
         vmm_device_tree_regunmap_release(dev->of_node, (virtual_addr_t)mbox->regs, 0);
         vmm_host_irq_unregister(mbox->irq, mbox);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     ret = mbox_controller_register(&mbox->controller);

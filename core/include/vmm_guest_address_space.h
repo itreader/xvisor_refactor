@@ -18,7 +18,7 @@
  *
  * @file vmm_guest_address_space.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for guest address space
+ * @brief 客户地址空间头文件
  */
 #ifndef _VMM_GUEST_ADDRESS_SPACE_H__
 #define _VMM_GUEST_ADDRESS_SPACE_H__
@@ -26,27 +26,38 @@
 #include <vmm_manager.h>
 #include <vmm_notifier.h>
 
-/* Notifier event when guest aspace is initialized */
+/* Notifier event when guest addr_space is initialized */
 #define VMM_GUEST_ADDRESS_SPACE_EVENT_INIT   0x01
-/* Notifier event when guest aspace is about to be uninitialized */
+/* Notifier event when guest addr_space is about to be uninitialized */
 #define VMM_GUEST_ADDRESS_SPACE_EVENT_DEINIT 0x02
-/* Notifier event when guest aspace is reset */
+/* Notifier event when guest addr_space is reset */
 #define VMM_GUEST_ADDRESS_SPACE_EVENT_RESET  0x03
 
 /** Representation of block device notifier event */
+/**
+ * @brief 客户地址空间事件，记录地址空间变化的通知数据
+ */
 struct vmm_guest_address_space_event {
-    struct vmm_guest *guest;
-    void             *data;
+    struct vmm_guest *guest; /**< 客户机 */
+    void             *data; /**< 数据 */
 };
 
-/** Register a guest address space state change notifier handler */
+/**
+ * @brief 注册客户机地址空间的客户端回调
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_guest_address_space_register_client(vmm_notifier_block_t *nb);
 
-/** Unregister guest address space state change notifier */
+/**
+ * @brief 注销客户机地址空间的客户端回调
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_guest_address_space_unregister_client(vmm_notifier_block_t *nb);
 
-/** Iterate over each region with matching flags
- *  Note: reg_flags = 0x0 will match all regions
+/**
+ * @brief 遍历匹配标志的每个区域，寄存器标志=0x0匹配所有区域
  */
 void vmm_guest_iterate_region(
     struct vmm_guest *guest, uint32_t reg_flags, void (*func)(struct vmm_guest *, struct vmm_region *, void *), void *private);
@@ -56,11 +67,15 @@ void vmm_guest_iterate_region(
  */
 struct vmm_region *vmm_guest_find_region(struct vmm_guest *guest, physical_addr_t guest_physical_addr, uint32_t reg_flags, bool resolve_alias);
 
-/** Find mapping for given guest physical address and guest region */
+/**
+ * @brief 查找给定客户物理地址和客户区域的映射
+ */
 void vmm_guest_find_mapping(
     struct vmm_guest *guest, struct vmm_region *reg, physical_addr_t guest_physical_addr, physical_addr_t *hphys_addr, physical_size_t *avail_size);
 
-/** Iterate over each mapping of a guest region */
+/**
+ * @brief 遍历客户区域的每个映射
+ */
 void vmm_guest_iterate_mapping(
     struct vmm_guest *guest, struct vmm_region *reg,
     void (*func)(
@@ -68,31 +83,65 @@ void vmm_guest_iterate_mapping(
         void *private),
     void *private);
 
-/** Overwrite real device region mapping */
+/**
+ * @brief 覆盖真实设备区域映射
+ */
 int vmm_guest_overwrite_real_device_mapping(
     struct vmm_guest *guest, struct vmm_region *reg, physical_addr_t guest_physical_addr, physical_addr_t hphys_addr);
 
-/** Read from guest memory regions (i.e. RAM or ROM regions) */
+/**
+ * @brief 客户机 内存 读
+ * @param guest 指向客户机结构体的指针
+ * @param guest_physical_addr 客户机物理地址
+ * @param dst 目标缓冲区指针
+ * @param len 大小
+ * @param cacheable 是否可缓存标志
+ * @return 成功返回实际读取的字节数，失败返回0
+ */
 uint32_t vmm_guest_memory_read(struct vmm_guest *guest, physical_addr_t guest_physical_addr, void *dst, uint32_t len, bool cacheable);
 
-/** Write to guest memory regions (i.e. RAM or ROM regions) */
+/**
+ * @brief 客户机 内存 写
+ * @param guest 指向客户机结构体的指针
+ * @param guest_physical_addr 客户机物理地址
+ * @param src 源设备树节点
+ * @param len 大小
+ * @param cacheable 是否可缓存标志
+ * @return 成功返回实际写入的字节数，失败返回0
+ */
 uint32_t vmm_guest_memory_write(struct vmm_guest *guest, physical_addr_t guest_physical_addr, void *src, uint32_t len, bool cacheable);
 
-/** Map guest physical address to some host physical address */
+/**
+ * @brief 将客户物理地址映射到主机物理地址
+ */
 int vmm_guest_physical_map(
     struct vmm_guest *guest, physical_addr_t guest_physical_addr, physical_size_t gphys_size, physical_addr_t *hphys_addr, physical_size_t *phys_size,
     uint32_t *reg_flags);
 
-/** Unmap guest physical address */
+/**
+ * @brief 取消客户机物理地址到主机地址的映射
+ * @param guest 指向客户机结构体的指针
+ * @param guest_physical_addr 客户机物理地址
+ * @param phys_size 物理内存大小
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_guest_physical_unmap(struct vmm_guest *guest, physical_addr_t guest_physical_addr, physical_size_t phys_size);
 
-/** Add a new region from a given node in DTS */
+/**
+ * @brief 从设备树节点添加客户机地址空间区域
+ * @param guest 指向客户机结构体的指针
+ * @param node 设备树节点指针
+ * @param rprivate 私有资源数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_guest_add_region_from_node(struct vmm_guest *guest, vmm_device_tree_node_t *node, void *rprivate);
 
-/** Add new guest region */
+/**
+ * @brief 添加新的客户机内存区域
+ */
 int vmm_guest_add_region(
     struct vmm_guest *guest, vmm_device_tree_node_t *parent, const char *name, const char *device_type, const char *mainfest_type,
-    const char *address_type, const char *compatible, uint32_t compatible_len, physical_addr_t guest_physical_addr, physical_addr_t aphys_addr,
+    const char *address_type, const char *compatible, uint32_t compatible_len, physical_addr_t guest_physical_addr, physical_addr_t alias_physical_addr,
     physical_size_t phys_size, uint32_t align_order, physical_addr_t hphys_addr, void *rprivate);
 
 /** Get private pointer of guest region */
@@ -101,7 +150,9 @@ static inline void *vmm_guest_get_region_private(struct vmm_region *reg)
     return (reg) ? reg->private : NULL;
 }
 
-/** Set private pointer of guest region */
+/**
+ * @brief 设置客户区域的私有指针
+ */
 static inline void vmm_guest_set_region_private(struct vmm_region *reg, void *rprivate)
 {
     if (reg) {
@@ -109,16 +160,34 @@ static inline void vmm_guest_set_region_private(struct vmm_region *reg, void *rp
     }
 }
 
-/** Delete a guest region */
+/**
+ * @brief 删除客户机地址空间中的指定区域
+ * @param guest 指向客户机结构体的指针
+ * @param reg 寄存器值或索引
+ * @param del_node 待删除的节点指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_guest_del_region(struct vmm_guest *guest, struct vmm_region *reg, bool del_node);
 
-/** Reset guest address space */
+/**
+ * @brief 复位客户地址空间
+ * @param guest 指向客户机结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_guest_address_space_reset(struct vmm_guest *guest);
 
-/** Initialize guest address space */
+/**
+ * @brief 初始化客户地址空间
+ * @param guest 指向客户机结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_guest_address_space_init(struct vmm_guest *guest);
 
-/** DeInitialize guest address space */
+/**
+ * @brief 反初始化客户机地址空间
+ * @param guest 指向客户机结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_guest_address_space_deinit(struct vmm_guest *guest);
 
 #endif

@@ -97,7 +97,7 @@ static int __init gpt_clocksource_init(vmm_device_tree_node_t *node)
     gcs = vmm_zalloc(sizeof(struct gpt_clocksource));
 
     if (!gcs) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail;
     }
 

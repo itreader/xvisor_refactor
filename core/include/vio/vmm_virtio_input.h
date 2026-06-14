@@ -18,7 +18,7 @@
  *
  * @file vmm_virtio_input.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief VirtIO Input Device Interface.
+ * @brief VirtIO输入设备接口
  *
  * This header has been derived from linux kernel source:
  * <linux_source>/include/uapi/linux/virtio_input.h
@@ -58,49 +58,64 @@
 
 #include <vmm_types.h>
 
+/**
+ * @brief VirtIO输入配置选择枚举，指定查询的配置子结构类型
+ */
 enum vmm_virtio_input_config_select {
-    VMM_VIRTIO_INPUT_CFG_UNSET     = 0x00,
-    VMM_VIRTIO_INPUT_CFG_ID_NAME   = 0x01,
-    VMM_VIRTIO_INPUT_CFG_ID_SERIAL = 0x02,
-    VMM_VIRTIO_INPUT_CFG_ID_DEVIDS = 0x03,
-    VMM_VIRTIO_INPUT_CFG_PROP_BITS = 0x10,
-    VMM_VIRTIO_INPUT_CFG_EV_BITS   = 0x11,
-    VMM_VIRTIO_INPUT_CFG_ABS_INFO  = 0x12,
+    VMM_VIRTIO_INPUT_CFG_UNSET     = 0x00, /**< 0x00成员 */
+    VMM_VIRTIO_INPUT_CFG_ID_NAME   = 0x01, /**< 0x01成员 */
+    VMM_VIRTIO_INPUT_CFG_ID_SERIAL = 0x02, /**< 0x02成员 */
+    VMM_VIRTIO_INPUT_CFG_ID_DEVIDS = 0x03, /**< 0x03成员 */
+    VMM_VIRTIO_INPUT_CFG_PROP_BITS = 0x10, /**< 0x10成员 */
+    VMM_VIRTIO_INPUT_CFG_EV_BITS   = 0x11, /**< 0x11成员 */
+    VMM_VIRTIO_INPUT_CFG_ABS_INFO  = 0x12, /**< 0x12成员 */
 };
 
+/**
+ * @brief VirtIO输入绝对轴信息，描述轴的最小/最大值和分辨率
+ */
 struct vmm_virtio_input_absinfo {
-    uint32_t min;
-    uint32_t max;
-    uint32_t fuzz;
-    uint32_t flat;
-    uint32_t res;
+    uint32_t min; /**< 最小值 */
+    uint32_t max; /**< 最大值 */
+    uint32_t fuzz; /**< 模糊值 */
+    uint32_t flat; /**< 平坦值 */
+    uint32_t res; /**< 保留/结果 */
 };
 
+/**
+ * @brief VirtIO输入设备ID，包含总线类型和设备产品标识
+ */
 struct vmm_virtio_input_deviceids {
-    uint16_t bustype;
-    uint16_t vendor;
-    uint16_t product;
-    uint16_t version;
+    uint16_t bustype; /**< bustype成员 */
+    uint16_t vendor; /**< 厂商ID */
+    uint16_t product; /**< 产品ID */
+    uint16_t version; /**< 版本号 */
 };
 
+/**
+ * @brief VirtIO输入配置结构，保存事件类型和设备属性信息
+ */
 struct vmm_virtio_input_config {
-    uint8_t select;
-    uint8_t subsel;
-    uint8_t size;
-    uint8_t reserved[5];
+    uint8_t select; /**< select成员 */
+    uint8_t subsel; /**< subsel成员 */
+    uint8_t size; /**< 大小 */
+    uint8_t reserved[5]; /**< 保留 */
 
     union {
-        char                              string[128];
-        uint8_t                           bitmap[128];
-        struct vmm_virtio_input_absinfo   abs;
-        struct vmm_virtio_input_deviceids ids;
-    } u;
+        char                              string[128]; /**< string成员 */
+        uint8_t                           bitmap[128]; /**< bitmap成员 */
+        struct vmm_virtio_input_absinfo   abs; /**< 绝对值 */
+        struct vmm_virtio_input_deviceids ids; /**< 标识 */
+    } u; /**< u */
 } __attribute__((packed));
 
+/**
+ * @brief VirtIO输入事件结构，封装输入事件类型和值
+ */
 struct vmm_virtio_input_event {
-    uint16_t type;
-    uint16_t code;
-    uint32_t value;
+    uint16_t type; /**< 类型 */
+    uint16_t code; /**< 代码 */
+    uint32_t value; /**< 值 */
 } __attribute__((packed));
 
 #endif /* __VMM_VIRTIO_INPUT_H__ */

@@ -133,14 +133,14 @@ static int hpet_initialize_timer(struct hpet_timer *timer, uint8_t dest_int, uin
             tmr |= (((uint64_t)dest_int) << 9);
         } else {
             vmm_printf("Timer %d interrupt can't be routed to %d on IOAPIC.\n", timer->timer_id, dest_int);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     } else if ((flags & HPET_TIMER_INT_TO_FSB)) {
         if (_v & (0x01UL << 15)) {
             tmr |= (0x01UL << 14);
         } else {
             vmm_printf("Timer %d interrupt can't be delievered to FSB.\n", timer->timer_id);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     }
 
@@ -225,7 +225,7 @@ int __init hpet_init(void)
     vmm_device_tree_node_t *node;
     char                    hpet_nm[512];
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 
     node = vmm_device_tree_getnode(VMM_DEVICE_TREE_PATH_SEPARATOR_STRING VMM_DEVICE_TREE_MOTHERBOARD_NODE_NAME VMM_DEVICE_TREE_PATH_SEPARATOR_STRING
                                    "HPET");
@@ -385,7 +385,7 @@ int __cpuinit hpet_clock_chip_init(timer_id_t timer_id, const char *chip_name, u
     struct hpet_timer *timer = get_timer_from_id(timer_id);
 
     if (unlikely(timer == NULL)) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* first disable the free running counter */
@@ -485,7 +485,7 @@ int __init hpet_clocksource_init(timer_id_t timer_id, const char *chip_name)
     struct hpet_timer *timer = get_timer_from_id(DEFAULT_HPET_SYS_TIMER);
 
     if (unlikely(timer == NULL)) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     debug_print("Initializing HPET main counter.\n");

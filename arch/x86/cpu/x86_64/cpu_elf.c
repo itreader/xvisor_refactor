@@ -34,11 +34,11 @@ int arch_elf_check_hdr(const struct elf64_hdr *x)
 /* FIXME: */
 int arch_elf_apply_relocate(struct elf64_shdr *sechdrs, const char *strtab, uint32_t symindex, uint32_t relindex, vmm_module_t *mod)
 {
-    return VMM_ENOEXEC;
+    return VMM_ERR_NOEXEC;
 }
 
 /* FIXME: */
 int arch_elf_apply_relocate_add(struct elf64_shdr *sechdrs, const char *strtab, uint32_t symindex, uint32_t relsec, vmm_module_t *mod)
 {
-    return VMM_ENOEXEC;
+    return VMM_ERR_NOEXEC;
 }

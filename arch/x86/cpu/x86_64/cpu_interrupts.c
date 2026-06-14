@@ -54,7 +54,7 @@ extern struct tss64_desc      __xvisor_tss_64_desc;
 #define VIRT_TO_PHYS(ptr)                                                                                                                            \
     ({                                                                                                                                               \
         physical_addr_t pa = 0x0;                                                                                                                    \
-        vmm_host_va2pa((virtual_addr_t)ptr, &pa);                                                                                                    \
+        vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)ptr, &pa);                                                                                                    \
         pa;                                                                                                                                          \
     })
 
@@ -83,7 +83,7 @@ static int install_idt(void)
 static int set_idt_gate_handler(uint32_t gatenum, physical_addr_t handler_base, uint32_t flags, uint8_t ist)
 {
     if (gatenum >= NR_GATES) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     struct gate_descriptor *idt_entry = &int_desc_table[gatenum];
@@ -106,7 +106,7 @@ static int set_idt_gate_handler(uint32_t gatenum, physical_addr_t handler_base, 
         idt_entry->ot.bits.type = _GATE_TYPE_CALL;
     } else {
         memset(idt_entry, 0, sizeof(*idt_entry));
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     idt_entry->sso.bits.offset   = handler_base & 0xFFFFUL;

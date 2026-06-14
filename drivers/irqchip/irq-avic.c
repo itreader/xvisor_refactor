@@ -95,30 +95,30 @@ static uint32_t avic_pending_int(uint32_t status)
 
 static uint32_t avic_active_irq(uint32_t cpu_irq_no, uint32_t prev_irq)
 {
-    uint32_t ret = UINT_MAX, hwirq, status;
+    uint32_t ret = UINT_MAX, hw_irq_num, status;
 
     if ((status = vmm_readl(avic.base + AVIC_NIPNDH))) {
-        hwirq = 32 + avic_pending_int(status);
-        ret   = vmm_host_irq_domain_find_mapping(avic.domain, hwirq);
+        hw_irq_num = 32 + avic_pending_int(status);
+        ret   = vmm_host_irq_domain_find_mapping(avic.domain, hw_irq_num);
     } else if ((status = vmm_readl(avic.base + AVIC_NIPNDL))) {
-        hwirq = avic_pending_int(status);
-        ret   = vmm_host_irq_domain_find_mapping(avic.domain, hwirq);
+        hw_irq_num = avic_pending_int(status);
+        ret   = vmm_host_irq_domain_find_mapping(avic.domain, hw_irq_num);
     }
 
     return ret;
 }
 
-static void avic_mask_irq(struct vmm_host_irq *irq)
+static void avic_mask_irq(vmm_host_irq_t *irq)
 {
-    vmm_writel(irq->hwirq, avic.base + AVIC_INTDISNUM);
+    vmm_writel(irq->hw_irq_num, avic.base + AVIC_INTDISNUM);
 }
 
-static void avic_unmask_irq(struct vmm_host_irq *irq)
+static void avic_unmask_irq(vmm_host_irq_t *irq)
 {
-    vmm_writel(irq->hwirq, avic.base + AVIC_INTENNUM);
+    vmm_writel(irq->hw_irq_num, avic.base + AVIC_INTENNUM);
 }
 
-static struct vmm_host_irq_chip avic_chip = {
+static vmm_host_irq_chip_t avic_chip = {
     .name       = "AVIC",
     .irq_mask   = avic_mask_irq,
     .irq_unmask = avic_unmask_irq,
@@ -141,7 +141,7 @@ static int __init avic_init(vmm_device_tree_node_t *node)
     avic.domain = vmm_host_irq_domain_add(node, (int)irq_start, AVIC_NUM_IRQS, &avic_ops, NULL);
 
     if (!avic.domain) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Map AVIC registers */

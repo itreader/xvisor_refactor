@@ -70,7 +70,7 @@ static int __init bcm2835_clocksource_init(vmm_device_tree_node_t *node)
     bcs = vmm_zalloc(sizeof(struct bcm2835_clocksource));
 
     if (!bcs) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Map timer registers */
@@ -174,13 +174,13 @@ static int __init bcm2835_clock_chip_init(vmm_device_tree_node_t *node)
     hirq = vmm_device_tree_irq_parse_map(node, DEFAULT_TIMER);
 
     if (!hirq) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     bcc = vmm_zalloc(sizeof(struct bcm2835_clock_chip));
 
     if (!bcc) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Map timer registers */

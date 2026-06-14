@@ -198,7 +198,7 @@ static int cmd_vfs_mount(vmm_char_device_t *cdev, const char *dev, const char *p
 
     if (!block_device) {
         vmm_cdev_printf(cdev, "Block device %s not found\n", dev);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (strcmp(path, "/") != 0) {
@@ -230,7 +230,7 @@ static int cmd_vfs_mount(vmm_char_device_t *cdev, const char *dev, const char *p
 
     if (!found) {
         vmm_cdev_printf(cdev, "\nMount failed\n");
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     vmm_cdev_printf(cdev, "Mounted %s using %s at %s\n", dev, fs->name, path);
@@ -270,13 +270,13 @@ static int cmd_vfs_ls(vmm_char_device_t *cdev, const char *path)
     }
 
     if ((plen = strlcpy(dpath, path, sizeof(dpath))) >= sizeof(dpath)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto closedir_fail;
     }
 
     if (path[plen - 1] != '/') {
         if ((plen = strlcat(dpath, "/", sizeof(dpath))) >= sizeof(dpath)) {
-            rc = VMM_EOVERFLOW;
+            rc = VMM_ERR_OVERFLOW;
             goto closedir_fail;
         }
     }
@@ -287,7 +287,7 @@ static int cmd_vfs_ls(vmm_char_device_t *cdev, const char *path)
         dpath[plen] = '\0';
 
         if (strlcat(dpath, d.d_name, sizeof(dpath)) >= sizeof(dpath)) {
-            rc = VMM_EOVERFLOW;
+            rc = VMM_ERR_OVERFLOW;
             goto closedir_fail;
         }
 
@@ -444,7 +444,7 @@ static int cmd_vfs_file_parent_dir(vmm_char_device_t *cdev, const char *path, ch
 
     if (!(st.st_mode & S_IFREG)) {
         vmm_cdev_printf(cdev, "Cannot read %s\n", path);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     out_len = strlcpy(out, path, out_sz);
@@ -477,7 +477,7 @@ static int cmd_vfs_file_open_read(vmm_char_device_t *cdev, const char *curdir, c
 
         if (!npath) {
             vmm_cdev_printf(cdev, "Failed to alloc new path buffer\n");
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         path++;
@@ -505,7 +505,7 @@ static int cmd_vfs_file_open_read(vmm_char_device_t *cdev, const char *curdir, c
     if (!(st.st_mode & S_IFREG)) {
         vfs_close(fd);
         vmm_cdev_printf(cdev, "Cannot read %s\n", path);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     *len = st.st_size;
@@ -539,7 +539,7 @@ static int cmd_vfs_run(vmm_char_device_t *cdev, const char *path)
     if (NULL == (buf = vmm_malloc(VFS_LOAD_BUF_SZ))) {
         vmm_cdev_printf(cdev, "Failed to allocate buffer\n");
         vfs_close(fd);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     line    = 0;
@@ -623,7 +623,7 @@ static int cmd_vfs_md5(vmm_char_device_t *cdev, const char *path)
     if (NULL == (buf = vmm_malloc(VFS_LOAD_BUF_SZ))) {
         vmm_cdev_printf(cdev, "Failed to allocate buffer\n");
         vfs_close(fd);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     md5_init(&md5c);
@@ -679,7 +679,7 @@ static int cmd_vfs_sha256(vmm_char_device_t *cdev, const char *path)
     if (NULL == (buf = vmm_malloc(VFS_LOAD_BUF_SZ))) {
         vmm_cdev_printf(cdev, "Failed to allocate buffer\n");
         vfs_close(fd);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     sha256_init(&sha256c);
@@ -733,7 +733,7 @@ static int cmd_vfs_cat(vmm_char_device_t *cdev, const char *path)
     if (NULL == (buf = vmm_malloc(VFS_LOAD_BUF_SZ))) {
         vmm_cdev_printf(cdev, "Failed to allocate buffer\n");
         vfs_close(fd);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     off = 0;
@@ -816,7 +816,7 @@ static int cmd_vfs_rm(vmm_char_device_t *cdev, const char *path)
 
     if (!(st.st_mode & S_IFREG)) {
         vmm_cdev_printf(cdev, "Path %s should be regular file.\n", path);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return vfs_unlink(path);
@@ -831,7 +831,7 @@ static int cmd_vfs_mkdir(vmm_char_device_t *cdev, const char *path)
 
     if (!rc) {
         vmm_cdev_printf(cdev, "Path %s already exist.\n", path);
-        return VMM_EEXIST;
+        return VMM_ERR_EXIST;
     }
 
     return vfs_mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO);
@@ -851,7 +851,7 @@ static int cmd_vfs_rmdir(vmm_char_device_t *cdev, const char *path)
 
     if (!(st.st_mode & S_IFDIR)) {
         vmm_cdev_printf(cdev, "Path %s should be directory.\n", path);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return vfs_rmdir(path);
@@ -872,27 +872,27 @@ static int cmd_vfs_module_load(vmm_char_device_t *cdev, const char *path)
 
     if (!len) {
         vmm_cdev_printf(cdev, "File %s has zero bytes.\n", path);
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto fail_closefd;
     }
 
     if (len > VFS_MAX_MODULE_SZ) {
         vmm_cdev_printf(cdev, "File %s has size %" PRId32 " bytes (> %d bytes).\n", path, len, VFS_MAX_MODULE_SZ);
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto fail_closefd;
     }
 
     module_data = vmm_zalloc(VFS_MAX_MODULE_SZ);
 
     if (!module_data) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail_closefd;
     }
 
     module_rd = vfs_read(fd, module_data, VFS_MAX_MODULE_SZ);
 
     if (module_rd < len) {
-        rc = VMM_EIO;
+        rc = VMM_ERR_IO;
         goto fail_freedata;
     }
 
@@ -928,7 +928,7 @@ static int cmd_vfs_fdt_load(
 
     if (!parent) {
         vmm_cdev_printf(cdev, "Devtree path %s does not exist.\n", device_tree_path);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     root = vmm_device_tree_getchild(parent, device_tree_root_name);
@@ -936,7 +936,7 @@ static int cmd_vfs_fdt_load(
     if (root) {
         vmm_device_tree_dref_node(root);
         vmm_cdev_printf(cdev, "Devtree path %s/%s already exist.\n", device_tree_path, device_tree_root_name);
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto fail;
     }
 
@@ -948,27 +948,27 @@ static int cmd_vfs_fdt_load(
 
     if (!len) {
         vmm_cdev_printf(cdev, "File %s has zero bytes.\n", path);
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto fail_closefd;
     }
 
     if (len > VFS_MAX_FDT_SZ) {
         vmm_cdev_printf(cdev, "File %s has size %" PRId32 " bytes (> %d bytes).\n", path, len, VFS_MAX_FDT_SZ);
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto fail_closefd;
     }
 
     fdt_data = vmm_zalloc(VFS_MAX_FDT_SZ);
 
     if (!fdt_data) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail_closefd;
     }
 
     fdt_rd = vfs_read(fd, fdt_data, VFS_MAX_FDT_SZ);
 
     if (fdt_rd < len) {
-        rc = VMM_EIO;
+        rc = VMM_ERR_IO;
         goto fail_freedata;
     }
 
@@ -1219,14 +1219,14 @@ static int cmd_vfs_guest_fdt_load(vmm_char_device_t *cdev, const char *guest_nam
 
     if (!vcpu_count) {
         vmm_cdev_printf(cdev, "VCPU count should be non-zero\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     guests_node = vmm_device_tree_getnode(VMM_DEVICE_TREE_PATH_SEPARATOR_STRING VMM_DEVICE_TREE_GUESTINFO_NODE_NAME);
 
     if (!guests_node) {
         vmm_cdev_printf(cdev, "%s DT node not found\n", VMM_DEVICE_TREE_GUESTINFO_NODE_NAME);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     rc = cmd_vfs_fdt_load(cdev, VMM_DEVICE_TREE_PATH_SEPARATOR_STRING VMM_DEVICE_TREE_GUESTINFO_NODE_NAME, guest_name, path, aliasc, aliasv);
@@ -1242,7 +1242,7 @@ static int cmd_vfs_guest_fdt_load(vmm_char_device_t *cdev, const char *guest_nam
 
     if (!guest_node) {
         vmm_cdev_printf(cdev, "Failed to get guest DT node\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     vcpu_tmpl_node = vmm_device_tree_getchild(guest_node, VMM_DEVICE_TREE_VCPU_TEMPLATE_NODE_NAME);
@@ -1251,13 +1251,13 @@ static int cmd_vfs_guest_fdt_load(vmm_char_device_t *cdev, const char *guest_nam
         vmm_cdev_printf(cdev, "Failed to get vcpu template DT node\n");
         vmm_device_tree_dref_node(guest_node);
         vmm_device_tree_delnode(guest_node);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     vcpus_node = vmm_device_tree_addnode(guest_node, VMM_DEVICE_TREE_VCPUS_NODE_NAME);
 
     if (!vcpus_node) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
         vmm_cdev_printf(cdev, "Failed to add vcpus DT node\n");
         vmm_device_tree_dref_node(vcpu_tmpl_node);
         vmm_device_tree_dref_node(guest_node);
@@ -1319,13 +1319,13 @@ static int cmd_vfs_load(
     if (off >= len) {
         vfs_close(fd);
         vmm_cdev_printf(cdev, "Offset greater than file size\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (NULL == (buf = vmm_malloc(VFS_LOAD_BUF_SZ))) {
         vmm_cdev_printf(cdev, "Failed to allocate buffer\n");
         vfs_close(fd);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     len      = ((len - off) < len) ? (len - off) : len;
@@ -1443,7 +1443,7 @@ static int cmd_vfs_load_list(vmm_char_device_t *cdev, struct vmm_guest *guest, c
 
     if (NULL == (curdir = vmm_zalloc(VFS_MAX_PATH))) {
         vmm_cdev_printf(cdev, "Failed to alloc current dir buffer\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     rc = cmd_vfs_file_parent_dir(cdev, path, curdir, VFS_MAX_PATH);
@@ -1472,7 +1472,7 @@ static int cmd_vfs_load_list(vmm_char_device_t *cdev, struct vmm_guest *guest, c
         vfs_close(fd);
         vmm_free(curdir);
         vmm_cdev_printf(cdev, "Failed to allocate buffer\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     buf_save = buf;
@@ -1528,7 +1528,7 @@ static int cmd_vfs_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc < 2) {
         cmd_vfs_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (strcmp(argv[1], "help") == 0) {
@@ -1588,7 +1588,7 @@ static int cmd_vfs_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
         if (!guest) {
             vmm_cdev_printf(cdev, "Failed to find guest %s\n", argv[2]);
-            return VMM_ENOTAVAIL;
+            return VMM_ERR_NOTAVAIL;
         }
 
         pa  = (physical_addr_t)strtoull(argv[3], NULL, 0);
@@ -1600,14 +1600,14 @@ static int cmd_vfs_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
         if (!guest) {
             vmm_cdev_printf(cdev, "Failed to find guest %s\n", argv[2]);
-            return VMM_ENOTAVAIL;
+            return VMM_ERR_NOTAVAIL;
         }
 
         return cmd_vfs_load_list(cdev, guest, argv[3]);
     }
 
     cmd_vfs_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_vfs = {

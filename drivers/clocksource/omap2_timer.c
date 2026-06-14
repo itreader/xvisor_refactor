@@ -296,14 +296,14 @@ static int __init gpt_clock_chip_init(vmm_device_tree_node_t *node)
     hirq = vmm_device_tree_irq_parse_map(node, 0);
 
     if (!hirq) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Alloc GPT clockchip */
     cc = vmm_zalloc(sizeof(struct gpt_clock_chip));
 
     if (!cc) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cc->clock_chip.name = "omap3430-timer";

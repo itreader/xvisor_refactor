@@ -54,7 +54,7 @@ int arch_vcpu_irq_execute(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t irq_no, 
     uint64_t irq_mask;
 
     if (irq_no >= ARCH_BITS_PER_LONG) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     irq_mask = 1UL << irq_no;
@@ -70,7 +70,7 @@ int arch_vcpu_irq_clear(vmm_vcpu_t *vcpu, uint32_t irq_no, uint64_t reason)
     uint64_t irq_mask;
 
     if (irq_no >= ARCH_BITS_PER_LONG) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     irq_mask = 1UL << irq_no;

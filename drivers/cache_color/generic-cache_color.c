@@ -81,37 +81,37 @@ static int __init generic_cache_color_init(vmm_device_tree_node_t *node)
     cc = vmm_zalloc(sizeof(*cc));
 
     if (!cc) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     if (vmm_device_tree_read_u32(node, "first_color_bit", &cc->first_color_bit)) {
         vmm_free(cc);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (vmm_device_tree_read_u32(node, "num_color_bits", &cc->num_color_bits)) {
         vmm_free(cc);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (vmm_device_tree_read_u32(node, "color_order", &cc->color_order)) {
         vmm_free(cc);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (BITS_PER_LONG <= cc->color_order) {
         vmm_free(cc);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (BITS_PER_LONG <= cc->first_color_bit) {
         vmm_free(cc);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (BITS_PER_LONG <= (cc->first_color_bit + cc->num_color_bits)) {
         vmm_free(cc);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     vmm_host_ram_set_color_ops(&generic_cache_color_ops, cc);

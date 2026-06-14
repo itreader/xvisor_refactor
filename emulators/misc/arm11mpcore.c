@@ -80,7 +80,7 @@ static int arm11mpcore_scu_read(struct arm11mpcore_priv_state *s, uint32_t offse
     int rc = VMM_OK;
 
     if (!s || !dst) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock(&s->lock);
@@ -103,7 +103,7 @@ static int arm11mpcore_scu_read(struct arm11mpcore_priv_state *s, uint32_t offse
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     }
 
@@ -117,7 +117,7 @@ static int arm11mpcore_scu_write(struct arm11mpcore_priv_state *s, uint32_t offs
     int rc = VMM_OK;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     src = src & ~src_mask;
@@ -133,7 +133,7 @@ static int arm11mpcore_scu_write(struct arm11mpcore_priv_state *s, uint32_t offs
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     }
 
@@ -251,7 +251,7 @@ static int arm11mpcore_emulator_probe(struct vmm_guest *guest, vmm_emulate_devic
     s = vmm_zalloc(sizeof(struct arm11mpcore_priv_state));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto arm11mp_probe_done;
     }
 
@@ -271,13 +271,13 @@ static int arm11mpcore_emulator_probe(struct vmm_guest *guest, vmm_emulate_devic
 
     /* Allocate and init MPT state */
     if (!(s->mpt = mptimer_state_alloc(guest, edev, s->num_cpu, 1000000, timer_irq[0], timer_irq[1]))) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto arm11mp_probe_failed;
     }
 
     /* Allocate and init GIC state */
     if (!(s->gic = gic_state_alloc(edev->node->name, guest, GIC_TYPE_ARM11MPCORE, s->num_cpu, FALSE, 0, 96, parent_irq))) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto arm11mp_gic_alloc_failed;
     }
 

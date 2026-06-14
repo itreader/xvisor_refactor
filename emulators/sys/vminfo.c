@@ -191,7 +191,7 @@ static int vminfo_emulator_read(vmm_emulate_device_t *edev, physical_addr_t offs
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -203,7 +203,7 @@ static int vminfo_emulator_read(vmm_emulate_device_t *edev, physical_addr_t offs
 static int vminfo_emulator_write(vmm_emulate_device_t *edev, physical_addr_t offset, uint32_t regmask, uint32_t regval, uint32_t size)
 {
     /* We don't allow writes */
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 static int vminfo_emulator_reset(vmm_emulate_device_t *edev)
@@ -291,7 +291,7 @@ static int vminfo_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *
     s = vmm_zalloc(sizeof(struct vminfo_state));
 
     if (!s) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     s->edev  = edev;

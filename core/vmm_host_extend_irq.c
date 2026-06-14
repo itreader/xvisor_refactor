@@ -19,7 +19,7 @@
  * @file vmm_host_extend_irq.c
  * @author Jimmy Durand Wesolowski (jimmy.durand-wesolowski@openwide.fr)
  * @author Anup Patel (anup@brainfault.org)
- * @brief Extended IRQ support, kind of Xvior compatible Linux IRQ domain.
+ * @brief 扩展IRQ支持，类似Linux IRQ域的Xvisor兼容实现
  */
 
 #include <libs/list.h>
@@ -31,15 +31,22 @@
 
 #define HOST_IRQEXT_CHUNK BITS_PER_LONG
 
+/**
+ * @brief 主机扩展中断控制结构，管理扩展中断的注册状态
+ */
 struct vmm_host_extend_irq_ctrl {
-    vmm_rwlock_t          lock;
-    uint32_t              count;
-    uint64_t             *bitmap;
-    struct vmm_host_irq **irqs;
+    vmm_rwlock_t          lock; /**< 自旋锁 */
+    uint32_t              count; /**< 计数 */
+    uint64_t             *bitmap; /**< bitmap成员 */
+    vmm_host_irq_t **irqs; /**< 中断上下文 */
 };
 
 static struct vmm_host_extend_irq_ctrl iectrl;
 
+/**
+ * @brief 获取主机扩展中断的数量
+ * @return 数量值
+ */
 uint32_t vmm_host_extend_irq_count(void)
 {
     irq_flags_t flags;
@@ -52,10 +59,15 @@ uint32_t vmm_host_extend_irq_count(void)
     return count;
 }
 
-struct vmm_host_irq *__vmm_host_extend_irq_get(uint32_t hirq)
+/**
+ * @brief 获取主机扩展中断控制器
+ * @param hirq 中断号
+ * @return 目标对象指针，不存在返回NULL
+ */
+vmm_host_irq_t *__vmm_host_extend_irq_get(uint32_t hirq)
 {
     irq_flags_t          flags;
-    struct vmm_host_irq *irq = NULL;
+    vmm_host_irq_t *irq = NULL;
 
     if (hirq < CONFIG_HOST_IRQ_COUNT) {
         return NULL;
@@ -74,6 +86,10 @@ struct vmm_host_irq *__vmm_host_extend_irq_get(uint32_t hirq)
     return irq;
 }
 
+/**
+ * @brief 输出主机扩展中断的调试信息
+ * @param cdev 字符设备指针
+ */
 void vmm_host_extend_irq_debug_dump(vmm_char_device_t *cdev)
 {
     int         idx = 0;
@@ -97,6 +113,13 @@ void vmm_host_extend_irq_debug_dump(vmm_char_device_t *cdev)
     vmm_read_unlock_irq_restore_lite(&iectrl.lock, flags);
 }
 
+/**
+ * @brief realloc
+ * @param ptr 通用指针
+ * @param old_size 大小
+ * @param new_size 大小
+ * @return 成功返回目标指针，失败返回NULL
+ */
 static void *realloc(void *ptr, uint32_t old_size, uint32_t new_size)
 {
     void *new_ptr = NULL;
@@ -119,21 +142,25 @@ static void *realloc(void *ptr, uint32_t old_size, uint32_t new_size)
     return new_ptr;
 }
 
+/**
+ * @brief 扩展中断号范围
+ * @return 中断处理结果
+ */
 static int _extend_irq_expand(void)
 {
     uint32_t              old_size = iectrl.count;
     uint32_t              new_size = iectrl.count + HOST_IRQEXT_CHUNK;
-    struct vmm_host_irq **irqs     = NULL;
+    vmm_host_irq_t **irqs     = NULL;
     uint64_t             *bitmap   = NULL;
 
-    irqs                           = realloc(iectrl.irqs, old_size * sizeof(struct vmm_host_irq *), new_size * sizeof(struct vmm_host_irq *));
+    irqs                           = realloc(iectrl.irqs, old_size * sizeof(vmm_host_irq_t *), new_size * sizeof(vmm_host_irq_t *));
 
     if (!irqs) {
         vmm_printf(
             "%s: Failed to reallocate extended IRQ array from "
             "%d to %d bytes\n",
             __func__, old_size, new_size);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     old_size = BITS_TO_LONGS(old_size) * sizeof(uint64_t);
@@ -147,7 +174,7 @@ static int _extend_irq_expand(void)
             "%d to %d bytes\n",
             __func__, old_size, new_size);
         vmm_free(irqs);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     iectrl.irqs   = irqs;
@@ -157,17 +184,24 @@ static int _extend_irq_expand(void)
     return VMM_OK;
 }
 
+/**
+ * @brief 分配主机扩展中断区域
+ * @param size 大小
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_host_extend_irq_alloc_region(uint32_t size)
 {
     irq_flags_t flags;
-    int         tries, size_log = 0, pos = -1;
+    int tries;
+    int size_log = 0;
+    int pos = -1;
 
     while ((1 << size_log) < size) {
         ++size_log;
     }
 
     if (!size_log || size_log > BITS_PER_LONG) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     tries = ((1U << size_log) / HOST_IRQEXT_CHUNK) + 1;
@@ -199,19 +233,27 @@ try_again:
     return pos + CONFIG_HOST_IRQ_COUNT;
 }
 
+/**
+ * @brief 释放主机扩展中断区域
+ * @param hirq 中断号
+ * @param size 大小
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_host_extend_irq_free_region(uint32_t hirq, uint32_t size)
 {
     irq_flags_t flags;
-    int         rc = VMM_OK, size_log = 0, pos = 0;
+    int rc = VMM_OK;
+    int size_log = 0;
+    int pos = 0;
 
     if (hirq < CONFIG_HOST_IRQ_COUNT) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_write_lock_irq_save_lite(&iectrl.lock, flags);
 
     if ((CONFIG_HOST_IRQ_COUNT + iectrl.count) <= hirq) {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto done;
     }
 
@@ -229,20 +271,26 @@ done:
     return rc;
 }
 
-int vmm_host_extend_irq_create_mapping(uint32_t hirq, uint32_t hwirq)
+/**
+ * @brief 创建主机扩展中断映射
+ * @param hirq 中断号
+ * @param hw_irq_num 数量
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+int vmm_host_extend_irq_create_mapping(uint32_t hirq, uint32_t hw_irq_num)
 {
     int                  rc = VMM_OK;
     irq_flags_t          flags;
-    struct vmm_host_irq *irq = NULL;
+    vmm_host_irq_t *irq = NULL;
 
     if (hirq < CONFIG_HOST_IRQ_COUNT) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_write_lock_irq_save_lite(&iectrl.lock, flags);
 
     if (iectrl.count <= (hirq - CONFIG_HOST_IRQ_COUNT)) {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto done;
     }
 
@@ -253,13 +301,13 @@ int vmm_host_extend_irq_create_mapping(uint32_t hirq, uint32_t hwirq)
         goto done;
     }
 
-    if (NULL == (irq = vmm_malloc(sizeof(struct vmm_host_irq)))) {
+    if (NULL == (irq = vmm_malloc(sizeof(vmm_host_irq_t)))) {
         vmm_printf("%s: Failed to allocate host IRQ\n", __func__);
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto done;
     }
 
-    __vmm_host_irq_init_desc(irq, hirq, hwirq, VMM_IRQ_STATE_EXTENDED);
+    __vmm_host_irq_init_desc(irq, hirq, hw_irq_num, VMM_IRQ_STATE_EXTENDED);
 
     iectrl.irqs[hirq - CONFIG_HOST_IRQ_COUNT] = irq;
 
@@ -269,20 +317,25 @@ done:
     return rc;
 }
 
+/**
+ * @brief 释放主机扩展中断映射
+ * @param hirq 中断号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_host_extend_irq_dispose_mapping(uint32_t hirq)
 {
     int                  rc = VMM_OK;
     irq_flags_t          flags;
-    struct vmm_host_irq *irq = NULL;
+    vmm_host_irq_t *irq = NULL;
 
     if (hirq < CONFIG_HOST_IRQ_COUNT) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_write_lock_irq_save_lite(&iectrl.lock, flags);
 
     if (iectrl.count <= (hirq - CONFIG_HOST_IRQ_COUNT)) {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto done;
     }
 
@@ -303,6 +356,10 @@ done:
     return rc;
 }
 
+/**
+ * @brief 初始化主机扩展中断
+ * @return 中断处理结果
+ */
 int __init vmm_host_extend_irq_init(void)
 {
     memset(&iectrl, 0, sizeof(struct vmm_host_extend_irq_ctrl));

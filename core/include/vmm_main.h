@@ -18,7 +18,7 @@
  *
  * @file vmm_main.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief main header file to start, stop and reset hypervisor
+ * @brief Hypervisor启动、停止和复位主头文件
  */
 #ifndef _VMM_MAIN_H__
 #define _VMM_MAIN_H__
@@ -26,25 +26,42 @@
 #include <vmm_compiler.h>
 #include <vmm_types.h>
 
-/** Hang hypervisor */
+/**
+ * @brief 挂起虚拟机管理器，进入无限循环
+ */
 void __noreturn vmm_hang(void);
 
-/** Check if hypervisor is initialized or not */
+/**
+ * @brief 检查虚拟机管理器是否已完成初始化
+ * @return 已初始化返回TRUE，否则返回FALSE
+ */
 bool vmm_init_done(void);
 
-/** Initialize hypervisor */
+/**
+ * @brief 初始化虚拟机管理器
+ */
 void vmm_init(void);
 
-/** Register system reset callback function */
+/**
+ * @brief 注册系统复位回调函数
+ * @param callback 复位回调函数指针
+ */
 void vmm_register_system_reset(int (*callback)(void));
 
-/** Do system reset */
+/**
+ * @brief 执行系统复位
+ */
 void vmm_reset(void);
 
-/** Register system shutdown callback function */
+/**
+ * @brief 注册系统关机回调函数
+ * @param callback 关机回调函数指针
+ */
 void vmm_register_system_shutdown(int (*callback)(void));
 
-/** Do system shutdown */
+/**
+ * @brief 执行系统关机
+ */
 void vmm_shutdown(void);
 
 #endif

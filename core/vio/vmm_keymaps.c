@@ -18,7 +18,7 @@
  *
  * @file vmm_keymaps.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief keysym to keycode conversion using keyboad mappings implementation
+ * @brief 按键符号到键码转换（键盘映射）实现
  *
  * The source has been largely adapted from QEMU sources:
  * ui/keymaps.c
@@ -36,10 +36,13 @@
 #include <vmm_modules.h>
 #include <vmm_stdio.h>
 
+/**
+ * @brief 键盘映射文件结构，保存映射文件名称、数据和大小
+ */
 struct vmm_keymap_file {
-    const char           name[32];
-    const char          *start;
-    const unsigned long *size;
+    const char           name[32]; /**< 名称 */
+    const char          *start; /**< 起始 */
+    const unsigned long *size; /**< 大小 */
 };
 
 #define DECLARE_KEYMAP_FILE(__kf__)                                                                                                                  \
@@ -269,6 +272,11 @@ static struct vmm_keymap_file keymap_files[] = {
 #endif
 };
 
+/**
+ * @brief 在键盘映射文件中查找指定条目
+ * @param name 目标对象的名称
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 static struct vmm_keymap_file *keymap_file_find(const char *name)
 {
     int i;
@@ -286,11 +294,21 @@ static struct vmm_keymap_file *keymap_file_find(const char *name)
     return NULL;
 }
 
+/**
+ * @brief 获取键盘映射文件的第一个位置
+ * @param kf 按键标志指针
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 static const char *keymap_file_first_pos(struct vmm_keymap_file *kf)
 {
     return (kf) ? kf->start : NULL;
 }
 
+/**
+ * @brief 检查键盘映射文件是否到达行尾
+ * @param c 字符设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static bool keymap_file_end_of_line(const char c)
 {
     switch (c) {
@@ -306,6 +324,14 @@ static bool keymap_file_end_of_line(const char c)
     return FALSE;
 }
 
+/**
+ * @brief 从键盘映射文件中读取一行
+ * @param kf 按键标志指针
+ * @param kf_pos 按键位置字符串
+ * @param buf 数据缓冲区指针
+ * @param bufsz 缓冲区大小
+ * @return 成功返回目标指针，失败返回NULL
+ */
 static const char *keymap_file_gets(struct vmm_keymap_file *kf, const char *kf_pos, char *buf, uint32_t bufsz)
 {
     uint32_t i;
@@ -353,6 +379,12 @@ static const char *keymap_file_gets(struct vmm_keymap_file *kf, const char *kf_p
     return (kf_pos == (kf->start + *kf->size)) ? NULL : kf_pos;
 }
 
+/**
+ * @brief 获取按键符号映射
+ * @param table 表结构体指针
+ * @param name 目标对象的名称
+ * @return 获取到的值，失败返回错误码
+ */
 static int get_keysym(const struct vmm_name2keysym *table, const char *name)
 {
     const struct vmm_name2keysym *p;
@@ -375,6 +407,11 @@ static int get_keysym(const struct vmm_name2keysym *table, const char *name)
     return 0;
 }
 
+/**
+ * @brief 将键添加到键码范围映射中
+ * @param krp 请求指针
+ * @param code 代码值或错误码
+ */
 static void add_to_key_range(struct vmm_key_range **krp, int code)
 {
     struct vmm_key_range *kr;
@@ -412,6 +449,13 @@ static void add_to_key_range(struct vmm_key_range **krp, int code)
     }
 }
 
+/**
+ * @brief 添加按键符号映射
+ * @param line 行号
+ * @param keysym 键盘符号值
+ * @param keycode 键码值
+ * @param k 循环索引
+ */
 static void add_keysym(char *line, int keysym, int keycode, struct vmm_keymap_layout *k)
 {
     if (keysym < VMM_MAX_NORMAL_KEYCODE) {
@@ -430,6 +474,13 @@ static void add_keysym(char *line, int keysym, int keycode, struct vmm_keymap_la
     }
 }
 
+/**
+ * @brief 解析键盘布局定义文件
+ * @param table 表结构体指针
+ * @param lang 语言标识字符串
+ * @param k 循环索引
+ * @return 成功返回解析得到的节点指针，失败返回NULL
+ */
 static struct vmm_keymap_layout *parse_keyboard_layout(const struct vmm_name2keysym *table, const char *lang, struct vmm_keymap_layout *k)
 {
     struct vmm_keymap_file *kf;
@@ -478,7 +529,8 @@ static struct vmm_keymap_layout *parse_keyboard_layout(const struct vmm_name2key
         if (!strncmp(line, "include ", 8)) {
             parse_keyboard_layout(table, line + 8, k);
         } else {
-            int         keysym, keycode;
+            int keysym;
+            int keycode;
             const char *rest;
             char       *end_of_keysym = line;
 
@@ -535,22 +587,27 @@ static struct vmm_keymap_layout *parse_keyboard_layout(const struct vmm_name2key
 
 struct vmm_keymap_layout *vmm_keymap_alloc_layout(const struct vmm_name2keysym *table, const char *lang)
 {
-    return parse_keyboard_layout(table, lang, NULL);
+    return parse_keyboard_layout(table, lang, NULL); /**< NULL)成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_keymap_alloc_layout);
+VMM_ERR_XPORT_SYMBOL(vmm_keymap_alloc_layout);
 
+/**
+ * @brief 释放键盘布局定义的内存
+ * @param layout 布局定义指针
+ */
 void vmm_keymap_free_layout(struct vmm_keymap_layout *layout)
 {
     struct vmm_keymap_layout *k = layout;
-    struct vmm_key_range     *kr, *next_kr;
+    struct vmm_key_range *kr = NULL;
+    struct vmm_key_range *next_kr = NULL;
 
     kr = k->keypad_range;
 
     while (kr) {
-        next_kr = kr->next;
+        next_kr = kr->next; /**< kr->next成员 */
         vmm_free(kr);
-        kr = next_kr;
+        kr = next_kr; /**< next_kr成员 */
     }
 
     kr = k->numlock_range;
@@ -564,8 +621,14 @@ void vmm_keymap_free_layout(struct vmm_keymap_layout *layout)
     vmm_free(layout);
 }
 
-VMM_EXPORT_SYMBOL(vmm_keymap_free_layout);
+VMM_ERR_XPORT_SYMBOL(vmm_keymap_free_layout);
 
+/**
+ * @brief keysym2scancode
+ * @param layout 布局定义指针
+ * @param keysym 键盘符号值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_keysym2scancode(struct vmm_keymap_layout *layout, int keysym)
 {
     struct vmm_keymap_layout *k = layout;
@@ -574,11 +637,11 @@ int vmm_keysym2scancode(struct vmm_keymap_layout *layout, int keysym)
         if (k->keysym2keycode[keysym] == 0) {
             vmm_printf(
                 "Warning: no scancode found"
-                " for keysym %d\n",
+                " for keysym %d\n", /**< %d\n"成员 */
                 keysym);
         }
 
-        return k->keysym2keycode[keysym];
+        return k->keysym2keycode[keysym]; /**< keysym2keycode成员 */
     } else {
         int i;
 #ifdef XK_ISO_Left_Tab
@@ -599,8 +662,14 @@ int vmm_keysym2scancode(struct vmm_keymap_layout *layout, int keysym)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(vmm_keysym2scancode);
+VMM_ERR_XPORT_SYMBOL(vmm_keysym2scancode);
 
+/**
+ * @brief 检查键码是否为键盘区按键
+ * @param layout 布局定义指针
+ * @param keycode 键码值
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_keycode_is_keypad(struct vmm_keymap_layout *layout, int keycode)
 {
     struct vmm_keymap_layout *k = layout;
@@ -608,15 +677,21 @@ bool vmm_keycode_is_keypad(struct vmm_keymap_layout *layout, int keycode)
 
     for (kr = k->keypad_range; kr; kr = kr->next) {
         if (keycode >= kr->start && keycode <= kr->end) {
-            return TRUE;
+            return TRUE; /**< TRUE成员 */
         }
     }
 
     return FALSE;
 }
 
-VMM_EXPORT_SYMBOL(vmm_keycode_is_keypad);
+VMM_ERR_XPORT_SYMBOL(vmm_keycode_is_keypad);
 
+/**
+ * @brief 检查键符是否为NumLock键
+ * @param layout 布局定义指针
+ * @param keysym 键盘符号值
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_keysym_is_numlock(struct vmm_keymap_layout *layout, int keysym)
 {
     struct vmm_keymap_layout *k = layout;
@@ -624,14 +699,14 @@ bool vmm_keysym_is_numlock(struct vmm_keymap_layout *layout, int keysym)
 
     for (kr = k->numlock_range; kr; kr = kr->next) {
         if (keysym >= kr->start && keysym <= kr->end) {
-            return TRUE;
+            return TRUE; /**< TRUE成员 */
         }
     }
 
     return FALSE;
 }
 
-VMM_EXPORT_SYMBOL(vmm_keycode_is_numlock);
+VMM_ERR_XPORT_SYMBOL(vmm_keycode_is_numlock);
 
 static const int vmm_vkey_defs[] = {
     [VMM_VKEY_SHIFT]         = 0x2a,
@@ -885,6 +960,11 @@ static const char *vmm_vkey_lookup[] = {
     NULL,
 };
 
+/**
+ * @brief vkeyname2vkey
+ * @param key 键值或关键字
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vkeyname2vkey(const char *key)
 {
     int i;
@@ -899,8 +979,13 @@ int vmm_vkeyname2vkey(const char *key)
     return i;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vkeyname2vkey);
+VMM_ERR_XPORT_SYMBOL(vmm_vkeyname2vkey);
 
+/**
+ * @brief vkeycode2vkey
+ * @param vkeycode 虚拟键码值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vkeycode2vkey(int vkeycode)
 {
     int i;
@@ -915,8 +1000,13 @@ int vmm_vkeycode2vkey(int vkeycode)
     return i;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vkeycode2vkey);
+VMM_ERR_XPORT_SYMBOL(vmm_vkeycode2vkey);
 
+/**
+ * @brief vkey2vkeycode
+ * @param vkey 虚拟键值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vkey2vkeycode(int vkey)
 {
     if ((-1 < vkey) && (vkey < VMM_VKEY_MAX)) {
@@ -926,4 +1016,4 @@ int vmm_vkey2vkeycode(int vkey)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vkey2vkeycode);
+VMM_ERR_XPORT_SYMBOL(vmm_vkey2vkeycode);

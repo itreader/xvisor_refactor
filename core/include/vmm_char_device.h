@@ -18,7 +18,7 @@
  *
  * @file vmm_char_device.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief Character Device framework header
+ * @brief 字符设备框架头文件
  */
 
 #ifndef __VMM_CHARDEV_H_
@@ -32,40 +32,89 @@
 struct vmm_char_device;
 typedef struct vmm_char_device vmm_char_device_t;
 
+/**
+ * @brief 字符设备结构，维护字符设备的名称、操作接口和私有数据
+ */
 struct vmm_char_device {
-    char         name[VMM_FIELD_NAME_SIZE];
-    vmm_device_t dev;
-    int (*ioctl)(vmm_char_device_t *cdev, int cmd, void *arg);
-    uint32_t (*read)(vmm_char_device_t *cdev, uint8_t *dest, size_t len, off_t *off, bool sleep);
-    uint32_t (*write)(vmm_char_device_t *cdev, uint8_t *src, size_t len, off_t *off, bool sleep);
-    void *private;
+    char         name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
+    vmm_device_t dev; /**< 设备 */
+    int (*ioctl)(vmm_char_device_t *cdev, int cmd, void *arg); /**< ioctl成员 */
+    uint32_t (*read)(vmm_char_device_t *cdev, uint8_t *dest, size_t len, off_t *off, bool sleep); /**< 读 */
+    uint32_t (*write)(vmm_char_device_t *cdev, uint8_t *src, size_t len, off_t *off, bool sleep); /**< 写 */
+    void *private; /**< 私有数据 */
 };
 
-/** Do ioctl operation on a character device */
+/**
+ * @brief 执行字符设备的ioctl控制操作
+ * @param cdev 字符设备指针
+ * @param cmd 命令标识或命令结构体指针
+ * @param arg 参数值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_char_device_doioctl(vmm_char_device_t *cdev, int cmd, void *arg);
 
-/** Do read operation on a character device */
+/**
+ * @brief 执行字符设备的读操作
+ * @param cdev 字符设备指针
+ * @param dest 目标缓冲区或目标地址
+ * @param len 数据长度
+ * @param off 偏移量
+ * @param block 块设备指针
+ * @return 成功返回读取的字节数，失败返回错误码
+ */
 uint32_t vmm_char_device_doread(vmm_char_device_t *cdev, uint8_t *dest, size_t len, off_t *off, bool block);
 
-/** Do write operation on a character device */
+/**
+ * @brief 执行字符设备的写操作
+ * @param cdev 字符设备指针
+ * @param src 源设备树节点
+ * @param len 数据长度
+ * @param off 偏移量
+ * @param block 块设备指针
+ * @return 成功返回写入的字节数，失败返回错误码
+ */
 uint32_t vmm_char_device_dowrite(vmm_char_device_t *cdev, uint8_t *src, size_t len, off_t *off, bool block);
 
-/** Register character device to device driver framework */
+/**
+ * @brief 注册字符设备
+ * @param cdev 字符设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_char_device_register(vmm_char_device_t *cdev);
 
-/** Unregister character device from device driver framework */
+/**
+ * @brief 注销字符设备
+ * @param cdev 字符设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_char_device_unregister(vmm_char_device_t *cdev);
 
-/** Find a character device in device driver framework */
+/**
+ * @brief 查找字符设备
+ * @param name 目标对象的名称
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_char_device_t *vmm_char_device_find(const char *name);
 
-/** Iterate over each character device */
+/**
+ * @brief 字符设备 设备 遍历
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_char_device_iterate(vmm_char_device_t *start, void *data, int (*fn)(vmm_char_device_t *dev, void *data));
 
-/** Count number of character devices */
+/**
+ * @brief 获取字符设备的数量
+ * @return 数量值
+ */
 uint32_t vmm_char_device_count(void);
 
-/** Initalize character device framework */
+/**
+ * @brief 初始化字符设备
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_char_device_init(void);
 
 #endif /* __VMM_CHARDEV_H_ */

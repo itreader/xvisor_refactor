@@ -634,7 +634,7 @@ static inline uint64_t cpu_to_virtio64(struct virtio_host_device *vdev, uint64_t
     ({                                                                                                                                               \
         int _r = VMM_OK;                                                                                                                             \
         if (!virtio_host_has_feature(vdev, fbit))                                                                                                    \
-            _r = VMM_ENOENT;                                                                                                                         \
+            _r = VMM_ERR_NOENT;                                                                                                                         \
         else                                                                                                                                         \
             virtio_cread((vdev), structname, member, ptr);                                                                                           \
         _r;                                                                                                                                          \

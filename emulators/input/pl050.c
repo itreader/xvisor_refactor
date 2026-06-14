@@ -143,7 +143,7 @@ static int pl050_reg_read(struct pl050_state *s, uint32_t offset, uint32_t *dst)
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -178,7 +178,7 @@ static int pl050_reg_write(struct pl050_state *s, uint32_t offset, uint32_t src_
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -279,7 +279,7 @@ static int pl050_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(struct pl050_state));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto pl050_emulator_probe_fail;
     }
 
@@ -306,7 +306,7 @@ static int pl050_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     strlcat(name, "/", sizeof(name));
 
     if (strlcat(name, edev->node->name, sizeof(name)) >= sizeof(name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto pl050_emulator_probe_freestate_fail;
     }
 
@@ -314,14 +314,14 @@ static int pl050_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
         s->mou = ps2_emu_alloc_mouse(name, pl050_update, s);
 
         if (!s->mou) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto pl050_emulator_probe_freestate_fail;
         }
     } else {
         s->kbd = ps2_emu_alloc_keyboard(name, pl050_update, s);
 
         if (!s->kbd) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto pl050_emulator_probe_freestate_fail;
         }
     }

@@ -82,7 +82,7 @@ static int a9_scu_read(struct a9mp_priv_state *s, uint32_t offset, uint32_t *dst
     int rc = VMM_OK;
 
     if (!s || !dst) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock(&s->lock);
@@ -124,7 +124,7 @@ static int a9_scu_read(struct a9mp_priv_state *s, uint32_t offset, uint32_t *dst
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     }
 
@@ -139,7 +139,7 @@ static int a9_scu_write(struct a9mp_priv_state *s, uint32_t offset, uint32_t src
     uint32_t shift;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     src = src & ~src_mask;
@@ -178,7 +178,7 @@ static int a9_scu_write(struct a9mp_priv_state *s, uint32_t offset, uint32_t src
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     }
 
@@ -297,7 +297,7 @@ static int a9mpcore_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t
     s = vmm_zalloc(sizeof(struct a9mp_priv_state));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto a9mp_probe_done;
     }
 
@@ -317,7 +317,7 @@ static int a9mpcore_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t
 
     /* Allocate and init MPT state */
     if (!(s->mpt = mptimer_state_alloc(guest, edev, s->num_cpu, 1000000, timer_irq[0], timer_irq[1]))) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto a9mp_probe_failed;
     }
 
@@ -330,7 +330,7 @@ static int a9mpcore_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t
 
     /* Allocate and init GIC state */
     if (!(s->gic = gic_state_alloc(edev->node->name, guest, GIC_TYPE_VEXPRESS, s->num_cpu, FALSE, 0, num_irq, parent_irq))) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto a9mp_gic_alloc_failed;
     }
 

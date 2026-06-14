@@ -167,7 +167,7 @@ struct ram_backed_device *ram_backed_device_create(const char *name, physical_ad
     return __ram_backed_device_create(NULL, name, pa, size, ignore_overlap);
 }
 
-VMM_EXPORT_SYMBOL(ram_backed_device_create);
+VMM_ERR_XPORT_SYMBOL(ram_backed_device_create);
 
 void ram_backed_device_destroy(struct ram_backed_device *d)
 {
@@ -199,7 +199,7 @@ void ram_backed_device_destroy(struct ram_backed_device *d)
     vmm_free(d);
 }
 
-VMM_EXPORT_SYMBOL(ram_backed_device_destroy);
+VMM_ERR_XPORT_SYMBOL(ram_backed_device_destroy);
 
 struct ram_backed_device *ram_backed_device_find(const char *name)
 {
@@ -236,7 +236,7 @@ struct ram_backed_device *ram_backed_device_find(const char *name)
     return d;
 }
 
-VMM_EXPORT_SYMBOL(ram_backed_device_find);
+VMM_ERR_XPORT_SYMBOL(ram_backed_device_find);
 
 struct ram_backed_device *ram_backed_device_get(int index)
 {
@@ -275,7 +275,7 @@ struct ram_backed_device *ram_backed_device_get(int index)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(ram_backed_device_get);
+VMM_ERR_XPORT_SYMBOL(ram_backed_device_get);
 
 uint32_t ram_backed_device_count(void)
 {
@@ -295,7 +295,7 @@ uint32_t ram_backed_device_count(void)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(ram_backed_device_count);
+VMM_ERR_XPORT_SYMBOL(ram_backed_device_count);
 
 static int ram_backed_device_driver_probe(vmm_device_t *dev)
 {
@@ -318,7 +318,7 @@ static int ram_backed_device_driver_probe(vmm_device_t *dev)
     dev->private = __ram_backed_device_create(dev, dev->name, pa, size, false);
 
     if (!dev->private) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;

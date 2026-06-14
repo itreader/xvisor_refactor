@@ -18,7 +18,7 @@
  *
  * @file vmm_workqueue.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief Implementation of workqueues (special worker threads).
+ * @brief 工作队列（特殊工作线程）实现
  */
 
 #include <libs/stringlib.h>
@@ -35,6 +35,11 @@
 
 static struct vmm_workqueue_ctrl wqctrl;
 
+/**
+ * \brief 检查工作是否为新建状态
+ * \param work 指向工作结构的指针
+ * \return 如果工作是新建状态则返回TRUE，否则返回FALSE
+ */
 bool vmm_workqueue_work_isnew(vmm_work_t *work)
 {
     bool        ret = FALSE;
@@ -53,6 +58,11 @@ bool vmm_workqueue_work_isnew(vmm_work_t *work)
     return ret;
 }
 
+/**
+ * \brief 检查工作是否正在进行中
+ * \param work 指向工作结构的指针
+ * \return 如果工作正在进行中则返回TRUE，否则返回FALSE
+ */
 bool vmm_workqueue_work_inprogress(vmm_work_t *work)
 {
     bool        ret = FALSE;
@@ -71,6 +81,11 @@ bool vmm_workqueue_work_inprogress(vmm_work_t *work)
     return ret;
 }
 
+/**
+ * \brief 检查工作是否已完成
+ * \param work 指向工作结构的指针
+ * \return 如果工作已完成则返回TRUE，否则返回FALSE
+ */
 bool vmm_workqueue_work_completed(vmm_work_t *work)
 {
     bool        ret = FALSE;
@@ -97,12 +112,18 @@ bool vmm_workqueue_work_completed(vmm_work_t *work)
     return ret;
 }
 
+/**
+ * \brief 停止指定的工作
+ * \param work 指向要停止的工作结构的指针
+ * \return 成功返回VMM_OK，失败返回VMM_ERR_FAIL
+ */
 int vmm_workqueue_stop_work(vmm_work_t *work)
 {
-    irq_flags_t flags, flags1;
+    irq_flags_t flags;
+    irq_flags_t flags1;
 
     if (!work) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
 stop_retry:
@@ -130,12 +151,17 @@ stop_retry:
     return VMM_OK;
 }
 
+/**
+ * \brief 停止延迟工作
+ * \param work 指向要停止的延迟工作结构的指针
+ * \return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_workqueue_stop_delayed_work(struct vmm_delayed_work *work)
 {
     int rc;
 
     if (!work) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = vmm_timer_event_stop(&work->event);
@@ -147,56 +173,75 @@ int vmm_workqueue_stop_delayed_work(struct vmm_delayed_work *work)
     return vmm_workqueue_stop_work(&work->work);
 }
 
+/**
+ * \brief 获取工作队列的线程
+ * \param wait_queue 指向工作队列结构的指针
+ * \return 返回工作队列的线程指针，如果失败返回NULL
+ */
 vmm_thread_t *vmm_workqueue_get_thread(struct vmm_workqueue *wait_queue)
 {
     return (wait_queue) ? wait_queue->thread : NULL;
 }
 
+/**
+ * \brief 根据索引获取工作队列
+ * \param index 工作队列的索引
+ * \return 返回对应索引的工作队列指针，如果不存在返回NULL
+ */
 struct vmm_workqueue *vmm_workqueue_index2workqueue(int index)
 {
-    bool                  found;
-    irq_flags_t           flags;
-    struct vmm_workqueue *wait_queue;
+    bool                  found; /**< found成员 */
+    irq_flags_t           flags; /**< 标志位 */
+    struct vmm_workqueue *wait_queue; /**< 等待队列 */
 
     if (index < 0) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    wait_queue = NULL;
-    found      = FALSE;
+    wait_queue = NULL; /**< NULL成员 */
+    found      = FALSE; /**< FALSE成员 */
 
-    vmm_spin_lock_irq_save(&wqctrl.lock, flags);
+    vmm_spin_lock_irq_save(&wqctrl.lock, flags); /**< flags)成员 */
 
     list_for_each_entry(wait_queue, &wqctrl.wq_list, head)
     {
         if (!index) {
-            found = TRUE;
+            found = TRUE; /**< TRUE成员 */
             break;
         }
 
         index--;
     }
 
-    vmm_spin_unlock_irq_restore(&wqctrl.lock, flags);
+    vmm_spin_unlock_irq_restore(&wqctrl.lock, flags); /**< flags)成员 */
 
     if (!found) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    return wait_queue;
+    return wait_queue; /**< 等待队列 */
 }
 
+/**
+ * \brief 获取工作队列的数量
+ * \return 返回当前工作队列的数量
+ */
 uint32_t vmm_workqueue_count(void)
 {
     return wqctrl.wq_count;
 }
 
+/**
+ * \brief 刷新工作队列，清空所有待处理工作
+ * \param wait_queue 指向要刷新的工作队列结构的指针
+ * \return 成功返回VMM_OK，失败返回VMM_ERR_FAIL
+ */
 int vmm_workqueue_flush(struct vmm_workqueue *wait_queue)
 {
     irq_flags_t flags;
 
     if (!wait_queue) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save(&wait_queue->lock, flags);
@@ -218,19 +263,26 @@ int vmm_workqueue_flush(struct vmm_workqueue *wait_queue)
     return VMM_OK;
 }
 
+/**
+ * \brief 调度工作到工作队列
+ * \param wait_queue 指向目标工作队列结构的指针，如果为NULL则使用当前CPU的系统工作队列
+ * \param work 指向要调度的工作结构的指针
+ * \return 成功返回VMM_OK，如果工作已调度返回VMM_ERR_ALREADY，失败返回VMM_ERR_FAIL
+ */
 int vmm_workqueue_schedule_work(struct vmm_workqueue *wait_queue, vmm_work_t *work)
 {
-    irq_flags_t flags, flags1;
+    irq_flags_t flags;
+    irq_flags_t flags1;
 
     if (!work) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save(&work->lock, flags);
 
     if (work->flags & VMM_WORK_STATE_SCHEDULED) {
         vmm_spin_unlock_irq_restore(&work->lock, flags);
-        return VMM_EALREADY;
+        return VMM_ERR_ALREADY;
     }
 
     if (!wait_queue) {
@@ -252,6 +304,10 @@ int vmm_workqueue_schedule_work(struct vmm_workqueue *wait_queue, vmm_work_t *wo
     return VMM_OK;
 }
 
+/**
+ * \brief 延迟工作定时器事件处理函数
+ * \param ev 指向定时器事件结构的指针
+ */
 static void delayed_work_timer_event(vmm_timer_event_t *ev)
 {
     struct vmm_delayed_work *work = ev->private;
@@ -259,6 +315,13 @@ static void delayed_work_timer_event(vmm_timer_event_t *ev)
     vmm_workqueue_schedule_work(work->work.wait_queue, &work->work);
 }
 
+/**
+ * \brief 调度延迟工作到工作队列
+ * \param wait_queue 指向目标工作队列结构的指针，如果为NULL则使用当前CPU的系统工作队列
+ * \param work 指向要调度的延迟工作结构的指针
+ * \param nsecs 延迟时间（纳秒），如果为0则立即调度
+ * \return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_workqueue_schedule_delayed_work(struct vmm_workqueue *wait_queue, struct vmm_delayed_work *work, uint64_t nsecs)
 {
     if (!wait_queue) {
@@ -266,7 +329,7 @@ int vmm_workqueue_schedule_delayed_work(struct vmm_workqueue *wait_queue, struct
     }
 
     if (!work) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!nsecs) {
@@ -279,6 +342,11 @@ int vmm_workqueue_schedule_delayed_work(struct vmm_workqueue *wait_queue, struct
     return vmm_timer_event_start(&work->event, nsecs);
 }
 
+/**
+ * \brief 工作队列主函数，处理工作队列中的工作
+ * \param data 指向工作队列结构的指针
+ * \return 成功返回VMM_OK，失败返回VMM_ERR_FAIL
+ */
 static int workqueue_main(void *data)
 {
     bool                  do_work;
@@ -287,7 +355,7 @@ static int workqueue_main(void *data)
     vmm_work_t           *work       = NULL;
 
     if (!wait_queue) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     while (1) {
@@ -327,19 +395,25 @@ static int workqueue_main(void *data)
     return VMM_OK;
 }
 
+/**
+ * \brief 创建一个新的工作队列
+ * \param name 工作队列的名称
+ * \param priority 工作队列线程的优先级
+ * \return 成功返回指向新创建的工作队列结构的指针，失败返回NULL
+ */
 struct vmm_workqueue *vmm_workqueue_create(const char *name, uint8_t priority)
 {
-    struct vmm_workqueue *wait_queue;
-    irq_flags_t           flags;
+    struct vmm_workqueue *wait_queue; /**< 等待队列 */
+    irq_flags_t           flags; /**< 标志位 */
 
     if (!name) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    wait_queue = vmm_zalloc(sizeof(struct vmm_workqueue));
+    wait_queue = vmm_zalloc(sizeof(struct vmm_workqueue)); /**< vmm_workqueue))成员 */
 
     if (!wait_queue) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
     INIT_SPIN_LOCK(&wait_queue->lock);
@@ -347,36 +421,41 @@ struct vmm_workqueue *vmm_workqueue_create(const char *name, uint8_t priority)
     INIT_LIST_HEAD(&wait_queue->work_list);
     INIT_COMPLETION(&wait_queue->work_avail);
 
-    wait_queue->thread = vmm_threads_create(name, workqueue_main, wait_queue, priority, VMM_THREAD_DEF_TIME_SLICE);
+    wait_queue->thread = vmm_threads_create(name, workqueue_main, wait_queue, priority, VMM_THREAD_DEF_TIME_SLICE); /**< VMM_THREAD_DEF_TIME_SLICE)成员 */
 
     if (!wait_queue->thread) {
         vmm_free(wait_queue);
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
     if (vmm_threads_start(wait_queue->thread)) {
         vmm_threads_destroy(wait_queue->thread);
         vmm_free(wait_queue);
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    vmm_spin_lock_irq_save(&wqctrl.lock, flags);
+    vmm_spin_lock_irq_save(&wqctrl.lock, flags); /**< flags)成员 */
 
-    list_add_tail(&wait_queue->head, &wqctrl.wq_list);
+    list_add_tail(&wait_queue->head, &wqctrl.wq_list); /**< &wqctrl.wq_list)成员 */
     wqctrl.wq_count++;
 
-    vmm_spin_unlock_irq_restore(&wqctrl.lock, flags);
+    vmm_spin_unlock_irq_restore(&wqctrl.lock, flags); /**< flags)成员 */
 
-    return wait_queue;
+    return wait_queue; /**< 等待队列 */
 }
 
+/**
+ * \brief 销毁指定的工作队列
+ * \param wait_queue 指向要销毁的工作队列结构的指针
+ * \return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_workqueue_destroy(struct vmm_workqueue *wait_queue)
 {
     int         rc;
     irq_flags_t flags;
 
     if (!wait_queue) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((rc = vmm_workqueue_flush(wait_queue))) {
@@ -399,6 +478,12 @@ int vmm_workqueue_destroy(struct vmm_workqueue *wait_queue)
     return VMM_OK;
 }
 
+/**
+ * \brief 工作队列启动函数，为指定CPU创建系统工作队列
+ * \param cpu_hotplug 指向CPU热插拔通知结构的指针
+ * \param cpu CPU编号
+ * \return 成功返回VMM_OK，失败返回VMM_ERR_FAIL
+ */
 static int workqueue_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t cpu)
 {
     char system_workqueue_name[VMM_FIELD_NAME_SIZE];
@@ -410,7 +495,7 @@ static int workqueue_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t cpu
     wqctrl.system_workqueue[cpu] = vmm_workqueue_create(system_workqueue_name, VMM_THREAD_DEF_PRIORITY);
 
     if (!wqctrl.system_workqueue[cpu]) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return vmm_threads_set_affinity(wqctrl.system_workqueue[cpu]->thread, vmm_cpumask_of(cpu));
@@ -422,6 +507,10 @@ static vmm_cpu_hotplug_notify_t workqueue_cpu_hotplug = {
     .startup = workqueue_startup,
 };
 
+/**
+ * \brief 初始化工作队列子系统
+ * \return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_workqueue_init(void)
 {
     /* Reset control structure */

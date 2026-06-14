@@ -250,7 +250,7 @@ static uint32_t imx_tx(struct serial *p, uint8_t *src, size_t len)
 
 static int imx_driver_probe(vmm_device_t *dev)
 {
-    int              rc         = VMM_EFAIL;
+    int              rc         = VMM_ERR_FAIL;
     struct clk      *clock_ipg  = NULL;
     struct clk      *clock_uart = NULL;
     struct imx_port *port       = NULL;
@@ -259,7 +259,7 @@ static int imx_driver_probe(vmm_device_t *dev)
     port                        = vmm_zalloc(sizeof(struct imx_port));
 
     if (!port) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_nothing;
     }
 
@@ -307,7 +307,7 @@ static int imx_driver_probe(vmm_device_t *dev)
                 "Could not set clock rate to %" PRId32 " Hz, "
                 "actual rate: %lu Hz\n",
                 port->input_clock, clock_get_rate(clock_uart));
-            rc = VMM_ERANGE;
+            rc = VMM_ERR_RANGE;
             goto clock_disable_unprepare_uart;
         }
     }
@@ -316,7 +316,7 @@ static int imx_driver_probe(vmm_device_t *dev)
     port->irq = vmm_device_tree_irq_parse_map(dev->of_node, 0);
 
     if (!port->irq) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto clock_old_rate;
     }
 

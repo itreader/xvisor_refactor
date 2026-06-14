@@ -91,13 +91,13 @@ static int __init generic_timer_clocksource_init(vmm_device_tree_node_t *node)
     generic_timer_get_freq(node);
 
     if (generic_timer_hz == 0) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cs = vmm_zalloc(sizeof(vmm_clocksource_t));
 
     if (!cs) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cs->name   = "gen-timer";
@@ -314,7 +314,7 @@ static int generic_timer_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t
     cc = vmm_zalloc(sizeof(vmm_clock_chip_t));
 
     if (!cc) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cc->name     = "gen-hyp-timer";
@@ -398,35 +398,35 @@ static int __init generic_timer_clock_chip_init(vmm_device_tree_node_t *node)
     generic_timer_get_freq(node);
 
     if (generic_timer_hz == 0) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Get hypervisor timer irq number */
     timer_irq[GENERIC_HYPERVISOR_TIMER] = vmm_device_tree_irq_parse_map(node, GENERIC_HYPERVISOR_TIMER);
 
     if (!timer_irq[GENERIC_HYPERVISOR_TIMER]) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Get physical timer irq number */
     timer_irq[GENERIC_PHYSICAL_TIMER] = vmm_device_tree_irq_parse_map(node, GENERIC_PHYSICAL_TIMER);
 
     if (!timer_irq[GENERIC_PHYSICAL_TIMER]) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Get virtual timer irq number */
     timer_irq[GENERIC_VIRTUAL_TIMER] = vmm_device_tree_irq_parse_map(node, GENERIC_VIRTUAL_TIMER);
 
     if (!timer_irq[GENERIC_VIRTUAL_TIMER]) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Number of generic timer irqs */
     timer_num_irqs = vmm_device_tree_irq_count(node);
 
     if (!timer_num_irqs) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return vmm_cpu_hotplug_register(&generic_timer_cpu_hotplug, TRUE);
@@ -465,14 +465,14 @@ int generic_timer_vcpu_context_init(void *vcpu_ptr, void **context, uint32_t phy
     struct generic_timer_context *cntx;
 
     if (!context || !vcpu_ptr) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!(*context)) {
         *context = vmm_zalloc(sizeof(*cntx));
 
         if (!(*context)) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         cntx = *context;
@@ -502,11 +502,11 @@ int generic_timer_vcpu_context_deinit(void *vcpu_ptr, void **context)
     struct generic_timer_context *cntx;
 
     if (!context || !vcpu_ptr) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!(*context)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     cntx = *context;

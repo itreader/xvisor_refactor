@@ -161,21 +161,21 @@ static int cpiofs_mount(struct mount *m, const char *dev, uint32_t flags)
     struct cpio_newc_header header;
 
     if (dev == NULL) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (vmm_block_device_total_size(m->m_device) <= sizeof(struct cpio_newc_header)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     read_count = vmm_block_device_read(m->m_device, (uint8_t *)(&header), 0, sizeof(struct cpio_newc_header));
 
     if (read_count != sizeof(struct cpio_newc_header)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     if (strncmp((const char *)header.c_magic, "070701", 6) != 0) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     m->m_flags        = MOUNT_RDONLY; /* We treat CPIO filesystem as read-only */
@@ -248,7 +248,7 @@ static size_t cpiofs_write(struct vnode *v, loff_t off, void *buf, size_t len)
 static int cpiofs_truncate(struct vnode *v, loff_t off)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int cpiofs_sync(struct vnode *v)
@@ -271,11 +271,11 @@ static int cpiofs_readdir(struct vnode *dv, loff_t off, struct dirent *d)
         rd = vmm_block_device_read(dv->v_mount->m_device, (uint8_t *)&header, toff, sizeof(struct cpio_newc_header));
 
         if (!rd) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         if (strncmp((const char *)&header.c_magic, "070701", 6) != 0) {
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
         }
 
         buf[8] = '\0';
@@ -292,11 +292,11 @@ static int cpiofs_readdir(struct vnode *dv, loff_t off, struct dirent *d)
         rd   = vmm_block_device_read(dv->v_mount->m_device, (uint8_t *)path, toff + sizeof(struct cpio_newc_header), name_size);
 
         if (!rd) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         if ((size == 0) && (mode == 0) && (name_size == 11) && (strncmp(path, "TRAILER!!!", 10) == 0)) {
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
         }
 
         toff += sizeof(struct cpio_newc_header);
@@ -356,11 +356,11 @@ static int cpiofs_lookup(struct vnode *dv, const char *name, struct vnode *v)
         rd = vmm_block_device_read(dv->v_mount->m_device, (uint8_t *)&header, off, sizeof(struct cpio_newc_header));
 
         if (!rd) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         if (strncmp((const char *)header.c_magic, "070701", 6) != 0) {
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
         }
 
         buf[8] = '\0';
@@ -380,11 +380,11 @@ static int cpiofs_lookup(struct vnode *dv, const char *name, struct vnode *v)
         rd    = vmm_block_device_read(dv->v_mount->m_device, (uint8_t *)path, off + sizeof(struct cpio_newc_header), name_size);
 
         if (!rd) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         if ((size == 0) && (mode == 0) && (name_size == 11) && (strncmp(path, "TRAILER!!!", 10) == 0)) {
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
         }
 
         if ((path[0] != '.') && check_path(path, dv->v_path, name)) {
@@ -449,37 +449,37 @@ static int cpiofs_lookup(struct vnode *dv, const char *name, struct vnode *v)
 static int cpiofs_create(struct vnode *dv, const char *filename, uint32_t mode)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int cpiofs_remove(struct vnode *dv, struct vnode *v, const char *name)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int cpiofs_rename(struct vnode *sv, const char *sname, struct vnode *v, struct vnode *dv, const char *dname)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int cpiofs_mkdir(struct vnode *dv, const char *name, uint32_t mode)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int cpiofs_rmdir(struct vnode *dv, struct vnode *v, const char *name)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int cpiofs_chmod(struct vnode *v, uint32_t mode)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 /* cpiofs filesystem */

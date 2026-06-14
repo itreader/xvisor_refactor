@@ -224,7 +224,7 @@ int cpu_vcpu_inject_undef(vmm_vcpu_t *vcpu, arch_regs_t *regs)
 {
     /* Sanity checks */
     if (!vcpu || !regs) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (vcpu != vmm_scheduler_current_vcpu()) {
@@ -243,7 +243,7 @@ int cpu_vcpu_inject_pabt(vmm_vcpu_t *vcpu, arch_regs_t *regs)
 {
     /* Sanity checks */
     if (!vcpu || !regs) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (vcpu != vmm_scheduler_current_vcpu()) {
@@ -262,7 +262,7 @@ int cpu_vcpu_inject_dabt(vmm_vcpu_t *vcpu, arch_regs_t *regs, virtual_addr_t add
 {
     /* Sanity checks */
     if (!vcpu || !regs) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (vcpu != vmm_scheduler_current_vcpu()) {

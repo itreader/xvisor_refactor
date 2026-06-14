@@ -379,7 +379,7 @@ int arch_mmu_test_nested_page_table(
                 s1_page_table = mmu_page_table_find(MMU_STAGE1, s1_table_pa);
 
                 if (!s1_page_table) {
-                    return VMM_EFAIL;
+                    return VMM_ERR_FAIL;
                 }
 
                 if (!mmu_get_page(s1_page_table, *out_addr, &pg)) {
@@ -390,7 +390,7 @@ int arch_mmu_test_nested_page_table(
             s2_page_table = mmu_page_table_find(MMU_STAGE2, s2_table_pa);
 
             if (!s2_page_table) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             if (!mmu_get_page(s2_page_table, *out_addr, &pg)) {
@@ -403,7 +403,7 @@ int arch_mmu_test_nested_page_table(
                 s1_page_table = mmu_page_table_find(MMU_STAGE1, s1_table_pa);
 
                 if (!s1_page_table) {
-                    return VMM_EFAIL;
+                    return VMM_ERR_FAIL;
                 }
 
                 if (!mmu_get_page(s1_page_table, *out_addr, &pg)) {

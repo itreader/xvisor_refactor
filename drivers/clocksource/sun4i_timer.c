@@ -131,7 +131,7 @@ static int __init aw_timer_clocksource_init(vmm_device_tree_node_t *node)
     acs  = vmm_zalloc(sizeof(struct aw_clocksource));
 
     if (!acs) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Map timer registers */
@@ -281,7 +281,7 @@ static int __init aw_timer_clock_chip_init(vmm_device_tree_node_t *node)
     acc  = vmm_zalloc(sizeof(struct aw_clock_chip));
 
     if (!acc) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Read reg_offset attribute */
@@ -289,7 +289,7 @@ static int __init aw_timer_clock_chip_init(vmm_device_tree_node_t *node)
 
     if (rc) {
         vmm_free(acc);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     acc->off = 0x10 + 0x10 * acc->num;
@@ -299,7 +299,7 @@ static int __init aw_timer_clock_chip_init(vmm_device_tree_node_t *node)
 
     if (!hirq) {
         vmm_free(acc);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Map timer registers */

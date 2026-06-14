@@ -66,7 +66,7 @@ void cpu_vcpu_vfp_restore(vmm_vcpu_t *vcpu)
 int cpu_vcpu_vfp_trap(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
 {
     /* For now we don't handle VFP trap so just return failure. */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 void cpu_vcpu_vfp_dump(vmm_char_device_t *cdev, vmm_vcpu_t *vcpu)

@@ -124,25 +124,25 @@ int cpu_vcpu_sbi_xlate_error(int xvisor_error)
         case VMM_OK:
             return SBI_SUCCESS;
 
-        case VMM_ENOTAVAIL:
-        case VMM_ENOENT:
-        case VMM_ENOSYS:
-        case VMM_ENODEV:
-        case VMM_EOPNOTSUPP:
-        case VMM_ENOTSUPP:
+        case VMM_ERR_NOTAVAIL:
+        case VMM_ERR_NOENT:
+        case VMM_ERR_NOSYS:
+        case VMM_ERR_NODEV:
+        case VMM_ERR_OPNOTSUPP:
+        case VMM_ERR_NOTSUPP:
             return SBI_ERR_NOT_SUPPORTED;
 
-        case VMM_EINVALID:
+        case VMM_ERR_INVALID:
             return SBI_ERR_INVALID_PARAM;
 
-        case VMM_EACCESS:
+        case VMM_ERR_ACCESS:
             return SBI_ERR_DENIED;
 
-        case VMM_ERANGE:
+        case VMM_ERR_RANGE:
             return SBI_ERR_INVALID_ADDRESS;
 
-        case VMM_EALREADY:
-        case VMM_EEXIST:
+        case VMM_ERR_ALREADY:
+        case VMM_ERR_EXIST:
             return SBI_ERR_ALREADY_AVAILABLE;
 
         default:

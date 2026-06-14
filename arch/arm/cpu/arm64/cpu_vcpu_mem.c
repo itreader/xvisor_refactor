@@ -52,7 +52,7 @@ int cpu_vcpu_mem_read(vmm_vcpu_t *vcpu, arch_regs_t *regs, virtual_addr_t addr, 
     }
 
     /* Determine guest physical address */
-    va2pa_at(VA2PA_STAGE1, VA2PA_EL1, VA2PA_RD, addr);
+    virtualAddr_to_physicalAddr_at(VA2PA_STAGE1, VA2PA_EL1, VA2PA_RD, addr);
     guest_pa = mrs(par_el1);
     guest_pa &= PAR_PA_MASK;
     guest_pa |= (addr & 0x00000FFF);
@@ -75,7 +75,7 @@ int cpu_vcpu_mem_read(vmm_vcpu_t *vcpu, arch_regs_t *regs, virtual_addr_t addr, 
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -107,7 +107,7 @@ int cpu_vcpu_mem_write(vmm_vcpu_t *vcpu, arch_regs_t *regs, virtual_addr_t addr,
     }
 
     /* Determine guest physical address */
-    va2pa_at(VA2PA_STAGE1, VA2PA_EL1, VA2PA_WR, addr);
+    virtualAddr_to_physicalAddr_at(VA2PA_STAGE1, VA2PA_EL1, VA2PA_WR, addr);
     guest_pa = mrs(par_el1);
     guest_pa &= PAR_PA_MASK;
     guest_pa |= (addr & 0x00000FFF);
@@ -130,7 +130,7 @@ int cpu_vcpu_mem_write(vmm_vcpu_t *vcpu, arch_regs_t *regs, virtual_addr_t addr,
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -140,11 +140,11 @@ int cpu_vcpu_mem_write(vmm_vcpu_t *vcpu, arch_regs_t *regs, virtual_addr_t addr,
 int cpu_vcpu_mem_readex(vmm_vcpu_t *vcpu, arch_regs_t *regs, virtual_addr_t addr, void *dst, uint32_t dst_len, bool force_unprivate)
 {
     /* Not supported */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 int cpu_vcpu_mem_writeex(vmm_vcpu_t *vcpu, arch_regs_t *regs, virtual_addr_t addr, void *src, uint32_t src_len, bool force_unprivate)
 {
     /* Not supported */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }

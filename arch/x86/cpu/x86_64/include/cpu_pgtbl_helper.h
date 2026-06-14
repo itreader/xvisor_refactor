@@ -27,8 +27,8 @@
 
 struct page_table;
 
-/* Note: we use 1/8th or 12.5% of VAPOOL memory as page table pool.
- * For example if VAPOOL is 8 MB then page table pool will be 1 MB
+/* Note: we use 1/8th or 12.5% of VIRTUAL_ADDR_POOL memory as page table pool.
+ * For example if VIRTUAL_ADDR_POOL is 8 MB then page table pool will be 1 MB
  * or 1 MB / 4 KB = 256 page tables
  */
 #define PAGE_TABLE_FIRST_LEVEL 0

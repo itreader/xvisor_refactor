@@ -70,14 +70,14 @@ static int cmd_spi_device_list(vmm_char_device_t *cdev, int __unused argc, char 
 
     if (argc < 1) {
         cmd_spi_device_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     id = atoi(argv[1]);
 
     if (id < 0) {
         cmd_spi_device_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     num = spi_device_count();
@@ -100,10 +100,10 @@ static int cmd_spi_device_xfer(vmm_char_device_t *cdev, int argc, char **argv)
     xfer.mode = -1;
 
     if (argc < 4) {
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto fail;
     } else if (argc > 4 && argc != 7) {
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto fail;
     }
 
@@ -112,21 +112,21 @@ static int cmd_spi_device_xfer(vmm_char_device_t *cdev, int argc, char **argv)
         xfer.mode = atoi(argv[2]);
 
         if (xfer.mode < 0 || xfer.mode > 3) {
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             goto fail;
         }
 
         xfer.out_frequency = atoi(argv[3]);
 
         if (xfer.out_frequency < 0) {
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             goto fail;
         }
 
         xfer.bits_per_word = atoi(argv[4]);
 
         if (xfer.bits_per_word < 0) {
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             goto fail;
         }
     } else {
@@ -137,13 +137,13 @@ static int cmd_spi_device_xfer(vmm_char_device_t *cdev, int argc, char **argv)
     id  = atoi(argv[index]);
 
     if (id < 0) {
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto fail;
     } else if (id > num) {
         vmm_cdev_printf(
             cdev, "Please enter a valid ID using: "
                   "spi_device list command\n");
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto fail;
     }
 
@@ -151,7 +151,7 @@ static int cmd_spi_device_xfer(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (!spi_device) {
         vmm_cdev_printf(cdev, "Failed to get spi_device from ID %d\n", id);
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto fail;
     }
 
@@ -159,7 +159,7 @@ static int cmd_spi_device_xfer(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (xfer.tx_buf == NULL) {
         vmm_cdev_printf(cdev, "Failed to allocate buffer for Tx data \n");
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail;
     }
 
@@ -168,7 +168,7 @@ static int cmd_spi_device_xfer(vmm_char_device_t *cdev, int argc, char **argv)
     if (xfer.rx_buf == NULL) {
         vmm_cdev_printf(cdev, "Failed to allocate buffer for Rx data \n");
         vmm_free(xfer.tx_buf);
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail;
     }
 
@@ -226,7 +226,7 @@ static int cmd_spi_device_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 fail:
     cmd_spi_device_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_spi_device = {

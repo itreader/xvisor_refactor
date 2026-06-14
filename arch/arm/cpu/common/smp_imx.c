@@ -164,19 +164,19 @@ static int __init smp_imx_cpu_init(vmm_device_tree_node_t *node, uint32_t cpu)
 
     /* Check SCU base and SRC base */
     if (!scu_base || !src_base) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Check core count from SCU */
     ncores = scu_get_core_count((void *)scu_base);
 
     if (ncores <= cpu) {
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     /* Check SCU status */
     if (!smp_imx_core_is_smp((void *)scu_base, cpu)) {
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     return VMM_OK;
@@ -186,7 +186,7 @@ static void smp_imx_set_cpu_jump(int cpu, void *jump_addr)
 {
     physical_addr_t paddr;
 
-    if (VMM_OK != vmm_host_va2pa((virtual_addr_t)jump_addr, &paddr)) {
+    if (VMM_OK != vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)jump_addr, &paddr)) {
         vmm_printf(
             "Failed to get cpu jump physical address "
             "(0x%p)\n",

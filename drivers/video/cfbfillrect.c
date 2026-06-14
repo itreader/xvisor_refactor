@@ -405,4 +405,4 @@ void cframe_buffer_fillrect(struct frame_buffer_info *p, const struct frame_buff
     }
 }
 
-VMM_EXPORT_SYMBOL(cframe_buffer_fillrect);
+VMM_ERR_XPORT_SYMBOL(cframe_buffer_fillrect);

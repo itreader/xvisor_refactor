@@ -18,10 +18,10 @@
  *
  * @file vmm_exception_table.h
  * @author Himanshu Chauhan (hchauhan@xvisor-x86.org)
- * @brief header file for exception table.
+ * @brief 异常表头文件
  */
-#ifndef __VMM_EXCEPTION_TABLE_H
-#define __VMM_EXCEPTION_TABLE_H
+#ifndef __VMM_ERR_XCEPTION_TABLE_H
+#define __VMM_ERR_XCEPTION_TABLE_H
 
 /*
  * The exception table consists of pairs of addresses: the first is the
@@ -36,12 +36,25 @@
  * on our cache or tlb entries.
  */
 
+/**
+ * @brief 异常表条目，记录异常触发地址和修复处理地址
+ */
 struct vmm_exception_table_entry {
-    uint64_t insn, fixup;
+    uint64_t insn; /**< 允许发生异常的指令地址 */
+    uint64_t fixup; /**< 异常发生后的修复入口地址 */
 };
 
+/**
+ * @brief 在异常表中搜索指定地址对应的表项
+ * @param addr 要搜索的地址
+ * @return 成功返回异常表项指针，未找到返回NULL
+ */
 const struct vmm_exception_table_entry *vmm_exception_table_search(uint64_t addr);
 
+/**
+ * @brief 初始化异常表
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_exception_table_init(void);
 
-#endif /* __VMM_EXCEPTION_TABLE_H */
+#endif /* __VMM_ERR_XCEPTION_TABLE_H */

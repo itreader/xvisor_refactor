@@ -283,7 +283,7 @@ static int plic_priority_read(struct plic_state *s, physical_addr_t offset, uint
     uint32_t    irq = (offset >> 2);
 
     if (irq == 0 || irq >= s->num_irq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save(&s->irq_lock, flags);
@@ -299,7 +299,7 @@ static int plic_priority_write(struct plic_state *s, physical_addr_t offset, uin
     uint32_t    val, irq = (offset >> 2);
 
     if (irq == 0 || irq >= s->num_irq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save(&s->irq_lock, flags);
@@ -318,7 +318,7 @@ static int plic_context_enable_read(struct plic_state *s, struct plic_context *c
     uint32_t    irq_word = offset >> 2;
 
     if (s->num_irq_word < irq_word) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save(&c->irq_lock, flags);
@@ -337,7 +337,7 @@ static int plic_context_enable_write(struct plic_state *s, struct plic_context *
     uint32_t    old_val, new_val, xor_val;
 
     if (s->num_irq_word < irq_word) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save(&s->irq_lock, flags);
@@ -400,7 +400,7 @@ static int plic_context_read(struct plic_state *s, struct plic_context *c, physi
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -426,7 +426,7 @@ static int plic_context_write(struct plic_state *s, struct plic_context *c, phys
             if (val <= s->max_prio) {
                 c->irq_priority_threshold = val;
             } else {
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
             }
 
             break;
@@ -435,7 +435,7 @@ static int plic_context_write(struct plic_state *s, struct plic_context *c, phys
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -451,7 +451,7 @@ static int plic_context_write(struct plic_state *s, struct plic_context *c, phys
 static int plic_emulator_read(vmm_emulate_device_t *edev, physical_addr_t offset, uint32_t *dst, uint32_t size)
 {
     uint32_t           cntx;
-    int                rc = VMM_EINVALID;
+    int                rc = VMM_ERR_INVALID;
     struct plic_state *s  = edev->private;
 
     offset &= ~0x3;
@@ -480,7 +480,7 @@ static int plic_emulator_read(vmm_emulate_device_t *edev, physical_addr_t offset
 static int plic_emulator_write(vmm_emulate_device_t *edev, physical_addr_t offset, uint32_t src_mask, uint32_t src, uint32_t size)
 {
     uint32_t           cntx;
-    int                rc = VMM_EINVALID;
+    int                rc = VMM_ERR_INVALID;
     struct plic_state *s  = edev->private;
 
     offset &= ~0x3;
@@ -563,7 +563,7 @@ static int plic_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ed
     s = vmm_zalloc(sizeof(struct plic_state));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto plic_emulator_probe_done;
     }
 
@@ -580,7 +580,7 @@ static int plic_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ed
     s->num_irq += 1; /* IRQ0 is dummy */
 
     if (s->num_irq > MAX_DEVICES) {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto plic_emulator_probe_freestate_fail;
     }
 
@@ -595,7 +595,7 @@ static int plic_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ed
     }
 
     if (s->max_prio > (1UL << PRIORITY_PER_ID)) {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto plic_emulator_probe_freestate_fail;
     }
 
@@ -608,14 +608,14 @@ static int plic_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ed
     s->num_context = guest->vcpu_count * 2;
 
     if (s->num_context > MAX_CONTEXTS) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto plic_emulator_probe_freestate_fail;
     }
 
     s->contexts = vmm_zalloc(sizeof(*s->contexts) * s->num_context);
 
     if (!s->contexts) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto plic_emulator_probe_done;
     }
 
@@ -648,7 +648,7 @@ static int plic_emulator_remove(vmm_emulate_device_t *edev)
     struct plic_state *s = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     for (i = s->base_irq; i < (s->base_irq + s->num_irq); i++) {

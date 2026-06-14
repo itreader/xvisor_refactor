@@ -110,7 +110,7 @@ static void cmd_vsdaemon_list(vmm_char_device_t *cdev)
 
 static int cmd_vsdaemon_create(vmm_char_device_t *cdev, const char *trans, const char *vser, const char *name, int argc, char **argv)
 {
-    int ret = VMM_EFAIL;
+    int ret = VMM_ERR_FAIL;
 
     if ((ret = vsdaemon_create(trans, vser, name, argc, argv))) {
         vmm_cdev_printf(
@@ -127,7 +127,7 @@ static int cmd_vsdaemon_create(vmm_char_device_t *cdev, const char *trans, const
 
 static int cmd_vsdaemon_destroy(vmm_char_device_t *cdev, const char *name)
 {
-    int ret = VMM_EFAIL;
+    int ret = VMM_ERR_FAIL;
 
     if ((ret = vsdaemon_destroy(name))) {
         vmm_cdev_printf(cdev, "Failed to destroy vsdaemon %s\n", name);
@@ -167,7 +167,7 @@ static int cmd_vsdaemon_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 fail:
     cmd_vsdaemon_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_vsdaemon = {

@@ -118,7 +118,7 @@ static int vm_finalize_features(struct virtio_host_device *vdev)
         vmm_lerror(
             vdev->dev.name, "New virtio-mmio devices "
                             "(version 2) must provide VIRTIO_F_VERSION_1 feature!\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_writel(1, vm_dev->base + VMM_VIRTIO_MMIO_DRIVER_FEATURES_SEL);
@@ -351,7 +351,7 @@ static struct virtio_host_queue *vm_setup_vq(struct virtio_host_device *vdev, un
 
     /* Queue shouldn't already be set up. */
     if (vmm_readl(vm_dev->base + (vm_dev->version == 1 ? VMM_VIRTIO_MMIO_QUEUE_PFN : VMM_VIRTIO_MMIO_QUEUE_READY))) {
-        err = VMM_ENOENT;
+        err = VMM_ERR_NOENT;
         goto error_available;
     }
 
@@ -359,14 +359,14 @@ static struct virtio_host_queue *vm_setup_vq(struct virtio_host_device *vdev, un
     info = vmm_zalloc(sizeof(*info));
 
     if (!info) {
-        err = VMM_ENOMEM;
+        err = VMM_ERR_NOMEM;
         goto error_zalloc;
     }
 
     num = vmm_readl(vm_dev->base + VMM_VIRTIO_MMIO_QUEUE_NUM_MAX);
 
     if (num == 0) {
-        err = VMM_ENOENT;
+        err = VMM_ERR_NOENT;
         goto error_new_vq;
     }
 
@@ -374,7 +374,7 @@ static struct virtio_host_queue *vm_setup_vq(struct virtio_host_device *vdev, un
     vq = virtio_host_create_queue(index, num, VIRTIO_HOST_MMIO_VRING_ALIGN, vdev, TRUE, vm_notify, callback, name);
 
     if (!vq) {
-        err = VMM_ENOMEM;
+        err = VMM_ERR_NOMEM;
         goto error_new_vq;
     }
 
@@ -422,7 +422,7 @@ error_new_vq:
     vmm_free(info);
 error_zalloc:
 error_available:
-    return VMM_ERR_PTR(err);
+    return VMM_ERR_RR_PTR(err);
 }
 
 static int vm_find_vqs(
@@ -473,7 +473,7 @@ static int virtio_host_mmio_probe(vmm_device_t *dev)
     vm_dev = vmm_devm_zalloc(dev, sizeof(*vm_dev));
 
     if (vm_dev == NULL) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     vm_dev->dev = dev;
@@ -484,7 +484,7 @@ static int virtio_host_mmio_probe(vmm_device_t *dev)
 
     if (!vm_dev->irq) {
         vmm_lerror(dev->name, "Failed to parse and map IRQ\n");
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
         goto fail;
     }
 
@@ -507,7 +507,7 @@ static int virtio_host_mmio_probe(vmm_device_t *dev)
 
     if (magic != ('v' | 'i' << 8 | 'r' << 16 | 't' << 24)) {
         vmm_lerror(dev->name, "Wrong magic value 0x%08lx!\n", magic);
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
         goto fail_unreg_base;
     }
 
@@ -516,7 +516,7 @@ static int virtio_host_mmio_probe(vmm_device_t *dev)
 
     if (vm_dev->version < 1 || vm_dev->version > 2) {
         vmm_lerror(dev->name, "Version %ld not supported!\n", vm_dev->version);
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
         goto fail_unreg_base;
     }
 
@@ -527,7 +527,7 @@ static int virtio_host_mmio_probe(vmm_device_t *dev)
          * virtio-mmio device with an ID 0 is a (dummy) placeholder
          * with no function. End probing now with no error reported.
          */
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
         goto fail_unreg_base;
     }
 

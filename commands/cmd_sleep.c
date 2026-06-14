@@ -64,7 +64,7 @@ enum cmd_sleep_type {
 static int cmd_sleep_normal(vmm_char_device_t *cdev, enum cmd_sleep_type type, int val)
 {
     if (val <= 0) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     switch (type) {
@@ -81,7 +81,7 @@ static int cmd_sleep_normal(vmm_char_device_t *cdev, enum cmd_sleep_type type, i
             break;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     };
 
     return VMM_OK;
@@ -94,7 +94,7 @@ static int cmd_sleep_test(vmm_char_device_t *cdev, enum cmd_sleep_type type, int
     uint64_t mult, start_tstamp, end_tstamp;
 
     if ((iter <= 0) || (val <= 0)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     for (i = 0; i < iter; i++) {
@@ -123,7 +123,7 @@ static int cmd_sleep_test(vmm_char_device_t *cdev, enum cmd_sleep_type type, int
                 break;
 
             default:
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
         };
 
         delta = (end_tstamp - start_tstamp) - (val * mult);
@@ -141,7 +141,7 @@ static int cmd_sleep_test(vmm_char_device_t *cdev, enum cmd_sleep_type type, int
 
 static int cmd_sleep_exec(vmm_char_device_t *cdev, int argc, char **argv)
 {
-    int rc = VMM_EINVALID, iter, val;
+    int rc = VMM_ERR_INVALID, iter, val;
 
     if (argc == 2) {
         if (strcmp(argv[1], "help") == 0) {

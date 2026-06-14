@@ -18,7 +18,7 @@
  *
  * @file vmm_compiler.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for compiler specific quirks.
+ * @brief 编译器特定处理头文件
  */
 
 #ifndef __VMM_COMPILER_H__

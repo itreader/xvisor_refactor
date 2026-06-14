@@ -173,7 +173,7 @@ static inline int __ipu_ch_get_third_buf_cpmem_num(int ch)
             return 71;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     }
 
     return 0;

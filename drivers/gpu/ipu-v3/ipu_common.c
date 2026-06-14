@@ -255,7 +255,7 @@ static int ipu_mem_reset(struct ipu_soc *ipu)
 
     while (ipu_cm_read(ipu, IPU_MEM_RST) & 0x80000000) {
         if (!timeout--) {
-            return VMM_ETIME;
+            return VMM_ERR_TIME;
         }
 
         vmm_msleep(1);
@@ -267,15 +267,15 @@ static int ipu_mem_reset(struct ipu_soc *ipu)
 struct ipu_soc *ipu_get_soc(int id)
 {
     if (id >= MXC_IPU_MAX_NUM) {
-        return VMM_ERR_PTR(VMM_ENODEV);
+        return VMM_ERR_RR_PTR(VMM_ERR_NODEV);
     } else if (!ipu_array[id].online) {
-        return VMM_ERR_PTR(VMM_ENODEV);
+        return VMM_ERR_RR_PTR(VMM_ERR_NODEV);
     } else {
         return &(ipu_array[id]);
     }
 }
 
-VMM_EXPORT_SYMBOL_GPL(ipu_get_soc);
+VMM_ERR_XPORT_SYMBOL_GPL(ipu_get_soc);
 
 void _ipu_get(struct ipu_soc *ipu)
 {
@@ -298,7 +298,7 @@ void ipu_disable_hsp_clock(struct ipu_soc *ipu)
     _ipu_put(ipu);
 }
 
-VMM_EXPORT_SYMBOL(ipu_disable_hsp_clock);
+VMM_ERR_XPORT_SYMBOL(ipu_disable_hsp_clock);
 
 static struct platform_device_id imx_ipu_type[] = {
     {
@@ -343,7 +343,7 @@ static int ipu_probe(vmm_device_t *dev)
     nodeid = vmm_platform_match_nodeid(dev);
 
     if (!nodeid) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     dev_dbg(dev, "<%s>\n", __func__);
@@ -351,7 +351,7 @@ static int ipu_probe(vmm_device_t *dev)
     pltfm_data = vmm_devm_zalloc(dev, sizeof(struct ipu_pltfm_data));
 
     if (!pltfm_data) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     ret = vmm_device_tree_read_u32(dev->of_node, "bypass_reset", &bypass_reset);
@@ -366,7 +366,7 @@ static int ipu_probe(vmm_device_t *dev)
     /* Aliases are not yet implemented, use a dirty static int */
     if (id >= MXC_IPU_MAX_NUM) {
         dev_err(dev, "id overflow (%" PRIu32 ")\n", id);
-        return VMM_EOVERFLOW;
+        return VMM_ERR_OVERFLOW;
     }
 
     pltfm_data->id = id;
@@ -389,14 +389,14 @@ static int ipu_probe(vmm_device_t *dev)
 
     if (!ipu->irq_sync) {
         dev_err(ipu->dev, "request SYNC interrupt failed\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     ipu->irq_err = vmm_device_tree_irq_parse_map(dev->of_node, 1);
 
     if (!ipu->irq_err) {
         dev_err(ipu->dev, "request ERR interrupt failed\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     ret = vmm_device_tree_regaddr(dev->of_node, &ipu_base, 0);
@@ -436,7 +436,7 @@ static int ipu_probe(vmm_device_t *dev)
     if (!ipu->cm_reg || !ipu->ic_reg || !ipu->idmac_reg || !ipu->dp_reg || !ipu->dc_reg || !ipu->dmfc_reg || !ipu->di_reg[0] || !ipu->di_reg[1] ||
         !ipu->smfc_reg || !ipu->csi_reg[0] || !ipu->csi_reg[1] || !ipu->cpmem_base || !ipu->tpmem_base || !ipu->dc_tmpl_reg || !ipu->disp_base[1] ||
         !ipu->vdi_reg) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     dev_dbg(ipu->dev, "IPU CM Regs = %p\n", ipu->cm_reg);
@@ -626,7 +626,7 @@ int32_t ipu_init_channel(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel
         case CSI_MEM2:
         case CSI_MEM3:
             if (params->csi_mem.csi > 1) {
-                ret = VMM_EINVALID;
+                ret = VMM_ERR_INVALID;
                 goto err;
             }
 
@@ -655,12 +655,12 @@ int32_t ipu_init_channel(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel
 
         case CSI_PRP_ENC_MEM:
             if (params->csi_prp_enc_mem.csi > 1) {
-                ret = VMM_EINVALID;
+                ret = VMM_ERR_INVALID;
                 goto err;
             }
 
             if ((ipu->using_ic_dirct_ch == MEM_VDI_PRP_VF_MEM) || (ipu->using_ic_dirct_ch == MEM_VDI_MEM)) {
-                ret = VMM_EINVALID;
+                ret = VMM_ERR_INVALID;
                 goto err;
             }
 
@@ -696,12 +696,12 @@ int32_t ipu_init_channel(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel
 
         case CSI_PRP_VF_MEM:
             if (params->csi_prp_vf_mem.csi > 1) {
-                ret = VMM_EINVALID;
+                ret = VMM_ERR_INVALID;
                 goto err;
             }
 
             if ((ipu->using_ic_dirct_ch == MEM_VDI_PRP_VF_MEM) || (ipu->using_ic_dirct_ch == MEM_VDI_MEM)) {
-                ret = VMM_EINVALID;
+                ret = VMM_ERR_INVALID;
                 goto err;
             }
 
@@ -749,7 +749,7 @@ int32_t ipu_init_channel(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel
                             "for graphics plane from "
                             "ch%d\n",
                             sec_dma);
-                        ret = VMM_EINVALID;
+                        ret = VMM_ERR_INVALID;
                         goto err;
                     }
 
@@ -769,7 +769,7 @@ int32_t ipu_init_channel(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel
         case MEM_VDI_PRP_VF_MEM:
             if ((ipu->using_ic_dirct_ch == CSI_PRP_VF_MEM) || (ipu->using_ic_dirct_ch == MEM_VDI_MEM) ||
                 (ipu->using_ic_dirct_ch == CSI_PRP_ENC_MEM)) {
-                ret = VMM_EINVALID;
+                ret = VMM_ERR_INVALID;
                 goto err;
             }
 
@@ -798,7 +798,7 @@ int32_t ipu_init_channel(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel
         case MEM_VDI_MEM:
             if ((ipu->using_ic_dirct_ch == CSI_PRP_VF_MEM) || (ipu->using_ic_dirct_ch == MEM_VDI_PRP_VF_MEM) ||
                 (ipu->using_ic_dirct_ch == CSI_PRP_ENC_MEM)) {
-                ret = VMM_EINVALID;
+                ret = VMM_ERR_INVALID;
                 goto err;
             }
 
@@ -841,7 +841,7 @@ int32_t ipu_init_channel(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel
                             "for graphics plane from "
                             "ch%d\n",
                             sec_dma);
-                        ret = VMM_EINVALID;
+                        ret = VMM_ERR_INVALID;
                         goto err;
                     }
 
@@ -863,7 +863,7 @@ int32_t ipu_init_channel(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel
 
         case MEM_DC_SYNC:
             if (params->mem_dc_sync.di > 1) {
-                ret = VMM_EINVALID;
+                ret = VMM_ERR_INVALID;
                 goto err;
             }
 
@@ -876,7 +876,7 @@ int32_t ipu_init_channel(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel
 
         case MEM_BG_SYNC:
             if (params->mem_dp_bg_sync.di > 1) {
-                ret = VMM_EINVALID;
+                ret = VMM_ERR_INVALID;
                 goto err;
             }
 
@@ -907,7 +907,7 @@ int32_t ipu_init_channel(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel
 
         case DIRECT_ASYNC0:
             if (params->direct_async.di > 1) {
-                ret = VMM_EINVALID;
+                ret = VMM_ERR_INVALID;
                 goto err;
             }
 
@@ -919,7 +919,7 @@ int32_t ipu_init_channel(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel
 
         case DIRECT_ASYNC1:
             if (params->direct_async.di > 1) {
-                ret = VMM_EINVALID;
+                ret = VMM_ERR_INVALID;
                 goto err;
             }
 
@@ -943,7 +943,7 @@ err:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(ipu_init_channel);
+VMM_ERR_XPORT_SYMBOL(ipu_init_channel);
 
 int32_t ipu_channel_request(struct ipu_soc *ipu, ipu_channel_t channel, ipu_channel_params_t *params, struct ipu_chan **p_ipu_chan)
 {
@@ -956,14 +956,14 @@ int32_t ipu_channel_request(struct ipu_soc *ipu, ipu_channel_t channel, ipu_chan
 
     if (channel_id >= ARRAY_SIZE(ipu->chan)) {
         dev_err(ipu->dev, "%s: ch = %d is too big!\n", __func__, channel_id);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     ipu_chan = &ipu->chan[channel_id];
 
     if (ipu_chan->p_ipu_chan && (ipu_chan->p_ipu_chan != p_ipu_chan)) {
         dev_err(ipu->dev, "%s: ch = %d is busy!\n", __func__, channel_id);
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     ipu_chan->p_ipu_chan = p_ipu_chan;
@@ -980,7 +980,7 @@ int32_t ipu_channel_request(struct ipu_soc *ipu, ipu_channel_t channel, ipu_chan
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(ipu_channel_request);
+VMM_ERR_XPORT_SYMBOL(ipu_channel_request);
 
 /*!
  * This function is called to uninitialize a logical IPU channel.
@@ -1269,7 +1269,7 @@ void ipu_uninit_channel(struct ipu_soc *ipu, ipu_channel_t channel)
     WARN_ON(ipu->smfc_use_count < 0);
 }
 
-VMM_EXPORT_SYMBOL(ipu_uninit_channel);
+VMM_ERR_XPORT_SYMBOL(ipu_uninit_channel);
 
 void ipu_channel_free(struct ipu_chan **p_ipu_chan)
 {
@@ -1283,7 +1283,7 @@ void ipu_channel_free(struct ipu_chan **p_ipu_chan)
     }
 }
 
-VMM_EXPORT_SYMBOL(ipu_channel_free);
+VMM_ERR_XPORT_SYMBOL(ipu_channel_free);
 
 /*!
  * This function is called to initialize buffer(s) for logical IPU channel.
@@ -1340,7 +1340,7 @@ int32_t ipu_init_channel_buffer(
     dma_chan = channel_2_dma(channel, type);
 
     if (!idma_is_valid(dma_chan)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (stride < width * bytes_per_pixel(pixel_fmt)) {
@@ -1349,18 +1349,18 @@ int32_t ipu_init_channel_buffer(
 
     if (stride % 4) {
         dev_err(ipu->dev, "Stride not 32-bit aligned, stride = %d\n", stride);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* IC & IRT channels' width must be multiple of 8 pixels */
     if ((_ipu_is_ic_chan(dma_chan) || _ipu_is_irt_chan(dma_chan)) && (width % 8)) {
         dev_err(ipu->dev, "Width must be 8 pixel multiple\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (_ipu_is_vdi_out_chan(dma_chan) && ((width < 16) || (height < 16) || (width % 2) || (height % 4))) {
         dev_err(ipu->dev, "vdi width/height limited err\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* IPUv3EX and IPUv3M support triple buffer */
@@ -1370,7 +1370,7 @@ int32_t ipu_init_channel_buffer(
             "Chan%d doesn't support triple buffer "
             "mode\n",
             dma_chan);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!phyaddr_1 && phyaddr_2) {
@@ -1379,7 +1379,7 @@ int32_t ipu_init_channel_buffer(
             "Chan%d's buf1 physical addr is NULL for "
             "triple buffer mode\n",
             dma_chan);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     mutex_lock(&ipu->mutex_lock);
@@ -1588,7 +1588,7 @@ int32_t ipu_init_channel_buffer(
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(ipu_init_channel_buffer);
+VMM_ERR_XPORT_SYMBOL(ipu_init_channel_buffer);
 
 /*!
  * This function is called to update the physical address of a buffer for
@@ -1615,7 +1615,7 @@ int32_t ipu_update_channel_buffer(struct ipu_soc *ipu, ipu_channel_t channel, ip
     uint64_t lock_flags;
 
     if (dma_chan == IDMA_CHAN_INVALID) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     spin_lock_irq_save(&ipu->rdy_reg_spin_lock, lock_flags);
@@ -1631,7 +1631,7 @@ int32_t ipu_update_channel_buffer(struct ipu_soc *ipu, ipu_channel_t channel, ip
     if ((reg & idma_mask(dma_chan)) == 0) {
         _ipu_ch_param_set_buffer(ipu, dma_chan, bufNum, phyaddr);
     } else {
-        ret = VMM_EACCESS;
+        ret = VMM_ERR_ACCESS;
     }
 
     spin_unlock_irq_restore(&ipu->rdy_reg_spin_lock, lock_flags);
@@ -1639,7 +1639,7 @@ int32_t ipu_update_channel_buffer(struct ipu_soc *ipu, ipu_channel_t channel, ip
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(ipu_update_channel_buffer);
+VMM_ERR_XPORT_SYMBOL(ipu_update_channel_buffer);
 
 /*!
  * This function is called to update the band mode setting for
@@ -1664,7 +1664,7 @@ int32_t ipu_set_channel_bandmode(struct ipu_soc *ipu, ipu_channel_t channel, ipu
     uint32_t dma_chan = channel_2_dma(channel, type);
 
     if ((2 > band_height) || (8 < band_height)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     mutex_lock(&ipu->mutex_lock);
@@ -1680,7 +1680,7 @@ int32_t ipu_set_channel_bandmode(struct ipu_soc *ipu, ipu_channel_t channel, ipu
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(ipu_set_channel_bandmode);
+VMM_ERR_XPORT_SYMBOL(ipu_set_channel_bandmode);
 
 /*!
  * This function is called to initialize a buffer for logical IPU channel.
@@ -1727,7 +1727,7 @@ int32_t ipu_update_channel_offset(
     uint64_t lock_flags;
 
     if (dma_chan == IDMA_CHAN_INVALID) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     spin_lock_irq_save(&ipu->rdy_reg_spin_lock, lock_flags);
@@ -1736,7 +1736,7 @@ int32_t ipu_update_channel_offset(
         (ipu_cm_read(ipu, IPU_CHA_BUF1_RDY(dma_chan)) & idma_mask(dma_chan)) ||
         ((ipu_cm_read(ipu, IPU_CHA_BUF2_RDY(dma_chan)) & idma_mask(dma_chan)) &&
          (ipu_cm_read(ipu, IPU_CHA_TRB_MODE_SEL(dma_chan)) & idma_mask(dma_chan)) && _ipu_is_trb_chan(dma_chan))) {
-        ret = VMM_EACCESS;
+        ret = VMM_ERR_ACCESS;
     } else {
         _ipu_ch_offset_update(ipu, dma_chan, pixel_fmt, width, height, stride, u, v, 0, vertical_offset, horizontal_offset);
     }
@@ -1746,7 +1746,7 @@ int32_t ipu_update_channel_offset(
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(ipu_update_channel_offset);
+VMM_ERR_XPORT_SYMBOL(ipu_update_channel_offset);
 
 /*!
  * This function is called to set a channel's buffer as ready.
@@ -1767,7 +1767,7 @@ int32_t ipu_select_buffer(struct ipu_soc *ipu, ipu_channel_t channel, ipu_buffer
     uint64_t lock_flags;
 
     if (dma_chan == IDMA_CHAN_INVALID) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     spin_lock_irq_save(&ipu->rdy_reg_spin_lock, lock_flags);
@@ -1786,7 +1786,7 @@ int32_t ipu_select_buffer(struct ipu_soc *ipu, ipu_channel_t channel, ipu_buffer
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(ipu_select_buffer);
+VMM_ERR_XPORT_SYMBOL(ipu_select_buffer);
 
 /*!
  * This function is called to set a channel's buffer as ready.
@@ -1819,7 +1819,7 @@ int32_t ipu_select_multi_vdi_buffer(struct ipu_soc *ipu, uint32_t bufNum)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(ipu_select_multi_vdi_buffer);
+VMM_ERR_XPORT_SYMBOL(ipu_select_multi_vdi_buffer);
 
 #define NA -1
 static int proc_dest_sel[] = {0, 1, 1, 3, 5, 5, 4, 7, 8, 9, 10, 11, 12, 14, 15, 16, 0, 1, 1, 5, 5, 5, 5, 5, 7, 8, 9, 10, 11, 12, 14, 31};
@@ -1930,14 +1930,14 @@ int32_t ipu_link_channels(struct ipu_soc *ipu, ipu_channel_t src_ch, ipu_channel
             } else if (MEM_PP_MEM == dest_ch) {
                 fs_proc_flow3 |= FS_VDOA_DEST_SEL_IC;
             } else {
-                retval = VMM_EINVALID;
+                retval = VMM_ERR_INVALID;
                 goto err;
             }
 
             break;
 
         default:
-            retval = VMM_EINVALID;
+            retval = VMM_ERR_INVALID;
             goto err;
     }
 
@@ -2019,14 +2019,14 @@ int32_t ipu_link_channels(struct ipu_soc *ipu, ipu_channel_t src_ch, ipu_channel
             if (MEM_VDOA_MEM == src_ch) {
                 fs_proc_flow1 |= FS_VDI_SRC_SEL_VDOA;
             } else {
-                retval = VMM_EINVALID;
+                retval = VMM_ERR_INVALID;
                 goto err;
             }
 
             break;
 
         default:
-            retval = VMM_EINVALID;
+            retval = VMM_ERR_INVALID;
             goto err;
     }
 
@@ -2040,7 +2040,7 @@ err:
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(ipu_link_channels);
+VMM_ERR_XPORT_SYMBOL(ipu_link_channels);
 
 /*!
  * This function unlinks 2 channels and disables automatic frame
@@ -2129,7 +2129,7 @@ int32_t ipu_unlink_channels(struct ipu_soc *ipu, ipu_channel_t src_ch, ipu_chann
             break;
 
         default:
-            retval = VMM_EINVALID;
+            retval = VMM_ERR_INVALID;
             goto err;
     }
 
@@ -2191,7 +2191,7 @@ int32_t ipu_unlink_channels(struct ipu_soc *ipu, ipu_channel_t src_ch, ipu_chann
             break;
 
         default:
-            retval = VMM_EINVALID;
+            retval = VMM_ERR_INVALID;
             goto err;
     }
 
@@ -2205,7 +2205,7 @@ err:
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(ipu_unlink_channels);
+VMM_ERR_XPORT_SYMBOL(ipu_unlink_channels);
 
 /*!
  * This function check whether a logical channel was enabled.
@@ -2240,7 +2240,7 @@ int32_t ipu_is_channel_busy(struct ipu_soc *ipu, ipu_channel_t channel)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(ipu_is_channel_busy);
+VMM_ERR_XPORT_SYMBOL(ipu_is_channel_busy);
 
 /*!
  * This function enables a logical channel.
@@ -2265,7 +2265,7 @@ int32_t ipu_enable_channel(struct ipu_soc *ipu, ipu_channel_t channel)
     if (ipu->channel_enable_mask & (1L << IPU_CHAN_ID(channel))) {
         dev_err(ipu->dev, "Warning: channel already enabled %d\n", IPU_CHAN_ID(channel));
         mutex_unlock(&ipu->mutex_lock);
-        return VMM_EACCESS;
+        return VMM_ERR_ACCESS;
     }
 
     /* Get input and output dma channels */
@@ -2365,7 +2365,7 @@ int32_t ipu_enable_channel(struct ipu_soc *ipu, ipu_channel_t channel)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(ipu_enable_channel);
+VMM_ERR_XPORT_SYMBOL(ipu_enable_channel);
 
 /*!
  * This function check buffer ready for a logical channel.
@@ -2386,7 +2386,7 @@ int32_t ipu_check_buffer_ready(struct ipu_soc *ipu, ipu_channel_t channel, ipu_b
     uint64_t lock_flags;
 
     if (dma_chan == IDMA_CHAN_INVALID) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     spin_lock_irq_save(&ipu->rdy_reg_spin_lock, lock_flags);
@@ -2408,7 +2408,7 @@ int32_t ipu_check_buffer_ready(struct ipu_soc *ipu, ipu_channel_t channel, ipu_b
     }
 }
 
-VMM_EXPORT_SYMBOL(ipu_check_buffer_ready);
+VMM_ERR_XPORT_SYMBOL(ipu_check_buffer_ready);
 
 /*!
  * This function clear buffer ready for a logical channel.
@@ -2452,7 +2452,7 @@ void ipu_clear_buffer_ready(struct ipu_soc *ipu, ipu_channel_t channel, ipu_buff
     spin_unlock_irq_restore(&ipu->rdy_reg_spin_lock, lock_flags);
 }
 
-VMM_EXPORT_SYMBOL(ipu_clear_buffer_ready);
+VMM_ERR_XPORT_SYMBOL(ipu_clear_buffer_ready);
 
 /*!
  * This function disables a logical channel.
@@ -2481,7 +2481,7 @@ int32_t ipu_disable_channel(struct ipu_soc *ipu, ipu_channel_t channel, bool wai
     if ((ipu->channel_enable_mask & (1L << IPU_CHAN_ID(channel))) == 0) {
         dev_dbg(ipu->dev, "Channel already disabled %d\n", IPU_CHAN_ID(channel));
         mutex_unlock(&ipu->mutex_lock);
-        return VMM_EACCESS;
+        return VMM_ERR_ACCESS;
     }
 
     /* Get input and output dma channels */
@@ -2490,7 +2490,7 @@ int32_t ipu_disable_channel(struct ipu_soc *ipu, ipu_channel_t channel, bool wai
 
     if ((idma_is_valid(in_dma) && !idma_is_set(ipu, IDMAC_CHA_EN, in_dma)) && (idma_is_valid(out_dma) && !idma_is_set(ipu, IDMAC_CHA_EN, out_dma))) {
         mutex_unlock(&ipu->mutex_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (ipu->sec_chan_en[IPU_CHAN_ID(channel)]) {
@@ -2660,7 +2660,7 @@ int32_t ipu_disable_channel(struct ipu_soc *ipu, ipu_channel_t channel, bool wai
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(ipu_disable_channel);
+VMM_ERR_XPORT_SYMBOL(ipu_disable_channel);
 
 int32_t ipu_channel_disable(struct ipu_chan *ipu_chan, bool wait_for_stop)
 {
@@ -2673,7 +2673,7 @@ int32_t ipu_channel_disable(struct ipu_chan *ipu_chan, bool wait_for_stop)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(ipu_channel_disable);
+VMM_ERR_XPORT_SYMBOL(ipu_channel_disable);
 
 /*!
  * This function enables CSI.
@@ -2690,7 +2690,7 @@ int32_t ipu_enable_csi(struct ipu_soc *ipu, uint32_t csi)
 
     if (csi > 1) {
         dev_err(ipu->dev, "Wrong csi num_%d\n", csi);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     _ipu_get(ipu);
@@ -2712,7 +2712,7 @@ int32_t ipu_enable_csi(struct ipu_soc *ipu, uint32_t csi)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(ipu_enable_csi);
+VMM_ERR_XPORT_SYMBOL(ipu_enable_csi);
 
 /*!
  * This function disables CSI.
@@ -2729,7 +2729,7 @@ int32_t ipu_disable_csi(struct ipu_soc *ipu, uint32_t csi)
 
     if (csi > 1) {
         dev_err(ipu->dev, "Wrong csi num_%d\n", csi);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     _ipu_get(ipu);
@@ -2752,7 +2752,7 @@ int32_t ipu_disable_csi(struct ipu_soc *ipu, uint32_t csi)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(ipu_disable_csi);
+VMM_ERR_XPORT_SYMBOL(ipu_disable_csi);
 
 #if 0
 static vmm_irq_return_t ipu_sync_irq_handler(int irq, void *desc)
@@ -2855,7 +2855,7 @@ int ipu_enable_irq(struct ipu_soc *ipu, uint32_t irq)
             "handler hasn't been registered on sync "
             "irq %d\n",
             irq);
-        ret = VMM_EACCESS;
+        ret = VMM_ERR_ACCESS;
         goto out;
     }
 
@@ -2870,7 +2870,7 @@ out:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(ipu_enable_irq);
+VMM_ERR_XPORT_SYMBOL(ipu_enable_irq);
 
 /*!
  * This function disables the interrupt for the specified interrupt line.
@@ -2898,7 +2898,7 @@ void ipu_disable_irq(struct ipu_soc *ipu, uint32_t irq)
     _ipu_put(ipu);
 }
 
-VMM_EXPORT_SYMBOL(ipu_disable_irq);
+VMM_ERR_XPORT_SYMBOL(ipu_disable_irq);
 
 /*!
  * This function clears the interrupt for the specified interrupt line.
@@ -2923,7 +2923,7 @@ void ipu_clear_irq(struct ipu_soc *ipu, uint32_t irq)
     _ipu_put(ipu);
 }
 
-VMM_EXPORT_SYMBOL(ipu_clear_irq);
+VMM_ERR_XPORT_SYMBOL(ipu_clear_irq);
 
 /*!
  * This function returns the current interrupt status for the specified
@@ -2955,7 +2955,7 @@ bool ipu_get_irq_status(struct ipu_soc *ipu, uint32_t irq)
     }
 }
 
-VMM_EXPORT_SYMBOL(ipu_get_irq_status);
+VMM_ERR_XPORT_SYMBOL(ipu_get_irq_status);
 
 /*!
  * This function registers an interrupt handler function for the specified
@@ -2993,7 +2993,7 @@ int ipu_request_irq(
 
     if (ipu->irq_list[irq].handler != NULL) {
         dev_err(ipu->dev, "handler already installed on irq %d\n", irq);
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto out;
     }
 
@@ -3004,7 +3004,7 @@ int ipu_request_irq(
      */
     if (_ipu_is_sync_irq(irq) && (handler == NULL)) {
         dev_err(ipu->dev, "handler is NULL for sync irq %d\n", irq);
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto out;
     }
 
@@ -3027,7 +3027,7 @@ out:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(ipu_request_irq);
+VMM_ERR_XPORT_SYMBOL(ipu_request_irq);
 
 /*!
  * This function unregisters an interrupt handler for the specified interrupt
@@ -3065,7 +3065,7 @@ void ipu_free_irq(struct ipu_soc *ipu, uint32_t irq, void *dev_id)
     _ipu_put(ipu);
 }
 
-VMM_EXPORT_SYMBOL(ipu_free_irq);
+VMM_ERR_XPORT_SYMBOL(ipu_free_irq);
 
 uint32_t ipu_get_cur_buffer_idx(struct ipu_soc *ipu, ipu_channel_t channel, ipu_buffer_t type)
 {
@@ -3074,7 +3074,7 @@ uint32_t ipu_get_cur_buffer_idx(struct ipu_soc *ipu, ipu_channel_t channel, ipu_
     dma_chan = channel_2_dma(channel, type);
 
     if (!idma_is_valid(dma_chan)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     reg = ipu_cm_read(ipu, IPU_CHA_TRB_MODE_SEL(dma_chan));
@@ -3093,7 +3093,7 @@ uint32_t ipu_get_cur_buffer_idx(struct ipu_soc *ipu, ipu_channel_t channel, ipu_
     }
 }
 
-VMM_EXPORT_SYMBOL(ipu_get_cur_buffer_idx);
+VMM_ERR_XPORT_SYMBOL(ipu_get_cur_buffer_idx);
 
 uint32_t _ipu_channel_status(struct ipu_soc *ipu, ipu_channel_t channel)
 {
@@ -3161,7 +3161,7 @@ uint32_t ipu_channel_status(struct ipu_soc *ipu, ipu_channel_t channel)
     return dma_status;
 }
 
-VMM_EXPORT_SYMBOL(ipu_channel_status);
+VMM_ERR_XPORT_SYMBOL(ipu_channel_status);
 
 int32_t ipu_swap_channel(struct ipu_soc *ipu, ipu_channel_t from_ch, ipu_channel_t to_ch)
 {
@@ -3200,7 +3200,7 @@ int32_t ipu_swap_channel(struct ipu_soc *ipu, ipu_channel_t from_ch, ipu_channel
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(ipu_swap_channel);
+VMM_ERR_XPORT_SYMBOL(ipu_swap_channel);
 
 uint32_t bytes_per_pixel(uint32_t fmt)
 {
@@ -3244,7 +3244,7 @@ uint32_t bytes_per_pixel(uint32_t fmt)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(bytes_per_pixel);
+VMM_ERR_XPORT_SYMBOL(bytes_per_pixel);
 
 ipu_color_space_t format_to_colorspace(uint32_t fmt)
 {
@@ -3294,7 +3294,7 @@ bool ipu_ch_param_bad_alpha_pos(uint32_t pixel_fmt)
     return _ipu_ch_param_bad_alpha_pos(pixel_fmt);
 }
 
-VMM_EXPORT_SYMBOL(ipu_ch_param_bad_alpha_pos);
+VMM_ERR_XPORT_SYMBOL(ipu_ch_param_bad_alpha_pos);
 
 #ifdef CONFIG_PM
 static int ipu_suspend(struct device *dev)

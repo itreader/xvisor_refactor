@@ -18,7 +18,7 @@
  *
  * @file vmm_hub.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief software hub as netswitch.
+ * @brief 软件Hub网络交换机实现
  */
 
 #include <net/vmm_mbuf.h>
@@ -90,7 +90,7 @@ static struct vmm_netswitch *hub_create(struct vmm_netswitch_policy *policy, con
     nsw                       = vmm_netswitch_alloc(policy, name);
 
     if (!nsw) {
-        goto hub_netswitch_alloc_failed;
+        goto hub_netswitch_alloc_failed; /**< hub_netswitch_alloc_failed成员 */
     }
 
     nsw->port2switch_xfer = hub_rx_handler;

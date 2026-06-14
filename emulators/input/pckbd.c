@@ -536,7 +536,7 @@ static int i8042_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(i8042_emu_state_t));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto i8042_emulator_probe_fail;
     }
 
@@ -560,21 +560,21 @@ static int i8042_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     strlcat(name, "/", sizeof(name));
 
     if (strlcat(name, edev->node->name, sizeof(name)) >= sizeof(name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto i8042_emulator_probe_freestate_fail;
     }
 
     s->mouse = ps2_emu_alloc_mouse(name, kbd_update_aux_irq, s);
 
     if (!s->mouse) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto i8042_emulator_probe_freestate_fail;
     }
 
     s->kbd = ps2_emu_alloc_keyboard(name, kbd_update_kbd_irq, s);
 
     if (!s->kbd) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto i8042_emulator_probe_freestate_fail;
     }
 

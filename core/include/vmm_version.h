@@ -18,7 +18,7 @@
  *
  * @file vmm_version.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for VMM version number
+ * @brief VMM版本号头文件
  */
 #ifndef _VMM_VERSION_H__
 #define _VMM_VERSION_H__

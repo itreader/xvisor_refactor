@@ -326,4 +326,4 @@ void cframe_buffer_imageblit(struct frame_buffer_info *p, const struct frame_buf
     }
 }
 
-VMM_EXPORT_SYMBOL(cframe_buffer_imageblit);
+VMM_ERR_XPORT_SYMBOL(cframe_buffer_imageblit);

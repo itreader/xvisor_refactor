@@ -18,7 +18,7 @@
  *
  * @file vmm_smp.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief Symetric Multiprocessor Mamagment APIs Implementation
+ * @brief 对称多处理器管理API实现
  */
 
 #include <libs/fifo.h>
@@ -36,6 +36,12 @@
 /* SMP processor ID for Boot CPU */
 static uint32_t smp_bootcpu_id = UINT_MAX;
 
+/**
+ * @brief 根据硬件ID映射到CPU ID
+ * @param hwid 硬件ID
+ * @param cpu 指向存储映射后CPU ID的指针
+ * @return 成功返回VMM_OK，否则返回错误码
+ */
 int vmm_smp_map_cpuid(uint64_t hwid, uint32_t *cpu)
 {
     uint32_t c;
@@ -43,7 +49,7 @@ int vmm_smp_map_cpuid(uint64_t hwid, uint32_t *cpu)
     uint64_t thwid;
 
     if (!cpu) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     for_each_possible_cpu(c)
@@ -60,14 +66,21 @@ int vmm_smp_map_cpuid(uint64_t hwid, uint32_t *cpu)
         }
     }
 
-    return VMM_ENOENT;
+    return VMM_ERR_NOENT;
 }
 
+/**
+ * @brief 获取引导CPU的ID
+ * @return 引导CPU的ID
+ */
 uint32_t vmm_smp_bootcpu_id(void)
 {
     return smp_bootcpu_id;
 }
 
+/**
+ * @brief 设置当前CPU为引导CPU
+ */
 void vmm_smp_set_bootcpu(void)
 {
     uint32_t cpu = vmm_smp_processor_id();
@@ -77,6 +90,10 @@ void vmm_smp_set_bootcpu(void)
     }
 }
 
+/**
+ * @brief 检查当前CPU是否为引导CPU
+ * @return 如果是引导CPU返回TRUE，否则返回FALSE
+ */
 bool vmm_smp_is_bootcpu(void)
 {
     if (smp_bootcpu_id == UINT_MAX) {
@@ -108,24 +125,35 @@ bool vmm_smp_is_bootcpu(void)
 #define IPI_VCPU_DEADLINE         VMM_VCPU_DEF_DEADLINE
 #define IPI_VCPU_PERIODICITY      VMM_VCPU_DEF_PERIODICITY
 
+/**
+ * @brief SMP IPI调用结构，保存跨CPU函数调用的目标和参数
+ */
 struct smp_ipi_call {
-    uint32_t src_cpu;
-    uint32_t dst_cpu;
-    void (*func)(void *, void *, void *);
-    void *arg0;
-    void *arg1;
-    void *arg2;
+    uint32_t src_cpu; /**< src_cpu成员 */
+    uint32_t dst_cpu; /**< dst_cpu成员 */
+    void (*func)(void *, void *, void *); /**< 函数指针 */
+    void *arg0; /**< arg0成员 */
+    void *arg1; /**< 参数1 */
+    void *arg2; /**< 参数2 */
 };
 
+/**
+ * @brief IPI控制结构，控制结构
+ */
 struct smp_ipi_ctrl {
-    struct fifo     *sync_fifo;
-    struct fifo     *async_fifo;
-    vmm_completion_t async_avail;
-    vmm_vcpu_t      *async_vcpu;
+    struct fifo     *sync_fifo; /**< sync_fifo成员 */
+    struct fifo     *async_fifo; /**< async_fifo成员 */
+    vmm_completion_t async_avail; /**< async_avail成员 */
+    vmm_vcpu_t      *async_vcpu; /**< async_vcpu成员 */
 };
 
 static DEFINE_PER_CPU(struct smp_ipi_ctrl, ictl);
 
+/**
+ * @brief 提交同步IPI调用
+ * @param ictlp IPI控制结构体指针
+ * @param ipic IPI调用结构体指针
+ */
 static void smp_ipi_sync_submit(struct smp_ipi_ctrl *ictlp, struct smp_ipi_call *ipic)
 {
 
@@ -151,6 +179,11 @@ static void smp_ipi_sync_submit(struct smp_ipi_ctrl *ictlp, struct smp_ipi_call 
     arch_smp_ipi_trigger(vmm_cpumask_of(ipic->dst_cpu));
 }
 
+/**
+ * @brief 提交异步IPI调用
+ * @param ictlp IPI控制结构体指针
+ * @param ipic IPI调用结构体指针
+ */
 static void smp_ipi_async_submit(struct smp_ipi_ctrl *ictlp, struct smp_ipi_call *ipic)
 {
 
@@ -176,6 +209,9 @@ static void smp_ipi_async_submit(struct smp_ipi_ctrl *ictlp, struct smp_ipi_call
     arch_smp_ipi_trigger(vmm_cpumask_of(ipic->dst_cpu));
 }
 
+/**
+ * @brief IPI主处理函数
+ */
 static void smp_ipi_main(void)
 {
     struct smp_ipi_call  ipic;
@@ -188,12 +224,15 @@ static void smp_ipi_main(void)
         /* Process async IPIs */
         while (fifo_dequeue(ictlp->async_fifo, &ipic)) {
             if (ipic.func) {
-                ipic.func(ipic.arg0, ipic.arg1, ipic.arg2);
+                ipic.func(ipic.arg0, ipic.arg1, ipic.arg2); /**< ipic.arg2)成员 */
             }
         }
     }
 }
 
+/**
+ * @brief 执行IPI调用
+ */
 void vmm_smp_ipi_exec(void)
 {
     struct smp_ipi_call  ipic;
@@ -202,7 +241,7 @@ void vmm_smp_ipi_exec(void)
     /* Process Sync IPIs */
     while (fifo_dequeue(ictlp->sync_fifo, &ipic)) {
         if (ipic.func) {
-            ipic.func(ipic.arg0, ipic.arg1, ipic.arg2);
+            ipic.func(ipic.arg0, ipic.arg1, ipic.arg2); /**< ipic.arg2)成员 */
         }
     }
 
@@ -212,6 +251,14 @@ void vmm_smp_ipi_exec(void)
     }
 }
 
+/**
+ * @brief 异步调用IPI函数
+ * @param dest 目标CPU掩码
+ * @param func 要调用的函数指针
+ * @param arg0 第一个参数
+ * @param arg1 第二个参数
+ * @param arg2 第三个参数
+ */
 void vmm_smp_ipi_async_call(const vmm_cpumask_t *dest, void (*func)(void *, void *, void *), void *arg0, void *arg1, void *arg2)
 {
     uint32_t            c, cpu = vmm_smp_processor_id();
@@ -241,6 +288,16 @@ void vmm_smp_ipi_async_call(const vmm_cpumask_t *dest, void (*func)(void *, void
     }
 }
 
+/**
+ * @brief 同步调用IPI函数
+ * @param dest 目标CPU掩码
+ * @param timeout_msecs 超时时间（毫秒）
+ * @param func 要调用的函数指针
+ * @param arg0 第一个参数
+ * @param arg1 第二个参数
+ * @param arg2 第三个参数
+ * @return 成功返回VMM_OK，否则返回错误码
+ */
 int vmm_smp_ipi_sync_call(const vmm_cpumask_t *dest, uint32_t timeout_msecs, void (*func)(void *, void *, void *), void *arg0, void *arg1, void *arg2)
 {
     int                  rc = VMM_OK;
@@ -251,7 +308,7 @@ int vmm_smp_ipi_sync_call(const vmm_cpumask_t *dest, uint32_t timeout_msecs, voi
     struct smp_ipi_ctrl *ictlp;
 
     if (!dest || !func) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     trig_count = 0;
@@ -277,7 +334,7 @@ int vmm_smp_ipi_sync_call(const vmm_cpumask_t *dest, uint32_t timeout_msecs, voi
     }
 
     if (trig_count && timeout_msecs) {
-        rc             = VMM_ETIMEDOUT;
+        rc             = VMM_ERR_TIMEDOUT;
         timeout_tstamp = vmm_timer_timestamp();
         timeout_tstamp += (uint64_t)timeout_msecs * 1000000ULL;
 
@@ -304,16 +361,22 @@ int vmm_smp_ipi_sync_call(const vmm_cpumask_t *dest, uint32_t timeout_msecs, voi
     return rc;
 }
 
+/**
+ * @brief 同步IPI启动函数
+ * @param cpu_hotplug CPU热插拔通知结构体指针
+ * @param cpu CPU ID
+ * @return 成功返回VMM_OK，否则返回错误码
+ */
 static int smp_sync_ipi_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t cpu)
 {
-    int                  rc    = VMM_EFAIL;
+    int                  rc    = VMM_ERR_FAIL;
     struct smp_ipi_ctrl *ictlp = &per_cpu(ictl, cpu);
 
     /* Initialize Sync IPI FIFO */
     ictlp->sync_fifo           = fifo_alloc(sizeof(struct smp_ipi_call), SMP_IPI_MAX_SYNC_PER_CPU);
 
     if (!ictlp->sync_fifo) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail;
     }
 
@@ -321,7 +384,7 @@ static int smp_sync_ipi_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t 
     ictlp->async_fifo = fifo_alloc(sizeof(struct smp_ipi_call), SMP_IPI_MAX_ASYNC_PER_CPU);
 
     if (!ictlp->async_fifo) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail_free_sync;
     }
 
@@ -352,15 +415,25 @@ static vmm_cpu_hotplug_notify_t smp_sync_ipi_cpu_hotplug = {
     .startup = smp_sync_ipi_startup,
 };
 
+/**
+ * @brief 初始化同步IPI
+ * @return 成功返回VMM_OK，否则返回错误码
+ */
 int __init vmm_smp_sync_ipi_init(void)
 {
     /* Setup hotplug notifier */
     return vmm_cpu_hotplug_register(&smp_sync_ipi_cpu_hotplug, TRUE);
 }
 
+/**
+ * @brief 异步IPI启动函数
+ * @param cpu_hotplug CPU热插拔通知结构体指针
+ * @param cpu CPU ID
+ * @return 成功返回VMM_OK，否则返回错误码
+ */
 static int smp_async_ipi_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t cpu)
 {
-    int                  rc = VMM_EFAIL;
+    int                  rc = VMM_ERR_FAIL;
     char                 vcpu_name[VMM_FIELD_NAME_SIZE];
     struct smp_ipi_ctrl *ictlp = &per_cpu(ictl, cpu);
 
@@ -371,7 +444,7 @@ static int smp_async_ipi_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t
         vmm_cpumask_of(cpu));
 
     if (!ictlp->async_vcpu) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto fail;
     }
 
@@ -394,6 +467,10 @@ static vmm_cpu_hotplug_notify_t smp_async_ipi_cpu_hotplug = {
     .startup = smp_async_ipi_startup,
 };
 
+/**
+ * @brief 初始化异步IPI
+ * @return 成功返回VMM_OK，否则返回错误码
+ */
 int __init vmm_smp_async_ipi_init(void)
 {
     /* Setup hotplug notifier */

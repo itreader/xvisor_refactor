@@ -19,7 +19,7 @@
  * @file vmm_resource.c
  * @author Himanshu Chauhan (hschauhan@nulltrace.org)
  * @author Anup Patel (anup@brainfault.org)
- * @brief Resource management for arbitrary resources (including
+ * @brief 任意资源（含I/O内存和I/O端口）管理
  * host IO space and host memory space.
  *
  * This source has been largely adapted from Linux sources:
@@ -70,10 +70,13 @@ vmm_resource_t vmm_hostmem_resource = {
 };
 
 /* constraints to be met while allocating resources */
+/**
+ * @brief 资源约束结构，定义资源分配的对齐和范围限制
+ */
 struct resource_constraint {
-    resource_size_t min, max, align;
-    resource_size_t (*alignf)(void *, const vmm_resource_t *, resource_size_t, resource_size_t);
-    void *alignf_data;
+    resource_size_t min, max, align; /**< 对齐 */
+    resource_size_t (*alignf)(void *, const vmm_resource_t *, resource_size_t, resource_size_t); /**< alignf成员 */
+    void *alignf_data; /**< alignf_data成员 */
 };
 
 static DEFINE_RWLOCK(resource_lock);
@@ -84,6 +87,12 @@ static DEFINE_RWLOCK(resource_lock);
  * we need to remember the resource.
  */
 
+/**
+ * @brief 下一个 资源
+ * @param p 数据指针
+ * @param sibling_only 是否仅匹配兄弟节点
+ * @return 成功返回目标指针，失败返回NULL
+ */
 static vmm_resource_t *next_resource(vmm_resource_t *p, bool sibling_only)
 {
     /* Caller wants to traverse through siblings only */
@@ -102,6 +111,12 @@ static vmm_resource_t *next_resource(vmm_resource_t *p, bool sibling_only)
     return p->sibling;
 }
 
+/**
+ * @brief r 下一个
+ * @param v 通用值参数
+ * @param pos 位置值
+ * @return 下一个元素指针，遍历结束返回NULL
+ */
 static void *r_next(void *v, loff_t *pos)
 {
     vmm_resource_t *p = v;
@@ -113,11 +128,18 @@ static void *r_next(void *v, loff_t *pos)
 #define alloc_resource()   vmm_zalloc(sizeof(vmm_resource_t))
 
 /* Return the conflict entry if you can't request it */
+/**
+ * @brief   请求 资源
+ * @param root 根节点指针
+ * @param new 新值
+ * @return 成功返回目标指针，失败返回NULL
+ */
 static vmm_resource_t *__request_resource(vmm_resource_t *root, vmm_resource_t *new)
 {
     resource_size_t start = new->start;
     resource_size_t end   = new->end;
-    vmm_resource_t *tmp, **p;
+    vmm_resource_t *tmp = NULL;
+    vmm_resource_t **p = NULL;
 
     if (end < start) {
         return root;
@@ -153,9 +175,15 @@ static vmm_resource_t *__request_resource(vmm_resource_t *root, vmm_resource_t *
     }
 }
 
+/**
+ * @brief 释放资源
+ * @param old 旧值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __release_resource(vmm_resource_t *old)
 {
-    vmm_resource_t *tmp, **p;
+    vmm_resource_t *tmp = NULL;
+    vmm_resource_t **p = NULL;
 
     p = &old->parent->child;
 
@@ -175,9 +203,15 @@ static int __release_resource(vmm_resource_t *old)
         p = &tmp->sibling;
     }
 
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
+/**
+ * @brief 检查请求的资源是否与已有资源冲突
+ * @param root 根节点指针
+ * @param new 新值
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_resource_t *vmm_request_resource_conflict(vmm_resource_t *root, vmm_resource_t *new)
 {
     vmm_resource_t *conflict;
@@ -189,14 +223,25 @@ vmm_resource_t *vmm_request_resource_conflict(vmm_resource_t *root, vmm_resource
     return conflict;
 }
 
+/**
+ * @brief 请求 资源
+ * @param root 根节点指针
+ * @param new 新值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_request_resource(vmm_resource_t *root, vmm_resource_t *new)
 {
     vmm_resource_t *conflict;
 
     conflict = vmm_request_resource_conflict(root, new);
-    return conflict ? VMM_EBUSY : 0;
+    return conflict ? VMM_ERR_BUSY : 0;
 }
 
+/**
+ * @brief 释放资源
+ * @param old 旧值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_release_resource(vmm_resource_t *old)
 {
     int retval;
@@ -207,9 +252,14 @@ int vmm_release_resource(vmm_resource_t *old)
     return retval;
 }
 
+/**
+ * @brief 释放子资源
+ * @param r 资源或数据指针
+ */
 static void __release_child_resources(vmm_resource_t *r)
 {
-    vmm_resource_t *tmp, *p;
+    vmm_resource_t *tmp = NULL;
+    vmm_resource_t *p = NULL;
     resource_size_t size;
 
     p        = r->child;
@@ -231,6 +281,10 @@ static void __release_child_resources(vmm_resource_t *r)
     }
 }
 
+/**
+ * @brief 释放子资源
+ * @param r 资源或数据指针
+ */
 void vmm_release_child_resources(vmm_resource_t *r)
 {
     vmm_write_lock(&resource_lock);
@@ -245,9 +299,20 @@ void vmm_release_child_resources(vmm_resource_t *r)
  * This walks through whole tree and not just first level children
  * until and unless first_level_children_only is true.
  */
+/**
+ * @brief 在资源树中查找下一个资源
+ * @param root 根节点指针
+ * @param res 资源结构体指针
+ * @param res_level 资源层级指针
+ * @param name 目标对象的名称
+ * @param check_flags 是否检查标志位
+ * @param first_level_children_only 是否仅搜索第一级子节点
+ * @return 查找结果，失败返回错误码
+ */
 static int find_next_res(vmm_resource_t *root, vmm_resource_t *res, int *res_level, char *name, bool check_flags, bool first_level_children_only)
 {
-    resource_size_t start, end;
+    resource_size_t start;
+    resource_size_t end;
     vmm_resource_t *p;
     bool            sibling_only = FALSE;
 
@@ -314,12 +379,17 @@ static int find_next_res(vmm_resource_t *root, vmm_resource_t *res, int *res_lev
     return 0;
 }
 
+/**
+ * @brief 遍历资源树中的资源节点
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_walk_tree_res(
     vmm_resource_t *root, void *arg, int (*func)(const char *name, uint64_t start, uint64_t end, uint64_t flags, int level, void *arg))
 {
     vmm_resource_t res;
     uint64_t       orig_end;
-    int            ret = -1, level = 0;
+    int ret = -1;
+    int level = 0;
 
     if (!root || !func) {
         return -1;
@@ -352,6 +422,16 @@ int vmm_walk_tree_res(
     return ret;
 }
 
+/**
+ * @brief 遍历主机内存资源树
+ * @param name 目标对象的名称
+ * @param flags 标志位
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param end 结束位置或结束地址
+ * @param arg 参数值
+ * @param (*func 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_walk_hostmem_res(char *name, uint64_t flags, uint64_t start, uint64_t end, void *arg, int (*func)(uint64_t, uint64_t, void *))
 {
     vmm_resource_t res;
@@ -377,6 +457,14 @@ int vmm_walk_hostmem_res(char *name, uint64_t flags, uint64_t start, uint64_t en
     return ret;
 }
 
+/**
+ * @brief 遍历系统内存资源
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param end 结束位置或结束地址
+ * @param arg 参数值
+ * @param (*func 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_walk_system_ram_res(uint64_t start, uint64_t end, void *arg, int (*func)(uint64_t, uint64_t, void *))
 {
     vmm_resource_t res;
@@ -404,10 +492,19 @@ int vmm_walk_system_ram_res(uint64_t start, uint64_t end, void *arg, int (*func)
 
 #if !defined(CONFIG_ARCH_HAS_WALK_MEMORY)
 
+/**
+ * @brief 遍历系统内存区域
+ * @param start_pfn 起始页帧号
+ * @param nr_pages 页数量
+ * @param arg 参数值
+ * @param (*func 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_walk_system_ram_range(uint64_t start_pfn, uint64_t nr_pages, void *arg, int (*func)(uint64_t, uint64_t, void *))
 {
     vmm_resource_t res;
-    uint64_t       pfn, end_pfn;
+    uint64_t pfn;
+    uint64_t end_pfn;
     uint64_t       orig_end;
     int            ret = -1;
 
@@ -437,13 +534,32 @@ int vmm_walk_system_ram_range(uint64_t start_pfn, uint64_t nr_pages, void *arg, 
 
 #endif
 
+/**
+ * @brief 移除架构相关的内存预留
+ * @param avail 可用量值
+ * @return 内存操作结果
+ */
 void __weak arch_remove_reservations(vmm_resource_t *avail) {}
 
+/**
+ * @brief 简单对齐资源
+ * @param data 用户自定义数据指针
+ * @param avail 可用量值
+ * @param size 数据大小（字节数）
+ * @param align 对齐要求
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static resource_size_t simple_align_resource(void *data, const vmm_resource_t *avail, resource_size_t size, resource_size_t align)
 {
     return avail->start;
 }
 
+/**
+ * @brief 裁剪资源范围
+ * @param res 资源结构体指针
+ * @param min 最小值
+ * @param max 最大值
+ */
 static void resource_clip(vmm_resource_t *res, resource_size_t min, resource_size_t max)
 {
     if (res->start < min) {
@@ -459,11 +575,17 @@ static void resource_clip(vmm_resource_t *res, resource_size_t min, resource_siz
  * Find empty slot in the resource tree with the given range and
  * alignment constraints
  */
+/**
+ * @brief 查找可用资源
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __find_resource(
     vmm_resource_t *root, vmm_resource_t *old, vmm_resource_t *new, resource_size_t size, struct resource_constraint *constraint)
 {
     vmm_resource_t *this = root->child;
-    vmm_resource_t tmp   = *new, avail, alloc;
+    vmm_resource_t tmp   = *new;
+    vmm_resource_t avail;
+    vmm_resource_t alloc;
 
     tmp.start            = root->start;
 
@@ -520,11 +642,19 @@ static int __find_resource(
         this = this->sibling;
     }
 
-    return VMM_EBUSY;
+    return VMM_ERR_BUSY;
 }
 
 /*
  * Find empty slot in the resource tree given range and alignment.
+ */
+/**
+ * @brief 查找可用资源
+ * @param root 根节点指针
+ * @param new 新值
+ * @param size 数据大小（字节数）
+ * @param constraint 内存约束条件指针
+ * @return 查找结果，失败返回错误码
  */
 static int find_resource(vmm_resource_t *root, vmm_resource_t *new, resource_size_t size, struct resource_constraint *constraint)
 {
@@ -532,14 +662,12 @@ static int find_resource(vmm_resource_t *root, vmm_resource_t *new, resource_siz
 }
 
 /**
- * Allocate a slot in the resource tree given range & alignment.
- * The resource will be relocated if the new size cannot be reallocated in the
- * current location.
- *
- * @root: root resource descriptor
- * @old:  resource descriptor desired by caller
- * @newsize: new size of the resource descriptor
- * @constraint: the size and alignment constraints to be met.
+ * @brief 重新分配资源
+ * @param root 根节点指针
+ * @param old 旧值
+ * @param newsize 新大小值
+ * @param constraint 内存约束条件指针
+ * @return 查找结果，失败返回错误码
  */
 static int reallocate_resource(vmm_resource_t *root, vmm_resource_t *old, resource_size_t newsize, struct resource_constraint *constraint)
 {
@@ -560,7 +688,7 @@ static int reallocate_resource(vmm_resource_t *root, vmm_resource_t *old, resour
     }
 
     if (old->child) {
-        err = VMM_EBUSY;
+        err = VMM_ERR_BUSY;
         goto out;
     }
 
@@ -579,6 +707,10 @@ out:
     return err;
 }
 
+/**
+ * @brief 分配资源
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_allocate_resource(
     vmm_resource_t *root, vmm_resource_t *new, resource_size_t size, resource_size_t min, resource_size_t max, resource_size_t align,
     resource_size_t (*alignf)(void *, const vmm_resource_t *, resource_size_t, resource_size_t), void *alignf_data)
@@ -587,7 +719,7 @@ int vmm_allocate_resource(
     struct resource_constraint constraint;
 
     if (!alignf) {
-        alignf = simple_align_resource;
+        alignf = simple_align_resource; /**< simple_align_resource成员 */
     }
 
     constraint.min         = min;
@@ -606,13 +738,19 @@ int vmm_allocate_resource(
     err = find_resource(root, new, size, &constraint);
 
     if (err >= 0 && __request_resource(root, new)) {
-        err = VMM_EBUSY;
+        err = VMM_ERR_BUSY;
     }
 
     vmm_write_unlock(&resource_lock);
     return err;
 }
 
+/**
+ * @brief 查找 资源
+ * @param root 根节点指针
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_resource_t *vmm_lookup_resource(vmm_resource_t *root, resource_size_t start)
 {
     vmm_resource_t *res;
@@ -630,13 +768,20 @@ vmm_resource_t *vmm_lookup_resource(vmm_resource_t *root, resource_size_t start)
     return res;
 }
 
+/**
+ * @brief 资源
+ * @param __request_resource( 参数
+ * @return 成功返回目标指针，失败返回NULL
+ */
 /*
  * Insert a resource into the resource tree. If successful, return NULL,
+
  * otherwise return the conflicting resource (compare to __request_resource())
  */
 static vmm_resource_t *__insert_resource(vmm_resource_t *parent, vmm_resource_t *new)
 {
-    vmm_resource_t *first, *next;
+    vmm_resource_t *first = NULL;
+    vmm_resource_t *next = NULL;
 
     for (;; parent = first) {
         first = __request_resource(parent, new);
@@ -702,6 +847,12 @@ static vmm_resource_t *__insert_resource(vmm_resource_t *parent, vmm_resource_t 
     return NULL;
 }
 
+/**
+ * @brief 检查资源插入是否与已有资源冲突
+ * @param parent 父设备树节点
+ * @param new 新值
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_resource_t *vmm_insert_resource_conflict(vmm_resource_t *parent, vmm_resource_t *new)
 {
     vmm_resource_t *conflict;
@@ -712,14 +863,25 @@ vmm_resource_t *vmm_insert_resource_conflict(vmm_resource_t *parent, vmm_resourc
     return conflict;
 }
 
+/**
+ * @brief 插入 资源
+ * @param parent 父设备树节点
+ * @param new 新值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_insert_resource(vmm_resource_t *parent, vmm_resource_t *new)
 {
     vmm_resource_t *conflict;
 
     conflict = vmm_insert_resource_conflict(parent, new);
-    return conflict ? VMM_EBUSY : 0;
+    return conflict ? VMM_ERR_BUSY : 0;
 }
 
+/**
+ * @brief 扩展资源以容纳新插入的子资源
+ * @param root 根节点指针
+ * @param new 新值
+ */
 void vmm_insert_resource_expand_to_fit(vmm_resource_t *root, vmm_resource_t *new)
 {
     if (new->parent) {
@@ -756,11 +918,19 @@ void vmm_insert_resource_expand_to_fit(vmm_resource_t *root, vmm_resource_t *new
     vmm_write_unlock(&resource_lock);
 }
 
+/**
+ * @brief   调整资源范围
+ * @param res 资源结构体指针
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __adjust_resource(vmm_resource_t *res, resource_size_t start, resource_size_t size)
 {
-    vmm_resource_t *tmp, *parent = res->parent;
+    vmm_resource_t *tmp = NULL;
+    vmm_resource_t *parent = res->parent;
     resource_size_t end    = start + size - 1;
-    int             result = VMM_EBUSY;
+    int             result = VMM_ERR_BUSY;
 
     if (!parent) {
         goto skip;
@@ -802,6 +972,13 @@ out:
     return result;
 }
 
+/**
+ * @brief 调整资源范围
+ * @param res 资源结构体指针
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_adjust_resource(vmm_resource_t *res, resource_size_t start, resource_size_t size)
 {
     int result;
@@ -812,6 +989,11 @@ int vmm_adjust_resource(vmm_resource_t *res, resource_size_t start, resource_siz
     return result;
 }
 
+/**
+ * @brief 获取资源对齐值
+ * @param res 资源结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 resource_size_t vmm_resource_alignment(vmm_resource_t *res)
 {
     switch (res->flags & (VMM_IORESOURCE_SIZEALIGN | VMM_IORESOURCE_STARTALIGN)) {
@@ -828,6 +1010,14 @@ resource_size_t vmm_resource_alignment(vmm_resource_t *res)
 
 DECLARE_COMPLETION(__req_reg_completion);
 
+/**
+ * @brief 预留并拆分资源区域
+ * @param root 根节点指针
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param end 结束位置或结束地址
+ * @param name 目标对象的名称
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __init __reserve_region_with_split(vmm_resource_t *root, resource_size_t start, resource_size_t end, const char *name)
 {
     vmm_resource_t *parent = root;
@@ -889,6 +1079,14 @@ static void __init __reserve_region_with_split(vmm_resource_t *root, resource_si
     }
 }
 
+/**
+ * @brief 预留并拆分资源区域
+ * @param root 根节点指针
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param end 结束位置或结束地址
+ * @param name 目标对象的名称
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 void __init vmm_reserve_region_with_split(vmm_resource_t *root, resource_size_t start, resource_size_t end, const char *name)
 {
     int abort = 0;
@@ -920,6 +1118,15 @@ void __init vmm_reserve_region_with_split(vmm_resource_t *root, resource_size_t 
     vmm_write_unlock(&resource_lock);
 }
 
+/**
+ * @brief   请求 区域
+ * @param parent 父设备树节点
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param n 起始位置编号
+ * @param name 目标对象的名称
+ * @param flags 标志位
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_resource_t *__vmm_request_region(vmm_resource_t *parent, resource_size_t start, resource_size_t n, const char *name, int flags)
 {
     vmm_resource_t *res = alloc_resource();
@@ -970,6 +1177,13 @@ vmm_resource_t *__vmm_request_region(vmm_resource_t *parent, resource_size_t sta
     return res;
 }
 
+/**
+ * @brief   检查 区域
+ * @param parent 父设备树节点
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param n 起始位置编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __vmm_check_region(vmm_resource_t *parent, resource_size_t start, resource_size_t n)
 {
     vmm_resource_t *res;
@@ -977,7 +1191,7 @@ int __vmm_check_region(vmm_resource_t *parent, resource_size_t start, resource_s
     res = __vmm_request_region(parent, start, n, "check-region", 0);
 
     if (!res) {
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     vmm_release_resource(res);
@@ -985,6 +1199,12 @@ int __vmm_check_region(vmm_resource_t *parent, resource_size_t start, resource_s
     return 0;
 }
 
+/**
+ * @brief   释放IO内存区域
+ * @param parent 父设备树节点
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param n 起始位置编号
+ */
 void __vmm_release_region(vmm_resource_t *parent, resource_size_t start, resource_size_t n)
 {
     vmm_resource_t **p;
@@ -1035,13 +1255,20 @@ void __vmm_release_region(vmm_resource_t *parent, resource_size_t start, resourc
 }
 
 #ifdef CONFIG_MEMORY_HOTREMOVE
+/**
+ * @brief 释放可调整内存区域
+ * @param parent 父设备树节点
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_release_mem_region_adjustable(vmm_resource_t *parent, resource_size_t start, resource_size_t size)
 {
     vmm_resource_t **p;
     vmm_resource_t  *res;
     vmm_resource_t  *new_res;
     resource_size_t  end;
-    int              ret = VMM_EINVALID;
+    int              ret = VMM_ERR_INVALID;
 
     end                  = start + size - 1;
 
@@ -1090,7 +1317,7 @@ int vmm_release_mem_region_adjustable(vmm_resource_t *parent, resource_size_t st
         } else {
             /* split into two entries */
             if (!new_res) {
-                ret = VMM_ENOMEM;
+                ret = VMM_ERR_NOMEM;
                 break;
             }
 
@@ -1121,6 +1348,11 @@ int vmm_release_mem_region_adjustable(vmm_resource_t *parent, resource_size_t st
 }
 #endif /* CONFIG_MEMORY_HOTREMOVE */
 
+/**
+ * @brief 释放托管设备资源
+ * @param dev 设备结构体指针
+ * @param ptr 通用指针
+ */
 static void devm_resource_release(vmm_device_t *dev, void *ptr)
 {
     vmm_resource_t **r = ptr;
@@ -1128,14 +1360,22 @@ static void devm_resource_release(vmm_device_t *dev, void *ptr)
     vmm_release_resource(*r);
 }
 
+/**
+ * @brief 使用托管方式请求设备资源
+ * @param dev 设备结构体指针
+ * @param root 根节点指针
+ * @param new 新值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_devm_request_resource(vmm_device_t *dev, vmm_resource_t *root, vmm_resource_t *new)
 {
-    vmm_resource_t *conflict, **ptr;
+    vmm_resource_t *conflict = NULL;
+    vmm_resource_t **ptr = NULL;
 
     ptr = vmm_device_resource_alloc(devm_resource_release, sizeof(*ptr));
 
     if (!ptr) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     *ptr     = new;
@@ -1145,13 +1385,20 @@ int vmm_devm_request_resource(vmm_device_t *dev, vmm_resource_t *root, vmm_resou
     if (conflict) {
         vmm_printf("%s: resource collision: %pR conflicts with %s %pR\n", dev->name, new, conflict->name, conflict);
         vmm_device_resource_free(ptr);
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     vmm_device_resource_add(dev, ptr);
     return 0;
 }
 
+/**
+ * @brief 检查托管资源是否匹配指定地址
+ * @param dev 设备结构体指针
+ * @param res 资源结构体指针
+ * @param data 用户自定义数据指针
+ * @return 检查结果
+ */
 static int devm_resource_match(vmm_device_t *dev, void *res, void *data)
 {
     vmm_resource_t **ptr = res;
@@ -1159,17 +1406,30 @@ static int devm_resource_match(vmm_device_t *dev, void *res, void *data)
     return *ptr == data;
 }
 
+/**
+ * @brief 释放托管设备资源
+ * @param dev 设备结构体指针
+ * @param new 新值
+ */
 void vmm_devm_release_resource(vmm_device_t *dev, vmm_resource_t *new)
 {
     WARN_ON(vmm_device_resource_release(dev, devm_resource_release, devm_resource_match, new));
 }
 
+/**
+ * @brief 区域设备资源结构，将I/O资源绑定到设备区域
+ */
 struct region_device_resource {
-    vmm_resource_t *parent;
-    resource_size_t start;
-    resource_size_t n;
+    vmm_resource_t *parent; /**< 父节点 */
+    resource_size_t start; /**< 起始 */
+    resource_size_t n; /**< n */
 };
 
+/**
+ * @brief 释放托管设备内存区域
+ * @param dev 设备结构体指针
+ * @param res 资源结构体指针
+ */
 static void devm_region_release(vmm_device_t *dev, void *res)
 {
     struct region_device_resource *this = res;
@@ -1177,13 +1437,30 @@ static void devm_region_release(vmm_device_t *dev, void *res)
     __vmm_release_region(this->parent, this->start, this->n);
 }
 
+/**
+ * @brief 检查托管设备区域是否匹配
+ * @param dev 设备结构体指针
+ * @param res 资源结构体指针
+ * @param match_data 匹配数据指针
+ * @return 检查结果
+ */
 static int devm_region_match(vmm_device_t *dev, void *res, void *match_data)
 {
-    struct region_device_resource *this = res, *match = match_data;
+    struct region_device_resource *this = res;
+    struct region_device_resource *match = match_data;
 
     return this->parent == match->parent && this->start == match->start && this->n == match->n;
 }
 
+/**
+ * @brief 使用托管方式请求I/O或内存区域
+ * @param dev 设备结构体指针
+ * @param parent 父设备树节点
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param n 起始位置编号
+ * @param name 目标对象的名称
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_resource_t *__vmm_devm_request_region(vmm_device_t *dev, vmm_resource_t *parent, resource_size_t start, resource_size_t n, const char *name)
 {
     struct region_device_resource *dr = NULL;
@@ -1210,6 +1487,13 @@ vmm_resource_t *__vmm_devm_request_region(vmm_device_t *dev, vmm_resource_t *par
     return res;
 }
 
+/**
+ * @brief 释放托管的I/O或内存区域
+ * @param dev 设备结构体指针
+ * @param parent 父设备树节点
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param n 起始位置编号
+ */
 void __vmm_devm_release_region(vmm_device_t *dev, vmm_resource_t *parent, resource_size_t start, resource_size_t n)
 {
     struct region_device_resource match_data = {parent, start, n};
@@ -1223,13 +1507,19 @@ void __vmm_devm_release_region(vmm_device_t *dev, vmm_resource_t *parent, resour
  */
 #define MAXRESERVE 4
 
+/**
+ * @brief 预留资源设置
+ * @param str 待处理的字符串
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __init reserve_setup(char *str)
 {
     static int            reserved;
     static vmm_resource_t reserve[MAXRESERVE];
 
     for (;;) {
-        uint32_t io_start, io_num;
+        uint32_t io_start;
+        uint32_t io_num;
         int      x = reserved;
 
         if (vmm_get_option(&str, (int *)&io_start) != 2) {
@@ -1259,6 +1549,12 @@ static int __init reserve_setup(char *str)
 
 vmm_early_param("reserve=", reserve_setup);
 
+/**
+ * @brief 主机内存映射完整性检查
+ * @param addr 地址值
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_hostmem_map_sanity_check(resource_size_t addr, uint64_t size)
 {
     vmm_resource_t *p   = &vmm_hostmem_resource;
@@ -1314,6 +1610,11 @@ static int strict_hostmem_checks = 1;
 static int strict_hostmem_checks;
 #endif
 
+/**
+ * @brief 检查主机内存资源是否为独占类型
+ * @param addr 地址值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_hostmem_is_exclusive(uint64_t addr)
 {
     vmm_resource_t *p   = &vmm_hostmem_resource;
@@ -1353,6 +1654,11 @@ int vmm_hostmem_is_exclusive(uint64_t addr)
     return err;
 }
 
+/**
+ * @brief 严格主机内存分配
+ * @param str 待处理的字符串
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __init strict_hostmem(char *str)
 {
     if (strstr(str, "relaxed")) {

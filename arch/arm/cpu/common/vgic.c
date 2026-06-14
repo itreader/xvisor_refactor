@@ -359,7 +359,7 @@ static bool __vgic_queue_sgi(struct vgic_guest_state *s, struct vgic_vcpu_state 
  * Note: Must be called only when given VCPU is current VCPU
  * Note: Must be called with VGIC distributor lock held
  */
-static bool __vgic_queue_hwirq(struct vgic_guest_state *s, struct vgic_vcpu_state *vs, uint32_t irq)
+static bool __vgic_queue_hw_irq(struct vgic_guest_state *s, struct vgic_vcpu_state *vs, uint32_t irq)
 {
     uint32_t cm = (1 << vs->vcpu->subid);
 
@@ -447,7 +447,7 @@ static void __vgic_flush_vcpu_hwstate(struct vgic_guest_state *s, struct vgic_vc
                 continue;
             }
 
-            if (!__vgic_queue_hwirq(s, vs, irq)) {
+            if (!__vgic_queue_hw_irq(s, vs, irq)) {
                 overflow = TRUE;
                 goto done;
             }
@@ -467,7 +467,7 @@ static void __vgic_flush_vcpu_hwstate(struct vgic_guest_state *s, struct vgic_vc
                 continue;
             }
 
-            if (!__vgic_queue_hwirq(s, vs, i * 32 + irq)) {
+            if (!__vgic_queue_hw_irq(s, vs, i * 32 + irq)) {
                 overflow = TRUE;
                 goto done;
             }
@@ -846,7 +846,7 @@ static int __vgic_dist_readb(struct vgic_guest_state *s, int cpu, uint32_t offse
     uint32_t done = 0, i, irq, mask;
 
     if (!s || !dst) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     done = 1;
@@ -997,7 +997,7 @@ static int __vgic_dist_readb(struct vgic_guest_state *s, int cpu, uint32_t offse
             break;
     };
 
-    return (done) ? VMM_OK : VMM_EFAIL;
+    return (done) ? VMM_OK : VMM_ERR_FAIL;
 }
 
 static int __vgic_dist_writeb(struct vgic_guest_state *s, int cpu, uint32_t offset, uint8_t src)
@@ -1005,7 +1005,7 @@ static int __vgic_dist_writeb(struct vgic_guest_state *s, int cpu, uint32_t offs
     uint32_t done = 0, i, irq, mask, cm;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     done = 1;
@@ -1198,7 +1198,7 @@ static int __vgic_dist_writeb(struct vgic_guest_state *s, int cpu, uint32_t offs
             break;
     };
 
-    return (done) ? VMM_OK : VMM_EFAIL;
+    return (done) ? VMM_OK : VMM_ERR_FAIL;
 }
 
 static int vgic_dist_read(struct vgic_guest_state *s, int cpu, uint32_t offset, uint32_t *dst)
@@ -1208,7 +1208,7 @@ static int vgic_dist_read(struct vgic_guest_state *s, int cpu, uint32_t offset, 
     uint8_t     val;
 
     if (!s || !dst) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save_lite(&s->dist_lock, flags);
@@ -1236,7 +1236,7 @@ static int vgic_dist_write(struct vgic_guest_state *s, int cpu, uint32_t offset,
     struct vgic_vcpu_state *vs;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save_lite(&s->dist_lock, flags);
@@ -1322,11 +1322,11 @@ static int vgic_dist_reg_read(struct vgic_guest_state *s, uint32_t offset, uint3
     vcpu = vmm_scheduler_current_vcpu();
 
     if (!vcpu || !vcpu->guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (s->guest->id != vcpu->guest->id) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return vgic_dist_read(s, vcpu->subid, offset & 0xFFC, dst);
@@ -1339,11 +1339,11 @@ static int vgic_dist_reg_write(struct vgic_guest_state *s, uint32_t offset, uint
     vcpu = vmm_scheduler_current_vcpu();
 
     if (!vcpu || !vcpu->guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (s->guest->id != vcpu->guest->id) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return vgic_dist_write(s, vcpu->subid, offset & 0xFFC, regmask, regval);
@@ -1525,7 +1525,7 @@ static int vgic_state_free(struct vgic_guest_state *s)
     vmm_vcpu_t *vcpu;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Cleanup save/restore hooks */
@@ -1552,15 +1552,15 @@ static int vgic_dist_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_
     struct vgic_guest_state *s;
 
     if (!vgich.avail) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (!vgich.params.can_emulate_gic_v2) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (guest->vcpu_count > VGIC_MAX_NCPU) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     rc = vmm_device_tree_read_u32(edev->node, "parent_irq", &parent_irq);
@@ -1580,7 +1580,7 @@ static int vgic_dist_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_
     s = vgic_state_alloc(edev->node->name, guest, guest->vcpu_count, num_irq, parent_irq);
 
     if (!s) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     edev->private = s;
@@ -1593,7 +1593,7 @@ static int vgic_dist_emulator_remove(vmm_emulate_device_t *edev)
     struct vgic_guest_state *s = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vgic_state_free(s);
@@ -1634,19 +1634,19 @@ static int vgic_cpu_emulator_reset(vmm_emulate_device_t *edev)
 static int vgic_cpu_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *edev, const struct vmm_device_tree_nodeid *eid)
 {
     if (!vgich.avail) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (!vgich.params.can_emulate_gic_v2) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (guest->vcpu_count > VGIC_MAX_NCPU) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (!(edev->reg->flags & VMM_REGION_REAL)) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     return vmm_guest_overwrite_real_device_mapping(guest, edev->reg, VMM_REGION_GPHYS_START(edev->reg), vgich.params.vcpu_pa);
@@ -1695,10 +1695,10 @@ static int __init vgic_emulator_init(void)
 
     rc          = vgic_v2_probe(&vgich.ops, &vgich.params);
 
-    if (rc == VMM_ENODEV) {
+    if (rc == VMM_ERR_NODEV) {
         rc = vgic_v3_probe(&vgich.ops, &vgich.params);
 
-        if (rc == VMM_ENODEV) {
+        if (rc == VMM_ERR_NODEV) {
             vmm_printf("vgic: GIC node not found\n");
             rc = VMM_OK;
             goto fail;

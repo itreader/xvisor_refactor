@@ -370,7 +370,7 @@ static int ide_atapi_read(struct ide_drive *drive, uint32_t lba, uint32_t numsec
     uint8_t             atapi_packet[12] = {0};
 
     if (numsects > 1) {
-        return VMM_EOPNOTSUPP;
+        return VMM_ERR_OPNOTSUPP;
     }
 
     /* Enable IRQ */
@@ -475,7 +475,7 @@ uint32_t ide_write_sectors(struct ide_drive *drive, uint64_t lba, uint32_t numse
     return numsects;
 }
 
-VMM_EXPORT_SYMBOL_GPL(ide_write_sectors);
+VMM_ERR_XPORT_SYMBOL_GPL(ide_write_sectors);
 
 uint32_t ide_read_sectors(struct ide_drive *drive, uint64_t lba, uint32_t numsects, void *buffer)
 {
@@ -509,7 +509,7 @@ uint32_t ide_read_sectors(struct ide_drive *drive, uint64_t lba, uint32_t numsec
     return numsects;
 }
 
-VMM_EXPORT_SYMBOL_GPL(ide_read_sectors);
+VMM_ERR_XPORT_SYMBOL_GPL(ide_read_sectors);
 
 int ide_initialize(struct ide_host_controller *controller)
 {
@@ -646,4 +646,4 @@ int ide_initialize(struct ide_host_controller *controller)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL_GPL(ide_initialize);
+VMM_ERR_XPORT_SYMBOL_GPL(ide_initialize);

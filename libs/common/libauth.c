@@ -54,12 +54,12 @@ static int string_to_digest(const char *digest_str, size_t digest_str_len, uint8
     /* Convert to lower and validate */
     for (i = 0; i < digest_str_len; i++) {
         if (!isalnum(digest_str[i])) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         if (isalpha(digest_str[i])) {
             if ((tolower(digest_str[i]) < 'a') || (tolower(digest_str[i]) > 'f')) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
         }
     }
@@ -84,7 +84,7 @@ static int string_to_digest(const char *digest_str, size_t digest_str_len, uint8
         } else {
             /* digest buffer can't be smaller than
                required: better fail */
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     }
 
@@ -113,7 +113,7 @@ static int process_auth_entry(char *auth_entry, const char *user, uint8_t *dst_h
         centry++;
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int get_user_hash(const char *user, uint8_t *dst_hash, uint32_t dst_len)
@@ -132,19 +132,19 @@ static int get_user_hash(const char *user, uint8_t *dst_hash, uint32_t dst_len)
     fd               = vfs_open(path, O_RDONLY, 0);
 
     if (fd < 0) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = vfs_fstat(fd, &st);
 
     if (rc) {
         vfs_close(fd);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!(st.st_mode & S_IFREG)) {
         vfs_close(fd);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     len = st.st_size;
@@ -188,10 +188,10 @@ static int get_user_hash(const char *user, uint8_t *dst_hash, uint32_t dst_len)
     rc = vfs_close(fd);
 
     if (rc) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 #if CONFIG_LIBAUTH_USE_MD5_PASSWD
@@ -231,12 +231,12 @@ int authenticate_user(const char *user, char *passwd)
         if (string_to_digest(
                 libs_common_libauth_passwd_data_start, libs_common_libauth_passwd_data_size, (uint8_t *)&match_against, sizeof(match_against)) !=
             VMM_OK) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         for (i = 0; i < HASH_LEN; i++) {
             if (match_against[i] != passwd_sig[i]) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
         }
 
@@ -248,12 +248,12 @@ int authenticate_user(const char *user, char *passwd)
     if (get_user_hash(user, (uint8_t *)&match_against, sizeof(match_against)) == VMM_OK) {
         for (i = 0; i < HASH_LEN; i++) {
             if (match_against[i] != passwd_sig[i]) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
         }
 
         return VMM_OK;
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }

@@ -20,7 +20,7 @@
  * @file vmm_device_tree.h
  * @author Anup Patel (anup@brainfault.org)
  * @author Jimmy Durand Wesolowski <jimmy.durand-wesolowski@openwide.fr>
- * @brief Device Tree Header File.
+ * @brief 设备树头文件
  */
 #ifndef __VMM_DEVICE_TREE_H_
 #define __VMM_DEVICE_TREE_H_
@@ -103,7 +103,7 @@
 #define VMM_DEVICE_TREE_TIME_SLICE_ATTR_NAME        "time_slice"
 #define VMM_DEVICE_TREE_DEADLINE_ATTR_NAME          "deadline"
 #define VMM_DEVICE_TREE_PERIODICITY_ATTR_NAME       "periodicity"
-#define VMM_DEVICE_TREE_ADDRSPACE_NODE_NAME         "aspace"
+#define VMM_DEVICE_TREE_ADDRSPACE_NODE_NAME         "addr_space"
 #define VMM_DEVICE_TREE_GUESTIRQCNT_ATTR_NAME       "guest_irq_count"
 #define VMM_DEVICE_TREE_MANIFEST_TYPE_ATTR_NAME     "manifest_type"
 #define VMM_DEVICE_TREE_MANIFEST_TYPE_VAL_REAL      "real"
@@ -131,39 +131,51 @@
 #define VMM_DEVICE_TREE_NO_CHILD_PROBE_ATTR_NAME    "no-child-probe"
 #define VMM_DEVICE_TREE_THREADS_AFFINITY_ATTR_NAME  "threads_affinity"
 
+/**
+ * @brief 设备树属性类型枚举，定义字符串、整数等属性值类型
+ */
 enum vmm_device_tree_attrypes {
-    VMM_DEVICE_TREE_ATTRTYPE_UINT32    = 0,
-    VMM_DEVICE_TREE_ATTRTYPE_UINT64    = 1,
-    VMM_DEVICE_TREE_ATTRTYPE_VIRTADDR  = 2,
-    VMM_DEVICE_TREE_ATTRTYPE_VIRTSIZE  = 3,
-    VMM_DEVICE_TREE_ATTRTYPE_PHYSADDR  = 4,
-    VMM_DEVICE_TREE_ATTRTYPE_PHYSSIZE  = 5,
-    VMM_DEVICE_TREE_ATTRTYPE_STRING    = 6,
-    VMM_DEVICE_TREE_ATTRTYPE_BYTEARRAY = 7,
+    VMM_DEVICE_TREE_ATTRTYPE_UINT32    = 0, /**< 0 */
+    VMM_DEVICE_TREE_ATTRTYPE_UINT64    = 1, /**< 1 */
+    VMM_DEVICE_TREE_ATTRTYPE_VIRTADDR  = 2, /**< 2 */
+    VMM_DEVICE_TREE_ATTRTYPE_VIRTSIZE  = 3, /**< 3 */
+    VMM_DEVICE_TREE_ATTRTYPE_PHYSADDR  = 4, /**< 4 */
+    VMM_DEVICE_TREE_ATTRTYPE_PHYSSIZE  = 5, /**< 5 */
+    VMM_DEVICE_TREE_ATTRTYPE_STRING    = 6, /**< 6 */
+    VMM_DEVICE_TREE_ATTRTYPE_BYTEARRAY = 7, /**< 7 */
     VMM_DEVICE_TREE_MAX_ATTRTYPE       = 8
 };
 
+/**
+ * @brief 设备树属性结构，保存属性的名称、类型和数据指针
+ */
 struct vmm_device_tree_attr {
-    double_list_t head;
-    char          name[VMM_FIELD_SHORT_NAME_SIZE];
-    uint32_t      type;
-    void         *value;
-    uint32_t      len;
+    double_list_t head; /**< 链表头 */
+    char          name[VMM_FIELD_SHORT_NAME_SIZE]; /**< 名称 */
+    uint32_t      type; /**< 类型 */
+    void         *value; /**< 值 */
+    uint32_t      len; /**< 长度 */
 };
 
-struct vmm_device_tree_nodeid {
-    char        name[VMM_FIELD_SHORT_NAME_SIZE];
-    char        type[VMM_FIELD_TYPE_SIZE];
-    char        compatible[VMM_FIELD_COMPAT_SIZE];
-    const void *data;
-};
+/**
+ * @brief 设备树节点ID结构，通过路径或phandle标识节点
+ */
+typedef struct vmm_device_tree_nodeid {
+    char        name[VMM_FIELD_SHORT_NAME_SIZE]; /**< 名称 */
+    char        type[VMM_FIELD_TYPE_SIZE]; /**< 类型 */
+    char        compatible[VMM_FIELD_COMPAT_SIZE]; /**< compatible成员 */
+    const void *data; /**< 数据 */
+} vmm_device_tree_nodeid_t;
 
 #define VMM_DEVICE_TREE_NIDTBL_SIGNATURE 0xDEADF001
 
+/**
+ * @brief 设备树节点ID表条目，缓存节点查找结果
+ */
 struct vmm_device_tree_nidtable_entry {
-    uint32_t                      signature;
-    char                          subsys[VMM_FIELD_SHORT_NAME_SIZE];
-    struct vmm_device_tree_nodeid nodeid;
+    uint32_t                      signature; /**< 签名标识 */
+    char                          subsys[VMM_FIELD_SHORT_NAME_SIZE]; /**< subsys成员 */
+    vmm_device_tree_nodeid_t nodeid; /**< nodeid成员 */
 };
 
 #ifndef __VMM_MODULES__
@@ -185,21 +197,24 @@ struct vmm_device_tree_nidtable_entry {
  * modules. This will be added in future because vmm_modules needs to be
  * updated to support it.
  */
-#define VMM_DEVICE_TREE_NIDTBL_ENTRY(nid, _subsys, _name, _type, _compat, _data)
+#define VMM_DEVICE_TREE_NIDTBL_ENTRY(nodeid, _subsys, _name, _type, _compat, _data)
 
 #endif
 
+/**
+ * @brief 设备树节点结构，维护节点层级关系和属性列表
+ */
 struct vmm_device_tree_node {
     /* Private fields */
-    double_list_t                head;
-    vmm_rwlock_t                 attr_lock;
-    double_list_t                attr_list;
-    vmm_rwlock_t                 child_lock;
-    double_list_t                child_list;
-    struct xref                  ref_count;
+    double_list_t                head; /**< 链表头 */
+    vmm_rwlock_t                 attr_lock; /**< attr_lock成员 */
+    double_list_t                attr_list; /**< attr_list成员 */
+    vmm_rwlock_t                 child_lock; /**< child_lock成员 */
+    double_list_t                child_list; /**< 子节点链表 */
+    struct xref                  ref_count; /**< 引用计数 */
     /* Public fields */
-    char                         name[VMM_FIELD_SHORT_NAME_SIZE];
-    struct vmm_device_tree_node *parent;
+    char                         name[VMM_FIELD_SHORT_NAME_SIZE]; /**< 名称 */
+    struct vmm_device_tree_node *parent; /**< 父节点 */
     void                        *system_data; /* System data pointer
                                          (Arch. specific code can use this to
                                           pass inforation to device driver) */
@@ -210,30 +225,57 @@ typedef struct vmm_device_tree_node vmm_device_tree_node_t;
 
 #define VMM_MAX_PHANDLE_ARGS 8
 
+/**
+ * @brief 设备树phandle参数结构，保存引用节点的附加参数
+ */
 struct vmm_device_tree_phandle_args {
-    vmm_device_tree_node_t *np;
-    int                     args_count;
-    uint32_t                args[VMM_MAX_PHANDLE_ARGS];
+    vmm_device_tree_node_t *np; /**< 网络端口/无奇偶校验 */
+    int                     args_count; /**< args_count成员 */
+    uint32_t                args[VMM_MAX_PHANDLE_ARGS]; /**< 参数 */
 };
 
-/** Check whether given attribute type is literal or literal list
- *  NOTE: literal means 32-bit or 64-bit number
+/**
+ * @brief 判断设备树属性类型是否为字面量类型
+ * @param attrtype 属性类型标识
+ * @return 字面量返回TRUE，否则返回FALSE
  */
 bool vmm_device_tree_isliteral(uint32_t attrtype);
 
-/** Get size of literal corresponding to attribute type */
+/**
+ * @brief 获取设备树字面量属性类型的数据大小
+ * @param attrtype 属性类型标识
+ * @return 大小值（字节）
+ */
 uint32_t vmm_device_tree_literal_size(uint32_t attrtype);
 
-/** Estimate type of attribute from its name */
+/**
+ * @brief 估算设备树属性类型
+ * @param name 目标对象的名称
+ * @return 大小值（字节）
+ */
 uint32_t vmm_device_tree_estimate_attrtype(const char *name);
 
-/** Get attribute value */
+/**
+ * @brief 获取设备树节点指定属性的原始值指针
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @return 目标对象指针，不存在返回NULL
+ */
 const void *vmm_device_tree_attrval(const vmm_device_tree_node_t *node, const char *attrib);
 
-/** Get length of attribute value */
+/**
+ * @brief 获取设备树节点指定属性的值长度
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @return 成功返回属性长度，失败返回0
+ */
 uint32_t vmm_device_tree_attrlen(const vmm_device_tree_node_t *node, const char *attrib);
 
-/** Check if a device tree node have any attribute */
+/**
+ * @brief 检查设备树节点是否具有任何属性
+ * @param node 设备树节点指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_device_tree_have_attr(const vmm_device_tree_node_t *node);
 
 /** Get next attribute of a device tree node */
@@ -243,147 +285,354 @@ struct vmm_device_tree_attr *vmm_device_tree_next_attr(const vmm_device_tree_nod
 #define vmm_device_tree_for_each_attr(attr, node)                                                                                                    \
     for (attr = vmm_device_tree_next_attr(node, NULL); attr; attr = vmm_device_tree_next_attr(node, attr))
 
-/** Set an attribute for a device tree node */
+/**
+ * @brief 设置设备树节点的指定属性，支持大端字节序转换
+ * @param node 设备树节点指针
+ * @param name 目标对象的名称
+ * @param value 属性值数据指针
+ * @param type 类型标识值
+ * @param len 大小
+ * @param value_is_be 值是否为大端字节序
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_setattr(vmm_device_tree_node_t *node, const char *name, void *value, uint32_t type, uint32_t len, bool value_is_be);
 
 /** Get an attribute from a device tree node */
 struct vmm_device_tree_attr *vmm_device_tree_getattr(const vmm_device_tree_node_t *node, const char *name);
 
-/** Delete an attribute from a device tree node */
+/**
+ * @brief 删除设备树节点的指定属性
+ * @param node 设备树节点指针
+ * @param name 目标对象的名称
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_delattr(vmm_device_tree_node_t *node, const char *name);
 
-/** Read uint8_t from attribute at particular index */
+/**
+ * @brief 从设备树节点的指定属性中读取索引处的8位无符号整数值
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param index 数组中的索引位置
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_u8_atindex(const vmm_device_tree_node_t *node, const char *attrib, uint8_t *out, int index);
 
-/** Read an array of uint8_t from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取8位无符号整数数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_u8_array(const vmm_device_tree_node_t *node, const char *attrib, uint8_t *out, size_t size);
 
-/** Read uint8_t from attribute */
+/**
+ * @brief 从属性中读取8位无符号整数值
+ */
 static inline int vmm_device_tree_read_u8(const vmm_device_tree_node_t *node, const char *attrib, uint8_t *out)
 {
+/**
+ * @brief 从设备树节点的指定属性中读取8位无符号整数数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param 1 参数1
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return vmm_device_tree_read_u8_array(node, attrib, out, 1);
 }
 
-/** Read uint16_t from attribute at particular index */
+/**
+ * @brief 从设备树节点的指定属性中读取索引处的16位无符号整数值
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param index 数组中的索引位置
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_u16_atindex(const vmm_device_tree_node_t *node, const char *attrib, uint16_t *out, int index);
 
-/** Read an array of uint16_t from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取16位无符号整数数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_u16_array(const vmm_device_tree_node_t *node, const char *attrib, uint16_t *out, size_t size);
 
-/** Read uint16_t from attribute */
+/**
+ * @brief 从设备树属性中读取16位无符号整数
+ */
 static inline int vmm_device_tree_read_u16(const vmm_device_tree_node_t *node, const char *attrib, uint16_t *out)
 {
+/**
+ * @brief 从设备树节点的指定属性中读取16位无符号整数数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param 1 参数1
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return vmm_device_tree_read_u16_array(node, attrib, out, 1);
 }
 
-/** Read uint32_t from attribute at particular index */
+/**
+ * @brief 从设备树节点的指定属性中读取索引处的32位无符号整数值
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param index 数组中的索引位置
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_u32_atindex(const vmm_device_tree_node_t *node, const char *attrib, uint32_t *out, int index);
 
-/** Read an array of uint32_t from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取32位无符号整数数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_u32_array(const vmm_device_tree_node_t *node, const char *attrib, uint32_t *out, size_t size);
 
-/** Read uint32_t from attribute */
+/**
+ * @brief 从设备树属性中读取32位无符号整数
+ */
 static inline int vmm_device_tree_read_u32(const vmm_device_tree_node_t *node, const char *attrib, uint32_t *out)
 {
+/**
+ * @brief 从设备树节点的指定属性中读取32位无符号整数数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param 1 参数1
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return vmm_device_tree_read_u32_array(node, attrib, out, 1);
 }
 
-/** Read uint64_t from attribute at particular index */
+/**
+ * @brief 从设备树节点的指定属性中读取索引处的64位无符号整数值
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param index 数组中的索引位置
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_u64_atindex(const vmm_device_tree_node_t *node, const char *attrib, uint64_t *out, int index);
 
-/** Read an array of uint64_t from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取64位无符号整数数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_u64_array(const vmm_device_tree_node_t *node, const char *attrib, uint64_t *out, size_t size);
 
-/** Read uint64_t from attribute */
+/**
+ * @brief 从设备树属性中读取64位无符号整数
+ */
 static inline int vmm_device_tree_read_u64(const vmm_device_tree_node_t *node, const char *attrib, uint64_t *out)
 {
+/**
+ * @brief 从设备树节点的指定属性中读取64位无符号整数数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param 1 参数1
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return vmm_device_tree_read_u64_array(node, attrib, out, 1);
 }
 
-/** Read physical address from attribute at particular index */
+/**
+ * @brief 从设备树节点的指定属性中读取索引处的物理地址值
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param index 数组中的索引位置
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_physaddr_atindex(const vmm_device_tree_node_t *node, const char *attrib, physical_addr_t *out, int index);
 
-/** Read an array of physical address from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取物理地址数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_physaddr_array(const vmm_device_tree_node_t *node, const char *attrib, physical_addr_t *out, size_t size);
 
-/** Read physical address from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取物理地址数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @return 成功读取的字节数，失败返回错误码
+ */
 static inline int vmm_device_tree_read_physaddr(const vmm_device_tree_node_t *node, const char *attrib, physical_addr_t *out)
 {
+
     return vmm_device_tree_read_physaddr_array(node, attrib, out, 1);
 }
 
-/** Read physical size from attribute at particular index */
+/**
+ * @brief 从设备树节点的指定属性中读取索引处的物理大小值
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param index 数组中的索引位置
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_physsize_atindex(const vmm_device_tree_node_t *node, const char *attrib, physical_size_t *out, int index);
 
-/** Read an array of physical size from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取物理大少数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_physsize_array(const vmm_device_tree_node_t *node, const char *attrib, physical_size_t *out, size_t size);
 
-/** Read physical size from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取物理大少数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @return 大小值（字节）
+ */
 static inline int vmm_device_tree_read_physsize(const vmm_device_tree_node_t *node, const char *attrib, physical_size_t *out)
 {
+
     return vmm_device_tree_read_physsize_array(node, attrib, out, 1);
 }
 
-/** Read virtual address from attribute at particular index */
+/**
+ * @brief 从设备树节点的指定属性中读取索引处的虚拟地址值
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param index 数组中的索引位置
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_virtaddr_atindex(const vmm_device_tree_node_t *node, const char *attrib, virtual_addr_t *out, int index);
 
-/** Read an array of virtual address from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取虚拟地址数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_virtaddr_array(const vmm_device_tree_node_t *node, const char *attrib, virtual_addr_t *out, size_t size);
 
-/** Read virtual address from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取虚拟地址数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @return 成功读取的字节数，失败返回错误码
+ */
 static inline int vmm_device_tree_read_virtaddr(const vmm_device_tree_node_t *node, const char *attrib, virtual_addr_t *out)
 {
+
     return vmm_device_tree_read_virtaddr_array(node, attrib, out, 1);
 }
 
-/** Read virtual size from attribute at particular index */
+/**
+ * @brief 从设备树节点的指定属性中读取索引处的虚拟大小值
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param index 数组中的索引位置
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_virtsize_atindex(const vmm_device_tree_node_t *node, const char *attrib, virtual_size_t *out, int index);
 
-/** Read an array of virtual size from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取虚拟大少数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_virtsize_array(const vmm_device_tree_node_t *node, const char *attrib, virtual_size_t *out, size_t size);
 
-/** Read virtual size from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取虚拟大少数组
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @return 大小值（字节）
+ */
 static inline int vmm_device_tree_read_virtsize(const vmm_device_tree_node_t *node, const char *attrib, virtual_size_t *out)
 {
     return vmm_device_tree_read_virtsize_array(node, attrib, out, 1);
 }
 
-/** Read string from attribute */
+/**
+ * @brief 从设备树节点的指定属性中读取字符串值
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param out 用于返回读取结果的输出指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_read_string(const vmm_device_tree_node_t *node, const char *attrib, const char **out);
 
-/** Find string in a list and return index
- *
- *  This function searches a string list property and returns the index
- *  of a specific string value.
+/**
+ * @brief 检查设备树节点的字符串属性是否与指定字符串匹配
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param string 待匹配的字符串
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_match_string(vmm_device_tree_node_t *node, const char *attrib, const char *string);
 
-/** Find and return the number of strings from a multiple strings property.
- *
- *  Search for a attribute in a device tree node and retrieve the number
- *  of null terminated string contain in it. Returns the number of strings
- *  on success, VMM_EINVALID if the property does not exist, VMM_ENODATA
- *  if property does not have a value, and VMM_EILSEQ if the string is not
- *  null-terminated within the length of the property data.
+/**
+ * @brief 统计设备树节点指定字符串属性中的字符串数量
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_count_strings(vmm_device_tree_node_t *node, const char *attrib);
 
-/** Retrive string in a list based on index
- *
- *  Returns size of string (0 <=) upon success and VMM_Exxxx (< 0)
- *  upon failure
+/**
+ * @brief 从设备树节点的字符串属性中获取指定索引处的字符串
+ * @param node 设备树节点指针
+ * @param attrib 属性名称
+ * @param index 数组中的索引位置
+ * @param out 用于返回读取结果的输出指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_string_index(vmm_device_tree_node_t *node, const char *attrib, int index, const char **out);
 
-/** Retrive the next uint32_t value.
- *
- *  Returns NULL when uint32_t is not available.
+/**
+ * @brief 遍历设备树属性中的下一个32位无符号整数值
+ * @param attr 属性结构体指针
+ * @param cur 当前遍历位置指针
+ * @param val 待写入的值
+ * @return 索引值，未找到返回负数错误码
  */
 const uint32_t *vmm_device_tree_next_u32(struct vmm_device_tree_attr *attr, const uint32_t *cur, uint32_t *val);
 
-/** Retrive the next string.
- *
- *  Returns NULL when string is not available.
+/**
+ * @brief 遍历设备树属性中的下一个字符串值
+ * @param attr 属性结构体指针
+ * @param cur 当前遍历位置指针
+ * @return 下一个元素指针，遍历结束返回NULL
  */
 const char *vmm_device_tree_next_string(struct vmm_device_tree_attr *attr, const char *cur);
 
@@ -393,55 +642,82 @@ const char *vmm_device_tree_next_string(struct vmm_device_tree_attr *attr, const
 #define vmm_device_tree_for_each_string(np, attrname, attr, s)                                                                                       \
     for (attr = vmm_device_tree_getattr(np, attrname), s = vmm_device_tree_next_string(attr, NULL); s; s = vmm_device_tree_next_string(attr, s))
 
-/** Create a path string for a given node */
+/**
+ * @brief 获取设备树节点的完整路径字符串
+ * @param out 用于返回读取结果的输出指针
+ * @param out_len 输出缓冲区的最大长度
+ * @param node 设备树节点指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_getpath(char *out, size_t out_len, const vmm_device_tree_node_t *node);
 
-/** Get child node below a given node
- *  NOTE: The returned node will have increased refrence count
+/**
+ * @brief 根据路径获取设备树节点的子节点
+ * @param node 设备树节点指针
+ * @param path 路径字符串
+ * @return 目标对象指针，不存在返回NULL
  */
 vmm_device_tree_node_t *vmm_device_tree_getchild(vmm_device_tree_node_t *node, const char *path);
 
-/** Get node corresponding to a path string
- *  NOTE: If path == NULL then root node will be returned
- *  NOTE: The returned node will have increased refrence count
+/**
+ * @brief 根据绝对路径查找设备树节点
+ * @param path 路径字符串
+ * @return 成功返回匹配的对象指针，未找到返回NULL
  */
 vmm_device_tree_node_t *vmm_device_tree_getnode(const char *path);
 
-/** Match a node with nodeid table
- *  Returns NULL if node does not match otherwise nodeid table entry
+/**
+ * @brief 将设备树节点与节点ID匹配表进行比较，返回匹配项
+ * @param matches 节点ID匹配表指针
+ * @param node 设备树节点指针
+ * @return 目标对象指针，不存在返回NULL
  */
-const struct vmm_device_tree_nodeid *vmm_device_tree_match_node(const struct vmm_device_tree_nodeid *matches, const vmm_device_tree_node_t *node);
+const vmm_device_tree_nodeid_t *vmm_device_tree_match_node(const vmm_device_tree_nodeid_t *matches, const vmm_device_tree_node_t *node);
 
-/** Find node matching nodeid table starting from given node
- *  NOTE: If node == NULL then node == root
- *  NOTE: The returned node will have increased refrence count
+/**
+ * @brief 在设备树子节点中查找与匹配表匹配的第一个节点
+ * @param node 设备树节点指针
+ * @param matches 节点ID匹配表指针
  */
-vmm_device_tree_node_t *vmm_device_tree_find_matching(vmm_device_tree_node_t *node, const struct vmm_device_tree_nodeid *matches);
+vmm_device_tree_node_t *vmm_device_tree_find_matching(vmm_device_tree_node_t *node, const vmm_device_tree_nodeid_t *matches);
 
-/** Iterate over all matching nodes
- *  NOTE: If node == NULL then node == root
+/**
+ * @brief 遍历所有匹配的节点，若node为NULL则从根节点开始
  */
 void vmm_device_tree_iterate_matching(
-    vmm_device_tree_node_t *node, const struct vmm_device_tree_nodeid                                         *matches,
-    void (*found)(vmm_device_tree_node_t *node, const struct vmm_device_tree_nodeid *match, void *data), void *found_data);
+    vmm_device_tree_node_t *node, const vmm_device_tree_nodeid_t                                         *matches,
+    void (*found)(vmm_device_tree_node_t *node, const vmm_device_tree_nodeid_t *match, void *data), void *found_data);
 
-/** Find compatible node starting from given node
- *  NOTE: If node == NULL then node == root
- *  NOTE: The returned node will have increased refrence count
+/**
+ * @brief 在设备树子节点中查找具有指定设备类型和兼容字符串的节点
+ * @param node 设备树节点指针
+ * @param device_type 设备类型字符串
+ * @param compatible 兼容字符串
+ * @return 成功返回匹配的对象指针，未找到返回NULL
  */
 vmm_device_tree_node_t *vmm_device_tree_find_compatible(vmm_device_tree_node_t *node, const char *device_type, const char *compatible);
 
-/** Check if node is compatible to given compatibility string */
+/**
+ * @brief 检查设备树节点是否具有指定的兼容字符串
+ * @param node 设备树节点指针
+ * @param compatible 兼容字符串
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_device_tree_is_compatible(const vmm_device_tree_node_t *node, const char *compatible);
 
-/** Find a node with given phandle value
- *  NOTE: This is based on 'phandle' attributes of device tree node
- *  NOTE: The returned node will have increased refrence count
+/**
+ * @brief 根据phandle值查找设备树节点
+ * @param phandle phandle句柄值
+ * @return 成功返回匹配的对象指针，未找到返回NULL
  */
 vmm_device_tree_node_t *vmm_device_tree_find_node_by_phandle(uint32_t phandle);
 
-/** Resolve a phandle property to a vmm_device_tree_node pointer
- *  NOTE: The returned node will have increased refrence count
+/**
+ * @brief 解析设备树节点中phandle属性引用的节点
+ * @param node 设备树节点指针
+ * @param phandle_name phandle属性名称
+ * @param index 数组中的索引位置
+ * @return 成功返回匹配的对象指针，未找到返回NULL
  */
 vmm_device_tree_node_t *vmm_device_tree_parse_phandle(const vmm_device_tree_node_t *node, const char *phandle_name, int index);
 
@@ -500,29 +776,40 @@ int vmm_device_tree_parse_phandle_with_args(
 int vmm_device_tree_parse_phandle_with_fixed_args(
     const vmm_device_tree_node_t *node, const char *list_name, int cells_count, int index, struct vmm_device_tree_phandle_args *out);
 
-/** Find the number of phandles references in a property
- *
- *  Returns the number of phandle + argument tuples within a property. It
- *  is a typical pattern to encode a list of phandle and variable
- *  arguments into a single property. The number of arguments is encoded
- *  by a property in the phandle-target node. For example, a gpios
- *  property would contain a list of GPIO specifies consisting of a
- *  phandle and 1 or more arguments. The number of arguments are
- *  determined by the #gpio-cells property in the node pointed to by the
- *  phandle.
+/**
+ * @brief 统计设备树节点中phandle列表属性中的条目数量
+ * @param node 设备树节点指针
+ * @param list_name 列表属性名称
+ * @param cells_name 单元数量属性名称
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_count_phandle_with_args(const vmm_device_tree_node_t *node, const char *list_name, const char *cells_name);
 
-/** Increase reference count of give node */
+/**
+ * @brief 增加设备树节点的引用计数
+ * @param node 设备树节点指针
+ */
 vmm_device_tree_node_t *vmm_device_tree_ref_node(vmm_device_tree_node_t *node);
 
-/** De-refernce a device tree node */
+/**
+ * @brief 减少设备树节点的引用计数，计数归零时释放节点
+ * @param node 设备树节点指针
+ */
 void vmm_device_tree_dref_node(vmm_device_tree_node_t *node);
 
-/** Check if a device tree node have any child node */
+/**
+ * @brief 检查设备树节点是否拥有子节点
+ * @param node 设备树节点指针
+ * @return 子节点返回TRUE，否则返回FALSE
+ */
 bool vmm_device_tree_have_child(const vmm_device_tree_node_t *node);
 
-/** Get next child node of a device tree node */
+/**
+ * @brief 获取设备树节点的下一个子节点
+ * @param node 设备树节点指针
+ * @param current 当前遍历位置（NULL表示获取第一个）
+ * @return 目标对象指针，不存在返回NULL
+ */
 vmm_device_tree_node_t *vmm_device_tree_next_child(const vmm_device_tree_node_t *node, vmm_device_tree_node_t *current);
 
 /** Itreate over each child node of a device tree node
@@ -533,62 +820,66 @@ vmm_device_tree_node_t *vmm_device_tree_next_child(const vmm_device_tree_node_t 
 #define vmm_device_tree_for_each_child(child, node)                                                                                                  \
     for (child = vmm_device_tree_next_child(node, NULL); child; child = vmm_device_tree_next_child(node, child))
 
-/** Find the child node by name for a given parent
- *  @node:  parent node
- *  @name:  child name to look for.
- *
- *  This function looks for child node for given matching name
- *
- *  Returns a node pointer if found, with refcount incremented, use
- *  vmm_device_tree_dref_node() on it when done.
- *  Returns NULL if node is not found.
+/**
+ * @brief 获取设备树的按名称查找子节点
+ * @param node 设备树节点指针
+ * @param name 目标对象的名称
+ * @return 目标对象指针，不存在返回NULL
  */
 vmm_device_tree_node_t *vmm_device_tree_get_child_by_name(vmm_device_tree_node_t *node, const char *name);
 
-/** Add new node to device tree with given name
- *  NOTE: This function allows parent == NULL to enable creation of
- *  root node but only once.
- *  NOTE: Once root node is created, subsequent calls to this function
- *  with parent == NULL will add nodes under root node.
+/**
+ * @brief 在设备树中创建新的子节点
+ * @param parent 父设备树节点
+ * @param name 目标对象的名称
+ * @return 成功返回新创建的节点指针，失败返回NULL
  */
 vmm_device_tree_node_t *vmm_device_tree_addnode(vmm_device_tree_node_t *parent, const char *name);
 
-/** Copy a node to another location in device tree */
+/**
+ * @brief 将源节点及其属性复制到目标父节点下
+ * @param parent 父设备树节点
+ * @param name 目标对象的名称
+ * @param src 源设备树节点
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_copynode(vmm_device_tree_node_t *parent, const char *name, vmm_device_tree_node_t *src);
 
-/** Delete a node from device tree */
+/**
+ * @brief 从设备树中删除指定节点
+ * @param node 设备树节点指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_delnode(vmm_device_tree_node_t *node);
 
-/** Get device clock-frequency
- *  NOTE: This is based on 'clock-frequency' attribute of device tree node
- *  NOTE: This API if for hard-coding clock frequency in device tree node
- *  and it does not use clock_xxxx() APIs
+/**
+ * @brief 获取设备树节点的时钟频率属性值
+ * @param node 设备树节点指针
+ * @param clock_freq 用于返回时钟频率值
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_clock_frequency(vmm_device_tree_node_t *node, uint32_t *clock_freq);
 
-/** Get count of device irqs
- *  NOTE: This is based on 'irq' attribute of device tree node
+/**
+ * @brief 获取设备树中断的数量
+ * @param node 设备树节点指针
+ * @return 数量值
  */
 uint32_t vmm_device_tree_irq_count(vmm_device_tree_node_t *node);
 
 /**
- * Given a device tree node, find its interrupt parent node
- * @child: pointer to device node
- *
- * Returns a pointer to the interrupt parent node, or NULL if
- * the interrupt parent could not be determined.
+ * @brief 查找设备树节点的中断控制器父节点
+ * @param child 子设备树节点
+ * @return 成功返回匹配的对象指针，未找到返回NULL
  */
 vmm_device_tree_node_t *vmm_device_tree_irq_find_parent(vmm_device_tree_node_t *child);
 
 /**
- * Resolve an interrupt for a device
- * @device: the device whose interrupt is to be resolved
- * @index: index of the interrupt to resolve
- * @out_irq: structure filled by this function
- *
- * This function resolves an interrupt for a node by walking the interrupt tree,
- * finding which interrupt controller node it is attached to, and returning the
- * interrupt specifier that can be used to retrieve an Xvisor IRQ number.
+ * @brief 解析设备树节点的第index个中断描述
+ * @param device 设备结构体指针
+ * @param index 数组中的索引位置
+ * @param out_irq 用于返回解析后的中断描述
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_irq_parse_one(vmm_device_tree_node_t *device, int index, struct vmm_device_tree_phandle_args *out_irq);
 
@@ -601,106 +892,154 @@ int vmm_device_tree_irq_parse_one(vmm_device_tree_node_t *device, int index, str
 struct vmm_host_irq_domain *vmm_device_tree_irq_domain_find(vmm_device_tree_node_t *dev);
 
 /**
- * Parse and map an interrupt into Xvisor space
- * @dev: Device node of the device whose interrupt is to be mapped
- * @index: Index of the interrupt to map
+ * @brief 解析设备树节点的中断并映射到主机中断号
+ * @param dev 设备结构体指针
+ * @param index 数组中的索引位置
+ * @return 中断号
  */
 uint32_t vmm_device_tree_irq_parse_map(vmm_device_tree_node_t *dev, int index);
 
-/** vmm_device_tree_is_available - check if a device is available for use
- *  @node: Node to check for availability
- *
- *  Returns TRUE if the status property is absent or set to "okay" or "ok",
- *  FALSE otherwise
+/**
+ * @brief 检查设备树节点是否可用（status属性不为disabled）
+ * @param node 设备树节点指针
+ * @return 可用返回TRUE，否则返回FALSE
  */
 bool vmm_device_tree_is_available(const vmm_device_tree_node_t *node);
 
-/** vmm_device_tree_alias_get_id - Get alias id for the given device_node
- * @np:         Pointer to the given device_node
- * @stem:       Alias stem of the given device_node
- *
- * The function scans all the properties of 'aliases' node to get the alias id
- * for the given device_node and alias stem.  It returns the alias id if found.
+/**
+ * @brief 获取设备树别名的ID
+ * @param node 设备树节点指针
+ * @param stem 别名前缀字符串
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_alias_get_id(vmm_device_tree_node_t *node, const char *stem);
 
-/** Get physical size of device registers
- *  NOTE: This is based on 'reg' and 'virtual-reg' attributes
- *  of device tree node
+/**
+ * @brief 获取设备树节点指定寄存器集的大小
+ * @param node 设备树节点指针
+ * @param size 数据大小（字节数）
+ * @param regset 寄存器集索引号
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_regsize(vmm_device_tree_node_t *node, physical_size_t *size, int regset);
 
-/** Get physical address of device registers
- *  NOTE: This is based on 'reg' and 'virtual-reg' attributes
- *  of device tree node
+/**
+ * @brief 获取设备树节点指定寄存器集的物理地址
+ * @param node 设备树节点指针
+ * @param addr 地址值
+ * @param regset 寄存器集索引号
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_regaddr(vmm_device_tree_node_t *node, physical_addr_t *addr, int regset);
 
-/** Map device registers to virtual address
- *  NOTE: This is based on 'reg' and 'virtual-reg' attributes
- *  of device tree node
+/**
+ * @brief 将设备树节点的寄存器映射到虚拟地址空间
+ * @param node 设备树节点指针
+ * @param addr 地址值
+ * @param regset 寄存器集索引号
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_regmap(vmm_device_tree_node_t *node, virtual_addr_t *addr, int regset);
 
-/** Unmap device registers from virtual address
- *  NOTE: This is based on 'reg' and 'virtual-reg' attributes
- *  of device tree node
+/**
+ * @brief 取消设备树节点寄存器的虚拟地址映射
+ * @param node 设备树节点指针
+ * @param addr 地址值
+ * @param regset 寄存器集索引号
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_regunmap(vmm_device_tree_node_t *node, virtual_addr_t addr, int regset);
 
-/** Convert regname to regset index
- *  NOTE: This is based on 'reg-names' attribute of device tree node
+/**
+ * @brief 根据寄存器名称查找对应的寄存器集索引
+ * @param node 设备树节点指针
+ * @param regname 寄存器名称字符串
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_regname_to_regset(vmm_device_tree_node_t *node, const char *regname);
 
-/** Map device registers to virtual address
- *  NOTE: This is based on 'reg' and 'reg-names' attributes
- *  of device tree node
+/**
+ * @brief 按名称映射设备树寄存器区域
+ * @param node 设备树节点指针
+ * @param addr 地址值
+ * @param regname 寄存器名称字符串
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_regmap_byname(vmm_device_tree_node_t *node, virtual_addr_t *addr, const char *regname);
 
-/** Unmap device registers from virtual address
- *  NOTE: This is based on 'reg' and 'reg-names' attributes
- *  of device tree node
+/**
+ * @brief 按名称取消映射设备树寄存器区域
+ * @param node 设备树节点指针
+ * @param addr 地址值
+ * @param regname 寄存器名称字符串
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_regunmap_byname(vmm_device_tree_node_t *node, virtual_addr_t addr, const char *regname);
 
-/** Request hostmem resource region for device registers physical
- *  address and Map device registers to a virtual address
- *  NOTE: This is based on 'reg' attribute of device tree node
+/**
+ * @brief 请求并映射设备树节点的寄存器资源到虚拟地址
+ * @param node 设备树节点指针
+ * @param addr 地址值
+ * @param regset 寄存器集索引号
+ * @param resname 资源名称字符串
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_request_regmap(vmm_device_tree_node_t *node, virtual_addr_t *addr, int regset, const char *resname);
 
-/** Unmap device registers virtual address and release hostmem
- *  resource region for device registers
- *  NOTE: This is based on 'reg' attribute of device tree node
+/**
+ * @brief 释放设备树寄存器映射
+ * @param node 设备树节点指针
+ * @param addr 地址值
+ * @param regset 寄存器集索引号
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_device_tree_regunmap_release(vmm_device_tree_node_t *node, virtual_addr_t addr, int regset);
 
-/** Check whether device registers are big endian */
+/**
+ * @brief 检查设备树节点的寄存器是否使用大端字节序
+ * @param node 设备树节点指针
+ * @return 大端返回TRUE，否则返回FALSE
+ */
 bool vmm_device_tree_is_reg_big_endian(vmm_device_tree_node_t *node);
 
-/** Check whether device is DMA cache-coherent */
+/**
+ * @brief 检查设备树节点是否标记为DMA一致性设备
+ * @param node 设备树节点指针
+ * @return DMA一致性返回TRUE，否则返回FALSE
+ */
 bool vmm_device_tree_is_dma_coherent(vmm_device_tree_node_t *node);
 
-/** Initialize device tree based reserved-memory */
+/**
+ * @brief 初始化设备树预留内存
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_reserved_memory_init(void);
 
-/** Count number of enteries in nodeid table */
+/**
+ * @brief 获取设备树节点ID表的数量
+ * @return 数量值
+ */
 uint32_t vmm_device_tree_nidtable_count(void);
 
 /** Get nodeid table entry at given index */
 struct vmm_device_tree_nidtable_entry *vmm_device_tree_nidtable_get(int index);
 
-/** Create matches table from nodeid table with given subsys
- *  NOTE: If subsys==NULL then matches table is created from all enteries
+/**
+ * @brief 创建设备树节点ID匹配表
+ * @param subsys 子系统名称字符串
  */
-const struct vmm_device_tree_nodeid *vmm_device_tree_nidtable_create_matches(const char *subsys);
+const vmm_device_tree_nodeid_t *vmm_device_tree_nidtable_create_matches(const char *subsys);
 
-/** Destroy matches table created from nodeid table */
-void vmm_device_tree_nidtable_destroy_matches(const struct vmm_device_tree_nodeid *matches);
+/**
+ * @brief 销毁设备树节点ID匹配表
+ * @param matches 节点ID匹配表指针
+ */
+void vmm_device_tree_nidtable_destroy_matches(const vmm_device_tree_nodeid_t *matches);
 
-/** Initialize device tree */
+/**
+ * @brief 初始化设备树
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_init(void);
 
 #endif /* __VMM_DEVICE_TREE_H_ */

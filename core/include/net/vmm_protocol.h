@@ -18,7 +18,7 @@
  *
  * @file vmm_protocol.h
  * @author Sukanto Ghosh <sukantoghosh@gmail.com>
- * @brief Helper utils for various network protocols
+ * @brief 各种网络协议的辅助工具
  *
  * Portions of this file have been adapted from linux source header
  * include/linux/etherdevice.h which is licensed under GPLv2:
@@ -39,10 +39,7 @@
 #include <vmm_types.h>
 
 /**
- * is_zero_ether_addr - Determine if give Ethernet address is all zeros.
- * @addr: Pointer to a six-byte array containing the Ethernet address
- *
- * Return true if the address is all zeroes.
+ * @brief 判断以太网地址是否全为零
  */
 static inline int is_zero_ether_addr(const uint8_t *addr)
 {
@@ -50,11 +47,7 @@ static inline int is_zero_ether_addr(const uint8_t *addr)
 }
 
 /**
- * is_multicast_ether_addr - Determine if the Ethernet address is a multicast.
- * @addr: Pointer to a six-byte array containing the Ethernet address
- *
- * Return true if the address is a multicast address.
- * By definition the broadcast address is also a multicast address.
+ * @brief 判断以太网地址是否为多播地址
  */
 static inline int is_multicast_ether_addr(const uint8_t *addr)
 {
@@ -62,10 +55,7 @@ static inline int is_multicast_ether_addr(const uint8_t *addr)
 }
 
 /**
- * is_local_ether_addr - Determine if the Ethernet address is locally-assigned one (IEEE 802).
- * @addr: Pointer to a six-byte array containing the Ethernet address
- *
- * Return true if the address is a local address.
+ * @brief 判断以太网地址是否为本地分配地址
  */
 static inline int is_local_ether_addr(const uint8_t *addr)
 {
@@ -73,10 +63,7 @@ static inline int is_local_ether_addr(const uint8_t *addr)
 }
 
 /**
- * is_broadcast_ether_addr - Determine if the Ethernet address is broadcast
- * @addr: Pointer to a six-byte array containing the Ethernet address
- *
- * Return true if the address is the broadcast address.
+ * @brief 判断以太网地址是否为广播地址
  */
 static inline int is_broadcast_ether_addr(const uint8_t *addr)
 {
@@ -84,10 +71,7 @@ static inline int is_broadcast_ether_addr(const uint8_t *addr)
 }
 
 /**
- * is_unicast_ether_addr - Determine if the Ethernet address is unicast
- * @addr: Pointer to a six-byte array containing the Ethernet address
- *
- * Return true if the address is a unicast address.
+ * @brief 判断以太网地址是否为单播地址
  */
 static inline int is_unicast_ether_addr(const uint8_t *addr)
 {
@@ -95,13 +79,7 @@ static inline int is_unicast_ether_addr(const uint8_t *addr)
 }
 
 /**
- * is_valid_ether_addr - Determine if the given Ethernet address is valid
- * @addr: Pointer to a six-byte array containing the Ethernet address
- *
- * Check that the Ethernet address (MAC) is not 00:00:00:00:00:00, is not
- * a multicast address, and is not FF:FF:FF:FF:FF:FF.
- *
- * Return true if the address is valid.
+ * @brief 判断以太网地址是否有效
  */
 static inline int is_valid_ether_addr(const uint8_t *addr)
 {
@@ -131,11 +109,7 @@ static inline void get_random_bytes(uint8_t *buf, int len)
 }
 
 /**
- * random_ether_addr - Generate software assigned random Ethernet address
- * @addr: Pointer to a six-byte array containing the Ethernet address
- *
- * Generate a random Ethernet address (MAC) that is not multicast
- * and has the local assigned bit set.
+ * @brief 生成软件分配的随机以太网地址
  */
 static inline void random_ether_addr(uint8_t *addr)
 {
@@ -145,11 +119,7 @@ static inline void random_ether_addr(uint8_t *addr)
 }
 
 /**
- * compare_ether_addr - Compare two Ethernet addresses
- * @addr1: Pointer to a six-byte array containing the Ethernet address
- * @addr2: Pointer other six-byte array containing the Ethernet address
- *
- * Compare two ethernet addresses, returns 0 if equal
+ * @brief 比较两个以太网地址
  */
 static inline unsigned compare_ether_addr(const uint8_t *addr1, const uint8_t *addr2)
 {
@@ -187,11 +157,14 @@ static inline char *ip4addr_to_str(char *str, const uint8_t *addr)
     return str;
 }
 
+/**
+ * @brief 以太网帧头结构，包含目的/源MAC地址和协议类型
+ */
 struct eth_header {
-    uint8_t  dstmac[6];
-    uint8_t  srcmac[6];
-    uint16_t ethertype;
-    uint8_t  payload[0];
+    uint8_t  dstmac[6]; /**< dstmac成员 */
+    uint8_t  srcmac[6]; /**< srcmac成员 */
+    uint16_t ethertype; /**< ethertype成员 */
+    uint8_t  payload[0]; /**< payload成员 */
 } __packed;
 
 #define ETHER_HLEN                 (sizeof(struct eth_header))
@@ -201,18 +174,21 @@ struct eth_header {
 #define ether_type(ether_frame)    vmm_be16_to_cpu(((struct eth_header *)(ether_frame))->ethertype)
 #define ether_payload(ether_frame) (((struct eth_header *)(ether_frame))->payload)
 
+/**
+ * @brief IP报文头结构，包含版本号、地址、校验和等IP层字段
+ */
 struct ip_header {
-    uint8_t  vhl;
-    uint8_t  tos;
-    uint16_t len;
-    uint16_t ipid;
-    uint16_t ipoffset;
-    uint8_t  ttl;
-    uint8_t  protocol;
-    uint16_t ipchksum;
-    uint8_t  srcipaddr[4];
-    uint8_t  dstipaddr[4];
-    uint8_t  payload[0];
+    uint8_t  vhl; /**< 版本+头长度 */
+    uint8_t  tos; /**< 服务类型 */
+    uint16_t len; /**< 长度 */
+    uint16_t ipid; /**< IP标识 */
+    uint16_t ipoffset; /**< ipoffset成员 */
+    uint8_t  ttl; /**< 生存时间 */
+    uint8_t  protocol; /**< 协议 */
+    uint16_t ipchksum; /**< ipchksum成员 */
+    uint8_t  srcipaddr[4]; /**< srcipaddr成员 */
+    uint8_t  dstipaddr[4]; /**< dstipaddr成员 */
+    uint8_t  payload[0]; /**< payload成员 */
 } __packed;
 
 #define IP4_HLEN              (sizeof(struct ip_header))
@@ -225,13 +201,16 @@ struct ip_header {
 #define ip_chksum(ip_frame)   vmm_be16_to_cpu(((struct ip_header *)(ip_frame))->ipchksum)
 #define ip_payload(ip_frame)  (((struct ip_header *)(ip_frame))->payload)
 
+/**
+ * @brief ICMP报文头结构，包含类型、代码和校验和字段
+ */
 struct icmp_header {
-    uint8_t  type;
-    uint8_t  code;
-    uint16_t checksum;
-    uint16_t id;
-    uint16_t sequence;
-    uint8_t  payload[0];
+    uint8_t  type; /**< 类型 */
+    uint8_t  code; /**< 代码 */
+    uint16_t checksum; /**< 校验和 */
+    uint16_t id; /**< 标识符 */
+    uint16_t sequence; /**< sequence成员 */
+    uint8_t  payload[0]; /**< payload成员 */
 } __packed;
 
 #define ICMP_HLEN                 (sizeof(struct icmp_header))
@@ -243,16 +222,19 @@ struct icmp_header {
 #define icmp_sequence(icmp_frame) vmm_be16_to_cpu(((struct tcp_header *)(icmp_frame))->sequence)
 #define icmp_payload(icmp_frame)  (((struct icmp_header *)(icmp_frame))->payload)
 
+/**
+ * @brief TCP报文头结构，包含端口号、序列号和标志位等字段
+ */
 struct tcp_header {
-    uint16_t srcport;
-    uint16_t dstport;
-    uint32_t sequence;
-    uint32_t acknumber;
-    uint16_t flags;
-    uint16_t window;
-    uint16_t checksum;
-    uint16_t urgent;
-    uint8_t  payload[0];
+    uint16_t srcport; /**< srcport成员 */
+    uint16_t dstport; /**< dstport成员 */
+    uint32_t sequence; /**< sequence成员 */
+    uint32_t acknumber; /**< acknumber成员 */
+    uint16_t flags; /**< 标志位 */
+    uint16_t window; /**< 窗口 */
+    uint16_t checksum; /**< 校验和 */
+    uint16_t urgent; /**< urgent成员 */
+    uint8_t  payload[0]; /**< payload成员 */
 } __packed;
 
 #define TCP_HLEN                 (sizeof(struct tcp_header))
@@ -267,16 +249,19 @@ struct tcp_header {
 #define tcp_urgent(tcp_frame)    vmm_be16_to_cpu(((struct tcp_header *)(tcp_frame))->urgent)
 #define tcp_payload(tcp_frame)   (((struct tcp_header *)(tcp_frame))->payload)
 
+/**
+ * @brief ARP报文头结构，包含硬件/协议地址和操作类型
+ */
 struct arp_header {
-    uint16_t htype;
-    uint16_t ptype;
-    uint8_t  hlen;
-    uint8_t  plen;
-    uint16_t oper;
-    uint8_t  sha[6];
-    uint8_t  spa[4];
-    uint8_t  tha[6];
-    uint8_t  tpa[4];
+    uint16_t htype; /**< htype成员 */
+    uint16_t ptype; /**< ptype成员 */
+    uint8_t  hlen; /**< 头部长度 */
+    uint8_t  plen; /**< 包长度 */
+    uint16_t oper; /**< 操作码 */
+    uint8_t  sha[6]; /**< 源硬件地址 */
+    uint8_t  spa[4]; /**< 扇区物理地址 */
+    uint8_t  tha[6]; /**< 目标硬件地址 */
+    uint8_t  tpa[4]; /**< 目标协议地址 */
 } __packed;
 
 #define ARP_HLEN             (sizeof(struct arp_header))

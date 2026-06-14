@@ -61,11 +61,11 @@ int riscv_node_to_hartid(vmm_device_tree_node_t *node, uint32_t *hart_id)
     int rc;
 
     if (!node) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!vmm_device_tree_is_compatible(node, "riscv")) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (hart_id) {
@@ -89,7 +89,7 @@ int riscv_isa_populate_string(uint64_t xlen, const uint64_t *isa_bitmap, char *o
     const uint64_t *bmap            = (isa_bitmap) ? isa_bitmap : riscv_isa;
 
     if (!out || (out_sz < 16)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     memset(out, 0, out_sz);
@@ -99,7 +99,7 @@ int riscv_isa_populate_string(uint64_t xlen, const uint64_t *isa_bitmap, char *o
     } else if (xlen == 64) {
         vmm_snprintf(out, out_sz, "rv%d", 64);
     } else {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     pos           = strlen(out);
@@ -135,7 +135,7 @@ int riscv_isa_parse_string(const char *isa, uint64_t *out_xlen, uint64_t *out_bi
     char   mstr[RISCV_ISA_EXT_NAME_LEN_MAX];
 
     if (!isa || !out_xlen || !out_bitmap || (out_bitmap_sz < __riscv_xlen)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     *out_xlen = 0;
@@ -147,13 +147,13 @@ int riscv_isa_parse_string(const char *isa, uint64_t *out_xlen, uint64_t *out_bi
     if (isa[i] == 'r' || isa[i] == 'R') {
         i++;
     } else {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (isa[i] == 'v' || isa[i] == 'V') {
         i++;
     } else {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (isa[i] == '3' || isa[i + 1] == '2') {
@@ -163,7 +163,7 @@ int riscv_isa_parse_string(const char *isa, uint64_t *out_xlen, uint64_t *out_bi
         *out_xlen = 64;
         i += 2;
     } else {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     for (; i < isa_len; i++) {
@@ -256,7 +256,7 @@ int __init arch_cpu_nascent_init(void)
     int                     rc = VMM_OK;
     uint32_t                tmp;
 
-    /* Host aspace, Heap, and Device tree available. */
+    /* Host addr_space, Heap, and Device tree available. */
 
     rc = sbi_init();
 
@@ -269,7 +269,7 @@ int __init arch_cpu_nascent_init(void)
 
     if (!cpus) {
         vmm_printf("%s: Failed to find cpus node\n", __func__);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     rc = vmm_device_tree_read_u32(cpus, "timebase-frequency", &tmp);
@@ -308,7 +308,7 @@ int __init arch_cpu_nascent_init(void)
 
         if (rc || !isa) {
             vmm_device_tree_dref_node(dn);
-            rc = VMM_ENOTAVAIL;
+            rc = VMM_ERR_NOTAVAIL;
             break;
         }
 
@@ -322,7 +322,7 @@ int __init arch_cpu_nascent_init(void)
         if (riscv_xlen) {
             if (riscv_xlen != this_xlen || riscv_xlen != __riscv_xlen) {
                 vmm_device_tree_dref_node(dn);
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
                 break;
             }
 
@@ -389,7 +389,7 @@ int __init arch_cpu_early_init(void)
     node = vmm_device_tree_getnode(VMM_DEVICE_TREE_PATH_SEPARATOR_STRING VMM_DEVICE_TREE_CHOSEN_NODE_NAME);
 
     if (!node) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (vmm_device_tree_read_string(node, VMM_DEVICE_TREE_BOOTARGS_ATTR_NAME, &options) == VMM_OK) {

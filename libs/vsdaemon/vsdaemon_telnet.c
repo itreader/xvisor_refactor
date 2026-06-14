@@ -165,7 +165,7 @@ static int vsdaemon_telnet_main_loop(struct vsdaemon *vsd)
 
             rc = netstack_socket_recv(tnet->active_sk, &buf, VSDAEMON_RXTIMEOUT_MS);
 
-            if (rc == VMM_ETIMEDOUT) {
+            if (rc == VMM_ERR_TIMEDOUT) {
                 continue;
             } else if (rc) {
                 break;
@@ -193,19 +193,19 @@ static int vsdaemon_telnet_setup(struct vsdaemon *vsd, int argc, char **argv)
     struct vsdaemon_telnet *tnet;
 
     if (argc < 1) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     port = strtoul(argv[0], NULL, 0);
 
     if (!vsdaemon_valid_port(port)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     tnet = vmm_zalloc(sizeof(*tnet));
 
     if (!tnet) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     tnet->port = port;
@@ -213,7 +213,7 @@ static int vsdaemon_telnet_setup(struct vsdaemon *vsd, int argc, char **argv)
     tnet->sk   = netstack_socket_alloc(NETSTACK_SOCKET_TCP);
 
     if (!tnet->sk) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail1;
     }
 

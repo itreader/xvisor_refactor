@@ -112,7 +112,7 @@ static int virtio_input_init_vq(struct vmm_virtio_device *dev, uint32_t vq, uint
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -133,7 +133,7 @@ static int virtio_input_get_pfn_vq(struct vmm_virtio_device *dev, uint32_t vq)
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -408,7 +408,7 @@ static int virtio_input_notify_vq(struct vmm_virtio_device *dev, uint32_t vq)
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -500,7 +500,7 @@ static int virtio_input_read_config(struct vmm_virtio_device *dev, uint32_t offs
     DPRINTF("%s: dev=%s offset=%d dst=%p dst_len=%d\n", __func__, dev->name, offset, dst, dst_len);
 
     if (sizeof(videv->config) < (offset + dst_len)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     for (i = 0; (i < dst_len) && ((offset + i) < src_len); i++) {
@@ -518,7 +518,7 @@ static int virtio_input_write_config(struct vmm_virtio_device *dev, uint32_t off
     DPRINTF("%s: dev=%s offset=%d src=%p src_len=%d\n", __func__, dev->name, offset, src, src_len);
 
     if (src_len != sizeof(uint8_t)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     data8 = *((uint8_t *)src);
@@ -535,7 +535,7 @@ static int virtio_input_write_config(struct vmm_virtio_device *dev, uint32_t off
             break;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     };
 
     return VMM_OK;
@@ -583,7 +583,7 @@ static int virtio_input_connect(struct vmm_virtio_device *dev, struct vmm_virtio
 
     if (!videv) {
         vmm_printf("Failed to allocate virtio input device\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     videv->vdev = dev;
@@ -596,7 +596,7 @@ static int virtio_input_connect(struct vmm_virtio_device *dev, struct vmm_virtio
     if (!videv->vkbd) {
         vmm_printf("Failed to create virtio input keyboard\n");
         vmm_free(videv);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_snprintf(name, VMM_FIELD_NAME_SIZE, "%s/mouse", dev->name);
@@ -606,7 +606,7 @@ static int virtio_input_connect(struct vmm_virtio_device *dev, struct vmm_virtio
         vmm_printf("Failed to create virtio input mouse\n");
         vmm_vkeyboard_destroy(videv->vkbd);
         vmm_free(videv);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     dev->emu_data = videv;

@@ -45,14 +45,14 @@ void initrd_ram_backed_device_destroy(void)
     }
 }
 
-VMM_EXPORT_SYMBOL(initrd_ram_backed_device_destroy);
+VMM_ERR_XPORT_SYMBOL(initrd_ram_backed_device_destroy);
 
 struct ram_backed_device *initrd_ram_backed_device_get(void)
 {
     return initrd_rbd;
 }
 
-VMM_EXPORT_SYMBOL(initrd_ram_backed_device_get);
+VMM_ERR_XPORT_SYMBOL(initrd_ram_backed_device_get);
 
 int initrd_device_tree_update(uint64_t start, uint64_t end)
 {
@@ -61,18 +61,18 @@ int initrd_device_tree_update(uint64_t start, uint64_t end)
 
     /* Sanity checks */
     if (start >= end) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (initrd_rbd) {
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     /* There should be a /chosen node */
     node = vmm_device_tree_getnode(VMM_DEVICE_TREE_PATH_SEPARATOR_STRING VMM_DEVICE_TREE_CHOSEN_NODE_NAME);
 
     if (!node) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Update start attribute in /chosen node */
@@ -95,7 +95,7 @@ done:
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(initrd_device_tree_update);
+VMM_ERR_XPORT_SYMBOL(initrd_device_tree_update);
 
 static int __init initrd_driver_init(void)
 {
@@ -107,7 +107,7 @@ static int __init initrd_driver_init(void)
 
     if (!node) {
         vmm_printf("initrd: No chosen node\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Is there a start attribute */

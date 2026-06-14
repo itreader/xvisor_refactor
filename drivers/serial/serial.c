@@ -107,7 +107,7 @@ struct serial *serial_create(vmm_device_t *dev, uint32_t rx_fifo_size, uint32_t 
 
     /* Sanity check */
     if (!dev || !tx_func) {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto free_nothing;
     }
 
@@ -115,7 +115,7 @@ struct serial *serial_create(vmm_device_t *dev, uint32_t rx_fifo_size, uint32_t 
     p = vmm_zalloc(sizeof(struct serial));
 
     if (!p) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_nothing;
     }
 
@@ -123,7 +123,7 @@ struct serial *serial_create(vmm_device_t *dev, uint32_t rx_fifo_size, uint32_t 
 
     /* Setup character device */
     if (strlcpy(p->cdev.name, dev->name, sizeof(p->cdev.name)) >= sizeof(p->cdev.name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto free_port;
     }
 
@@ -137,7 +137,7 @@ struct serial *serial_create(vmm_device_t *dev, uint32_t rx_fifo_size, uint32_t 
     p->rx_fifo         = fifo_alloc(1, rx_fifo_size);
 
     if (!p->rx_fifo) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_port;
     }
 
@@ -165,10 +165,10 @@ free_fifo:
 free_port:
     vmm_free(p);
 free_nothing:
-    return VMM_ERR_PTR(rc);
+    return VMM_ERR_RR_PTR(rc);
 }
 
-VMM_EXPORT_SYMBOL(serial_create);
+VMM_ERR_XPORT_SYMBOL(serial_create);
 
 void serial_destroy(struct serial *p)
 {
@@ -194,7 +194,7 @@ void serial_destroy(struct serial *p)
     vmm_free(p);
 }
 
-VMM_EXPORT_SYMBOL(serial_destroy);
+VMM_ERR_XPORT_SYMBOL(serial_destroy);
 
 struct serial *serial_find(const char *name)
 {
@@ -228,7 +228,7 @@ struct serial *serial_find(const char *name)
     return p;
 }
 
-VMM_EXPORT_SYMBOL(serial_find);
+VMM_ERR_XPORT_SYMBOL(serial_find);
 
 uint32_t serial_count(void)
 {
@@ -248,7 +248,7 @@ uint32_t serial_count(void)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(serial_count);
+VMM_ERR_XPORT_SYMBOL(serial_count);
 
 static int __init serial_init(void)
 {

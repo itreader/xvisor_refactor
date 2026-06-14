@@ -34,14 +34,14 @@ void arch_board_print_info(vmm_char_device_t *cdev);
 /**
  * Board nascent init
  *
- * Only Host aspace, Heap, and Device tree available.
+ * Only Host addr_space, Heap, and Device tree available.
  */
 int arch_board_nascent_init(void);
 
 /**
  * Board early init
  *
- * Only Host aspace, Heap, Device tree, Per-CPU areas, CPU hotplug,
+ * Only Host addr_space, Heap, Device tree, Per-CPU areas, CPU hotplug,
  * and Host IRQ available.
  */
 int arch_board_early_init(void);

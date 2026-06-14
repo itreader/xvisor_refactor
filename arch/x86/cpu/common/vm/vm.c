@@ -45,7 +45,7 @@ physical_addr_t cpu_create_vcpu_intercept_table(size_t size, virtual_addr_t *tab
 
     virtual_addr_t vaddr = vmm_host_alloc_pages(VMM_SIZE_TO_PAGE(size), VMM_MEMORY_FLAGS_NORMAL);
 
-    if (vmm_host_va2pa(vaddr, &phys) != VMM_OK) {
+    if (vmm_host_virtualAddr_to_physicalAddr(vaddr, &phys) != VMM_OK) {
         return 0;
     }
 
@@ -132,7 +132,7 @@ void disable_ioport_intercept(struct vcpu_hw_context *context, uint32_t ioport)
 
 int cpu_init_vcpu_hw_context(struct cpuinfo_x86 *cpuinfo, struct vcpu_hw_context *context)
 {
-    int ret = VMM_EFAIL;
+    int ret = VMM_ERR_FAIL;
     int boffs;
 
     context->cpuinfo    = cpuinfo;
@@ -218,7 +218,7 @@ _error:
     }
 
     /* FIXME: VM: Free nested page table pages. */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 /*
@@ -227,7 +227,7 @@ _error:
  */
 int cpu_enable_vm_extensions(struct cpuinfo_x86 *cpuinfo)
 {
-    int ret = VMM_EFAIL;
+    int ret = VMM_ERR_FAIL;
     ;
 
     switch (cpuinfo->vendor) {

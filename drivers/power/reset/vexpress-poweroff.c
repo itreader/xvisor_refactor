@@ -51,7 +51,7 @@ static struct vexpress_config_func *shutdown_func;
 
 static int vexpress_reset(void)
 {
-    int err = VMM_EFAIL;
+    int err = VMM_ERR_FAIL;
 
     if (reboot_func) {
         err = vexpress_config_write(reboot_func, 0, 0);
@@ -63,7 +63,7 @@ static int vexpress_reset(void)
 
 static int vexpress_shutdown(void)
 {
-    int err = VMM_EFAIL;
+    int err = VMM_ERR_FAIL;
 
     if (shutdown_func) {
         err = vexpress_config_write(shutdown_func, 0, 0);
@@ -81,7 +81,7 @@ static int __init vexpress_poweroff_driver_probe(vmm_device_t *dev)
     devid = vmm_platform_match_nodeid(dev);
 
     if (!devid) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     func = (enum vexpress_reset_func)devid->data;
@@ -91,7 +91,7 @@ static int __init vexpress_poweroff_driver_probe(vmm_device_t *dev)
             shutdown_func = vexpress_config_func_get_by_node(dev->of_node);
 
             if (!shutdown_func) {
-                return VMM_ENODEV;
+                return VMM_ERR_NODEV;
             }
 
             vmm_register_system_shutdown(vexpress_shutdown);
@@ -102,7 +102,7 @@ static int __init vexpress_poweroff_driver_probe(vmm_device_t *dev)
             reboot_func = vexpress_config_func_get_by_node(dev->of_node);
 
             if (!reboot_func) {
-                return VMM_ENODEV;
+                return VMM_ERR_NODEV;
             }
 
             vmm_register_system_reset(vexpress_reset);

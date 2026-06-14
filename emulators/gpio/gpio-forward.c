@@ -107,7 +107,7 @@ static int gpio_forward_emulator_sync(vmm_emulate_device_t *edev, uint64_t val, 
     struct gpio_emu_sync      *sync = v;
 
     if (!sync) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     DPRINTF("%s: type=%d irq=%d\n", __func__, (int)val, (int)sync->irq);
@@ -176,7 +176,7 @@ static int gpio_forward_emulator_sync(vmm_emulate_device_t *edev, uint64_t val, 
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -221,7 +221,7 @@ static int gpio_forward_emulator_probe(struct vmm_guest *guest, vmm_emulate_devi
     s = vmm_zalloc(sizeof(struct gpio_forward_state));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto gpio_forward_emulator_probe_done;
     }
 
@@ -237,14 +237,14 @@ static int gpio_forward_emulator_probe(struct vmm_guest *guest, vmm_emulate_devi
         s->in_irq = vmm_zalloc(s->in_count * sizeof(*s->in_irq));
 
         if (!s->in_irq) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto gpio_forward_emulator_probe_freestate;
         }
 
         s->out_gpio = vmm_zalloc(s->in_count * sizeof(*s->out_gpio));
 
         if (!s->out_gpio) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto gpio_forward_emulator_probe_freeinirq;
         }
 
@@ -275,21 +275,21 @@ static int gpio_forward_emulator_probe(struct vmm_guest *guest, vmm_emulate_devi
         s->out_irq = vmm_zalloc(s->out_count * sizeof(*s->out_irq));
 
         if (!s->out_irq) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto gpio_forward_emulator_probe_freeoutgpio;
         }
 
         s->in_gpio = vmm_zalloc(s->out_count * sizeof(*s->in_gpio));
 
         if (!s->in_gpio) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto gpio_forward_emulator_probe_freeoutirq;
         }
 
         s->in_gpio_bidir = vmm_zalloc(s->out_count * sizeof(*s->in_gpio_bidir));
 
         if (!s->in_gpio_bidir) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto gpio_forward_emulator_probe_freeingpio;
         }
 
@@ -400,7 +400,7 @@ static int gpio_forward_emulator_remove(vmm_emulate_device_t *edev)
     struct gpio_forward_state *s = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     for (i = 0; i < s->in_count; i++) {

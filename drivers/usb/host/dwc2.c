@@ -298,7 +298,7 @@ static int wait_for_bit(void *reg, const uint32_t mask, bool set)
         vmm_udelay(1);
     }
 
-    return VMM_ETIMEDOUT;
+    return VMM_ERR_TIMEDOUT;
 }
 
 /*
@@ -376,7 +376,7 @@ static void dwc2_core_reset(struct dwc2_control *dwc2)
     /* Wait for AHB master IDLE state. */
     rc = wait_for_bit(&dwc2->regs->grstctl, DWC2_GRSTCTL_AHBIDLE, 1);
 
-    if (rc == VMM_ETIMEDOUT) {
+    if (rc == VMM_ERR_TIMEDOUT) {
         vmm_printf("%s: Timeout!\n", __func__);
     }
 
@@ -384,7 +384,7 @@ static void dwc2_core_reset(struct dwc2_control *dwc2)
     vmm_writel(DWC2_GRSTCTL_CSFTRST, &dwc2->regs->grstctl);
     rc = wait_for_bit(&dwc2->regs->grstctl, DWC2_GRSTCTL_CSFTRST, 0);
 
-    if (rc == VMM_ETIMEDOUT) {
+    if (rc == VMM_ERR_TIMEDOUT) {
         vmm_printf("%s: Timeout!\n", __func__);
     }
 
@@ -748,11 +748,11 @@ static int dwc2_rh_msg_in_status(struct dwc2_control *dwc2, struct urb *u, struc
             break;
 
         default:
-            rc = VMM_ENOTAVAIL;
+            rc = VMM_ERR_NOTAVAIL;
             break;
     };
 
-    if (rc == VMM_ENOTAVAIL) {
+    if (rc == VMM_ERR_NOTAVAIL) {
         vmm_printf("%s: dev=%s unsupported root hub command\n", __func__, u->dev->dev.name);
     }
 
@@ -811,7 +811,7 @@ static int dwc2_rh_msg_in_descriptor(struct dwc2_control *dwc2, struct urb *u, s
                     break;
 
                 default:
-                    rc = VMM_ENOTAVAIL;
+                    rc = VMM_ERR_NOTAVAIL;
                     break;
             };
 
@@ -854,11 +854,11 @@ static int dwc2_rh_msg_in_descriptor(struct dwc2_control *dwc2, struct urb *u, s
             break;
 
         default:
-            rc = VMM_ENOTAVAIL;
+            rc = VMM_ERR_NOTAVAIL;
             break;
     };
 
-    if (rc == VMM_ENOTAVAIL) {
+    if (rc == VMM_ERR_NOTAVAIL) {
         vmm_printf("%s: dev=%s unsupported root hub command\n", __func__, u->dev->dev.name);
     }
 
@@ -881,11 +881,11 @@ static int dwc2_rh_msg_in_configuration(struct dwc2_control *dwc2, struct urb *u
             break;
 
         default:
-            rc = VMM_ENOTAVAIL;
+            rc = VMM_ERR_NOTAVAIL;
             break;
     }
 
-    if (rc == VMM_ENOTAVAIL) {
+    if (rc == VMM_ERR_NOTAVAIL) {
         vmm_printf("%s: dev=%s unsupported root hub command\n", __func__, u->dev->dev.name);
     }
 
@@ -913,7 +913,7 @@ static int dwc2_rh_msg_in(struct dwc2_control *dwc2, struct urb *u, struct usb_c
 
     vmm_printf("%s: dev=%s unsupported root hub command\n", __func__, u->dev->dev.name);
 
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 /* Direction: Out */
@@ -970,11 +970,11 @@ static int dwc2_rh_msg_out(struct dwc2_control *dwc2, struct urb *u, struct usb_
             break;
 
         default:
-            rc = VMM_ENOTAVAIL;
+            rc = VMM_ERR_NOTAVAIL;
             break;
     };
 
-    if (rc == VMM_ENOTAVAIL) {
+    if (rc == VMM_ERR_NOTAVAIL) {
         vmm_printf("%s: dev=%s unsupported root hub command\n", __func__, u->dev->dev.name);
     }
 
@@ -1069,15 +1069,15 @@ static int wait_for_chhltd(struct dwc2_hc *hc, uint32_t *sub, uint8_t *toggle)
      */
 
     if (hcint & DWC2_HCINT_XACTERR && (pid == DWC2_HC_PID_SETUP)) {
-        return VMM_EAGAIN;
+        return VMM_ERR_AGAIN;
     }
 
     if (hcint & (DWC2_HCINT_NAK | DWC2_HCINT_FRMOVRUN)) {
-        return VMM_EAGAIN;
+        return VMM_ERR_AGAIN;
     }
 
     DPRINTF("%s: Error (HCINT=%08x)\n", __func__, hcint);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static int transfer_chunk(
@@ -1246,7 +1246,7 @@ static int chunk_msg(struct dwc2_control *dwc2, struct dwc2_hc *hc, struct urb *
                 vmm_spin_unlock_irq_restore(&dwc2->host_regs_lock, flags);
 
                 if (((frame_num - ssplit_frame_num) & DWC2_HFNUM_MAX_FRNUM) > 4) {
-                    ret = VMM_EAGAIN;
+                    ret = VMM_ERR_AGAIN;
                 }
             } else {
                 complete_split = 0;
@@ -1306,7 +1306,7 @@ static int dwc2_control_msg(struct dwc2_control *dwc2, struct dwc2_hc *hc, struc
 
     do {
         ret = chunk_msg(dwc2, hc, u, &pid, 0, u->setup_packet, 8);
-    } while (ret == VMM_EAGAIN);
+    } while (ret == VMM_ERR_AGAIN);
 
     if (ret) {
         return ret;
@@ -1323,7 +1323,7 @@ static int dwc2_control_msg(struct dwc2_control *dwc2, struct dwc2_hc *hc, struc
             act_len += u->actual_length;
             buffer += u->actual_length;
             len -= u->actual_length;
-        } while (ret == VMM_EAGAIN);
+        } while (ret == VMM_ERR_AGAIN);
 
         if (ret) {
             return ret;
@@ -1340,7 +1340,7 @@ static int dwc2_control_msg(struct dwc2_control *dwc2, struct dwc2_hc *hc, struc
 
     do {
         ret = chunk_msg(dwc2, hc, u, &pid, status_direction, hc->status_buffer, 0);
-    } while (ret == VMM_EAGAIN);
+    } while (ret == VMM_ERR_AGAIN);
 
     if (ret) {
         return ret;
@@ -1361,14 +1361,14 @@ static int dwc2_bulk_msg(struct dwc2_control *dwc2, struct dwc2_hc *hc, struct u
 
     if ((devnum >= DWC2_MAX_DEVICE) || (devnum == dwc2->rh_devnum)) {
         u->status = 0;
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Ensure that transfer buffer is cache aligned */
     if ((uint64_t)buffer & (VMM_CACHE_LINE_SIZE - 1)) {
         WARN_ON(1);
         vmm_printf("%s: dev=%s transfer buffer not cache aligned\n", __func__, u->dev->dev.name);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     if (usb_pipein(u->pipe)) {
@@ -1391,12 +1391,12 @@ static int dwc2_int_msg_start(struct dwc2_control *dwc2, struct dwc2_hc *hc, str
     for (;;) {
         if (vmm_timer_timestamp() > timeout) {
             vmm_printf("Timeout poll on interrupt endpoint\n");
-            return VMM_ETIMEDOUT;
+            return VMM_ERR_TIMEDOUT;
         }
 
         ret = dwc2_bulk_msg(dwc2, hc, u);
 
-        if (ret != VMM_EAGAIN) {
+        if (ret != VMM_ERR_AGAIN) {
             return ret;
         }
     }
@@ -1470,7 +1470,7 @@ static int dwc2_worker(void *data)
                 break;
 
             default:
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
                 break;
         };
 
@@ -1499,7 +1499,7 @@ static void dwc2_flush_work(struct usb_hcd *hcd)
             u = list_first_entry(&hc->urb_pending_list, struct urb, urb_list);
             list_del(&u->urb_list);
             vmm_spin_unlock_irq_restore(&dwc2->hcs_lock, f);
-            usb_hcd_giveback_urb(hcd, u, VMM_EFAIL);
+            usb_hcd_giveback_urb(hcd, u, VMM_ERR_FAIL);
             vmm_spin_lock_irq_save(&dwc2->hcs_lock, f);
         }
     }
@@ -1668,7 +1668,7 @@ static int dwc2_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
     }
 
     if (!hc) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     return VMM_OK;
@@ -1715,7 +1715,7 @@ static int dwc2_driver_probe(vmm_device_t *dev)
     devid = vmm_platform_match_nodeid(dev);
 
     if (!devid) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto fail;
     }
 
@@ -1724,7 +1724,7 @@ static int dwc2_driver_probe(vmm_device_t *dev)
     hcd    = usb_create_hcd(&dwc2_hc, dev, "dwc2");
 
     if (!hcd) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail;
     }
 
@@ -1755,7 +1755,7 @@ static int dwc2_driver_probe(vmm_device_t *dev)
     dwc2->irq  = vmm_device_tree_irq_parse_map(dev->of_node, 0);
 
     if (!dwc2->irq) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto fail_unmap_regs;
     }
 
@@ -1767,7 +1767,7 @@ static int dwc2_driver_probe(vmm_device_t *dev)
 
     if ((snpsid & DWC2_SNPSID_DEVID_MASK) != DWC2_SNPSID_DEVID_VER_2xx) {
         vmm_lerror(dev->name, "SNPSID invalid (not DWC2 OTG device): %08x\n", snpsid);
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto fail_unmap_regs;
     }
 
@@ -1786,7 +1786,7 @@ static int dwc2_driver_probe(vmm_device_t *dev)
         hc->status_buffer = vmm_dma_zalloc(DWC2_STATUS_BUF_SIZE);
 
         if (!hc->status_buffer) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto fail_cleanup_hcs;
         }
     }
@@ -1796,7 +1796,7 @@ static int dwc2_driver_probe(vmm_device_t *dev)
     dwc2->worker_thread = vmm_threads_create("dwc2_worker", dwc2_worker, dwc2, VMM_THREAD_DEF_PRIORITY, VMM_THREAD_DEF_TIME_SLICE);
 
     if (!dwc2->worker_thread) {
-        rc = VMM_ENOSPC;
+        rc = VMM_ERR_NOSPC;
         goto fail_cleanup_hcs;
     }
 

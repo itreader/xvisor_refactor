@@ -18,7 +18,7 @@
  *
  * @file vmm_command_manager.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief source file of command manager
+ * @brief 命令管理器实现
  */
 
 #include <libs/stringlib.h>
@@ -33,20 +33,28 @@
 #define VMM_CMD_ARG_DELIM_CHAR  ' '
 #define VMM_CMD_ARG_DELIM_CHAR1 '\t'
 
+/**
+ * @brief 命令管理器控制结构，管理命令的注册和查找
+ */
 struct vmm_command_manager_ctrl {
-    vmm_mutex_t   cmd_list_lock;
-    double_list_t cmd_list;
+    vmm_mutex_t   cmd_list_lock; /**< 命令链表锁 */
+    double_list_t cmd_list; /**< 命令链表 */
 };
 
 static struct vmm_command_manager_ctrl cmctrl;
 
+/**
+ * @brief 注册命令到命令管理器
+ * @param cmd 命令标识或命令结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_command_manager_register_cmd(vmm_command_t *cmd)
 {
     bool           found;
     vmm_command_t *c;
 
     if (!cmd) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_mutex_lock(&cmctrl.cmd_list_lock);
@@ -63,7 +71,7 @@ int vmm_command_manager_register_cmd(vmm_command_t *cmd)
 
     if (found) {
         vmm_mutex_unlock(&cmctrl.cmd_list_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     INIT_LIST_HEAD(&cmd->head);
@@ -75,20 +83,25 @@ int vmm_command_manager_register_cmd(vmm_command_t *cmd)
     return VMM_OK;
 }
 
+/**
+ * @brief 从命令管理器注销命令
+ * @param cmd 命令标识或命令结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_command_manager_unregister_cmd(vmm_command_t *cmd)
 {
     bool           found;
     vmm_command_t *c;
 
     if (!cmd) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_mutex_lock(&cmctrl.cmd_list_lock);
 
     if (list_empty(&cmctrl.cmd_list)) {
         vmm_mutex_unlock(&cmctrl.cmd_list_lock);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     c     = NULL;
@@ -103,7 +116,7 @@ int vmm_command_manager_unregister_cmd(vmm_command_t *cmd)
 
     if (!found) {
         vmm_mutex_unlock(&cmctrl.cmd_list_lock);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     list_del(&c->head);
@@ -113,6 +126,11 @@ int vmm_command_manager_unregister_cmd(vmm_command_t *cmd)
     return VMM_OK;
 }
 
+/**
+ * @brief 在命令管理器中查找指定名称的命令
+ * @param cmd_name 命令名称字符串
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_command_t *vmm_command_manager_find_cmd(const char *cmd_name)
 {
     bool           found;
@@ -144,6 +162,11 @@ vmm_command_t *vmm_command_manager_find_cmd(const char *cmd_name)
     return c;
 }
 
+/**
+ * @brief 获取命令管理器的命令
+ * @param index 数组中的索引位置
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_command_t *vmm_command_manager_get_cmd(int index)
 {
     bool           found;
@@ -177,6 +200,10 @@ vmm_command_t *vmm_command_manager_get_cmd(int index)
     return c;
 }
 
+/**
+ * @brief 获取命令管理器命令的数量
+ * @return 数量值
+ */
 uint32_t vmm_command_manager_cmd_count(void)
 {
     uint32_t       retval;
@@ -196,6 +223,13 @@ uint32_t vmm_command_manager_cmd_count(void)
     return retval;
 }
 
+/**
+ * @brief 在命令管理器中查找并执行指定命令
+ * @param cdev 字符设备指针
+ * @param argc 参数个数
+ * @param argv 参数数组
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_command_manager_execute_cmd(vmm_char_device_t *cdev, int argc, char **argv)
 {
     int            ret = VMM_OK;
@@ -214,15 +248,23 @@ int vmm_command_manager_execute_cmd(vmm_char_device_t *cdev, int argc, char **ar
     } else {
         /* Did not find command. */
         vmm_cdev_printf(cdev, "Error: unknown command %s\n", argv[0]);
-        ret = VMM_ENOTAVAIL;
+        ret = VMM_ERR_NOTAVAIL;
     }
 
     return ret;
 }
 
+/**
+ * @brief 解析命令字符串并在命令管理器中执行
+ * @param cdev 字符设备指针
+ * @param cmds 命令数组指针
+ * @param (*filter 布尔值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_command_manager_execute_cmdstr(vmm_char_device_t *cdev, char *cmds, bool (*filter)(vmm_char_device_t *cdev, int argc, char **argv))
 {
-    int   argc, ret;
+    int argc;
+    int ret;
     char *argv[VMM_CMD_ARG_MAXCOUNT];
     char *c   = cmds;
     bool  eos = 0;
@@ -290,6 +332,10 @@ int vmm_command_manager_execute_cmdstr(vmm_char_device_t *cdev, char *cmds, bool
     return VMM_OK;
 }
 
+/**
+ * @brief 输出命令管理器中所有已注册命令的使用信息
+ * @param cdev 字符设备指针
+ */
 static void cmd_help_usage(vmm_char_device_t *cdev)
 {
     vmm_cdev_printf(cdev, "Usage: ");
@@ -297,9 +343,17 @@ static void cmd_help_usage(vmm_char_device_t *cdev)
     vmm_cdev_printf(cdev, "   help <cmd_name1> [<cmd_name2>] ...\n");
 }
 
+/**
+ * @brief 执行help命令，显示所有可用命令列表
+ * @param cdev 字符设备指针
+ * @param argc 参数个数
+ * @param argv 参数数组
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int cmd_help_exec(vmm_char_device_t *cdev, int argc, char **argv)
 {
-    uint32_t       i, cmd_count;
+    uint32_t i;
+    uint32_t cmd_count;
     vmm_command_t *cmd;
 
     if (argc == 1) {
@@ -317,7 +371,7 @@ static int cmd_help_exec(vmm_char_device_t *cdev, int argc, char **argv)
                 cmd->usage(cdev);
             } else {
                 vmm_cdev_printf(cdev, "Cannot find command %s\n", argv[i]);
-                return VMM_ENOTAVAIL;
+                return VMM_ERR_NOTAVAIL;
             }
 
             vmm_printf("\n");
@@ -334,6 +388,10 @@ static vmm_command_t help_cmd = {
     .exec  = cmd_help_exec,
 };
 
+/**
+ * @brief 初始化命令管理器
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_command_manager_init(void)
 {
     memset(&cmctrl, 0, sizeof(cmctrl));

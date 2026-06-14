@@ -74,7 +74,7 @@ static int waitqueue2_do_test(vmm_char_device_t *cdev)
         timeout  = etimeout;
         rc       = vmm_waitqueue_sleep_timeout(&wq0, &timeout);
 
-        if (rc != VMM_ETIMEDOUT) {
+        if (rc != VMM_ERR_TIMEDOUT) {
             vmm_cdev_printf(cdev, "error: did not timeout\n");
             failures++;
         }
@@ -88,7 +88,7 @@ static int waitqueue2_do_test(vmm_char_device_t *cdev)
         }
     }
 
-    return (failures) ? VMM_EFAIL : 0;
+    return (failures) ? VMM_ERR_FAIL : 0;
 }
 
 static int waitqueue2_run(struct white_box_test *test, vmm_char_device_t *cdev, uint32_t test_hcpu)

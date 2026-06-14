@@ -151,7 +151,7 @@ static int gpio_power_emulator_probe(struct vmm_guest *guest, vmm_emulate_device
     s = vmm_zalloc(sizeof(struct gpio_power_state));
 
     if (!s) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto gpio_power_emulator_probe_done;
     }
 
@@ -175,7 +175,7 @@ static int gpio_power_emulator_probe(struct vmm_guest *guest, vmm_emulate_device
     } else if (!strcmp(str, "edge-rising")) {
         s->sample_type = GPIO_POWER_SAMPLE_EDGE_RISING;
     } else {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto gpio_power_emulator_probe_freestate_failed;
     }
 
@@ -197,7 +197,7 @@ static int gpio_power_emulator_remove(vmm_emulate_device_t *edev)
     struct gpio_power_state *s = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_device_emulate_unregister_irqchip(s->guest, s->in_irq[0], &gpio_power_irqchip, s);

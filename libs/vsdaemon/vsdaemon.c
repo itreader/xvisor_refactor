@@ -54,7 +54,7 @@ int vsdaemon_transport_register(struct vsdaemon_transport *trans)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!trans) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&vsdc.vsd_list_lock);
@@ -69,7 +69,7 @@ int vsdaemon_transport_register(struct vsdaemon_transport *trans)
     }
 
     if (found) {
-        rc = VMM_EEXIST;
+        rc = VMM_ERR_EXIST;
         goto fail;
     }
 
@@ -83,7 +83,7 @@ fail:
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vsdaemon_transport_register);
+VMM_ERR_XPORT_SYMBOL(vsdaemon_transport_register);
 
 int vsdaemon_transport_unregister(struct vsdaemon_transport *trans)
 {
@@ -94,7 +94,7 @@ int vsdaemon_transport_unregister(struct vsdaemon_transport *trans)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!trans) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&vsdc.vsd_list_lock);
@@ -109,12 +109,12 @@ int vsdaemon_transport_unregister(struct vsdaemon_transport *trans)
     }
 
     if (!found) {
-        rc = VMM_ENOTAVAIL;
+        rc = VMM_ERR_NOTAVAIL;
         goto fail;
     }
 
     if (trans->use_count) {
-        rc = VMM_EBUSY;
+        rc = VMM_ERR_BUSY;
         goto fail;
     }
 
@@ -126,7 +126,7 @@ fail:
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vsdaemon_transport_unregister);
+VMM_ERR_XPORT_SYMBOL(vsdaemon_transport_unregister);
 
 /* Note: Must be called with vsd_list_lock held */
 static struct vsdaemon_transport *__vsdaemon_transport_find(const char *trans)
@@ -180,7 +180,7 @@ struct vsdaemon_transport *vsdaemon_transport_get(int index)
     return trans;
 }
 
-VMM_EXPORT_SYMBOL(vsdaemon_transport_get);
+VMM_ERR_XPORT_SYMBOL(vsdaemon_transport_get);
 
 uint32_t vsdaemon_transport_count(void)
 {
@@ -201,7 +201,7 @@ uint32_t vsdaemon_transport_count(void)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(vsdaemon_transport_count);
+VMM_ERR_XPORT_SYMBOL(vsdaemon_transport_count);
 
 static void vsdaemon_vserial_recv(struct vmm_vserial *vser, void *private, uint8_t ch)
 {
@@ -228,13 +228,13 @@ int vsdaemon_create(const char *transport_name, const char *vserial_name, const 
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!transport_name || !vserial_name || !daemon_name) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vser = vmm_vserial_find(vserial_name);
 
     if (!vser) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&vsdc.vsd_list_lock);
@@ -242,7 +242,7 @@ int vsdaemon_create(const char *transport_name, const char *vserial_name, const 
     trans = __vsdaemon_transport_find(transport_name);
 
     if (!trans) {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto fail1;
     }
 
@@ -256,14 +256,14 @@ int vsdaemon_create(const char *transport_name, const char *vserial_name, const 
     }
 
     if (found) {
-        rc = VMM_EEXIST;
+        rc = VMM_ERR_EXIST;
         goto fail1;
     }
 
     vsd = vmm_zalloc(sizeof(struct vsdaemon));
 
     if (!vsd) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail1;
     }
 
@@ -287,7 +287,7 @@ int vsdaemon_create(const char *transport_name, const char *vserial_name, const 
     vsd->thread = vmm_threads_create(vsd->name, &vsdaemon_main, vsd, VMM_THREAD_DEF_PRIORITY, VMM_THREAD_DEF_TIME_SLICE);
 
     if (!vsd->thread) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto fail4;
     }
 
@@ -311,7 +311,7 @@ fail1:
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vsdaemon_create);
+VMM_ERR_XPORT_SYMBOL(vsdaemon_create);
 
 /* Note: must be called with vsd_list_lock held */
 static int __vsdaemon_destroy(struct vsdaemon *vsd)
@@ -339,7 +339,7 @@ int vsdaemon_destroy(const char *daemon_name)
     struct vsdaemon *vsd;
 
     if (!daemon_name) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&vsdc.vsd_list_lock);
@@ -355,7 +355,7 @@ int vsdaemon_destroy(const char *daemon_name)
     }
 
     if (!found) {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto done;
     }
 
@@ -367,7 +367,7 @@ done:
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vsdaemon_destroy);
+VMM_ERR_XPORT_SYMBOL(vsdaemon_destroy);
 
 struct vsdaemon *vsdaemon_get(int index)
 {
@@ -403,7 +403,7 @@ struct vsdaemon *vsdaemon_get(int index)
     return vsd;
 }
 
-VMM_EXPORT_SYMBOL(vsdaemon_get);
+VMM_ERR_XPORT_SYMBOL(vsdaemon_get);
 
 uint32_t vsdaemon_count(void)
 {
@@ -424,7 +424,7 @@ uint32_t vsdaemon_count(void)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(vsdaemon_count);
+VMM_ERR_XPORT_SYMBOL(vsdaemon_count);
 
 static int vsdaemon_vserial_notification(vmm_notifier_block_t *nb, uint64_t evt, void *data)
 {

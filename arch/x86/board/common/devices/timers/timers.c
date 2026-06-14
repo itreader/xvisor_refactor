@@ -75,7 +75,7 @@ void __init x86_register_system_timer_ops(struct x86_system_timer_ops *ops)
 
 int __init x86_timer_init(void)
 {
-    int rv = VMM_EFAIL;
+    int rv = VMM_ERR_FAIL;
 
 #if defined(CONFIG_HPET)
 

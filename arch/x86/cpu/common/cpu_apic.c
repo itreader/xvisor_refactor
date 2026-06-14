@@ -211,21 +211,21 @@ static void ioapic_disable_pin(virtual_addr_t ioapic_addr, int pin)
     ioapic_write(ioapic_addr, IOAPIC_REDIR_TABLE + pin * 2, lo);
 }
 
-static void ioapic_irq_mask(struct vmm_host_irq *irq)
+static void ioapic_irq_mask(vmm_host_irq_t *irq)
 {
     struct cpu_ioapic *ioapic = irq->chip_data;
 
     ioapic_disable_pin(ioapic->vaddr, irq->num);
 }
 
-static void ioapic_irq_unmask(struct vmm_host_irq *irq)
+static void ioapic_irq_unmask(vmm_host_irq_t *irq)
 {
     struct cpu_ioapic *ioapic = irq->chip_data;
 
     ioapic_enable_pin(ioapic->vaddr, irq->num);
 }
 
-static void lapic_irq_eoi(struct vmm_host_irq *irq)
+static void lapic_irq_eoi(vmm_host_irq_t *irq)
 {
     lapic_write(LAPIC_EOI(this_cpu(lapic).vbase), 0);
 }
@@ -289,11 +289,11 @@ static int ioapic_route_irq_to_vector(struct cpu_ioapic *ioapic, uint32_t irq, u
     entry.bits.dest    = 0;
 
     if (irq >= NR_IOAPIC_IRQ || vector >= CONFIG_HOST_IRQ_COUNT) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (ioapic_write_irt_entry(ioapic->vaddr, irq, entry.val) != VMM_OK) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
@@ -325,7 +325,7 @@ int detect_ioapics(uint32_t *nr_ioapics)
                                    "APIC");
 
     if (!node) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     ret = vmm_device_tree_read_u32(node, VMM_DEVICE_TREE_NR_IOAPIC_ATTR_NAME, &val);
@@ -525,7 +525,7 @@ struct lapic_timer {
     uint32_t                 freq_khz;
     uint32_t                 armed;
     struct cpu_lapic        *lapic;
-    struct vmm_host_irq_chip irq_chip;
+    vmm_host_irq_chip_t irq_chip;
     vmm_clock_chip_t         clock_chip;
     vmm_clocksource_t        clock_src;
 } lapic_sys_timer = {0};
@@ -690,7 +690,7 @@ static int lapic_clock_chip_set_next_event(uint64_t next, vmm_clock_chip_t *cc)
     return rc;
 }
 
-static void lapic_timer_irq_mask(struct vmm_host_irq *irq)
+static void lapic_timer_irq_mask(vmm_host_irq_t *irq)
 {
     struct lapic_timer *timer = (struct lapic_timer *)irq->chip_data;
     uint32_t            lvt, flags;
@@ -704,7 +704,7 @@ static void lapic_timer_irq_mask(struct vmm_host_irq *irq)
     vmm_spin_unlock_irq_restore(&this_cpu(lapic).lock, flags);
 }
 
-static void lapic_timer_irq_unmask(struct vmm_host_irq *irq)
+static void lapic_timer_irq_unmask(vmm_host_irq_t *irq)
 {
     struct lapic_timer *timer = (struct lapic_timer *)irq->chip_data;
     uint32_t            lvt, flags;
@@ -927,7 +927,7 @@ int __init lapic_timer_init(void)
 
     if (!apic_setup_done) {
         vmm_printf("%s: LAPIC setup is not done yet!\n", __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     lapic = &this_cpu(lapic);

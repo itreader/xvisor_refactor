@@ -64,7 +64,7 @@ static inline void dma_sync_single(dma_addr_t handle, size_t size, enum dma_data
     virtual_addr_t start = 0;
     virtual_addr_t end   = 0;
 
-    start                = VMM_PAGE_ADDR(vmm_dma_pa2va(handle));
+    start                = VMM_PAGE_ADDR(vmm_dma_physicalAddr_to_virtualAddr(handle));
     end                  = VMM_PFN_PHYS(VMM_PFN_UP(start + size));
     fct(start, end, dir);
 }

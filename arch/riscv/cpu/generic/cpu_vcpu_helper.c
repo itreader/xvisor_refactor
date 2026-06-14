@@ -104,13 +104,13 @@ int arch_guest_init(struct vmm_guest *guest)
 
     if (!guest->reset_count) {
         if (!riscv_isa_extension_available(NULL, h) || !sbi_has_0_2_rfence()) {
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         guest->arch_private = vmm_malloc(sizeof(struct riscv_guest_private));
 
         if (!guest->arch_private) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         private             = riscv_guest_private(guest);
@@ -130,7 +130,7 @@ int arch_guest_init(struct vmm_guest *guest)
         if (!private->page_table) {
             vmm_free(guest->arch_private);
             guest->arch_private = NULL;
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         private->guest_serial = vmm_malloc(sizeof(struct riscv_guest_serial));
@@ -139,7 +139,7 @@ int arch_guest_init(struct vmm_guest *guest)
             mmu_page_table_free(riscv_guest_private(guest)->page_table);
             vmm_free(guest->arch_private);
             guest->arch_private = NULL;
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         gserial = riscv_guest_serial(guest);
@@ -220,7 +220,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
             sp_exec = vmm_page_pool_alloc(VMM_PAGE_POOL_NORMAL, VMM_SIZE_TO_PAGE(CONFIG_IRQ_STACK_SIZE));
 
             if (!sp_exec) {
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             sp_exec += CONFIG_IRQ_STACK_SIZE;
@@ -254,7 +254,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
         }
 
         if (strcmp(attr, "riscv,generic") != 0) {
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             goto fail;
         }
 
@@ -262,7 +262,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
         vcpu->arch_private = vmm_zalloc(sizeof(struct riscv_private));
 
         if (!vcpu->arch_private) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto fail;
         }
 
@@ -273,7 +273,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
         riscv_private(vcpu)->isa  = vmm_zalloc(bitmap_estimate_size(RISCV_ISA_EXT_MAX));
 
         if (!riscv_private(vcpu)->isa) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto fail_free_private;
         }
 
@@ -282,7 +282,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
         rc   = vmm_device_tree_read_string(vcpu->node, "riscv,isa", &attr);
 
         if (rc || !attr) {
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             goto fail_free_isa;
         }
 
@@ -293,7 +293,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
         }
 
         if (riscv_private(vcpu)->xlen > riscv_xlen) {
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             goto fail_free_isa;
         }
 

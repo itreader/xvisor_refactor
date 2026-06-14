@@ -77,7 +77,7 @@ static int mmc_io_rw_direct_host(struct mmc_host *host, int write, unsigned fn, 
 
     /* sanity check */
     if (addr & ~0x1FFFF) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     cmd.cmdidx = SD_IO_RW_DIRECT;
@@ -99,19 +99,19 @@ static int mmc_io_rw_direct_host(struct mmc_host *host, int write, unsigned fn, 
     } else {
         if (cmd.response[0] & R5_ERROR) {
             DPRINTF("%s : error R5_ERROR\n", __func__);
-            err = VMM_EIO;
+            err = VMM_ERR_IO;
             goto finish;
         }
 
         if (cmd.response[0] & R5_FUNCTION_NUMBER) {
             DPRINTF("%s : error R5_FUNCTION_NUMBER\n", __func__);
-            err = VMM_EINVALID;
+            err = VMM_ERR_INVALID;
             goto finish;
         }
 
         if (cmd.response[0] & R5_OUT_OF_RANGE) {
             DPRINTF("%s : error R5_OUT_OF_RANGE\n", __func__);
-            err = VMM_ERANGE;
+            err = VMM_ERR_RANGE;
             goto finish;
         }
     }
@@ -147,7 +147,7 @@ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn, unsigned a
 
     /* sanity check */
     if (addr & ~0x1FFFF) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
 #ifdef CONFIG_MMC_TRACE
@@ -190,17 +190,17 @@ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn, unsigned a
     } else {
         if (cmd.response[0] & R5_ERROR) {
             DPRINTF("%s : error=R5_ERROR\n", __func__);
-            err = VMM_EIO;
+            err = VMM_ERR_IO;
         }
 
         if (cmd.response[0] & R5_FUNCTION_NUMBER) {
             DPRINTF("%s : error=R5_FUNCTION_NUMBER\n", __func__);
-            err = VMM_EINVALID;
+            err = VMM_ERR_INVALID;
         }
 
         if (cmd.response[0] & R5_OUT_OF_RANGE) {
             DPRINTF("%s : error=R5_OUT_OF_RANGE\n", __func__);
-            err = VMM_ERANGE;
+            err = VMM_ERR_RANGE;
         }
     }
 
@@ -301,7 +301,7 @@ int sdio_enable_func(struct sdio_func *func)
             break;
         }
 
-        ret = VMM_ETIME;
+        ret = VMM_ERR_TIME;
 
         if (time_after(jiffies, timeout)) {
             goto err;
@@ -317,7 +317,7 @@ err:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(sdio_enable_func);
+VMM_ERR_XPORT_SYMBOL(sdio_enable_func);
 
 /**
  *  sdio_disable_func - disable a SDIO function
@@ -356,10 +356,10 @@ int sdio_disable_func(struct sdio_func *func)
 
 err:
     pr_debug("SDIO: Failed to disable device %s\n", sdio_func_id(func));
-    return VMM_EIO;
+    return VMM_ERR_IO;
 }
 
-VMM_EXPORT_SYMBOL(sdio_disable_func);
+VMM_ERR_XPORT_SYMBOL(sdio_disable_func);
 
 /**
  *  sdio_set_block_size - set the block size of an SDIO function
@@ -385,7 +385,7 @@ int sdio_set_block_size(struct sdio_func *func, unsigned blksz)
     int ret;
 
     if (blksz > func->card->host->max_block_size) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (blksz == 0) {
@@ -409,7 +409,7 @@ int sdio_set_block_size(struct sdio_func *func, unsigned blksz)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(sdio_set_block_size);
+VMM_ERR_XPORT_SYMBOL(sdio_set_block_size);
 
 /*
  * Calculate the maximum byte mode transfer size
@@ -529,7 +529,7 @@ uint32_t sdio_align_size(struct sdio_func *func, uint32_t size)
     return orig_sz;
 }
 
-VMM_EXPORT_SYMBOL(sdio_align_size);
+VMM_ERR_XPORT_SYMBOL(sdio_align_size);
 
 /* Split an arbitrarily sized data transfer into several
  * IO_RW_EXTENDED commands. */
@@ -627,7 +627,7 @@ uint8_t sdio_readb(struct sdio_func *func, uint32_t addr, int *err_ret)
     return val;
 }
 
-VMM_EXPORT_SYMBOL(sdio_readb);
+VMM_ERR_XPORT_SYMBOL(sdio_readb);
 
 /**
  *  sdio_writeb - write a single byte to a SDIO function
@@ -653,7 +653,7 @@ void sdio_writeb(struct sdio_func *func, uint8_t b, uint32_t addr, int *err_ret)
     }
 }
 
-VMM_EXPORT_SYMBOL(sdio_writeb);
+VMM_ERR_XPORT_SYMBOL(sdio_writeb);
 
 /**
  *  sdio_writeb_readb - write and read a byte from SDIO function
@@ -686,7 +686,7 @@ uint8_t sdio_writeb_readb(struct sdio_func *func, uint8_t write_byte, uint32_t a
     return val;
 }
 
-VMM_EXPORT_SYMBOL(sdio_writeb_readb);
+VMM_ERR_XPORT_SYMBOL(sdio_writeb_readb);
 
 /**
  *  sdio_memcpy_fromio - read a chunk of memory from a SDIO function
@@ -703,7 +703,7 @@ int sdio_memcpy_fromio(struct sdio_func *func, void *dst, uint32_t addr, int cou
     return sdio_io_rw_ext_helper(func, 0, addr, 1, dst, count);
 }
 
-VMM_EXPORT_SYMBOL(sdio_memcpy_fromio);
+VMM_ERR_XPORT_SYMBOL(sdio_memcpy_fromio);
 
 /**
  *  sdio_memcpy_toio - write a chunk of memory to a SDIO function
@@ -720,7 +720,7 @@ int sdio_memcpy_toio(struct sdio_func *func, uint32_t addr, void *src, int count
     return sdio_io_rw_ext_helper(func, 1, addr, 1, src, count);
 }
 
-VMM_EXPORT_SYMBOL(sdio_memcpy_toio);
+VMM_ERR_XPORT_SYMBOL(sdio_memcpy_toio);
 
 /**
  *  sdio_readsb - read from a FIFO on a SDIO function
@@ -737,7 +737,7 @@ int sdio_readsb(struct sdio_func *func, void *dst, uint32_t addr, int count)
     return sdio_io_rw_ext_helper(func, 0, addr, 0, dst, count);
 }
 
-VMM_EXPORT_SYMBOL(sdio_readsb);
+VMM_ERR_XPORT_SYMBOL(sdio_readsb);
 
 /**
  *  sdio_writesb - write to a FIFO of a SDIO function
@@ -754,7 +754,7 @@ int sdio_writesb(struct sdio_func *func, uint32_t addr, void *src, int count)
     return sdio_io_rw_ext_helper(func, 1, addr, 0, src, count);
 }
 
-VMM_EXPORT_SYMBOL(sdio_writesb);
+VMM_ERR_XPORT_SYMBOL(sdio_writesb);
 
 /**
  *  sdio_readw - read a 16 bit integer from a SDIO function
@@ -791,7 +791,7 @@ uint16_t sdio_readw(struct sdio_func *func, uint32_t addr, int *err_ret)
     return val;
 }
 
-VMM_EXPORT_SYMBOL(sdio_readw);
+VMM_ERR_XPORT_SYMBOL(sdio_readw);
 
 /**
  *  sdio_writew - write a 16 bit integer to a SDIO function
@@ -817,7 +817,7 @@ void sdio_writew(struct sdio_func *func, uint16_t b, uint32_t addr, int *err_ret
     }
 }
 
-VMM_EXPORT_SYMBOL(sdio_writew);
+VMM_ERR_XPORT_SYMBOL(sdio_writew);
 
 /**
  *  sdio_readl - read a 32 bit integer from a SDIO function
@@ -855,7 +855,7 @@ uint32_t sdio_readl(struct sdio_func *func, uint32_t addr, int *err_ret)
     return val;
 }
 
-VMM_EXPORT_SYMBOL(sdio_readl);
+VMM_ERR_XPORT_SYMBOL(sdio_readl);
 
 /**
  *  sdio_writel - write a 32 bit integer to a SDIO function
@@ -881,7 +881,7 @@ void sdio_writel(struct sdio_func *func, uint32_t b, uint32_t addr, int *err_ret
     }
 }
 
-VMM_EXPORT_SYMBOL(sdio_writel);
+VMM_ERR_XPORT_SYMBOL(sdio_writel);
 
 /**
  *  sdio_f0_readb - read a single byte from SDIO function 0
@@ -917,7 +917,7 @@ unsigned char sdio_f0_readb(struct sdio_func *func, uint32_t addr, int *err_ret)
     return val;
 }
 
-VMM_EXPORT_SYMBOL(sdio_f0_readb);
+VMM_ERR_XPORT_SYMBOL(sdio_f0_readb);
 
 /**
  *  sdio_f0_writeb - write a single byte to SDIO function 0
@@ -941,7 +941,7 @@ void sdio_f0_writeb(struct sdio_func *func, unsigned char b, uint32_t addr, int 
 
     if ((addr < 0xF0 || addr > 0xFF) && (func->card->quirks & MMC_QUIRK_LENIENT_FN0)) {
         if (err_ret) {
-            *err_ret = VMM_EINVALID;
+            *err_ret = VMM_ERR_INVALID;
         }
 
         return;
@@ -954,4 +954,4 @@ void sdio_f0_writeb(struct sdio_func *func, unsigned char b, uint32_t addr, int 
     }
 }
 
-VMM_EXPORT_SYMBOL(sdio_f0_writeb);
+VMM_ERR_XPORT_SYMBOL(sdio_f0_writeb);

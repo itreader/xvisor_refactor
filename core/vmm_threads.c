@@ -19,7 +19,7 @@
  * @file vmm_threads.c
  * @author Himanshu Chauhan (hschauhan@nulltrace.org)
  * @author Anup Patel (anup@brainfault.org)
- * @brief Source file for hypervisor threads. These run on top of vcpus.
+ * @brief Hypervisor线程源文件，线程运行在VCPU之上.
  */
 
 #include <libs/stringlib.h>
@@ -32,21 +32,29 @@
 #include <vmm_stdio.h>
 #include <vmm_threads.h>
 
+/**
+ * @brief 线程控制结构，管理内核线程的生命周期
+ */
 struct vmm_threads_ctrl {
-    vmm_cpumask_t  default_affinity;
-    vmm_spinlock_t lock;
-    uint32_t       thread_count;
-    double_list_t  thread_list;
+    vmm_cpumask_t  default_affinity; /**< 默认亲和性 */
+    vmm_spinlock_t lock; /**< 自旋锁 */
+    uint32_t       thread_count; /**< thread_count成员 */
+    double_list_t  thread_list; /**< thread_list成员 */
 };
 
 static struct vmm_threads_ctrl thctrl;
 
+/**
+ * @brief 启动threads
+ * @param thread_info 线程信息结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_threads_start(vmm_thread_t *thread_info)
 {
     int rc;
 
     if (!thread_info) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((rc = vmm_manager_vcpu_kick(thread_info->vcpu_on_thread))) {
@@ -56,12 +64,17 @@ int vmm_threads_start(vmm_thread_t *thread_info)
     return VMM_OK;
 }
 
+/**
+ * @brief 停止threads
+ * @param thread_info 线程信息结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_threads_stop(vmm_thread_t *thread_info)
 {
     int rc;
 
     if (!thread_info) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((rc = vmm_manager_vcpu_reset(thread_info->vcpu_on_thread))) {
@@ -71,12 +84,17 @@ int vmm_threads_stop(vmm_thread_t *thread_info)
     return VMM_OK;
 }
 
+/**
+ * @brief 使线程进入休眠状态
+ * @param thread_info 线程信息结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_threads_sleep(vmm_thread_t *thread_info)
 {
     int rc;
 
     if (!thread_info) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((rc = vmm_manager_vcpu_pause(thread_info->vcpu_on_thread))) {
@@ -86,12 +104,17 @@ int vmm_threads_sleep(vmm_thread_t *thread_info)
     return VMM_OK;
 }
 
+/**
+ * @brief 唤醒休眠线程
+ * @param thread_info 线程信息结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_threads_wakeup(vmm_thread_t *thread_info)
 {
     int rc;
 
     if (!thread_info) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((rc = vmm_manager_vcpu_resume(thread_info->vcpu_on_thread))) {
@@ -101,6 +124,11 @@ int vmm_threads_wakeup(vmm_thread_t *thread_info)
     return VMM_OK;
 }
 
+/**
+ * @brief 获取threads的ID
+ * @param thread_info 线程信息结构体指针
+ * @return 成功返回线程ID，失败返回U32_MAX
+ */
 uint32_t vmm_threads_get_id(vmm_thread_t *thread_info)
 {
     if (!thread_info) {
@@ -110,6 +138,11 @@ uint32_t vmm_threads_get_id(vmm_thread_t *thread_info)
     return thread_info->vcpu_on_thread->id;
 }
 
+/**
+ * @brief 获取threads的优先级
+ * @param thread_info 线程信息结构体指针
+ * @return 编号值
+ */
 uint8_t vmm_threads_get_priority(vmm_thread_t *thread_info)
 {
     if (!thread_info) {
@@ -119,10 +152,16 @@ uint8_t vmm_threads_get_priority(vmm_thread_t *thread_info)
     return thread_info->vcpu_on_thread->priority;
 }
 
+/**
+ * @brief 获取threads的名称
+ * @param dst 目标缓冲区指针
+ * @param thread_info 线程信息结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_threads_get_name(char *dst, vmm_thread_t *thread_info)
 {
     if (!thread_info || !dst) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     strcpy(dst, thread_info->vcpu_on_thread->name);
@@ -130,6 +169,11 @@ int vmm_threads_get_name(char *dst, vmm_thread_t *thread_info)
     return VMM_OK;
 }
 
+/**
+ * @brief 获取threads的状态
+ * @param thread_info 线程信息结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_threads_get_state(vmm_thread_t *thread_info)
 {
     int      rc = -1;
@@ -156,24 +200,41 @@ int vmm_threads_get_state(vmm_thread_t *thread_info)
     return rc;
 }
 
+/**
+ * @brief 获取threads的hcpu
+ * @param thread_info 线程信息结构体指针
+ * @param host_cpu 主机CPU编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_threads_get_hcpu(vmm_thread_t *thread_info, uint32_t *host_cpu)
 {
     if (!thread_info || !host_cpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return vmm_manager_vcpu_get_hcpu(thread_info->vcpu_on_thread, host_cpu);
 }
 
+/**
+ * @brief 设置线程的hcpu
+ * @param thread_info 线程信息结构体指针
+ * @param host_cpu 主机CPU编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_thread_set_hcpu(vmm_thread_t *thread_info, uint32_t host_cpu)
 {
     if (!thread_info) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return vmm_manager_vcpu_set_hcpu(thread_info->vcpu_on_thread, host_cpu);
 }
 
+/**
+ * @brief 获取threads的亲和性
+ * @param thread_info 线程信息结构体指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 const vmm_cpumask_t *vmm_threads_get_affinity(vmm_thread_t *thread_info)
 {
     if (!thread_info) {
@@ -183,20 +244,26 @@ const vmm_cpumask_t *vmm_threads_get_affinity(vmm_thread_t *thread_info)
     return vmm_manager_vcpu_get_affinity(thread_info->vcpu_on_thread);
 }
 
+/**
+ * @brief 设置threads的亲和性
+ * @param thread_info 线程信息结构体指针
+ * @param cpu_mask CPU亲和性掩码
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_threads_set_affinity(vmm_thread_t *thread_info, const vmm_cpumask_t *cpu_mask)
 {
     int           rc;
     vmm_cpumask_t mask;
 
     if (!thread_info || !cpu_mask) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Check affinity mask */
     vmm_cpumask_and(&mask, cpu_mask, cpu_online_mask);
 
     if (!vmm_cpumask_weight(&mask)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Forcefully set online mask */
@@ -210,6 +277,11 @@ int vmm_threads_set_affinity(vmm_thread_t *thread_info, const vmm_cpumask_t *cpu
     return vmm_manager_vcpu_set_affinity(thread_info->vcpu_on_thread, cpu_mask);
 }
 
+/**
+ * @brief threads id2thread
+ * @param thread_id 标识符
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_thread_t *vmm_threads_id2thread(uint32_t thread_id)
 {
     bool          found;
@@ -240,6 +312,11 @@ vmm_thread_t *vmm_threads_id2thread(uint32_t thread_id)
     return thread_info;
 }
 
+/**
+ * @brief threads index2thread
+ * @param index 数组中的索引位置
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_thread_t *vmm_threads_index2thread(int index)
 {
     bool          found;
@@ -276,11 +353,18 @@ vmm_thread_t *vmm_threads_index2thread(int index)
     return thread_info;
 }
 
+/**
+ * @brief 获取threads的数量
+ * @return 数量值
+ */
 uint32_t vmm_threads_count(void)
 {
     return thctrl.thread_count;
 }
 
+/**
+ * @brief 线程入口函数
+ */
 static void vmm_threads_entry(void)
 {
     vmm_vcpu_t   *vcpu        = vmm_scheduler_current_vcpu();
@@ -311,6 +395,10 @@ static void vmm_threads_entry(void)
     vmm_hang();
 }
 
+/**
+ * @brief 创建实时线程
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_thread_t *vmm_threads_create_rt(
     const char *thread_name, int (*thread_fn)(void *udata), void *thread_data, uint8_t thread_priority, uint64_t thread_nsecs,
     uint64_t thread_deadline, uint64_t thread_periodicity)
@@ -380,6 +468,11 @@ vmm_thread_t *vmm_threads_create_rt(
     return thread_info;
 }
 
+/**
+ * @brief 销毁threads
+ * @param thread_info 线程信息结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_threads_destroy(vmm_thread_t *thread_info)
 {
     int         rc = VMM_OK;
@@ -387,7 +480,7 @@ int vmm_threads_destroy(vmm_thread_t *thread_info)
 
     /* Sanity Check */
     if (!thread_info) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Lock threads control */
@@ -410,6 +503,10 @@ int vmm_threads_destroy(vmm_thread_t *thread_info)
     return VMM_OK;
 }
 
+/**
+ * @brief 初始化threads
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_threads_init(void)
 {
     uint32_t                cpu;

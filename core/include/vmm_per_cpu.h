@@ -18,7 +18,7 @@
  *
  * @file vmm_per_cpu.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief Interface for per-cpu areas
+ * @brief Per-CPU区域接口
  */
 
 #ifndef __VMM_PERCPU_H__
@@ -54,10 +54,16 @@ extern virtual_addr_t __per_cpu_offset[CONFIG_CPU_COUNT];
 
 #define put_cpu_var(var)
 
-/** Retrive per-cpu offset of current cpu */
+/**
+ * @brief 获取当前CPU的每CPU数据偏移
+ * @return 偏移量
+ */
 virtual_addr_t vmm_per_cpu_current_offset(void);
 
-/** Initialize per-cpu areas */
+/**
+ * @brief 初始化每CPU数据
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_per_cpu_init(void);
 
 #endif /* __VMM_PERCPU_H__ */

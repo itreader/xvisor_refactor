@@ -80,16 +80,16 @@ static struct gic_chip_data gic_data[GIC_MAX_NR];
 #define gic_write(val, addr) vmm_writel_relaxed((val), (void *)(addr))
 #define gic_read(addr)       vmm_readl_relaxed((void *)(addr))
 
-static void gic_poke_irq(struct gic_chip_data *gic, struct vmm_host_irq *d, uint32_t offset)
+static void gic_poke_irq(struct gic_chip_data *gic, vmm_host_irq_t *d, uint32_t offset)
 {
-    uint32_t mask = 1 << (d->hwirq % 32);
-    gic_write(mask, gic->dist_base + offset + (d->hwirq / 32) * 4);
+    uint32_t mask = 1 << (d->hw_irq_num % 32);
+    gic_write(mask, gic->dist_base + offset + (d->hw_irq_num / 32) * 4);
 }
 
-static int gic_peek_irq(struct gic_chip_data *gic, struct vmm_host_irq *d, uint32_t offset)
+static int gic_peek_irq(struct gic_chip_data *gic, vmm_host_irq_t *d, uint32_t offset)
 {
-    uint32_t mask = 1 << (d->hwirq % 32);
-    return !!(gic_read(gic->dist_base + offset + (d->hwirq / 32) * 4) & mask);
+    uint32_t mask = 1 << (d->hw_irq_num % 32);
+    return !!(gic_read(gic->dist_base + offset + (d->hw_irq_num / 32) * 4) & mask);
 }
 
 static uint32_t gic_active_irq(uint32_t cpu_irq_nr, uint32_t prev_irq)
@@ -105,45 +105,45 @@ static uint32_t gic_active_irq(uint32_t cpu_irq_nr, uint32_t prev_irq)
     return ret;
 }
 
-static void gic_mask_irq(struct vmm_host_irq *d)
+static void gic_mask_irq(vmm_host_irq_t *d)
 {
     gic_poke_irq(vmm_host_irq_get_chip_data(d), d, GICD_ENABLE_CLEAR);
 }
 
-static void gic_unmask_irq(struct vmm_host_irq *d)
+static void gic_unmask_irq(vmm_host_irq_t *d)
 {
     gic_poke_irq(vmm_host_irq_get_chip_data(d), d, GICD_ENABLE_SET);
 }
 
-static void gic_eoi_irq(struct vmm_host_irq *d)
+static void gic_eoi_irq(vmm_host_irq_t *d)
 {
     struct gic_chip_data *gic = vmm_host_irq_get_chip_data(d);
 
-    gic_write(d->hwirq, gic->cpu_base + GICC_EOI);
+    gic_write(d->hw_irq_num, gic->cpu_base + GICC_EOI);
 
     if (gic->eoimode && !vmm_host_irq_is_routed(d)) {
-        gic_write(d->hwirq, gic->cpu2_base + GICC2_DIR);
+        gic_write(d->hw_irq_num, gic->cpu2_base + GICC2_DIR);
     }
 }
 
-static int gic_set_type(struct vmm_host_irq *d, uint32_t type)
+static int gic_set_type(vmm_host_irq_t *d, uint32_t type)
 {
     struct gic_chip_data *gic        = vmm_host_irq_get_chip_data(d);
     virtual_addr_t        base       = gic->dist_base;
-    uint32_t              enablemask = 1 << (d->hwirq % 32);
-    uint32_t              enableoff  = (d->hwirq / 32) * 4;
-    uint32_t              confmask   = 0x2 << ((d->hwirq % 16) * 2);
-    uint32_t              confoff    = (d->hwirq / 16) * 4;
+    uint32_t              enablemask = 1 << (d->hw_irq_num % 32);
+    uint32_t              enableoff  = (d->hw_irq_num / 32) * 4;
+    uint32_t              confmask   = 0x2 << ((d->hw_irq_num % 16) * 2);
+    uint32_t              confoff    = (d->hw_irq_num / 16) * 4;
     bool                  enabled    = FALSE;
     uint32_t              val;
 
     /* Interrupt configuration for SGIs can't be changed */
-    if (d->hwirq < 16) {
-        return VMM_EINVALID;
+    if (d->hw_irq_num < 16) {
+        return VMM_ERR_INVALID;
     }
 
     if (type != VMM_IRQ_TYPE_LEVEL_HIGH && type != VMM_IRQ_TYPE_EDGE_RISING) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     val = gic_read(base + GICD_CONFIG + confoff);
@@ -173,7 +173,7 @@ static int gic_set_type(struct vmm_host_irq *d, uint32_t type)
 }
 
 #ifdef CONFIG_SMP
-static void gic_raise(struct vmm_host_irq *d, const vmm_cpumask_t *mask)
+static void gic_raise(vmm_host_irq_t *d, const vmm_cpumask_t *mask)
 {
     uint64_t map = *vmm_cpumask_bits(mask);
 
@@ -184,22 +184,22 @@ static void gic_raise(struct vmm_host_irq *d, const vmm_cpumask_t *mask)
     arch_wmb();
 
     /* This always happens on GIC0 */
-    gic_write(map << 16 | d->hwirq, gic_data[0].dist_base + GICD_SOFTINT);
+    gic_write(map << 16 | d->hw_irq_num, gic_data[0].dist_base + GICD_SOFTINT);
 }
 
-static int gic_set_affinity(struct vmm_host_irq *d, const vmm_cpumask_t *mask_val, bool force)
+static int gic_set_affinity(vmm_host_irq_t *d, const vmm_cpumask_t *mask_val, bool force)
 {
     virtual_addr_t        reg;
-    uint32_t              shift = (d->hwirq % 4) * 8;
+    uint32_t              shift = (d->hw_irq_num % 4) * 8;
     uint32_t              cpu   = vmm_cpumask_first(mask_val);
     uint32_t              val, mask, bit;
     struct gic_chip_data *gic = vmm_host_irq_get_chip_data(d);
 
     if (cpu >= 8) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
-    reg  = gic->dist_base + GICD_TARGET + (d->hwirq & ~3);
+    reg  = gic->dist_base + GICD_TARGET + (d->hw_irq_num & ~3);
     mask = 0xff << shift;
     bit  = 1 << (cpu + shift);
 
@@ -210,7 +210,7 @@ static int gic_set_affinity(struct vmm_host_irq *d, const vmm_cpumask_t *mask_va
 }
 #endif
 
-static uint32_t gic_irq_get_routed_state(struct vmm_host_irq *d, uint32_t mask)
+static uint32_t gic_irq_get_routed_state(vmm_host_irq_t *d, uint32_t mask)
 {
     uint32_t              val = 0;
     struct gic_chip_data *gic = vmm_host_irq_get_chip_data(d);
@@ -230,7 +230,7 @@ static uint32_t gic_irq_get_routed_state(struct vmm_host_irq *d, uint32_t mask)
     return val;
 }
 
-static void gic_irq_set_routed_state(struct vmm_host_irq *d, uint32_t val, uint32_t mask)
+static void gic_irq_set_routed_state(vmm_host_irq_t *d, uint32_t val, uint32_t mask)
 {
     struct gic_chip_data *gic = vmm_host_irq_get_chip_data(d);
 
@@ -267,7 +267,7 @@ static vmm_irq_return_t gic_handle_cascade_irq(int irq, void *dev)
     return VMM_IRQ_HANDLED;
 }
 
-static struct vmm_host_irq_chip gic_chip = {
+static vmm_host_irq_chip_t gic_chip = {
     .name         = "GIC",
     .irq_mask     = gic_mask_irq,
     .irq_unmask   = gic_unmask_irq,
@@ -391,23 +391,23 @@ static void gic_cpu_init(struct gic_chip_data *gic)
 }
 
 static int gic_of_xlate(
-    struct vmm_host_irq_domain *d, vmm_device_tree_node_t *controller, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hwirq,
+    struct vmm_host_irq_domain *d, vmm_device_tree_node_t *controller, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hw_irq,
     uint32_t *out_type)
 {
     if (d->of_node != controller) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (intsize < 3) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Get the interrupt number and add 16 to skip over SGIs */
-    *out_hwirq = intspec[1] + 16;
+    *out_hw_irq = intspec[1] + 16;
 
     /* For SPIs, we need to add 16 more to get the GIC irq ID number */
     if (!intspec[0]) {
-        *out_hwirq += 16;
+        *out_hw_irq += 16;
     }
 
     *out_type = intspec[2] & VMM_IRQ_TYPE_SENSE_MASK;
@@ -468,7 +468,7 @@ static int __init gic_init_bases(
     gic->domain   = vmm_host_irq_domain_add(node, (int)irq_start, max_irqs, &gic_ops, gic);
 
     if (!gic->domain) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     gic_dist_init(gic);
@@ -487,7 +487,7 @@ static int __init gic_device_tree_init(vmm_device_tree_node_t *node, vmm_device_
     virtual_addr_t  dist_base;
 
     if (WARN_ON(!node)) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     rc = vmm_device_tree_request_regmap(node, &dist_base, 0, "GIC Dist");

@@ -65,7 +65,7 @@ void do_handle_irq(arch_regs_t *regs, uint64_t cause)
     if (cause <= 0xFFFFFFFFUL) {
         rc = vmm_host_active_irq_exec(cause);
     } else {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
     }
 
 done:
@@ -96,7 +96,7 @@ void do_handle_trap(arch_regs_t *regs, uint64_t cause)
     vcpu = vmm_scheduler_current_vcpu();
 
     if (!vcpu || !vcpu->is_normal) {
-        rc  = VMM_EFAIL;
+        rc  = VMM_ERR_FAIL;
         msg = "unexpected trap";
         goto done;
     }
@@ -125,7 +125,7 @@ void do_handle_trap(arch_regs_t *regs, uint64_t cause)
                 rc          = cpu_vcpu_general_fault(vcpu, regs, &trap);
                 panic       = FALSE;
             } else {
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
             }
 
             break;
@@ -144,7 +144,7 @@ void do_handle_trap(arch_regs_t *regs, uint64_t cause)
                 rc          = cpu_vcpu_page_fault(vcpu, regs, &trap);
                 panic       = FALSE;
             } else {
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
             }
 
             break;
@@ -156,7 +156,7 @@ void do_handle_trap(arch_regs_t *regs, uint64_t cause)
                 rc    = cpu_vcpu_virtual_insn_fault(vcpu, regs, csr_read(CSR_STVAL));
                 panic = FALSE;
             } else {
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
             }
 
             break;
@@ -168,13 +168,13 @@ void do_handle_trap(arch_regs_t *regs, uint64_t cause)
                 rc    = cpu_vcpu_sbi_ecall(vcpu, cause, regs);
                 panic = FALSE;
             } else {
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
             }
 
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 

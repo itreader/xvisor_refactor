@@ -397,7 +397,7 @@ static int cmd_wall_clock_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc < 2) {
         cmd_wall_clock_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (strcmp(argv[1], "get_time") == 0) {
@@ -411,7 +411,7 @@ static int cmd_wall_clock_exec(vmm_char_device_t *cdev, int argc, char **argv)
     }
 
     cmd_wall_clock_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_wall_clock = {

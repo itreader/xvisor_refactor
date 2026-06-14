@@ -822,7 +822,7 @@ static int spi_imx_probe(vmm_device_t *dev)
 
     if (!devid) {
         dev_info(dev, "nodeid not found\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (!vmm_device_tree_is_available(dev->of_node)) {
@@ -899,7 +899,7 @@ static int spi_imx_probe(vmm_device_t *dev)
     spi_imx->irq = vmm_device_tree_irq_parse_map(dev->of_node, 0);
 
     if (!spi_imx->irq) {
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
         goto out_gpio_free;
     }
 

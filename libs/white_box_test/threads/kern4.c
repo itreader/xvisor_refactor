@@ -113,7 +113,7 @@ static int kern4_do_test(vmm_char_device_t *cdev)
      */
     vmm_msleep(SLEEP_MSECS * NUM_THREADS);
 
-    return (failures) ? VMM_EFAIL : 0;
+    return (failures) ? VMM_ERR_FAIL : 0;
 }
 
 static int kern4_run(struct white_box_test *test, vmm_char_device_t *cdev, uint32_t test_hcpu)
@@ -131,7 +131,7 @@ static int kern4_run(struct white_box_test *test, vmm_char_device_t *cdev, uint3
         workers[i] = vmm_threads_create(wname, kern4_worker_thread_main, (void *)(uint64_t)i, current_priority, VMM_THREAD_DEF_TIME_SLICE);
 
         if (workers[i] == NULL) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             goto destroy_workers;
         }
     }

@@ -52,21 +52,21 @@ bool rtc_is_leap_year(uint32_t year)
     return (!(year % 4) && (year % 100)) || !(year % 400);
 }
 
-VMM_EXPORT_SYMBOL(rtc_is_leap_year);
+VMM_ERR_XPORT_SYMBOL(rtc_is_leap_year);
 
 uint32_t rtc_month_days(uint32_t month, uint32_t year)
 {
     return rtc_days_in_month[month] + (rtc_is_leap_year(year) && month == 1);
 }
 
-VMM_EXPORT_SYMBOL(rtc_month_days);
+VMM_ERR_XPORT_SYMBOL(rtc_month_days);
 
 uint32_t rtc_year_days(uint32_t day, uint32_t month, uint32_t year)
 {
     return rtc_ydays[rtc_is_leap_year(year)][month] + day - 1;
 }
 
-VMM_EXPORT_SYMBOL(rtc_year_days);
+VMM_ERR_XPORT_SYMBOL(rtc_year_days);
 
 bool rtc_valid_tm(struct rtc_time *tm)
 {
@@ -79,7 +79,7 @@ bool rtc_valid_tm(struct rtc_time *tm)
     return TRUE;
 }
 
-VMM_EXPORT_SYMBOL(rtc_valid_tm);
+VMM_ERR_XPORT_SYMBOL(rtc_valid_tm);
 
 /* WARNING: this function will overflow on 2106-02-07 06:28:16 on
  * machines where long is 32-bit!
@@ -87,7 +87,7 @@ VMM_EXPORT_SYMBOL(rtc_valid_tm);
 int rtc_tm_to_time(struct rtc_time *tm, uint64_t *time)
 {
     if (!tm || !time) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *time = (uint64_t)vmm_wall_clock_mktime(tm->tm_year + 1900, tm->tm_month + 1, tm->tm_month_of_day, tm->tm_hour, tm->tm_minute, tm->tm_second);
@@ -95,18 +95,18 @@ int rtc_tm_to_time(struct rtc_time *tm, uint64_t *time)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(rtc_tm_to_time);
+VMM_ERR_XPORT_SYMBOL(rtc_tm_to_time);
 
 time64_t rtc_tm_to_time64(struct rtc_time *tm)
 {
     if (!tm) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return (time64_t)vmm_wall_clock_mktime(tm->tm_year + 1900, tm->tm_month + 1, tm->tm_month_of_day, tm->tm_hour, tm->tm_minute, tm->tm_second);
 }
 
-VMM_EXPORT_SYMBOL(rtc_tm_to_time64);
+VMM_ERR_XPORT_SYMBOL(rtc_tm_to_time64);
 
 static void __rtc_time_to_tm(uint64_t time, struct rtc_time *tm)
 {
@@ -156,11 +156,11 @@ void rtc_time_to_tm(uint64_t time, struct rtc_time *tm)
     __rtc_time_to_tm(time, tm);
 }
 
-VMM_EXPORT_SYMBOL(rtc_time_to_tm);
+VMM_ERR_XPORT_SYMBOL(rtc_time_to_tm);
 
 void rtc_time64_to_tm(time64_t time, struct rtc_time *tm)
 {
     __rtc_time_to_tm(time, tm);
 }
 
-VMM_EXPORT_SYMBOL(rtc_time64_to_tm);
+VMM_ERR_XPORT_SYMBOL(rtc_time64_to_tm);

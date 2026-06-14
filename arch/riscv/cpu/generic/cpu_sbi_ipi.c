@@ -37,9 +37,9 @@
 
 static struct vmm_host_irq_domain *sbi_ipi_domain;
 
-static void sbi_ipi_dummy(struct vmm_host_irq *d) {}
+static void sbi_ipi_dummy(vmm_host_irq_t *d) {}
 
-static void sbi_ipi_raise(struct vmm_host_irq *d, const vmm_cpumask_t *mask)
+static void sbi_ipi_raise(vmm_host_irq_t *d, const vmm_cpumask_t *mask)
 {
     vmm_cpumask_t tmask;
 
@@ -47,7 +47,7 @@ static void sbi_ipi_raise(struct vmm_host_irq *d, const vmm_cpumask_t *mask)
     sbi_send_ipi(vmm_cpumask_bits(&tmask));
 }
 
-static struct vmm_host_irq_chip sbi_ipi_irqchip = {
+static vmm_host_irq_chip_t sbi_ipi_irqchip = {
     .name = "riscv-sbi-ipi", .irq_mask = sbi_ipi_dummy, .irq_unmask = sbi_ipi_dummy, .irq_raise = sbi_ipi_raise};
 
 static vmm_irq_return_t sbi_ipi_handler(int irq, void *dev)
@@ -90,7 +90,7 @@ int __init sbi_ipi_init(void)
 
     if (!sbi_ipi_domain) {
         vmm_lerror("riscv-sbi-ipi", "failed to add irq domain\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Setup IPI domain interrupts */

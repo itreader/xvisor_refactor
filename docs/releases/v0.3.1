@@ -9,13 +9,13 @@ and boards.
 New Features:
  - Arch specific nascent initialization APIs
  - Arch specific VAPOOl APIs
- - Arch specific cpu aspace APIs
+ - Arch specific cpu addr_space APIs
  - Verbose mode compilation
  - Nested MMU whitebox test suite
  - Removed ARM32 port for ARM 32bit CPUs without virtualization extension
 
 New Commands:
- - New "aspace info" sub-command for "host" command
+ - New "addr_space info" sub-command for "host" command
 
 New Drivers:
  - Rockchip RK3399 SoC clock driver
@@ -46,7 +46,7 @@ All Ports:
 
 ARM Ports:
  - Removed identity mappings in intial page table
- - Increase default VAPOOL size to 64MB
+ - Increase default VIRTUAL_ADDR_POOL size to 64MB
  - Do PSCI init from arch_cpu_nascent_init()
  - Allow to compile in non-SMP mode
  - Updated documentation to use ARM Ltd toolchains

@@ -22,7 +22,7 @@
  * @author Pranav Sawargaonkar <pranav.sawargaonkar@gmail.com>
  * @author Sukanto Ghosh <sukantoghosh@gmail.com>
  * @author Anup Patel <anup@brainfault.org>
- * @brief Generic netswitch implementation.
+ * @brief 通用网络交换机实现
  */
 
 #include <libs/list.h>
@@ -103,12 +103,15 @@
 #define DUMP_NETSWITCH_PKT(mbuf)
 #endif
 
+/**
+ * @brief 网络交换机下半部控制结构，处理延迟的数据包转发
+ */
 struct vmm_netswitch_bh_ctrl {
-    vmm_thread_t    *thread;
-    vmm_completion_t bh_cmpl;
-    vmm_spinlock_t   bh_list_lock;
-    double_list_t    mbuf_list;
-    double_list_t    lazy_list;
+    vmm_thread_t    *thread; /**< 线程 */
+    vmm_completion_t bh_cmpl; /**< bh_cmpl成员 */
+    vmm_spinlock_t   bh_list_lock; /**< bh_list_lock成员 */
+    double_list_t    mbuf_list; /**< mbuf_list成员 */
+    double_list_t    lazy_list; /**< lazy_list成员 */
 };
 
 static DEFINE_PER_CPU(struct vmm_netswitch_bh_ctrl, nbctrl);
@@ -116,6 +119,11 @@ static DEFINE_PER_CPU(struct vmm_netswitch_bh_ctrl, nbctrl);
 static DEFINE_MUTEX(policy_list_lock);
 static LIST_HEAD(policy_list);
 
+/**
+ * @brief 初始化网络交换机的底半部处理
+ * @param nbp 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __init netswitch_bh_init(struct vmm_netswitch_bh_ctrl *nbp)
 {
     INIT_COMPLETION(&nbp->bh_cmpl);
@@ -124,12 +132,19 @@ static void __init netswitch_bh_init(struct vmm_netswitch_bh_ctrl *nbp)
     INIT_LIST_HEAD(&nbp->lazy_list);
 }
 
+/**
+ * @brief 将网络交换机的底半部处理入队
+ * @param nbp 通知器块指针
+ * @param mbuf 网络消息缓冲区指针
+ * @param lazy 是否延迟处理标志
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int netswitch_bh_enqueue(struct vmm_netswitch_bh_ctrl *nbp, struct vmm_mbuf *mbuf, struct vmm_netport_lazy *lazy)
 {
     irq_flags_t flags;
 
     if (!nbp || (!mbuf && !lazy)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save_lite(&nbp->bh_list_lock, flags);
@@ -149,12 +164,19 @@ static int netswitch_bh_enqueue(struct vmm_netswitch_bh_ctrl *nbp, struct vmm_mb
     return VMM_OK;
 }
 
+/**
+ * @brief 将网络交换机的底半部处理出队
+ * @param nbp 通知器块指针
+ * @param mbufp 消息缓冲区指针
+ * @param lazyp 延迟标志指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int netswitch_bh_dequeue(struct vmm_netswitch_bh_ctrl *nbp, struct vmm_mbuf **mbufp, struct vmm_netport_lazy **lazyp)
 {
     irq_flags_t flags;
 
     if (!nbp || !mbufp || !lazyp) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save_lite(&nbp->bh_list_lock, flags);
@@ -178,11 +200,18 @@ static int netswitch_bh_dequeue(struct vmm_netswitch_bh_ctrl *nbp, struct vmm_mb
     return VMM_OK;
 }
 
+/**
+ * @brief 刷新网络交换机端口的底半部处理
+ * @param nbp 通知器块指针
+ * @param port 端口编号或端口结构体指针
+ */
 static void netswitch_bh_port_flush(struct vmm_netswitch_bh_ctrl *nbp, struct vmm_netport *port)
 {
     irq_flags_t              flags;
-    struct vmm_mbuf         *mbuf, *nmbuf;
-    struct vmm_netport_lazy *lazy, *nlazy;
+    struct vmm_mbuf *mbuf = NULL;
+    struct vmm_mbuf *nmbuf = NULL;
+    struct vmm_netport_lazy *lazy = NULL;
+    struct vmm_netport_lazy *nlazy = NULL;
 
     vmm_spin_lock_irq_save_lite(&nbp->bh_list_lock, flags);
 
@@ -205,6 +234,11 @@ static void netswitch_bh_port_flush(struct vmm_netswitch_bh_ctrl *nbp, struct vm
     vmm_spin_unlock_irq_restore_lite(&nbp->bh_list_lock, flags);
 }
 
+/**
+ * @brief 网络交换机底半部处理的主函数
+ * @param param 参数结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int netswitch_bh_main(void *param)
 {
     int                           rc;
@@ -216,9 +250,9 @@ static int netswitch_bh_main(void *param)
 
     while (1) {
         /* Try to get next request from list or block if empty */
-        lazy = NULL;
-        mbuf = NULL;
-        rc   = netswitch_bh_dequeue(nbp, &mbuf, &lazy);
+        lazy = NULL; /**< NULL成员 */
+        mbuf = NULL; /**< NULL成员 */
+        rc   = netswitch_bh_dequeue(nbp, &mbuf, &lazy); /**< &lazy)成员 */
 
         if (rc) {
             continue;
@@ -227,9 +261,9 @@ static int netswitch_bh_main(void *param)
         /* Process mbuf request */
         if (mbuf) {
             /* Extract port from mbuf */
-            port                 = mbuf->m_list_private;
-            nsw                  = port->nsw;
-            mbuf->m_list_private = NULL;
+            port                 = mbuf->m_list_private; /**< mbuf->m_list_private成员 */
+            nsw                  = port->nsw; /**< port->nsw成员 */
+            mbuf->m_list_private = NULL; /**< NULL成员 */
 
             /* Port might have been removed from netswitch */
             if (!port || !nsw) {
@@ -241,13 +275,13 @@ static int netswitch_bh_main(void *param)
             }
 
             /* Print debug info */
-            DPRINTF("%s: nsw=%s port=%s mbuf\n", __func__, nsw->name, port->name);
+            DPRINTF("%s: nsw=%s port=%s mbuf\n", __func__, nsw->name, port->name); /**< port->name)成员 */
 
             /* Dump packet */
             DUMP_NETSWITCH_PKT(mbuf);
 
             /* Call the rx function of net switch */
-            nsw->port2switch_xfer(nsw, port, mbuf);
+            nsw->port2switch_xfer(nsw, port, mbuf); /**< mbuf)成员 */
 
             /* Free mbuf */
             m_freem(mbuf);
@@ -256,25 +290,25 @@ static int netswitch_bh_main(void *param)
         /* Process lazy request */
         if (lazy) {
             /* Extract info from lazy request */
-            port = lazy->port;
-            nsw  = port->nsw;
+            port = lazy->port; /**< lazy->port成员 */
+            nsw  = port->nsw; /**< port->nsw成员 */
 
             /* Print debug info */
-            DPRINTF("%s: nsw=%s port=%s lazy\n", __func__, nsw->name, port->name);
+            DPRINTF("%s: nsw=%s port=%s lazy\n", __func__, nsw->name, port->name); /**< port->name)成员 */
 
             /* Call lazy xfer function */
-            lazy->xfer(port, lazy->arg, lazy->budget);
+            lazy->xfer(port, lazy->arg, lazy->budget); /**< lazy->budget)成员 */
 
             /* Add back to netswitch bh queue if required */
             if (arch_atomic_sub_return(&lazy->sched_count, 1) > 0) {
                 /* Enqueue lazy request */
-                rc = netswitch_bh_enqueue(nbp, NULL, lazy);
+                rc = netswitch_bh_enqueue(nbp, NULL, lazy); /**< lazy)成员 */
 
                 if (rc) {
                     vmm_printf(
                         "%s: nsw=%s src=%s lazy bh "
-                        "enqueue failed.\n",
-                        __func__, nsw->name, port->name);
+                        "enqueue failed.\n", /**< failed.\n"成员 */
+                        __func__, nsw->name, port->name); /**< port->name)成员 */
                 }
             }
         }
@@ -283,6 +317,12 @@ static int netswitch_bh_main(void *param)
     return VMM_OK;
 }
 
+/**
+ * @brief 端口到交换机转发消息缓冲区
+ * @param src 源设备树节点
+ * @param mbuf 网络消息缓冲区指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_port2switch_xfer_mbuf(struct vmm_netport *src, struct vmm_mbuf *mbuf)
 {
     int                           rc;
@@ -290,13 +330,13 @@ int vmm_port2switch_xfer_mbuf(struct vmm_netport *src, struct vmm_mbuf *mbuf)
     struct vmm_netswitch_bh_ctrl *nbp;
 
     if (!mbuf) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     if (!src || !src->nsw) {
         vmm_printf("%s: invalid source port.\n", __func__);
         m_freem(mbuf);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     nsw = src->nsw;
@@ -319,16 +359,21 @@ int vmm_port2switch_xfer_mbuf(struct vmm_netport *src, struct vmm_mbuf *mbuf)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vmm_port2switch_xfer_mbuf);
+VMM_ERR_XPORT_SYMBOL(vmm_port2switch_xfer_mbuf);
 
+/**
+ * @brief 延迟将端口数据传输到网络交换机
+ * @param lazy 是否延迟处理标志
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_port2switch_xfer_lazy(struct vmm_netport_lazy *lazy)
 {
-    int  rc = VMM_EBUSY;
+    int  rc = VMM_ERR_BUSY;
     long sched_count;
 
     if (!lazy || !lazy->xfer || !lazy->port || !lazy->port->nsw) {
         vmm_printf("%s: invalid lazy instance.\n", __func__);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Print debug info */
@@ -356,15 +401,22 @@ int vmm_port2switch_xfer_lazy(struct vmm_netport_lazy *lazy)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vmm_port2switch_xfer_lazy);
+VMM_ERR_XPORT_SYMBOL(vmm_port2switch_xfer_lazy);
 
+/**
+ * @brief 交换机到端口转发消息缓冲区
+ * @param nsw 网络交换机结构体指针
+ * @param dst 目标缓冲区指针
+ * @param mbuf 网络消息缓冲区指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_switch2port_xfer_mbuf(struct vmm_netswitch *nsw, struct vmm_netport *dst, struct vmm_mbuf *mbuf)
 {
     int         rc;
     irq_flags_t f;
 
     if (!nsw || !dst || !mbuf) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Print debug info */
@@ -384,44 +436,48 @@ int vmm_switch2port_xfer_mbuf(struct vmm_netswitch *nsw, struct vmm_netport *dst
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vmm_switch2port_xfer_mbuf);
+VMM_ERR_XPORT_SYMBOL(vmm_switch2port_xfer_mbuf);
 
 struct vmm_netswitch *vmm_netswitch_alloc(struct vmm_netswitch_policy *nsp, const char *name)
 {
-    struct vmm_netswitch *nsw = NULL;
+    struct vmm_netswitch *nsw = NULL; /**< NULL成员 */
 
     if (!nsp || !name) {
-        goto vmm_netswitch_alloc_done;
+        goto vmm_netswitch_alloc_done; /**< vmm_netswitch_alloc_done成员 */
     }
 
-    nsw = vmm_zalloc(sizeof(struct vmm_netswitch));
+    nsw = vmm_zalloc(sizeof(struct vmm_netswitch)); /**< vmm_netswitch))成员 */
 
     if (!nsw) {
-        vmm_printf("%s Failed to allocate net switch\n", __func__);
-        goto vmm_netswitch_alloc_failed;
+        vmm_printf("%s Failed to allocate net switch\n", __func__); /**< __func__)成员 */
+        goto vmm_netswitch_alloc_failed; /**< vmm_netswitch_alloc_failed成员 */
     }
 
-    nsw->policy = nsp;
-    strncpy(nsw->name, name, VMM_FIELD_NAME_SIZE);
+    nsw->policy = nsp; /**< nsp成员 */
+    strncpy(nsw->name, name, VMM_FIELD_NAME_SIZE); /**< VMM_FIELD_NAME_SIZE)成员 */
 
     INIT_RW_LOCK(&nsw->port_list_lock);
     INIT_LIST_HEAD(&nsw->port_list);
 
-    goto vmm_netswitch_alloc_done;
+    goto vmm_netswitch_alloc_done; /**< vmm_netswitch_alloc_done成员 */
 
 vmm_netswitch_alloc_failed:
 
     if (nsw) {
         vmm_free(nsw);
-        nsw = NULL;
+        nsw = NULL; /**< NULL成员 */
     }
 
 vmm_netswitch_alloc_done:
-    return nsw;
+    return nsw; /**< nsw成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_alloc);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_alloc);
 
+/**
+ * @brief 释放网络交换机
+ * @param nsw 网络交换机结构体指针
+ */
 void vmm_netswitch_free(struct vmm_netswitch *nsw)
 {
     if (nsw) {
@@ -429,15 +485,21 @@ void vmm_netswitch_free(struct vmm_netswitch *nsw)
     }
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_free);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_free);
 
+/**
+ * @brief 网络交换机 端口 添加
+ * @param nsw 网络交换机结构体指针
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_port_add(struct vmm_netswitch *nsw, struct vmm_netport *port)
 {
     int         rc = VMM_OK;
     irq_flags_t f;
 
     if (!nsw || !port) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Call the netswitch's port_add callback */
@@ -472,8 +534,13 @@ int vmm_netswitch_port_add(struct vmm_netswitch *nsw, struct vmm_netport *port)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_port_add);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_port_add);
 
+/**
+ * @brief 网络交换机 端口 移除
+ * @param nsw 网络交换机结构体指针
+ * @param port 端口编号或端口结构体指针
+ */
 static void netswitch_port_remove(struct vmm_netswitch *nsw, struct vmm_netport *port)
 {
     uint32_t                      c;
@@ -505,10 +572,15 @@ static void netswitch_port_remove(struct vmm_netswitch *nsw, struct vmm_netport 
     }
 }
 
+/**
+ * @brief 网络交换机 端口 移除
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_port_remove(struct vmm_netport *port)
 {
     if (!port) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!port->nsw) {
@@ -524,24 +596,31 @@ int vmm_netswitch_port_remove(struct vmm_netport *port)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_port_remove);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_port_remove);
 
 static vmm_class_t nsw_class = {
     .name = VMM_NETSWITCH_CLASS_NAME,
 };
 
+/**
+ * @brief 注册网络交换机
+ * @param nsw 网络交换机结构体指针
+ * @param parent 父设备树节点
+ * @param private 私有数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_register(struct vmm_netswitch *nsw, vmm_device_t *parent, void *private)
 {
     int rc;
 
     if (!nsw || !nsw->policy) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_device_driver_initialize_device(&nsw->dev);
 
     if (strlcpy(nsw->dev.name, nsw->name, sizeof(nsw->dev.name)) >= sizeof(nsw->dev.name)) {
-        return VMM_EOVERFLOW;
+        return VMM_ERR_OVERFLOW;
     }
 
     nsw->dev.parent = parent;
@@ -567,15 +646,20 @@ int vmm_netswitch_register(struct vmm_netswitch *nsw, vmm_device_t *parent, void
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_register);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_register);
 
+/**
+ * @brief 注销网络交换机
+ * @param nsw 网络交换机结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_unregister(struct vmm_netswitch *nsw)
 {
     irq_flags_t         f;
     struct vmm_netport *port;
 
     if (!nsw) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     vmm_read_lock_irq_save_lite(&nsw->port_list_lock, f);
@@ -593,28 +677,37 @@ int vmm_netswitch_unregister(struct vmm_netswitch *nsw)
     return vmm_device_driver_unregister_device(&nsw->dev);
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_unregister);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_unregister);
 
 struct vmm_netswitch *vmm_netswitch_find(const char *name)
 {
-    vmm_device_t *dev;
+    vmm_device_t *dev; /**< 设备 */
 
-    dev = vmm_device_driver_class_find_device_by_name(&nsw_class, name);
+    dev = vmm_device_driver_class_find_device_by_name(&nsw_class, name); /**< name)成员 */
 
     if (!dev) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    return vmm_device_driver_get_data(dev);
+    return vmm_device_driver_get_data(dev); /**< vmm_device_driver_get_data(dev)成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_find);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_find);
 
+/**
+ * @brief 网络交换机遍历上下文结构，私有上下文
+ */
 struct netswitch_iterate_priv {
-    void *data;
-    int (*fn)(struct vmm_netswitch *nsw, void *data);
+    void *data; /**< 数据 */
+    int (*fn)(struct vmm_netswitch *nsw, void *data); /**< 函数指针 */
 };
 
+/**
+ * @brief 网络交换机 遍历
+ * @param dev 设备结构体指针
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int netswitch_iterate(vmm_device_t *dev, void *data)
 {
     struct netswitch_iterate_priv *p   = data;
@@ -623,13 +716,20 @@ static int netswitch_iterate(vmm_device_t *dev, void *data)
     return p->fn(nsw, p->data);
 }
 
+/**
+ * @brief 网络交换机 遍历
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_iterate(struct vmm_netswitch *start, void *data, int (*fn)(struct vmm_netswitch *nsw, void *data))
 {
     vmm_device_t                 *st = (start) ? &start->dev : NULL;
     struct netswitch_iterate_priv p;
 
     if (!fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     p.data = data;
@@ -638,8 +738,14 @@ int vmm_netswitch_iterate(struct vmm_netswitch *start, void *data, int (*fn)(str
     return vmm_device_driver_class_device_iterate(&nsw_class, st, &p, netswitch_iterate);
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_iterate);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_iterate);
 
+/**
+ * @brief 遍历默认网络交换机
+ * @param nsw 网络交换机结构体指针
+ * @param data 用户自定义数据指针
+ * @return 遍历结果
+ */
 static int netswitch_default_iterate(struct vmm_netswitch *nsw, void *data)
 {
     struct vmm_netswitch **out_nsw = data;
@@ -653,28 +759,37 @@ static int netswitch_default_iterate(struct vmm_netswitch *nsw, void *data)
 
 struct vmm_netswitch *vmm_netswitch_default(void)
 {
-    struct vmm_netswitch *nsw = NULL;
+    struct vmm_netswitch *nsw = NULL; /**< NULL成员 */
 
-    vmm_netswitch_iterate(NULL, &nsw, netswitch_default_iterate);
+    vmm_netswitch_iterate(NULL, &nsw, netswitch_default_iterate); /**< netswitch_default_iterate)成员 */
 
-    return nsw;
+    return nsw; /**< nsw成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_default);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_default);
 
+/**
+ * @brief 获取网络交换机的数量
+ * @return 数量值
+ */
 uint32_t vmm_netswitch_count(void)
 {
     return vmm_device_driver_class_device_count(&nsw_class);
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_count);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_count);
 
+/**
+ * @brief 注册网络交换策略
+ * @param nsp 节点特定数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_policy_register(struct vmm_netswitch_policy *nsp)
 {
     struct vmm_netswitch_policy *nsp1;
 
     if (!nsp || !nsp->create || !nsp->destroy) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     vmm_mutex_lock(&policy_list_lock);
@@ -683,7 +798,7 @@ int vmm_netswitch_policy_register(struct vmm_netswitch_policy *nsp)
     {
         if (strcmp(nsp1->name, nsp->name) == 0) {
             vmm_mutex_unlock(&policy_list_lock);
-            return VMM_EEXIST;
+            return VMM_ERR_EXIST;
         }
     }
 
@@ -695,22 +810,35 @@ int vmm_netswitch_policy_register(struct vmm_netswitch_policy *nsp)
     return VMM_OK;
 }
 
+/**
+ * @brief 网络交换策略注销上下文结构，私有上下文
+ */
 struct netswitch_policy_unregister_priv {
-    struct vmm_netswitch_policy *nsp;
-    struct vmm_netswitch        *nsw;
+    struct vmm_netswitch_policy *nsp; /**< 网络端口 */
+    struct vmm_netswitch        *nsw; /**< 网络交换 */
 };
 
+/**
+ * @brief 查找网络交换机策略注销回调
+ * @param nsw 网络交换机结构体指针
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int netswitch_policy_unregister_find(struct vmm_netswitch *nsw, void *data)
 {
     struct netswitch_policy_unregister_priv *private = data;
 
     if (nsw->policy == private->nsp) {
-        private->nsw = nsw;
+        private->nsw = nsw; /**< nsw成员 */
     }
 
     return VMM_OK;
 }
 
+/**
+ * @brief 注销网络交换策略
+ * @param nsp 节点特定数据指针
+ */
 void vmm_netswitch_policy_unregister(struct vmm_netswitch_policy *nsp)
 {
     int ret;
@@ -739,8 +867,15 @@ void vmm_netswitch_policy_unregister(struct vmm_netswitch_policy *nsp)
     vmm_mutex_unlock(&policy_list_lock);
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_policy_unregister);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_policy_unregister);
 
+/**
+ * @brief 按策略遍历网络交换机
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_policy_iterate(struct vmm_netswitch_policy *start, void *data, int (*fn)(struct vmm_netswitch_policy *, void *))
 {
     int                          ret         = VMM_OK;
@@ -770,19 +905,28 @@ int vmm_netswitch_policy_iterate(struct vmm_netswitch_policy *start, void *data,
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_policy_iterate);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_policy_iterate);
 
+/**
+ * @brief 网络交换策略查找上下文结构，私有上下文
+ */
 struct netswitch_policy_find_priv {
-    const char                  *name;
-    struct vmm_netswitch_policy *nsp;
+    const char                  *name; /**< 名称 */
+    struct vmm_netswitch_policy *nsp; /**< 网络端口 */
 };
 
+/**
+ * @brief 查找网络交换机策略
+ * @param nsp 节点特定数据指针
+ * @param data 用户自定义数据指针
+ * @return 遍历结果
+ */
 static int netswitch_policy_find(struct vmm_netswitch_policy *nsp, void *data)
 {
     struct netswitch_policy_find_priv *private = data;
 
     if (strcmp(private->name, nsp->name) == 0) {
-        private->nsp = nsp;
+        private->nsp = nsp; /**< nsp成员 */
     }
 
     return VMM_OK;
@@ -790,16 +934,22 @@ static int netswitch_policy_find(struct vmm_netswitch_policy *nsp, void *data)
 
 struct vmm_netswitch_policy *vmm_netswitch_policy_find(const char *name)
 {
-    int ret;
-    struct netswitch_policy_find_priv private = {.name = name, .nsp = NULL};
+    int ret; /**< 返回值 */
+    struct netswitch_policy_find_priv private = {.name = name, .nsp = NULL}; /**< NULL}成员 */
 
-    ret                                       = vmm_netswitch_policy_iterate(NULL, &private, netswitch_policy_find);
+    ret                                       = vmm_netswitch_policy_iterate(NULL, &private, netswitch_policy_find); /**< netswitch_policy_find)成员 */
 
-    return (ret) ? NULL : private.nsp;
+    return (ret) ? NULL : private.nsp; /**< private.nsp成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_policy_find);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_policy_find);
 
+/**
+ * @brief 获取网络交换机策略的数量
+ * @param nsp 节点特定数据指针
+ * @param data 用户自定义数据指针
+ * @return 数量值
+ */
 static int netswitch_policy_count(struct vmm_netswitch_policy *nsp, void *data)
 {
     uint32_t *ret = data;
@@ -809,6 +959,10 @@ static int netswitch_policy_count(struct vmm_netswitch_policy *nsp, void *data)
     return VMM_OK;
 }
 
+/**
+ * @brief 获取网络交换策略的数量
+ * @return 数量值
+ */
 uint32_t vmm_netswitch_policy_count(void)
 {
     uint32_t ret = 0;
@@ -818,8 +972,16 @@ uint32_t vmm_netswitch_policy_count(void)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_policy_count);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_policy_count);
 
+/**
+ * @brief 网络交换机策略创建交换机实例
+ * @param policy_name 调度策略名称
+ * @param switch_name 交换机名称
+ * @param argc 参数个数
+ * @param argv 参数数组
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_policy_create_switch(const char *policy_name, const char *switch_name, int argc, char **argv)
 {
     int                          ret = VMM_OK;
@@ -827,7 +989,7 @@ int vmm_netswitch_policy_create_switch(const char *policy_name, const char *swit
     struct vmm_netswitch_policy *nsp;
 
     if (!policy_name || !switch_name || ((argc > 0) && !argv)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     vmm_mutex_lock(&policy_list_lock);
@@ -841,7 +1003,7 @@ int vmm_netswitch_policy_create_switch(const char *policy_name, const char *swit
         nsw = nsp->create(nsp, switch_name, argc, argv);
 
         if (!nsw) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             goto done_unlock;
         }
 
@@ -849,7 +1011,7 @@ int vmm_netswitch_policy_create_switch(const char *policy_name, const char *swit
     }
 
     if (!nsw) {
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
     }
 
 done_unlock:
@@ -858,12 +1020,17 @@ done_unlock:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_policy_create_switch);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_policy_create_switch);
 
+/**
+ * @brief 网络交换机策略销毁交换机实例
+ * @param nsw 网络交换机结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_policy_destroy_switch(struct vmm_netswitch *nsw)
 {
     if (!nsw || !nsw->policy) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&policy_list_lock);
@@ -873,8 +1040,14 @@ int vmm_netswitch_policy_destroy_switch(struct vmm_netswitch *nsw)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_netswitch_policy_destroy_switch);
+VMM_ERR_XPORT_SYMBOL(vmm_netswitch_policy_destroy_switch);
 
+/**
+ * @brief 初始化网络交换机每CPU数据
+ * @param a1 参数寄存器a1值
+ * @param a2 参数寄存器a2值
+ * @param a3 参数寄存器a3值
+ */
 static void vmm_netswitch_per_cpu_init(void *a1, void *a2, void *a3)
 {
     char                          name[VMM_FIELD_NAME_SIZE];
@@ -901,6 +1074,10 @@ static void vmm_netswitch_per_cpu_init(void *a1, void *a2, void *a3)
     vmm_threads_start(nbp->thread);
 }
 
+/**
+ * @brief 初始化网络交换机
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_netswitch_init(void)
 {
     int rc;
@@ -919,6 +1096,13 @@ int __init vmm_netswitch_init(void)
     return VMM_OK;
 }
 
+/**
+ * @brief 网络交换机每CPU资源退出清理
+ * @param a1 参数寄存器a1值
+ * @param a2 参数寄存器a2值
+ * @param a3 参数寄存器a3值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __exit vmm_netswitch_per_cpu_exit(void *a1, void *a2, void *a3)
 {
     struct vmm_netswitch_bh_ctrl *nbp = &this_cpu(nbctrl);
@@ -928,6 +1112,10 @@ static void __exit vmm_netswitch_per_cpu_exit(void *a1, void *a2, void *a3)
     vmm_threads_destroy(nbp->thread);
 }
 
+/**
+ * @brief 网络交换机子系统退出
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 void __exit vmm_netswitch_exit(void)
 {
     int          rc;

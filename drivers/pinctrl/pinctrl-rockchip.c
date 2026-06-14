@@ -3948,7 +3948,7 @@ static int rockchip_irq_set_type(struct irq_data *d, uint32_t type)
 {
     struct irq_chip_generic *gc = irq_data_get_irq_chip_data(d);
     struct rockchip_pin_bank *bank = gc->private;
-    uint32_t mask = BIT(d->hwirq);
+    uint32_t mask = BIT(d->hw_irq_num);
     uint32_t polarity;
     uint32_t level;
     uint32_t data;
@@ -3957,7 +3957,7 @@ static int rockchip_irq_set_type(struct irq_data *d, uint32_t type)
     int ret;
 
     /* make sure the pin is configured as gpio input */
-    ret = rockchip_set_mux(bank, d->hwirq, RK_FUNC_GPIO);
+    ret = rockchip_set_mux(bank, d->hw_irq_num, RK_FUNC_GPIO);
 
     if (ret < 0)
         return ret;

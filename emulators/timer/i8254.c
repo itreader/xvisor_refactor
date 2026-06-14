@@ -537,7 +537,7 @@ static int i8254_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(pit_common_state_t));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto i8254_emulator_probe_done;
     }
 

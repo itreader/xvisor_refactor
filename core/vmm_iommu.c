@@ -18,7 +18,7 @@
  *
  * @file vmm_iommu.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief IOMMU framework implementation for device pass-through
+ * @brief 设备直通IOMMU框架实现
  *
  * The source has been largely adapted from Linux sources:
  * drivers/iommu/iommu.c
@@ -48,9 +48,12 @@
 #define pr_debug(msg...)
 #endif
 
+/**
+ * @brief IOMMU设备结构，关联设备和其所属的IOMMU域
+ */
 struct vmm_iommu_device {
-    double_list_t list;
-    vmm_device_t *dev;
+    double_list_t list; /**< 链表 */
+    vmm_device_t *dev; /**< 设备 */
 };
 
 /* =============== IOMMU Controller APIs =============== */
@@ -59,16 +62,21 @@ static vmm_class_t iommuctrl_class = {
     .name = VMM_IOMMU_CONTROLLER_CLASS_NAME,
 };
 
+/**
+ * @brief 注册IOMMU控制器
+ * @param ctrl 控制器结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_controller_register(vmm_iommu_controller_t *ctrl)
 {
     if (!ctrl) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_device_driver_initialize_device(&ctrl->dev);
 
     if (strlcpy(ctrl->dev.name, ctrl->name, sizeof(ctrl->dev.name)) >= sizeof(ctrl->dev.name)) {
-        return VMM_EOVERFLOW;
+        return VMM_ERR_OVERFLOW;
     }
 
     ctrl->dev.class = &iommuctrl_class;
@@ -82,15 +90,25 @@ int vmm_iommu_controller_register(vmm_iommu_controller_t *ctrl)
     return vmm_device_driver_register_device(&ctrl->dev);
 }
 
+/**
+ * @brief 注销IOMMU控制器
+ * @param ctrl 控制器结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_controller_unregister(vmm_iommu_controller_t *ctrl)
 {
     if (!ctrl) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return vmm_device_driver_unregister_device(&ctrl->dev);
 }
 
+/**
+ * @brief 查找IOMMU控制器
+ * @param name 目标对象的名称
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_iommu_controller_t *vmm_iommu_controller_find(const char *name)
 {
     vmm_device_t *dev;
@@ -104,11 +122,20 @@ vmm_iommu_controller_t *vmm_iommu_controller_find(const char *name)
     return vmm_device_driver_get_data(dev);
 }
 
+/**
+ * @brief IOMMU控制器遍历上下文结构，私有上下文
+ */
 struct iommu_controller_iterate_priv {
-    void *data;
-    int (*fn)(vmm_iommu_controller_t *, void *);
+    void *data; /**< 数据 */
+    int (*fn)(vmm_iommu_controller_t *, void *); /**< 函数指针 */
 };
 
+/**
+ * @brief 遍历所有已注册的IOMMU控制器
+ * @param dev 设备结构体指针
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int iommu_controller_iterate(vmm_device_t *dev, void *data)
 {
     struct iommu_controller_iterate_priv *p    = data;
@@ -117,13 +144,20 @@ static int iommu_controller_iterate(vmm_device_t *dev, void *data)
     return p->fn(ctrl, p->data);
 }
 
+/**
+ * @brief 遍历所有已注册的IOMMU控制器
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_controller_iterate(vmm_iommu_controller_t *start, void *data, int (*fn)(vmm_iommu_controller_t *, void *))
 {
     vmm_device_t                        *st = (start) ? &start->dev : NULL;
     struct iommu_controller_iterate_priv p;
 
     if (!fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     p.data = data;
@@ -132,18 +166,29 @@ int vmm_iommu_controller_iterate(vmm_iommu_controller_t *start, void *data, int 
     return vmm_device_driver_class_device_iterate(&iommuctrl_class, st, &p, iommu_controller_iterate);
 }
 
+/**
+ * @brief 获取IOMMU控制器的数量
+ * @return 数量值
+ */
 uint32_t vmm_iommu_controller_count(void)
 {
     return vmm_device_driver_class_device_count(&iommuctrl_class);
 }
 
+/**
+ * @brief 遍历IOMMU控制器下的所有IOMMU组
+ * @param ctrl 控制器结构体指针
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_controller_for_each_group(vmm_iommu_controller_t *ctrl, void *data, int (*fn)(vmm_iommu_group_t *, void *))
 {
     vmm_iommu_group_t *group;
     int                ret = 0;
 
     if (!ctrl || !fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&ctrl->groups_lock);
@@ -162,6 +207,12 @@ int vmm_iommu_controller_for_each_group(vmm_iommu_controller_t *ctrl, void *data
     return ret;
 }
 
+/**
+ * @brief 遍历IOMMU控制器获取各组的的数量
+ * @param group 组结构体指针
+ * @param data 用户自定义数据指针
+ * @return 数量值
+ */
 static int iommu_controller_group_count_iter(vmm_iommu_group_t *group, void *data)
 {
     (*((uint32_t *)data))++;
@@ -169,6 +220,11 @@ static int iommu_controller_group_count_iter(vmm_iommu_group_t *group, void *dat
     return VMM_OK;
 }
 
+/**
+ * @brief 获取IOMMU设备组的数量
+ * @param ctrl 控制器结构体指针
+ * @return 数量值
+ */
 uint32_t vmm_iommu_controller_group_count(vmm_iommu_controller_t *ctrl)
 {
     uint32_t ret = 0;
@@ -182,13 +238,20 @@ uint32_t vmm_iommu_controller_group_count(vmm_iommu_controller_t *ctrl)
     return ret;
 }
 
+/**
+ * @brief 遍历IOMMU控制器下的所有IOMMU域
+ * @param ctrl 控制器结构体指针
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_controller_for_each_domain(vmm_iommu_controller_t *ctrl, void *data, int (*fn)(vmm_iommu_domain_t *, void *))
 {
     vmm_iommu_domain_t *domain;
     int                 ret = 0;
 
     if (!ctrl || !fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&ctrl->domains_lock);
@@ -207,6 +270,12 @@ int vmm_iommu_controller_for_each_domain(vmm_iommu_controller_t *ctrl, void *dat
     return ret;
 }
 
+/**
+ * @brief 遍历IOMMU控制器获取各域的的数量
+ * @param domain 域结构体指针
+ * @param data 用户自定义数据指针
+ * @return 数量值
+ */
 static int iommu_controller_domain_count_iter(vmm_iommu_domain_t *domain, void *data)
 {
     (*((uint32_t *)data))++;
@@ -214,6 +283,11 @@ static int iommu_controller_domain_count_iter(vmm_iommu_domain_t *domain, void *
     return VMM_OK;
 }
 
+/**
+ * @brief 获取IOMMU域的数量
+ * @param ctrl 控制器结构体指针
+ * @return 数量值
+ */
 uint32_t vmm_iommu_controller_domain_count(vmm_iommu_controller_t *ctrl)
 {
     uint32_t ret = 0;
@@ -229,25 +303,31 @@ uint32_t vmm_iommu_controller_domain_count(vmm_iommu_controller_t *ctrl)
 
 /* =============== IOMMU Group APIs =============== */
 
+/**
+ * @brief 分配IOMMU设备组
+ * @param name 目标对象的名称
+ * @param ctrl 控制器结构体指针
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_iommu_group_t *vmm_iommu_group_alloc(const char *name, vmm_iommu_controller_t *ctrl)
 {
     vmm_iommu_group_t *group;
 
     if (!name || !ctrl) {
-        return VMM_ERR_PTR(VMM_EINVALID);
+        return VMM_ERR_RR_PTR(VMM_ERR_INVALID);
     }
 
     group = vmm_zalloc(sizeof(*group));
 
     if (!group) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     group->name = vmm_zalloc(strlen(name) + 1);
 
     if (!group->name) {
         vmm_free(group);
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     strcpy(group->name, name);
@@ -268,6 +348,11 @@ vmm_iommu_group_t *vmm_iommu_group_alloc(const char *name, vmm_iommu_controller_
     return group;
 }
 
+/**
+ * @brief 获取指定名称的IOMMU组
+ * @param dev 设备结构体指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 vmm_iommu_group_t *vmm_iommu_group_get(vmm_device_t *dev)
 {
     vmm_iommu_group_t *group = dev->iommu_group;
@@ -279,6 +364,10 @@ vmm_iommu_group_t *vmm_iommu_group_get(vmm_device_t *dev)
     return group;
 }
 
+/**
+ * @brief 释放IOMMU组资源
+ * @param ref 引用计数结构体指针
+ */
 static void __iommu_group_free(struct xref *ref)
 {
     vmm_iommu_group_t *group = container_of(ref, vmm_iommu_group_t, ref_count);
@@ -296,6 +385,10 @@ static void __iommu_group_free(struct xref *ref)
     vmm_free(group);
 }
 
+/**
+ * @brief 释放IOMMU设备组
+ * @param group 组结构体指针
+ */
 void vmm_iommu_group_free(vmm_iommu_group_t *group)
 {
     if (group) {
@@ -303,11 +396,21 @@ void vmm_iommu_group_free(vmm_iommu_group_t *group)
     }
 }
 
+/**
+ * @brief 获取IOMMU设备组的IOMMU私有数据
+ * @param group 组结构体指针
+ */
 void *vmm_iommu_group_get_iommudata(vmm_iommu_group_t *group)
 {
     return (group) ? group->iommu_data : NULL;
 }
 
+/**
+ * @brief 设置IOMMU设备组的IOMMU私有数据
+ * @param group 组结构体指针
+ * @param iommu_data IOMMU私有数据指针
+ * @param (*release 指针参数
+ */
 void vmm_iommu_group_set_iommudata(vmm_iommu_group_t *group, void *iommu_data, void (*release)(void *iommu_data))
 {
     if (!group) {
@@ -318,12 +421,18 @@ void vmm_iommu_group_set_iommudata(vmm_iommu_group_t *group, void *iommu_data, v
     group->iommu_data_release = release;
 }
 
+/**
+ * @brief 将设备添加到IOMMU组
+ * @param group 组结构体指针
+ * @param dev 设备结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_group_add_device(vmm_iommu_group_t *group, vmm_device_t *dev)
 {
     struct vmm_iommu_device *device;
 
     if (!group || !dev) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     vmm_mutex_lock(&group->mutex);
@@ -332,7 +441,7 @@ int vmm_iommu_group_add_device(vmm_iommu_group_t *group, vmm_device_t *dev)
     {
         if (device->dev == dev) {
             vmm_mutex_unlock(&group->mutex);
-            return VMM_EEXIST;
+            return VMM_ERR_EXIST;
         }
     }
 
@@ -340,7 +449,7 @@ int vmm_iommu_group_add_device(vmm_iommu_group_t *group, vmm_device_t *dev)
 
     if (!device) {
         vmm_mutex_unlock(&group->mutex);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     device->dev      = dev;
@@ -356,10 +465,15 @@ int vmm_iommu_group_add_device(vmm_iommu_group_t *group, vmm_device_t *dev)
     return 0;
 }
 
+/**
+ * @brief 从IOMMU组中移除设备
+ * @param dev 设备结构体指针
+ */
 void vmm_iommu_group_remove_device(vmm_device_t *dev)
 {
     vmm_iommu_group_t       *group = dev->iommu_group;
-    struct vmm_iommu_device *tmp_device, *device = NULL;
+    struct vmm_iommu_device *tmp_device = NULL;
+    struct vmm_iommu_device *device = NULL;
 
     if (!group) {
         return;
@@ -391,13 +505,20 @@ void vmm_iommu_group_remove_device(vmm_device_t *dev)
     vmm_iommu_group_put(group);
 }
 
+/**
+ * @brief 遍历IOMMU组中的所有设备
+ * @param group 组结构体指针
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_group_for_each_dev(vmm_iommu_group_t *group, void *data, int (*fn)(vmm_device_t *, void *))
 {
     struct vmm_iommu_device *device;
     int                      ret = 0;
 
     if (!group || !fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     vmm_mutex_lock(&group->mutex);
@@ -416,29 +537,51 @@ int vmm_iommu_group_for_each_dev(vmm_iommu_group_t *group, void *data, int (*fn)
     return ret;
 }
 
+/**
+ * @brief 注册IOMMU组通知器
+ * @param group 组结构体指针
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_group_register_notifier(vmm_iommu_group_t *group, vmm_notifier_block_t *nb)
 {
     if (!group) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return vmm_blocking_notifier_register(&group->notifier, nb);
 }
 
+/**
+ * @brief 注销IOMMU组通知器
+ * @param group 组结构体指针
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_group_unregister_notifier(vmm_iommu_group_t *group, vmm_notifier_block_t *nb)
 {
     if (!group) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return vmm_blocking_notifier_unregister(&group->notifier, nb);
 }
 
+/**
+ * @brief 获取IOMMU组的名称
+ * @param group 组结构体指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 const char *vmm_iommu_group_name(vmm_iommu_group_t *group)
 {
     return (group) ? group->name : NULL;
 }
 
+/**
+ * @brief 获取IOMMU组所属的IOMMU控制器
+ * @param group 组结构体指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 vmm_iommu_controller_t *vmm_iommu_group_controller(vmm_iommu_group_t *group)
 {
     return (group) ? group->ctrl : NULL;
@@ -459,18 +602,24 @@ static int iommu_group_do_attach_device(vmm_device_t *dev, void *data)
     vmm_iommu_domain_t *domain = data;
 
     if (unlikely(domain->ops->attach_dev == NULL)) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     return domain->ops->attach_dev(domain, dev);
 }
 
+/**
+ * @brief 执行设备从IOMMU组的分离操作
+ * @param dev 设备结构体指针
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int iommu_group_do_detach_device(vmm_device_t *dev, void *data)
 {
     vmm_iommu_domain_t *domain = data;
 
     if (unlikely(domain->ops->detach_dev == NULL)) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     domain->ops->detach_dev(domain, dev);
@@ -478,12 +627,18 @@ static int iommu_group_do_detach_device(vmm_device_t *dev, void *data)
     return VMM_OK;
 }
 
+/**
+ * @brief 将IOMMU域附加到IOMMU组
+ * @param group 组结构体指针
+ * @param domain 域结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_group_attach_domain(vmm_iommu_group_t *group, vmm_iommu_domain_t *domain)
 {
     int ret = VMM_OK;
 
     if (!group || !domain) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&group->mutex);
@@ -492,7 +647,7 @@ int vmm_iommu_group_attach_domain(vmm_iommu_group_t *group, vmm_iommu_domain_t *
         ret = VMM_OK;
         goto out_unlock;
     } else if (group->domain != NULL) {
-        ret = VMM_EEXIST;
+        ret = VMM_ERR_EXIST;
         goto out_unlock;
     }
 
@@ -511,13 +666,18 @@ out_unlock:
     return ret;
 }
 
+/**
+ * @brief 从IOMMU组分离IOMMU域
+ * @param group 组结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_group_detach_domain(vmm_iommu_group_t *group)
 {
     int                 ret = VMM_OK;
     vmm_iommu_domain_t *domain;
 
     if (!group) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&group->mutex);
@@ -539,6 +699,11 @@ out_unlock:
     return ret;
 }
 
+/**
+ * @brief 获取IOMMU设备组的域
+ * @param group 组结构体指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 vmm_iommu_domain_t *vmm_iommu_group_get_domain(vmm_iommu_group_t *group)
 {
     vmm_iommu_domain_t *domain = NULL;
@@ -557,6 +722,14 @@ vmm_iommu_domain_t *vmm_iommu_group_get_domain(vmm_iommu_group_t *group)
 
 /* =============== IOMMU Domain APIs =============== */
 
+/**
+ * @brief 分配IOMMU域
+ * @param name 目标对象的名称
+ * @param bus 设备总线结构体指针
+ * @param ctrl 控制器结构体指针
+ * @param type 类型标识值
+ * @return 目标对象指针，不存在返回NULL
+ */
 vmm_iommu_domain_t *vmm_iommu_domain_alloc(const char *name, vmm_bus_t *bus, vmm_iommu_controller_t *ctrl, uint32_t type)
 {
     vmm_iommu_domain_t *domain;
@@ -595,6 +768,10 @@ vmm_iommu_domain_t *vmm_iommu_domain_alloc(const char *name, vmm_bus_t *bus, vmm
     return domain;
 }
 
+/**
+ * @brief 增加IOMMU域的引用计数
+ * @param domain 域结构体指针
+ */
 void vmm_iommu_domain_ref(vmm_iommu_domain_t *domain)
 {
     if (domain == NULL) {
@@ -604,6 +781,10 @@ void vmm_iommu_domain_ref(vmm_iommu_domain_t *domain)
     xref_get(&domain->ref_count);
 }
 
+/**
+ * @brief 释放IOMMU域
+ * @param ref 引用计数结构体指针
+ */
 static void __iommu_domain_free(struct xref *ref)
 {
     vmm_iommu_domain_t *domain = container_of(ref, vmm_iommu_domain_t, ref_count);
@@ -617,6 +798,10 @@ static void __iommu_domain_free(struct xref *ref)
     }
 }
 
+/**
+ * @brief 释放IOMMU域
+ * @param domain 域结构体指针
+ */
 void vmm_iommu_domain_free(vmm_iommu_domain_t *domain)
 {
     if (domain) {
@@ -624,6 +809,12 @@ void vmm_iommu_domain_free(vmm_iommu_domain_t *domain)
     }
 }
 
+/**
+ * @brief 设置IOMMU的故障处理回调
+ * @param domain 域结构体指针
+ * @param handler 信号处理函数指针
+ * @param token 令牌字符串
+ */
 void vmm_iommu_set_fault_handler(vmm_iommu_domain_t *domain, vmm_iommu_fault_handler_t handler, void *token)
 {
     BUG_ON(!domain);
@@ -632,6 +823,12 @@ void vmm_iommu_set_fault_handler(vmm_iommu_domain_t *domain, vmm_iommu_fault_han
     domain->handler_token = token;
 }
 
+/**
+ * @brief 将IOMMU域的IO虚拟地址转换为物理地址
+ * @param domain 域结构体指针
+ * @param iova IO虚拟地址
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 physical_addr_t vmm_iommu_iova_to_phys(vmm_iommu_domain_t *domain, physical_addr_t iova)
 {
     if (unlikely(domain->ops->iova_to_phys == NULL)) {
@@ -641,6 +838,13 @@ physical_addr_t vmm_iommu_iova_to_phys(vmm_iommu_domain_t *domain, physical_addr
     return domain->ops->iova_to_phys(domain, iova);
 }
 
+/**
+ * @brief 获取IOMMU支持的页面大小
+ * @param domain 域结构体指针
+ * @param addr_merge 待合并的物理地址
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static size_t iommu_pgsize(vmm_iommu_domain_t *domain, physical_addr_t addr_merge, size_t size)
 {
     uint32_t pgsize_idx;
@@ -672,6 +876,15 @@ static size_t iommu_pgsize(vmm_iommu_domain_t *domain, physical_addr_t addr_merg
     return pgsize;
 }
 
+/**
+ * @brief 建立IOMMU地址映射
+ * @param domain 域结构体指针
+ * @param iova IO虚拟地址
+ * @param paddr 物理地址值
+ * @param size 数据大小（字节数）
+ * @param prot 内存保护标志
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_map(vmm_iommu_domain_t *domain, physical_addr_t iova, physical_addr_t paddr, size_t size, int prot)
 {
     physical_addr_t orig_iova = iova;
@@ -680,7 +893,7 @@ int vmm_iommu_map(vmm_iommu_domain_t *domain, physical_addr_t iova, physical_add
     int             ret       = 0;
 
     if (unlikely(domain->ops->unmap == NULL || domain->ops->pgsize_bitmap == 0UL)) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* find out the minimum page size supported */
@@ -697,7 +910,7 @@ int vmm_iommu_map(vmm_iommu_domain_t *domain, physical_addr_t iova, physical_add
             "unaligned iova 0x%" PRIPADDR " pa 0x%" PRIPADDR " size 0x%zx "
             "min_pagesz 0x%zx\n",
             iova, paddr, size, min_pagesz);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     pr_debug("IOMMU: map iova 0x%" PRIPADDR " pa 0x%" PRIPADDR " size 0x%zx\n", iova, paddr, size);
@@ -726,12 +939,21 @@ int vmm_iommu_map(vmm_iommu_domain_t *domain, physical_addr_t iova, physical_add
     return ret;
 }
 
+/**
+ * @brief IOMMU解除地址映射
+ * @param domain 域结构体指针
+ * @param iova IO虚拟地址
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 size_t vmm_iommu_unmap(vmm_iommu_domain_t *domain, physical_addr_t iova, size_t size)
 {
-    size_t unmapped_page, min_pagesz, unmapped = 0;
+    size_t unmapped_page;
+    size_t min_pagesz;
+    size_t unmapped = 0;
 
     if (unlikely(domain->ops->unmap == NULL || domain->ops->pgsize_bitmap == 0UL)) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* find out the minimum page size supported */
@@ -744,7 +966,7 @@ size_t vmm_iommu_unmap(vmm_iommu_domain_t *domain, physical_addr_t iova, size_t 
      */
     if (!is_aligned(iova | size, min_pagesz)) {
         vmm_lerror("IOMMU", "unaligned iova 0x%" PRIPADDR " size 0x%zx min_pagesz 0x%zx\n", iova, size, min_pagesz);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     pr_debug("IOMMU: unmap iova 0x%" PRIPADDR " size 0x%zx\n", iova, size);
@@ -771,15 +993,29 @@ size_t vmm_iommu_unmap(vmm_iommu_domain_t *domain, physical_addr_t iova, size_t 
     return unmapped;
 }
 
+/**
+ * @brief 启用IOMMU域的DMA窗口
+ * @param domain 域结构体指针
+ * @param wnd_nr 窗口编号
+ * @param paddr 物理地址值
+ * @param size 数据大小（字节数）
+ * @param prot 内存保护标志
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_domain_window_enable(vmm_iommu_domain_t *domain, uint32_t wnd_nr, physical_addr_t paddr, uint64_t size, int prot)
 {
     if (unlikely(domain->ops->domain_window_enable == NULL)) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     return domain->ops->domain_window_enable(domain, wnd_nr, paddr, size, prot);
 }
 
+/**
+ * @brief 禁用IOMMU域的DMA窗口
+ * @param domain 域结构体指针
+ * @param wnd_nr 窗口编号
+ */
 void vmm_iommu_domain_window_disable(vmm_iommu_domain_t *domain, uint32_t wnd_nr)
 {
     if (unlikely(domain->ops->domain_window_disable == NULL)) {
@@ -789,6 +1025,13 @@ void vmm_iommu_domain_window_disable(vmm_iommu_domain_t *domain, uint32_t wnd_nr
     return domain->ops->domain_window_disable(domain, wnd_nr);
 }
 
+/**
+ * @brief 获取IOMMU域的attr
+ * @param domain 域结构体指针
+ * @param attr 属性结构体指针
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_domain_get_attr(vmm_iommu_domain_t *domain, enum vmm_iommu_attr attr, void *data)
 {
     struct vmm_iommu_domain_geometry *geometry;
@@ -814,14 +1057,14 @@ int vmm_iommu_domain_get_attr(vmm_iommu_domain_t *domain, enum vmm_iommu_attr at
             if (domain->ops->domain_get_windows != NULL) {
                 *count = domain->ops->domain_get_windows(domain);
             } else {
-                ret = VMM_ENODEV;
+                ret = VMM_ERR_NODEV;
             }
 
             break;
 
         default:
             if (!domain->ops->domain_get_attr) {
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
             }
 
             ret = domain->ops->domain_get_attr(domain, attr, data);
@@ -830,6 +1073,13 @@ int vmm_iommu_domain_get_attr(vmm_iommu_domain_t *domain, enum vmm_iommu_attr at
     return ret;
 }
 
+/**
+ * @brief 设置IOMMU域的attr
+ * @param domain 域结构体指针
+ * @param attr 属性结构体指针
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_domain_set_attr(vmm_iommu_domain_t *domain, enum vmm_iommu_attr attr, void *data)
 {
     int       ret = 0;
@@ -842,14 +1092,14 @@ int vmm_iommu_domain_set_attr(vmm_iommu_domain_t *domain, enum vmm_iommu_attr at
             if (domain->ops->domain_set_windows != NULL) {
                 ret = domain->ops->domain_set_windows(domain, *count);
             } else {
-                ret = VMM_ENODEV;
+                ret = VMM_ERR_NODEV;
             }
 
             break;
 
         default:
             if (domain->ops->domain_set_attr == NULL) {
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
             }
 
             ret = domain->ops->domain_set_attr(domain, attr, data);
@@ -858,12 +1108,18 @@ int vmm_iommu_domain_set_attr(vmm_iommu_domain_t *domain, enum vmm_iommu_attr at
     return ret;
 }
 
+/**
+ * @brief 将设备添加到IOMMU组中
+ * @param dev 设备结构体指针
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int add_iommu_group(vmm_device_t *dev, void *data)
 {
     vmm_iommu_ops_t *ops = data;
 
     if (!ops->add_device) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     WARN_ON(dev->iommu_group);
@@ -873,6 +1129,13 @@ static int add_iommu_group(vmm_device_t *dev, void *data)
     return 0;
 }
 
+/**
+ * @brief IOMMU总线事件通知器回调
+ * @param nb 通知器块指针
+ * @param action 动作标识值
+ * @param data 用户自定义数据指针
+ * @return 通知结果
+ */
 static int iommu_bus_notifier(vmm_notifier_block_t *nb, uint64_t action, void *data)
 {
     vmm_device_t      *dev = data;
@@ -937,16 +1200,27 @@ static vmm_notifier_block_t iommu_bus_nb = {
     .notifier_call = iommu_bus_notifier,
 };
 
+/**
+ * @brief 初始化IOMMU总线子系统
+ * @param bus 设备总线结构体指针
+ * @param ops 操作集结构体指针
+ */
 static void iommu_bus_init(vmm_bus_t *bus, vmm_iommu_ops_t *ops)
 {
     vmm_device_driver_bus_register_notifier(bus, &iommu_bus_nb);
     vmm_device_driver_bus_device_iterate(bus, NULL, ops, add_iommu_group);
 }
 
+/**
+ * @brief 设置总线的IOMMU
+ * @param bus 设备总线结构体指针
+ * @param ops 操作集结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_bus_set_iommu(vmm_bus_t *bus, vmm_iommu_ops_t *ops)
 {
     if (bus->iommu_ops != NULL) {
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     bus->iommu_ops = ops;
@@ -957,11 +1231,22 @@ int vmm_bus_set_iommu(vmm_bus_t *bus, vmm_iommu_ops_t *ops)
     return VMM_OK;
 }
 
+/**
+ * @brief 检查IOMMU是否存在
+ * @param bus 设备总线结构体指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_iommu_present(vmm_bus_t *bus)
 {
     return bus->iommu_ops != NULL;
 }
 
+/**
+ * @brief 检查IOMMU是否具备指定能力
+ * @param bus 设备总线结构体指针
+ * @param cap 能力值或容量值
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_iommu_capable(vmm_bus_t *bus, enum vmm_iommu_cap cap)
 {
     if (!bus->iommu_ops || !bus->iommu_ops->capable) {
@@ -971,6 +1256,13 @@ bool vmm_iommu_capable(vmm_bus_t *bus, enum vmm_iommu_cap cap)
     return bus->iommu_ops->capable(cap);
 }
 
+/**
+ * @brief 查找IOMMU节点ID表
+ * @param node 设备树节点指针
+ * @param match 匹配回调函数
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __init iommu_nidtable_found(vmm_device_tree_node_t *node, const struct vmm_device_tree_nodeid *match, void *data)
 {
     int              err;
@@ -992,6 +1284,10 @@ static void __init iommu_nidtable_found(vmm_device_tree_node_t *node, const stru
 #endif
 }
 
+/**
+ * @brief 初始化IOMMU
+ * @return 编号值
+ */
 int __init vmm_iommu_init(void)
 {
     int                                  ret;

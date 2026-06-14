@@ -18,7 +18,7 @@
  *
  * @file vmm_cache.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for cache operations.
+ * @brief 缓存操作头文件
  */
 
 #ifndef __VMM_CACHE_H__

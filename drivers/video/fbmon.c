@@ -738,7 +738,7 @@ void fb_destroy_modedb(struct fb_videomode *modedb)
     vmm_free(modedb);
 }
 
-VMM_EXPORT_SYMBOL(fb_destroy_modedb);
+VMM_ERR_XPORT_SYMBOL(fb_destroy_modedb);
 
 static int fb_get_monitor_limits(unsigned char *edid, struct fb_monspecs *specs)
 {
@@ -1024,7 +1024,7 @@ int fb_parse_edid(unsigned char *edid, struct frame_buffer_var_screeninfo *var)
     return 1;
 }
 
-VMM_EXPORT_SYMBOL(fb_parse_edid);
+VMM_ERR_XPORT_SYMBOL(fb_parse_edid);
 
 void fb_edid_to_monspecs(unsigned char *edid, struct fb_monspecs *specs)
 {
@@ -1094,7 +1094,7 @@ void fb_edid_to_monspecs(unsigned char *edid, struct fb_monspecs *specs)
     DPRINTK("========================================\n");
 }
 
-VMM_EXPORT_SYMBOL(fb_edid_to_monspecs);
+VMM_ERR_XPORT_SYMBOL(fb_edid_to_monspecs);
 
 /**
  * Add monitor video modes from E-EDID data
@@ -1189,7 +1189,7 @@ void fb_edid_add_monspecs(unsigned char *edid, struct fb_monspecs *specs)
     specs->modedb_len = specs->modedb_len + num + svd_n;
 }
 
-VMM_EXPORT_SYMBOL(fb_edid_add_monspecs);
+VMM_ERR_XPORT_SYMBOL(fb_edid_add_monspecs);
 
 /*
  * VESA Generalized Timing Formula (GTF)
@@ -1409,7 +1409,7 @@ int fb_get_mode(int flags, uint32_t val, struct frame_buffer_var_screeninfo *var
     timings = vmm_zalloc(sizeof(struct __fb_timings));
 
     if (!timings) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /*
@@ -1479,12 +1479,12 @@ int fb_get_mode(int flags, uint32_t val, struct frame_buffer_var_screeninfo *var
             break;
 
         default:
-            err = VMM_EINVALID;
+            err = VMM_ERR_INVALID;
     }
 
     if (err || (!(flags & FB_IGNOREMON) && (timings->vfreq < vfmin || timings->vfreq > vfmax || timings->hfreq < hfmin || timings->hfreq > hfmax ||
                                             timings->dclk < dclkmin || timings->dclk > dclkmax))) {
-        err = VMM_EINVALID;
+        err = VMM_ERR_INVALID;
     } else {
         var->pixclock     = KHZ2PICOS(timings->dclk / 1000);
         var->hsync_len    = (timings->htotal * 8) / 100;
@@ -1499,33 +1499,33 @@ int fb_get_mode(int flags, uint32_t val, struct frame_buffer_var_screeninfo *var
     return err;
 }
 
-VMM_EXPORT_SYMBOL(fb_get_mode);
+VMM_ERR_XPORT_SYMBOL(fb_get_mode);
 #else
 int fb_parse_edid(unsigned char *edid, struct frame_buffer_var_screeninfo *var)
 {
     return 1;
 }
 
-VMM_EXPORT_SYMBOL(fb_parse_edid);
+VMM_ERR_XPORT_SYMBOL(fb_parse_edid);
 
 void fb_edid_to_monspecs(unsigned char *edid, struct fb_monspecs *specs) {}
 
-VMM_EXPORT_SYMBOL(fb_edid_to_monspecs);
+VMM_ERR_XPORT_SYMBOL(fb_edid_to_monspecs);
 
 void fb_edid_add_monspecs(unsigned char *edid, struct fb_monspecs *specs) {}
 
-VMM_EXPORT_SYMBOL(fb_edid_add_monspecs);
+VMM_ERR_XPORT_SYMBOL(fb_edid_add_monspecs);
 
 void fb_destroy_modedb(struct fb_videomode *modedb) {}
 
-VMM_EXPORT_SYMBOL(fb_destroy_modedb);
+VMM_ERR_XPORT_SYMBOL(fb_destroy_modedb);
 
 int fb_get_mode(int flags, uint32_t val, struct frame_buffer_var_screeninfo *var, struct frame_buffer_info *info)
 {
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
-VMM_EXPORT_SYMBOL(fb_get_mode);
+VMM_ERR_XPORT_SYMBOL(fb_get_mode);
 #endif /* CONFIG_FB_MODE_HELPERS */
 
 /*
@@ -1567,7 +1567,7 @@ int fb_validate_mode(const struct frame_buffer_var_screeninfo *var, struct frame
     }
 
     if (!var->pixclock) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     pixclock = PICOS2KHZ(var->pixclock) * 1000;
@@ -1588,7 +1588,7 @@ int fb_validate_mode(const struct frame_buffer_var_screeninfo *var, struct frame
 
     vfreq = udiv32(hfreq, vtotal);
 
-    return (vfreq < vfmin || vfreq > vfmax || hfreq < hfmin || hfreq > hfmax || pixclock < dclkmin || pixclock > dclkmax) ? VMM_EINVALID : 0;
+    return (vfreq < vfmin || vfreq > vfmax || hfreq < hfmin || hfreq > hfmax || pixclock < dclkmin || pixclock > dclkmax) ? VMM_ERR_INVALID : 0;
 }
 
-VMM_EXPORT_SYMBOL(fb_validate_mode);
+VMM_ERR_XPORT_SYMBOL(fb_validate_mode);

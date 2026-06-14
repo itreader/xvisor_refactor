@@ -18,7 +18,7 @@
  *
  * @file vmm_platform.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief Platform bus interface header
+ * @brief 平台总线接口头文件
  */
 
 #ifndef __VMM_PLATFORM_H_
@@ -31,31 +31,39 @@
 /** Forward declaration of platform bus */
 extern vmm_bus_t platform_bus;
 
-/** Bind device pins
- *  Note: The device driver framework only provide dummy weak
- *  implementation of this function which does nothing.
- *  Note: The pinctrl framework will provide complete implementation
- *  of this function. If pinctrl framework is not available then
- *  this function will do nothing.
+/**
+ * @brief 绑定平台的引脚控制器
+ * @param dev 设备结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_platform_pinctrl_bind(vmm_device_t *dev);
 
-/** Init device pins
- *  Note: The device driver framework only provide dummy weak
- *  implementation of this function which does nothing.
- *  Note: The pinctrl framework will provide complete implementation
- *  of this function. If pinctrl framework is not available then
- *  this function will do nothing.
+/**
+ * @brief 初始化平台引脚控制
+ * @param dev 设备结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_platform_pinctrl_init(vmm_device_t *dev);
 
-/** Find matching nodeid for given platform device */
-const struct vmm_device_tree_nodeid *vmm_platform_match_nodeid(vmm_device_t *dev);
+/**
+ * @brief 匹配平台的设备树节点ID
+ * @param dev 设备结构体指针
+ * @return 成功返回目标指针，失败返回NULL
+ */
+const vmm_device_tree_nodeid_t *vmm_platform_match_nodeid(vmm_device_t *dev);
 
-/** Find platform device by node */
+/**
+ * @brief 根据设备树节点查找平台设备
+ * @param np 设备树节点指针
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_device_t *vmm_platform_find_device_by_node(vmm_device_tree_node_t *np);
 
-/** Probe device instances under a given device tree node */
+/**
+ * @brief 平台 探测
+ * @param node 设备树节点指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_platform_probe(vmm_device_tree_node_t *node);
 
 #endif /* __VMM_PLATFORM_H_ */

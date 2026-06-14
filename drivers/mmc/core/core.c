@@ -110,7 +110,7 @@ static int __mmc_set_ios(struct mmc_host *host)
         return host->ops.set_ios(host, &host->ios);
     }
 
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 int mmc_set_clock(struct mmc_host *host, uint32_t clock, bool disable)
@@ -158,7 +158,7 @@ int mmc_signal_voltage_to_mv(enum mmc_voltage voltage)
             return 1200;
     }
 
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 /*
@@ -202,7 +202,7 @@ int mmc_getcd(struct mmc_host *host)
         return host->ops.get_cd(host);
     }
 
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 int mmc_execute_tuning(struct mmc_host *host, uint32_t opcode)
@@ -211,7 +211,7 @@ int mmc_execute_tuning(struct mmc_host *host, uint32_t opcode)
         return host->ops.execute_tuning(host, opcode);
     }
 
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 int mmc_send_cmd(struct mmc_host *host, struct mmc_cmd *cmd, struct mmc_data *data)
@@ -220,7 +220,7 @@ int mmc_send_cmd(struct mmc_host *host, struct mmc_cmd *cmd, struct mmc_data *da
     struct mmc_data backup;
 
     if (!host->ops.send_cmd) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     memset(&backup, 0, sizeof(backup));
@@ -308,7 +308,7 @@ int mmc_send_status(struct mmc_host *host, struct mmc_card *card, int timeout)
                 break;
             } else if (cmd.response[0] & MMC_STATUS_MASK) {
                 vmm_printf("Status Error: 0x%08X\n", cmd.response[0]);
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
         } else if (--retries < 0) {
             return err;
@@ -324,7 +324,7 @@ int mmc_send_status(struct mmc_host *host, struct mmc_card *card, int timeout)
 
     if (timeout <= 0) {
         vmm_printf("Timeout waiting card ready\n");
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     return VMM_OK;
@@ -357,7 +357,7 @@ static int __mmc_detect_card_removed(struct mmc_host *host)
     int rc = VMM_OK;
 
     if (!host) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!host->card) {
@@ -392,7 +392,7 @@ static int __mmc_detect_card_inserted(struct mmc_host *host)
         return 0;
     }
 
-    return VMM_EIO;
+    return VMM_ERR_IO;
 }
 
 static void __mmc_detect_card_change(struct mmc_host *host)
@@ -406,7 +406,7 @@ static void __mmc_detect_card_change(struct mmc_host *host)
     rc = mmc_getcd(host);
 
     if (host->card) {
-        if (rc == VMM_ENOTSUPP) {
+        if (rc == VMM_ERR_NOTSUPP) {
             if (mmc_send_status(host, host->card, timeout)) {
                 __mmc_detect_card_removed(host);
             }
@@ -414,7 +414,7 @@ static void __mmc_detect_card_change(struct mmc_host *host)
             __mmc_detect_card_removed(host);
         }
     } else {
-        if ((rc == VMM_ENOTSUPP) || (rc > 0)) {
+        if ((rc == VMM_ERR_NOTSUPP) || (rc > 0)) {
             __mmc_detect_card_inserted(host);
         }
     }
@@ -453,7 +453,7 @@ static int mmc_block_request_queue_read(vmm_block_request_queue_t *brq, vmm_requ
     if (cnt == r->bcnt) {
         rc = VMM_OK;
     } else {
-        rc = VMM_EIO;
+        rc = VMM_ERR_IO;
     }
 
     vmm_mutex_unlock(&host->lock);
@@ -473,7 +473,7 @@ static int mmc_block_request_queue_write(vmm_block_request_queue_t *brq, vmm_req
     if (cnt == r->bcnt) {
         rc = VMM_OK;
     } else {
-        rc = VMM_EIO;
+        rc = VMM_ERR_IO;
     }
 
     vmm_mutex_unlock(&host->lock);
@@ -495,13 +495,13 @@ static void mmc_block_request_queue_flush(vmm_block_request_queue_t *brq, void *
 int mmc_detect_card_change(struct mmc_host *host, uint64_t msecs)
 {
     if (!host) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return vmm_timer_event_start(&host->poll_ev, (uint64_t)msecs * 1000000ULL);
 }
 
-VMM_EXPORT_SYMBOL(mmc_detect_card_change);
+VMM_ERR_XPORT_SYMBOL(mmc_detect_card_change);
 
 struct mmc_host *mmc_alloc_host(int extra, vmm_device_t *dev)
 {
@@ -517,7 +517,7 @@ struct mmc_host *mmc_alloc_host(int extra, vmm_device_t *dev)
     host->dev = dev;
 
     INIT_MUTEX(&host->slot.lock);
-    host->slot.cd_irq = VMM_EINVALID;
+    host->slot.cd_irq = VMM_ERR_INVALID;
 
     host->brq         = NULL;
     INIT_TIMER_EVENT(&host->poll_ev, mmc_host_poll_event_handler, host);
@@ -527,7 +527,7 @@ struct mmc_host *mmc_alloc_host(int extra, vmm_device_t *dev)
     return host;
 }
 
-VMM_EXPORT_SYMBOL(mmc_alloc_host);
+VMM_ERR_XPORT_SYMBOL(mmc_alloc_host);
 
 static vmm_block_request_queue_ops_t mmc_rq_ops = {
     .read  = mmc_block_request_queue_read,
@@ -541,7 +541,7 @@ int mmc_add_host(struct mmc_host *host)
     char name[32];
 
     if (!host || host->brq) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!host->b_max) {
@@ -560,7 +560,7 @@ int mmc_add_host(struct mmc_host *host)
         host->caps |= MMC_CAP_MODE_1BIT;
     } else if (!(host->caps & MMC_CAP_MODE_1BIT)) {
         /* MMC host must atleast provide 1-bit mode */
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (host->ops.init) {
@@ -578,7 +578,7 @@ int mmc_add_host(struct mmc_host *host)
 
     if (!host->brq) {
         vmm_mutex_unlock(&mmc_host_list_mutex);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     host->host_num = mmc_host_count;
@@ -603,7 +603,7 @@ int mmc_add_host(struct mmc_host *host)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(mmc_add_host);
+VMM_ERR_XPORT_SYMBOL(mmc_add_host);
 
 void mmc_remove_host(struct mmc_host *host)
 {
@@ -628,7 +628,7 @@ void mmc_remove_host(struct mmc_host *host)
     vmm_mutex_unlock(&mmc_host_list_mutex);
 }
 
-VMM_EXPORT_SYMBOL(mmc_remove_host);
+VMM_ERR_XPORT_SYMBOL(mmc_remove_host);
 
 void mmc_free_host(struct mmc_host *host)
 {
@@ -639,7 +639,7 @@ void mmc_free_host(struct mmc_host *host)
     vmm_free(host);
 }
 
-VMM_EXPORT_SYMBOL(mmc_free_host);
+VMM_ERR_XPORT_SYMBOL(mmc_free_host);
 
 static int __init mmc_core_init(void)
 {

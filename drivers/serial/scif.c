@@ -581,8 +581,8 @@ static int sci_init_clocks(struct scif_port *sci_port, vmm_device_t *dev)
     for (i = 0; i < SCI_NUM_CLKS; i++) {
         clk = devm_clock_get(dev, clock_names[i]);
 
-        if (VMM_PTR_ERR(clk) == VMM_EPROBE_DEFER) {
-            return VMM_EPROBE_DEFER;
+        if (VMM_PTR_ERR(clk) == VMM_ERR_PROBE_DEFER) {
+            return VMM_ERR_PROBE_DEFER;
         }
 
         if (VMM_IS_ERR(clk) && i == SCI_FCK) {
@@ -592,8 +592,8 @@ static int sci_init_clocks(struct scif_port *sci_port, vmm_device_t *dev)
              */
             clk = devm_clock_get(dev, "sci_ick");
 
-            if (VMM_PTR_ERR(clk) == VMM_EPROBE_DEFER) {
-                return VMM_EPROBE_DEFER;
+            if (VMM_PTR_ERR(clk) == VMM_ERR_PROBE_DEFER) {
+                return VMM_ERR_PROBE_DEFER;
             }
 
             if (!VMM_IS_ERR(clk)) {
@@ -640,14 +640,14 @@ static int scif_driver_probe(vmm_device_t *dev)
     devid = vmm_platform_match_nodeid(dev);
 
     if (!devid) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto free_nothing;
     }
 
     port = vmm_zalloc(sizeof(struct scif_port));
 
     if (!port) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_nothing;
     }
 
@@ -678,7 +678,7 @@ static int scif_driver_probe(vmm_device_t *dev)
     port->irq = vmm_device_tree_irq_parse_map(dev->of_node, 0);
 
     if (!port->irq) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto free_reg;
     }
 

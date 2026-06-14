@@ -99,7 +99,7 @@ static inline bool input_mt_is_active(const struct input_mt_slot *slot)
  * Depending on the flags set, it also performs pointer emulation and
  * frame synchronization.
  *
- * May be called repeatedly. Returns VMM_EINVAL if attempting to
+ * May be called repeatedly. Returns VMM_ERR_INVAL if attempting to
  * reinitialize with a different number of slots.
  */
 int input_mt_init_slots(input_device_t *dev, uint32_t num_slots, uint32_t flags);

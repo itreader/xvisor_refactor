@@ -34,7 +34,7 @@ int cpu_vcpu_inject_undef(vmm_vcpu_t *vcpu, arch_regs_t *regs)
 
     /* Sanity checks */
     if (!vcpu || !regs) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (vcpu != vmm_scheduler_current_vcpu()) {
@@ -81,7 +81,7 @@ static int __cpu_vcpu_inject_abt(vmm_vcpu_t *vcpu, arch_regs_t *regs, bool is_pa
 
     /* Sanity checks */
     if (!vcpu || !regs) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (vcpu != vmm_scheduler_current_vcpu()) {

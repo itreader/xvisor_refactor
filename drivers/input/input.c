@@ -386,7 +386,7 @@ void input_event(input_device_t *dev, uint32_t type, uint32_t code, int value)
     }
 }
 
-VMM_EXPORT_SYMBOL(input_event);
+VMM_ERR_XPORT_SYMBOL(input_event);
 
 void input_set_capability(input_device_t *dev, uint32_t type, uint32_t code)
 {
@@ -435,7 +435,7 @@ void input_set_capability(input_device_t *dev, uint32_t type, uint32_t code)
     __set_bit(type, dev->evbit);
 }
 
-VMM_EXPORT_SYMBOL(input_set_capability);
+VMM_ERR_XPORT_SYMBOL(input_set_capability);
 
 int input_scancode_to_scalar(const struct input_keymap_entry *ke, uint32_t *scancode)
 {
@@ -453,13 +453,13 @@ int input_scancode_to_scalar(const struct input_keymap_entry *ke, uint32_t *scan
             break;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     }
 
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(input_scancode_to_scalar);
+VMM_ERR_XPORT_SYMBOL(input_scancode_to_scalar);
 
 static uint32_t input_fetch_keycode(input_device_t *dev, uint32_t index)
 {
@@ -481,7 +481,7 @@ static int input_default_getkeycode(input_device_t *dev, struct input_keymap_ent
     int      error;
 
     if (!dev->keycodesize) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
@@ -495,7 +495,7 @@ static int input_default_getkeycode(input_device_t *dev, struct input_keymap_ent
     }
 
     if (index >= dev->keycodemax) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     ke->keycode = input_fetch_keycode(dev, index);
@@ -513,7 +513,7 @@ static int input_default_setkeycode(input_device_t *dev, const struct input_keym
     int      i;
 
     if (!dev->keycodesize) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
@@ -527,11 +527,11 @@ static int input_default_setkeycode(input_device_t *dev, const struct input_keym
     }
 
     if (index >= dev->keycodemax) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (dev->keycodesize < sizeof(ke->keycode) && (ke->keycode >> (dev->keycodesize * 8))) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     switch (dev->keycodesize) {
@@ -582,7 +582,7 @@ void input_alloc_absinfo(input_device_t *dev)
     BUG_ON(!dev->absinfo);
 }
 
-VMM_EXPORT_SYMBOL(input_alloc_absinfo);
+VMM_ERR_XPORT_SYMBOL(input_alloc_absinfo);
 
 void input_set_abs_params(input_device_t *dev, uint32_t axis, int min, int max, int fuzz, int flat)
 {
@@ -603,7 +603,7 @@ void input_set_abs_params(input_device_t *dev, uint32_t axis, int min, int max, 
     dev->absbit[BIT_WORD(axis)] |= BIT_MASK(axis);
 }
 
-VMM_EXPORT_SYMBOL(input_set_abs_params);
+VMM_ERR_XPORT_SYMBOL(input_set_abs_params);
 
 int input_get_keycode(input_device_t *dev, struct input_keymap_entry *ke)
 {
@@ -617,7 +617,7 @@ int input_get_keycode(input_device_t *dev, struct input_keymap_entry *ke)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(input_get_keycode);
+VMM_ERR_XPORT_SYMBOL(input_get_keycode);
 
 int input_set_keycode(input_device_t *dev, const struct input_keymap_entry *ke)
 {
@@ -626,7 +626,7 @@ int input_set_keycode(input_device_t *dev, const struct input_keymap_entry *ke)
     uint32_t    old_keycode;
 
     if (ke->keycode > KEY_MAX) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save(&dev->event_lock, flags);
@@ -659,7 +659,7 @@ out:
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(input_set_keycode);
+VMM_ERR_XPORT_SYMBOL(input_set_keycode);
 
 static vmm_class_t input_class = {
     .name = INPUT_DEVICE_CLASS_NAME,
@@ -684,7 +684,7 @@ input_device_t *input_allocate_device(void)
     return dev;
 }
 
-VMM_EXPORT_SYMBOL(input_allocate_device);
+VMM_ERR_XPORT_SYMBOL(input_allocate_device);
 
 void input_free_device(input_device_t *dev)
 {
@@ -693,7 +693,7 @@ void input_free_device(input_device_t *dev)
     }
 }
 
-VMM_EXPORT_SYMBOL(input_free_device);
+VMM_ERR_XPORT_SYMBOL(input_free_device);
 
 static uint32_t input_estimate_events_per_packet(input_device_t *dev)
 {
@@ -759,11 +759,11 @@ int input_register_device(input_device_t *dev)
     irq_flags_t flags, flags1;
 
     if (!(dev && dev->phys && dev->name)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (strlcpy(dev->dev.name, dev->phys, sizeof(dev->dev.name)) >= sizeof(dev->dev.name)) {
-        return VMM_EOVERFLOW;
+        return VMM_ERR_OVERFLOW;
     }
 
     vmm_device_driver_set_data(&dev->dev, dev);
@@ -832,14 +832,14 @@ int input_register_device(input_device_t *dev)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(input_register_device);
+VMM_ERR_XPORT_SYMBOL(input_register_device);
 
 int input_unregister_device(input_device_t *dev)
 {
     irq_flags_t flags;
 
     if (!dev) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save(&ictrl.dev_list_lock, flags);
@@ -860,7 +860,7 @@ int input_unregister_device(input_device_t *dev)
     return vmm_device_driver_unregister_device(&dev->dev);
 }
 
-VMM_EXPORT_SYMBOL(input_unregister_device);
+VMM_ERR_XPORT_SYMBOL(input_unregister_device);
 
 /*
  * Simulate keyup events for all keys that are marked as pressed.
@@ -905,7 +905,7 @@ void input_reset_device(input_device_t *dev)
     vmm_spin_unlock_irq_restore(&dev->ops_lock, flags);
 }
 
-VMM_EXPORT_SYMBOL(input_reset_device);
+VMM_ERR_XPORT_SYMBOL(input_reset_device);
 
 int input_flush_device(input_device_t *dev)
 {
@@ -913,7 +913,7 @@ int input_flush_device(input_device_t *dev)
     irq_flags_t flags;
 
     if (!dev) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (dev->flush) {
@@ -925,7 +925,7 @@ int input_flush_device(input_device_t *dev)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(input_flush_device);
+VMM_ERR_XPORT_SYMBOL(input_flush_device);
 
 input_device_t *input_find_device(const char *phys)
 {
@@ -940,7 +940,7 @@ input_device_t *input_find_device(const char *phys)
     return vmm_device_driver_get_data(dev);
 }
 
-VMM_EXPORT_SYMBOL(input_find_device);
+VMM_ERR_XPORT_SYMBOL(input_find_device);
 
 struct input_iterate_device_priv {
     void *data;
@@ -961,7 +961,7 @@ int input_iterate_device(input_device_t *start, void *data, int (*fn)(input_devi
     struct input_iterate_device_priv p;
 
     if (!fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     p.data = data;
@@ -970,14 +970,14 @@ int input_iterate_device(input_device_t *start, void *data, int (*fn)(input_devi
     return vmm_device_driver_class_device_iterate(&input_class, st, &p, __input_iterate_device);
 }
 
-VMM_EXPORT_SYMBOL(input_iterate_device);
+VMM_ERR_XPORT_SYMBOL(input_iterate_device);
 
 uint32_t input_count_device(void)
 {
     return vmm_device_driver_class_device_count(&input_class);
 }
 
-VMM_EXPORT_SYMBOL(input_count_device);
+VMM_ERR_XPORT_SYMBOL(input_count_device);
 
 int input_register_handler(struct input_handler *ihnd)
 {
@@ -988,7 +988,7 @@ int input_register_handler(struct input_handler *ihnd)
     struct input_handler *ih;
 
     if (!(ihnd && ihnd->name && ihnd->event)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     ih    = NULL;
@@ -1008,7 +1008,7 @@ int input_register_handler(struct input_handler *ihnd)
 
     if (found) {
         vmm_spin_unlock_irq_restore(&ictrl.hnd_list_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     INIT_LIST_HEAD(&ihnd->head);
@@ -1025,7 +1025,7 @@ int input_register_handler(struct input_handler *ihnd)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(input_register_handler);
+VMM_ERR_XPORT_SYMBOL(input_register_handler);
 
 int input_unregister_handler(struct input_handler *ihnd)
 {
@@ -1035,14 +1035,14 @@ int input_unregister_handler(struct input_handler *ihnd)
     struct input_handler *ih;
 
     if (!ihnd) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save(&ictrl.hnd_list_lock, flags);
 
     if (list_empty(&ictrl.hnd_list)) {
         vmm_spin_unlock_irq_restore(&ictrl.hnd_list_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     ih    = NULL;
@@ -1059,7 +1059,7 @@ int input_unregister_handler(struct input_handler *ihnd)
 
     if (!found) {
         vmm_spin_unlock_irq_restore(&ictrl.hnd_list_lock, flags);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     list_del(&ih->head);
@@ -1069,7 +1069,7 @@ int input_unregister_handler(struct input_handler *ihnd)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(input_unregister_handler);
+VMM_ERR_XPORT_SYMBOL(input_unregister_handler);
 
 int input_connect_handler(struct input_handler *ihnd)
 {
@@ -1079,7 +1079,7 @@ int input_connect_handler(struct input_handler *ihnd)
     input_device_t *dev;
 
     if (!ihnd || ihnd->connected) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     for (i = 0; i < EV_CNT; i++) {
@@ -1123,7 +1123,7 @@ int input_connect_handler(struct input_handler *ihnd)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(input_connect_handler);
+VMM_ERR_XPORT_SYMBOL(input_connect_handler);
 
 int input_disconnect_handler(struct input_handler *ihnd)
 {
@@ -1133,7 +1133,7 @@ int input_disconnect_handler(struct input_handler *ihnd)
     input_device_t *dev;
 
     if (!ihnd || !ihnd->connected) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     for (i = 0; i < EV_CNT; i++) {
@@ -1179,7 +1179,7 @@ int input_disconnect_handler(struct input_handler *ihnd)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(input_disconnect_handler);
+VMM_ERR_XPORT_SYMBOL(input_disconnect_handler);
 
 struct input_handler *input_find_handler(const char *name)
 {
@@ -1216,7 +1216,7 @@ struct input_handler *input_find_handler(const char *name)
     return ihnd;
 }
 
-VMM_EXPORT_SYMBOL(input_find_handler);
+VMM_ERR_XPORT_SYMBOL(input_find_handler);
 
 struct input_handler *input_get_handler(int index)
 {
@@ -1255,7 +1255,7 @@ struct input_handler *input_get_handler(int index)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(input_get_handler);
+VMM_ERR_XPORT_SYMBOL(input_get_handler);
 
 uint32_t input_count_handler(void)
 {
@@ -1275,7 +1275,7 @@ uint32_t input_count_handler(void)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(input_count_handler);
+VMM_ERR_XPORT_SYMBOL(input_count_handler);
 
 static int __init input_init(void)
 {

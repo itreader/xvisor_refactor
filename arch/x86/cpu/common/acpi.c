@@ -88,19 +88,19 @@ static int __init acpi_read_sdt_at(void *sdt_va, struct acpi_sdt_hdr *tb, size_t
 
     if (acpi_check_signature((const char *)tb->signature, (const char *)name)) {
         vmm_printf("ACPI ERROR: acpi %s signature does not match\n", name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (size < tb->len) {
         vmm_printf("ACPI ERROR: acpi buffer too small for %s\n", name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     memcpy(tb, sdt_va, tb->len);
 
     if (acpi_check_csum(tb, tb->len)) {
         vmm_printf("ACPI ERROR: acpi %s checksum does not match\n", name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return tb->len;
@@ -143,7 +143,7 @@ static virtual_addr_t __init find_root_system_descriptor(void)
 
         size     = carea->phys_end - carea->phys_start;
 
-        area_map = vmm_host_memmap(carea->phys_start, size, VMM_MEMORY_FLAGS_NORMAL_NOCACHE);
+        area_map = vmm_host_memory_map(carea->phys_start, size, VMM_MEMORY_FLAGS_NORMAL_NOCACHE);
 
         BUG_ON((void *)area_map == NULL);
 
@@ -154,7 +154,7 @@ static virtual_addr_t __init find_root_system_descriptor(void)
 
         rsdp_base = 0;
         carea++;
-        vmm_host_memunmap(area_map);
+        vmm_host_memory_unmap(area_map);
         vmm_printf("not found.\n");
     }
 
@@ -186,14 +186,14 @@ static int __init acpi_populate_ioapic_device_tree(struct acpi_madt_hdr *madt_hd
         if (vmm_device_tree_setattr(
                 nnode, VMM_DEVICE_TREE_IOAPIC_PADDR_ATTR_NAME, &ioapic->address, VMM_DEVICE_TREE_ATTRTYPE_PHYSADDR, sizeof(physical_addr_t), FALSE) !=
             VMM_OK) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             break;
         }
 
         if (vmm_device_tree_setattr(
                 nnode, VMM_DEVICE_TREE_IOAPIC_GINT_BASE_ATTR_NAME, &ioapic->global_int_base, VMM_DEVICE_TREE_ATTRTYPE_UINT32,
                 sizeof(ioapic->global_int_base), FALSE) != VMM_OK) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             break;
         }
 
@@ -226,14 +226,14 @@ static int __init acpi_populate_lapic_device_tree(struct acpi_madt_hdr *madt_hdr
         if (vmm_device_tree_setattr(
                 nnode, VMM_DEVICE_TREE_LAPIC_CPU_ID_ATTR_NAME, &lapic->acpi_cpu_id, VMM_DEVICE_TREE_ATTRTYPE_UINT32, sizeof(lapic->acpi_cpu_id),
                 FALSE) != VMM_OK) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             break;
         }
 
         if (vmm_device_tree_setattr(
                 nnode, VMM_DEVICE_TREE_LAPIC_LAPIC_ID_ATTR_NAME, &lapic->apic_id, VMM_DEVICE_TREE_ATTRTYPE_UINT32, sizeof(lapic->apic_id), FALSE) !=
             VMM_OK) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             break;
         }
 
@@ -258,11 +258,11 @@ static int __init process_acpi_sdt_table(char *tab_sign, void *tab_data)
         madt_hdr = (struct acpi_madt_hdr *)tab_data;
 
         if (acpi_populate_ioapic_device_tree(madt_hdr, cnode) != VMM_OK) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         if (acpi_populate_lapic_device_tree(madt_hdr, cnode) != VMM_OK) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     } else if (!strncmp(tab_sign, HPET_SIGNATURE, strlen(HPET_SIGNATURE))) {
         struct acpi_hpet hpet_chip, *hpet;
@@ -270,7 +270,7 @@ static int __init process_acpi_sdt_table(char *tab_sign, void *tab_data)
         char             hpet_nm[256];
 
         if (acpi_read_sdt_at(tab_data, (struct acpi_sdt_hdr *)&hpet_chip, sizeof(struct acpi_hpet), HPET_SIGNATURE) < 0) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         hpet           = (struct acpi_hpet *)tab_data;
@@ -289,13 +289,13 @@ static int __init process_acpi_sdt_table(char *tab_sign, void *tab_data)
             if (vmm_device_tree_setattr(
                     nnode, VMM_DEVICE_TREE_HPET_ID_ATTR_NAME, &hpet->tmr_blocks[i].asid, VMM_DEVICE_TREE_ATTRTYPE_UINT32,
                     sizeof(hpet->tmr_blocks[i].asid), FALSE) != VMM_OK) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             if (vmm_device_tree_setattr(
                     nnode, VMM_DEVICE_TREE_HPET_PADDR_ATTR_NAME, &hpet->tmr_blocks[i].base, VMM_DEVICE_TREE_ATTRTYPE_PHYSADDR,
                     sizeof(physical_addr_t), FALSE) != VMM_OK) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
         }
     }
@@ -305,7 +305,7 @@ static int __init process_acpi_sdt_table(char *tab_sign, void *tab_data)
 
 int __init acpi_init(void)
 {
-    int               i, nr_sys_hdr, ret = VMM_EFAIL;
+    int               i, nr_sys_hdr, ret = VMM_ERR_FAIL;
     struct acpi_rsdp *root_desc = NULL;
     struct acpi_rsdt  rsdt, *prsdt;
 

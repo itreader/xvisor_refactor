@@ -443,7 +443,7 @@ int bitmap_find_free_region(uint64_t *bitmap, int bits, int order)
         return pos;
     }
 
-    return VMM_ENOMEM;
+    return VMM_ERR_NOMEM;
 }
 
 /**
@@ -476,7 +476,7 @@ void bitmap_release_region(uint64_t *bitmap, int pos, int order)
 int bitmap_allocate_region(uint64_t *bitmap, int pos, int order)
 {
     if (!__reg_op(bitmap, pos, order, REG_OP_ISFREE)) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     __reg_op(bitmap, pos, order, REG_OP_ALLOC);

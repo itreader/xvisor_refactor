@@ -58,7 +58,7 @@ static int __init smp_default_cpu_boot(uint32_t cpu)
 
     /* Check pen value */
     if (smp_read_pen_release() != HARTID_INVALID) {
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     return VMM_OK;

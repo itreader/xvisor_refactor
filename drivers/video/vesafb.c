@@ -201,7 +201,7 @@ static void vesafb_destroy(struct frame_buffer_info *info)
     fb_dealloc_cmap(&info->cmap);
 
     if (info->screen_base) {
-        vmm_host_memunmap((virtual_addr_t)info->screen_base);
+        vmm_host_memory_unmap((virtual_addr_t)info->screen_base);
     }
 
     release_mem_region(info->apertures->ranges[0].base, info->apertures->ranges[0].size);
@@ -377,7 +377,7 @@ static int vesafb_probe(vmm_device_t *dev)
 
     if (ypan || pmi_setpal) {
         unsigned short *pmi_base;
-        pmi_base_va = vmm_host_memmap(((uint64_t)screen_info.vesapm_seg << 4) + screen_info.vesapm_off, 0x10000, VMM_MEMORY_FLAGS_NORMAL);
+        pmi_base_va = vmm_host_memory_map(((uint64_t)screen_info.vesapm_seg << 4) + screen_info.vesapm_off, 0x10000, VMM_MEMORY_FLAGS_NORMAL);
         pmi_base    = (unsigned short *)pmi_base_va;
         pmi_start   = (void *)((char *)pmi_base + pmi_base[1]);
         pmi_pal     = (void *)((char *)pmi_base + pmi_base[2]);
@@ -505,20 +505,20 @@ static int vesafb_probe(vmm_device_t *dev)
 
     switch (mtrr) {
         case 1: /* uncachable */
-            info->screen_base = (char *)vmm_host_memmap(vesaframe_buffer_fix.smem_start, vesaframe_buffer_fix.smem_len, VMM_MEMORY_FLAGS_IO);
+            info->screen_base = (char *)vmm_host_memory_map(vesaframe_buffer_fix.smem_start, vesaframe_buffer_fix.smem_len, VMM_MEMORY_FLAGS_IO);
             break;
 
         case 2: /* write-back */
-            info->screen_base = (char *)vmm_host_memmap(vesaframe_buffer_fix.smem_start, vesaframe_buffer_fix.smem_len, VMM_MEMORY_FLAGS_NORMAL);
+            info->screen_base = (char *)vmm_host_memory_map(vesaframe_buffer_fix.smem_start, vesaframe_buffer_fix.smem_len, VMM_MEMORY_FLAGS_NORMAL);
             break;
 
         case 3: /* FIXME: write-combining */
-            info->screen_base = (char *)vmm_host_memmap(vesaframe_buffer_fix.smem_start, vesaframe_buffer_fix.smem_len, VMM_MEMORY_FLAGS_IO);
+            info->screen_base = (char *)vmm_host_memory_map(vesaframe_buffer_fix.smem_start, vesaframe_buffer_fix.smem_len, VMM_MEMORY_FLAGS_IO);
             break;
 
         case 4: /* write-through */
         default:
-            info->screen_base = (char *)vmm_host_memmap(vesaframe_buffer_fix.smem_start, vesaframe_buffer_fix.smem_len, VMM_MEMORY_FLAGS_NORMAL_WT);
+            info->screen_base = (char *)vmm_host_memory_map(vesaframe_buffer_fix.smem_start, vesaframe_buffer_fix.smem_len, VMM_MEMORY_FLAGS_NORMAL_WT);
             break;
     }
 
@@ -560,7 +560,7 @@ static int vesafb_probe(vmm_device_t *dev)
 err:
 
     if (info->screen_base) {
-        vmm_host_memunmap((virtual_addr_t)info->screen_base);
+        vmm_host_memory_unmap((virtual_addr_t)info->screen_base);
     }
 
     framebuffer_release(info);
@@ -581,7 +581,7 @@ static int vesafb_remove(vmm_device_t *dev)
     }
 
     if (info->screen_base) {
-        vmm_host_memunmap((virtual_addr_t)info->screen_base);
+        vmm_host_memory_unmap((virtual_addr_t)info->screen_base);
     }
 
     framebuffer_release(info);

@@ -56,7 +56,7 @@ static int netdev_register_port(struct net_device *ndev)
 
     if (!port) {
         vmm_printf("Failed to allocate netport for %s\n", ndev->name);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     port->dev.parent       = dev;
@@ -103,7 +103,7 @@ int register_netdev(struct net_device *ndev)
     int rc = VMM_OK;
 
     if (ndev == NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (ndev->netdev_ops && ndev->netdev_ops->ndo_init) {
@@ -134,7 +134,7 @@ int netdev_unregister(struct net_device *ndev)
     int rc = VMM_OK;
 
     if (ndev == NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     ndev->state &= ~(NETDEV_REGISTERED | NETDEV_TX_ALLOWED);

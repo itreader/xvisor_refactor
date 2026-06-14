@@ -122,7 +122,7 @@ void do_hyp_trap(arch_regs_t *regs)
     switch (ec) {
         case EC_UNKNOWN:
             /* We dont expect to get this trap so error */
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
 
         case EC_TRAP_WFI_WFE:
@@ -177,7 +177,7 @@ void do_hyp_trap(arch_regs_t *regs)
 
         case EC_TRAP_SVC:
             /* We dont expect to get this trap so error */
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
 
         case EC_TRAP_HVC:
@@ -201,7 +201,7 @@ void do_hyp_trap(arch_regs_t *regs)
 
         case EC_TRAP_STAGE1_INST_ABORT:
             /* We dont expect to get this trap so error */
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
 
         case EC_TRAP_STAGE2_DATA_ABORT:
@@ -215,12 +215,12 @@ void do_hyp_trap(arch_regs_t *regs)
 
         case EC_TRAP_STAGE1_DATA_ABORT:
             /* We dont expect to get this trap so error */
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
 
         default:
             /* Unknown EC value so error */
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 

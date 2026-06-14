@@ -79,7 +79,7 @@ int pci_emu_find_pci_device(struct pci_host_controller *controller, int bus_id, 
     irq_flags_t        flags;
 
     if (!bus) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     vmm_spin_lock_irq_save(&bus->lock, flags);
@@ -95,7 +95,7 @@ int pci_emu_find_pci_device(struct pci_host_controller *controller, int bus_id, 
 
     vmm_spin_unlock_irq_restore(&bus->lock, flags);
 
-    return VMM_ENODEV;
+    return VMM_ERR_NODEV;
 }
 
 struct pci_device *pci_emu_pci_dev_find_by_addr(struct pci_host_controller *controller, uint32_t addr)
@@ -158,7 +158,7 @@ static int pci_emu_attach_pci_device(struct pci_host_controller *controller, str
     irq_flags_t     flags;
 
     if (!bus) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     vmm_spin_lock_irq_save(&bus->lock, flags);
@@ -181,7 +181,7 @@ int pci_emu_register_device(struct pci_dev_emulator *emu)
     struct pci_dev_emulator *e;
 
     if (!emu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_mutex_lock(&pci_emu_dectrl.emu_lock);
@@ -191,7 +191,7 @@ int pci_emu_register_device(struct pci_dev_emulator *emu)
     {
         if (strcmp(e->name, emu->name) == 0) {
             vmm_mutex_unlock(&pci_emu_dectrl.emu_lock);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 
@@ -209,7 +209,7 @@ int pci_emu_unregister_device(struct pci_dev_emulator *emu)
     struct pci_dev_emulator *e;
 
     if (!emu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_mutex_lock(&pci_emu_dectrl.emu_lock);
@@ -219,7 +219,7 @@ int pci_emu_unregister_device(struct pci_dev_emulator *emu)
     {
         if (strcmp(e->name, emu->name) == 0) {
             vmm_mutex_unlock(&pci_emu_dectrl.emu_lock);
-            return VMM_ENOTAVAIL;
+            return VMM_ERR_NOTAVAIL;
         }
     }
 
@@ -236,7 +236,7 @@ static int pci_emu_register_bar(struct vmm_guest *guest, const char *name, struc
     physical_addr_t addr;
 
     if (vmm_device_tree_read_physaddr(bar_node, VMM_DEVICE_TREE_GUEST_PHYS_ATTR_NAME, &addr)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((rc = vmm_guest_add_region_from_node(guest, bar_node, NULL)) != VMM_OK) {
@@ -275,7 +275,7 @@ static int pci_emu_enumerate_bars(struct vmm_guest *guest, struct pci_device *pd
 
         if (barnum >= 6) {
             vmm_printf("%s: Bar number for %s is out of range: %d\n", __func__, bars->name, barnum);
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             vmm_device_tree_dref_node(bars);
             goto done;
         }
@@ -305,7 +305,7 @@ int pci_emu_probe_devices(struct vmm_guest *guest, struct pci_host_controller *c
     uint8_t                  bus_name[32];
 
     if (!guest || !node || !controller) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_mutex_lock(&pci_emu_dectrl.emu_lock);
@@ -319,7 +319,7 @@ int pci_emu_probe_devices(struct vmm_guest *guest, struct pci_host_controller *c
 
         if (!bus_node) {
             vmm_mutex_unlock(&pci_emu_dectrl.emu_lock);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         devs_node = vmm_device_tree_getchild(bus_node, "devices");
@@ -327,7 +327,7 @@ int pci_emu_probe_devices(struct vmm_guest *guest, struct pci_host_controller *c
 
         if (!devs_node) {
             vmm_mutex_unlock(&pci_emu_dectrl.emu_lock);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         vmm_device_tree_for_each_child(tnode, devs_node)
@@ -348,7 +348,7 @@ int pci_emu_probe_devices(struct vmm_guest *guest, struct pci_host_controller *c
                     vmm_device_tree_dref_node(dev_node);
                     vmm_device_tree_dref_node(devs_node);
                     vmm_mutex_unlock(&pci_emu_dectrl.emu_lock);
-                    return VMM_EFAIL;
+                    return VMM_ERR_FAIL;
                 }
 
                 INIT_SPIN_LOCK(&pdev->lock);
@@ -444,7 +444,7 @@ int pci_emu_attach_new_pci_bus(struct pci_host_controller *controller, uint32_t 
         return VMM_OK;
     }
 
-    return VMM_ENOMEM;
+    return VMM_ERR_NOMEM;
 }
 
 int pci_emu_detach_pci_bus(struct pci_host_controller *controller, uint32_t bus_id)
@@ -466,7 +466,7 @@ int pci_emu_detach_pci_bus(struct pci_host_controller *controller, uint32_t bus_
 
     vmm_spin_unlock_irq_restore(&controller->lock, flags);
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 int pci_emu_config_space_write(struct pci_class *class, uint32_t reg_offs, uint32_t val)
@@ -487,7 +487,7 @@ int pci_emu_config_space_write(struct pci_class *class, uint32_t reg_offs, uint3
                 "implemented outside class.\n",
                 __func__, reg_offs);
             vmm_spin_unlock_irq_restore(&class->lock, flags);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 
@@ -624,7 +624,7 @@ uint32_t pci_emu_config_space_read(struct pci_class *class, uint32_t reg_offs, u
                 "implemented outside class.\n",
                 __func__, reg_offs);
             vmm_spin_unlock_irq_restore(&class->lock, flags);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 

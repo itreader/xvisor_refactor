@@ -18,7 +18,7 @@
  *
  * @file vmm_iommu.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief IOMMU framework header for device pass-through
+ * @brief 设备直通IOMMU框架头文件
  *
  * The source has been largely adapted from Linux sources:
  * include/linux/iommu.h
@@ -55,29 +55,35 @@ typedef int (*vmm_iommu_init_t)(vmm_device_tree_node_t *);
 /* declare nodeid table based initialization for IOMMU */
 #define VMM_IOMMU_INIT_DECLARE(name, compat, fn) VMM_DEVICE_TREE_NIDTBL_ENTRY(name, "iommu", "", "", compat, fn)
 
+/**
+ * @brief IOMMU控制器结构，管理一组IOMMU设备和域
+ */
 typedef struct vmm_iommu_controller {
     /* Public members */
-    char          name[VMM_FIELD_NAME_SIZE];
+    char          name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
     /* Private members */
-    vmm_device_t  dev;
-    vmm_mutex_t   groups_lock;
-    double_list_t groups;
-    vmm_mutex_t   domains_lock;
-    double_list_t domains;
+    vmm_device_t  dev; /**< 设备 */
+    vmm_mutex_t   groups_lock; /**< groups_lock成员 */
+    double_list_t groups; /**< groups成员 */
+    vmm_mutex_t   domains_lock; /**< domains_lock成员 */
+    double_list_t domains; /**< domains成员 */
 } vmm_iommu_controller_t;
 
+/**
+ * @brief IOMMU设备组，将共享IOMMU上下文的设备分组管理
+ */
 struct vmm_iommu_group {
-    char                   *name;
-    vmm_iommu_controller_t *ctrl;
-    double_list_t           head;
+    char                   *name; /**< 名称 */
+    vmm_iommu_controller_t *ctrl; /**< 控制 */
+    double_list_t           head; /**< 链表头 */
 
-    struct xref                   ref_count;
-    vmm_mutex_t                   mutex;
-    vmm_iommu_domain_t           *domain;
-    double_list_t                 devices;
-    vmm_blocking_notifier_chain_t notifier;
-    void                         *iommu_data;
-    void (*iommu_data_release)(void *iommu_data);
+    struct xref                   ref_count; /**< 引用计数 */
+    vmm_mutex_t                   mutex; /**< 互斥锁 */
+    vmm_iommu_domain_t           *domain; /**< 域 */
+    double_list_t                 devices; /**< devices成员 */
+    vmm_blocking_notifier_chain_t notifier; /**< notifier成员 */
+    void                         *iommu_data; /**< iommu_data成员 */
+    void (*iommu_data_release)(void *iommu_data); /**< iommu_data_release成员 */
 };
 
 /* iommu mapping attributes */
@@ -122,20 +128,23 @@ struct vmm_iommu_domain_geometry {
     bool       force_aperture; /* DMA only allowed in mappable range? */
 };
 
+/**
+ * @brief IOMMU地址域，定义一组设备的地址翻译和保护规则
+ */
 struct vmm_iommu_domain {
     /* Public members */
-    char                    name[VMM_FIELD_NAME_SIZE];
-    uint32_t                type;
-    vmm_bus_t              *bus;
-    vmm_iommu_controller_t *ctrl;
+    char                    name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
+    uint32_t                type; /**< 类型 */
+    vmm_bus_t              *bus; /**< 总线 */
+    vmm_iommu_controller_t *ctrl; /**< 控制 */
     /* Private members */
-    double_list_t           head;
-    struct xref             ref_count;
-    vmm_iommu_ops_t        *ops;
-    void *private;
-    vmm_iommu_fault_handler_t        handler;
-    void                            *handler_token;
-    struct vmm_iommu_domain_geometry geometry;
+    double_list_t           head; /**< 链表头 */
+    struct xref             ref_count; /**< 引用计数 */
+    vmm_iommu_ops_t        *ops; /**< 操作集 */
+    void *private; /**< 私有数据 */
+    vmm_iommu_fault_handler_t        handler; /**< 处理函数 */
+    void                            *handler_token; /**< handler_token成员 */
+    struct vmm_iommu_domain_geometry geometry; /**< 几何参数 */
 };
 
 enum vmm_iommu_cap {
@@ -189,32 +198,32 @@ enum vmm_iommu_attr {
  * @pgsize_bitmap: bitmap of all possible supported page sizes
  */
 struct vmm_iommu_ops {
-    bool (*capable)(enum vmm_iommu_cap);
+    bool (*capable)(enum vmm_iommu_cap); /**< capable成员 */
 
-    vmm_iommu_domain_t *(*domain_alloc)(uint32_t type, vmm_iommu_controller_t *ctrl);
-    void (*domain_free)(vmm_iommu_domain_t *domain);
-    int (*attach_dev)(vmm_iommu_domain_t *domain, vmm_device_t *dev);
-    void (*detach_dev)(vmm_iommu_domain_t *domain, vmm_device_t *dev);
-    int (*map)(vmm_iommu_domain_t *domain, physical_addr_t iova, physical_addr_t paddr, size_t size, int prot);
-    size_t (*unmap)(vmm_iommu_domain_t *domain, physical_addr_t iova, size_t size);
-    physical_addr_t (*iova_to_phys)(vmm_iommu_domain_t *domain, physical_addr_t iova);
-    int (*add_device)(vmm_device_t *dev);
-    void (*remove_device)(vmm_device_t *dev);
+    vmm_iommu_domain_t *(*domain_alloc)(uint32_t type, vmm_iommu_controller_t *ctrl); /**< domain_alloc成员 */
+    void (*domain_free)(vmm_iommu_domain_t *domain); /**< domain_free成员 */
+    int (*attach_dev)(vmm_iommu_domain_t *domain, vmm_device_t *dev); /**< 附加设备 */
+    void (*detach_dev)(vmm_iommu_domain_t *domain, vmm_device_t *dev); /**< 分离设备 */
+    int (*map)(vmm_iommu_domain_t *domain, physical_addr_t iova, physical_addr_t paddr, size_t size, int prot); /**< 映射 */
+    size_t (*unmap)(vmm_iommu_domain_t *domain, physical_addr_t iova, size_t size); /**< unmap成员 */
+    physical_addr_t (*iova_to_phys)(vmm_iommu_domain_t *domain, physical_addr_t iova); /**< IOVA转物理地址 */
+    int (*add_device)(vmm_device_t *dev); /**< add_device成员 */
+    void (*remove_device)(vmm_device_t *dev); /**< remove_device成员 */
 
-    int (*domain_get_attr)(vmm_iommu_domain_t *domain, enum vmm_iommu_attr attr, void *data);
-    int (*domain_set_attr)(vmm_iommu_domain_t *domain, enum vmm_iommu_attr attr, void *data);
+    int (*domain_get_attr)(vmm_iommu_domain_t *domain, enum vmm_iommu_attr attr, void *data); /**< domain_get_attr成员 */
+    int (*domain_set_attr)(vmm_iommu_domain_t *domain, enum vmm_iommu_attr attr, void *data); /**< domain_set_attr成员 */
 
     /* Window handling functions */
-    int (*domain_window_enable)(vmm_iommu_domain_t *domain, uint32_t wnd_nr, physical_addr_t paddr, uint64_t size, int prot);
-    void (*domain_window_disable)(vmm_iommu_domain_t *domain, uint32_t wnd_nr);
+    int (*domain_window_enable)(vmm_iommu_domain_t *domain, uint32_t wnd_nr, physical_addr_t paddr, uint64_t size, int prot); /**< domain_window_enable成员 */
+    void (*domain_window_disable)(vmm_iommu_domain_t *domain, uint32_t wnd_nr); /**< domain_window_disable成员 */
     /* Set the numer of window per domain */
-    int (*domain_set_windows)(vmm_iommu_domain_t *domain, uint32_t w_count);
+    int (*domain_set_windows)(vmm_iommu_domain_t *domain, uint32_t w_count); /**< domain_set_windows成员 */
     /* Get the numer of window per domain */
-    uint32_t (*domain_get_windows)(vmm_iommu_domain_t *domain);
+    uint32_t (*domain_get_windows)(vmm_iommu_domain_t *domain); /**< domain_get_windows成员 */
 
-    int (*of_xlate)(vmm_device_t *dev, struct vmm_device_tree_phandle_args *args);
+    int (*of_xlate)(vmm_device_t *dev, struct vmm_device_tree_phandle_args *args); /**< of_xlate成员 */
 
-    uint64_t pgsize_bitmap;
+    uint64_t pgsize_bitmap; /**< 页大小位图 */
 };
 
 #define VMM_IOMMU_GROUP_NOTIFY_ADD_DEVICE     1 /* Device added */
@@ -226,168 +235,231 @@ struct vmm_iommu_ops {
 
 /* =============== IOMMU Controller APIs =============== */
 
-/** Register IOMMU controller
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 注册IOMMU控制器
+ * @param ctrl 控制器结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_iommu_controller_register(vmm_iommu_controller_t *ctrl);
 
-/** Unregister IOMMU controller
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 注销IOMMU控制器
+ * @param ctrl 控制器结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_iommu_controller_unregister(vmm_iommu_controller_t *ctrl);
 
-/** Find an IOMMU controller
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 查找IOMMU控制器
+ * @param name 目标对象的名称
+ * @return 成功返回匹配的对象指针，未找到返回NULL
  */
 vmm_iommu_controller_t *vmm_iommu_controller_find(const char *name);
 
-/** Iterate over each IOMMU controller
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 遍历所有已注册的IOMMU控制器
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_iommu_controller_iterate(vmm_iommu_controller_t *start, void *data, int (*fn)(vmm_iommu_controller_t *, void *));
 
-/** Count number of IOMMU controllers
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 获取IOMMU控制器的数量
+ * @return 数量值
  */
 uint32_t vmm_iommu_controller_count(void);
 
-/** Iterate over each IOMMU group of given IOMMU controller
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 遍历IOMMU控制器下的所有IOMMU组
+ * @param ctrl 控制器结构体指针
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_iommu_controller_for_each_group(vmm_iommu_controller_t *ctrl, void *data, int (*fn)(vmm_iommu_group_t *, void *));
 
-/** Count number of IOMMU groups in given IOMMU controller
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 获取IOMMU设备组的数量
+ * @param ctrl 控制器结构体指针
+ * @return 数量值
  */
 uint32_t vmm_iommu_controller_group_count(vmm_iommu_controller_t *ctrl);
 
-/** Iterate over each IOMMU domain of given IOMMU controller
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 遍历IOMMU控制器下的所有IOMMU域
+ * @param ctrl 控制器结构体指针
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_iommu_controller_for_each_domain(vmm_iommu_controller_t *ctrl, void *data, int (*fn)(vmm_iommu_domain_t *, void *));
 
-/** Count number of IOMMU domains in given IOMMU controller
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 获取IOMMU域的数量
+ * @param ctrl 控制器结构体指针
+ * @return 数量值
  */
 uint32_t vmm_iommu_controller_domain_count(vmm_iommu_controller_t *ctrl);
 
 /* =============== IOMMU Group APIs =============== */
 
-/** Alloc new IOMMU group
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 分配IOMMU设备组
+ * @param name 目标对象的名称
+ * @param ctrl 控制器结构体指针
+ * @return 成功返回目标指针，失败返回NULL
  */
 vmm_iommu_group_t *vmm_iommu_group_alloc(const char *name, vmm_iommu_controller_t *ctrl);
 
-/** Get IOMMU group of given device */
+/**
+ * @brief 获取指定名称的IOMMU组
+ * @param dev 设备结构体指针
+ */
 vmm_iommu_group_t *vmm_iommu_group_get(vmm_device_t *dev);
 
-/** Put IOMMU group
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 释放IOMMU设备组
+ * @param group 组结构体指针
  */
 void vmm_iommu_group_free(vmm_iommu_group_t *group);
 #define vmm_iommu_group_put(group) vmm_iommu_group_free(group)
 
-/** Get IOMMU group instance by ID */
+/**
+ * @brief 获取IOMMU设备组的ID查找
+ * @param id 标识符值
+ * @return 目标对象指针，不存在返回NULL
+ */
 vmm_iommu_group_t *vmm_iommu_group_get_by_id(int id);
 
-/** Get private data for given IOMMU group */
+/**
+ * @brief 获取IOMMU设备组的IOMMU私有数据
+ * @param group 组结构体指针
+ */
 void *vmm_iommu_group_get_iommudata(vmm_iommu_group_t *group);
 
-/** Set private data for given IOMMU group */
+/**
+ * @brief 设置IOMMU设备组的IOMMU私有数据
+ * @param group 组结构体指针
+ * @param iommu_data IOMMU私有数据指针
+ * @param (*release 指针参数
+ */
 void vmm_iommu_group_set_iommudata(vmm_iommu_group_t *group, void *iommu_data, void (*release)(void *iommu_data));
 
-/** Add device to IOMMU group
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 将设备添加到IOMMU组
+ * @param group 组结构体指针
+ * @param dev 设备结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_iommu_group_add_device(vmm_iommu_group_t *group, vmm_device_t *dev);
 
-/** Remove device from IOMMU group
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 从IOMMU组中移除设备
+ * @param dev 设备结构体指针
  */
 void vmm_iommu_group_remove_device(vmm_device_t *dev);
 
-/** Iterate over each device of given IOMMU group
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 遍历IOMMU组中的所有设备
+ * @param group 组结构体指针
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_iommu_group_for_each_dev(vmm_iommu_group_t *group, void *data, int (*fn)(vmm_device_t *, void *));
 
-/** Register notifier client for IOMMU group
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 注册IOMMU组通知器
+ * @param group 组结构体指针
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_iommu_group_register_notifier(vmm_iommu_group_t *group, vmm_notifier_block_t *nb);
 
-/** Unregister notifier client for IOMMU group
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 注销IOMMU组通知器
+ * @param group 组结构体指针
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_iommu_group_unregister_notifier(vmm_iommu_group_t *group, vmm_notifier_block_t *nb);
 
-/** Get name for given IOMMU group */
+/**
+ * @brief 获取IOMMU组的名称
+ * @param group 组结构体指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 const char *vmm_iommu_group_name(vmm_iommu_group_t *group);
 
-/** Get IOMMU controller for given IOMMU group */
+/**
+ * @brief 获取IOMMU组所属的IOMMU控制器
+ * @param group 组结构体指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 vmm_iommu_controller_t *vmm_iommu_group_controller(vmm_iommu_group_t *group);
 
-/** Attach IOMMU domain to given IOMMU group
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 将IOMMU域附加到IOMMU组
+ * @param group 组结构体指针
+ * @param domain 域结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_iommu_group_attach_domain(vmm_iommu_group_t *group, vmm_iommu_domain_t *domain);
 
-/** Detach IOMMU domain from given IOMMU group
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 从IOMMU组分离IOMMU域
+ * @param group 组结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_iommu_group_detach_domain(vmm_iommu_group_t *group);
 
-/** Get IOMMU domain of given IOMMU group
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 获取IOMMU设备组的域
+ * @param group 组结构体指针
+ * @return 目标对象指针，不存在返回NULL
  */
 vmm_iommu_domain_t *vmm_iommu_group_get_domain(vmm_iommu_group_t *group);
 
 /* =============== IOMMU Domain APIs =============== */
 
-/** Alloc new IOMMU domain for given bus type and IOMMU controller
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 分配IOMMU域
+ * @param name 目标对象的名称
+ * @param bus 设备总线结构体指针
+ * @param ctrl 控制器结构体指针
+ * @param type 类型标识值
  */
 vmm_iommu_domain_t *vmm_iommu_domain_alloc(const char *name, vmm_bus_t *bus, vmm_iommu_controller_t *ctrl, uint32_t type);
 
-/**  Increase reference count of a domain */
+/**
+ * @brief 增加IOMMU域的引用计数
+ * @param domain 域结构体指针
+ */
 void vmm_iommu_domain_ref(vmm_iommu_domain_t *domain);
 
-/** Free existing IOMMU domain
- *  Note: This function must be called in Orphan (or Thread) context
+/**
+ * @brief 释放IOMMU域
+ * @param domain 域结构体指针
  */
 void vmm_iommu_domain_free(vmm_iommu_domain_t *domain);
 #define vmm_iommu_domain_dref(domain) vmm_iommu_domain_free(domain)
 
-/** Set fault handler for given IOMMU domain */
+/**
+ * @brief 设置IOMMU的故障处理回调
+ * @param domain 域结构体指针
+ * @param handler 信号处理函数指针
+ * @param token 令牌字符串
+ */
 void vmm_iommu_set_fault_handler(vmm_iommu_domain_t *domain, vmm_iommu_fault_handler_t handler, void *token);
 
 /**
- * Report about an IOMMU fault to the IOMMU framework
- * @domain: the iommu domain where the fault has happened
- * @dev: the device where the fault has happened
- * @iova: the faulting address
- * @flags: mmu fault flags (e.g. VMM_IOMMU_FAULT_READ/VMM_IOMMU_FAULT_WRITE/...)
- *
- * This function should be called by the low-level IOMMU implementations
- * whenever IOMMU faults happen, to allow high-level users, that are
- * interested in such events, to know about them.
- *
- * This event may be useful for several possible use cases:
- * - mere logging of the event
- * - dynamic TLB/PTE loading
- * - if restarting of the faulting device is required
- *
- * Returns 0 on success and an appropriate error code otherwise (if dynamic
- * PTE/TLB loading will one day be supported, implementations will be able
- * to tell whether it succeeded or not according to this return value).
- *
- * Specifically, VMM_ENOSYS is returned if a fault handler isn't installed
- * (though fault handlers can also return VMM_ENOSYS, in case they want to
- * elicit the default behavior of the IOMMU drivers).
+ * @brief 向IOMMU框架报告IOMMU故障事件
  */
 static inline int vmm_report_iommu_fault(vmm_iommu_domain_t *domain, vmm_device_t *dev, physical_addr_t iova, int flags)
 {
-    int ret = VMM_ENOSYS;
+    int ret = VMM_ERR_NOSYS;
 
     /*
      * if upper layers showed interest and installed a fault handler,
@@ -400,39 +472,99 @@ static inline int vmm_report_iommu_fault(vmm_iommu_domain_t *domain, vmm_device_
     return ret;
 }
 
-/** Get IO virtual addres mapping for given IOMMU domain */
+/**
+ * @brief 将IOMMU域的IO虚拟地址转换为物理地址
+ * @param domain 域结构体指针
+ * @param iova IO虚拟地址
+ * @return 转换结果
+ */
 physical_addr_t vmm_iommu_iova_to_phys(vmm_iommu_domain_t *domain, physical_addr_t iova);
 
-/** Map IO virtual address to Physical address for given IOMMU domain */
+/**
+ * @brief 建立IOMMU地址映射
+ * @param domain 域结构体指针
+ * @param iova IO虚拟地址
+ * @param paddr 物理地址值
+ * @param size 数据大小（字节数）
+ * @param prot 内存保护标志
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_map(vmm_iommu_domain_t *domain, physical_addr_t iova, physical_addr_t paddr, size_t size, int prot);
 
-/** Unmap IO virtual address for given IOMMU domain */
+/**
+ * @brief IOMMU解除地址映射
+ * @param domain 域结构体指针
+ * @param iova IO虚拟地址
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 size_t vmm_iommu_unmap(vmm_iommu_domain_t *domain, physical_addr_t iova, size_t size);
 
-/** Enable physical address window for IOMMU domain */
+/**
+ * @brief 启用IOMMU域的DMA窗口
+ * @param domain 域结构体指针
+ * @param wnd_nr 窗口编号
+ * @param offset 偏移量（字节）
+ * @param size 数据大小（字节数）
+ * @param prot 内存保护标志
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_domain_window_enable(vmm_iommu_domain_t *domain, uint32_t wnd_nr, physical_addr_t offset, uint64_t size, int prot);
 
-/** Disable physical address window for IOMMU domain */
+/**
+ * @brief 禁用IOMMU域的DMA窗口
+ * @param domain 域结构体指针
+ * @param wnd_nr 窗口编号
+ */
 void vmm_iommu_domain_window_disable(vmm_iommu_domain_t *domain, uint32_t wnd_nr);
 
-/** Get attributes of IOMMU domain */
+/**
+ * @brief 获取IOMMU域的attr
+ * @param domain 域结构体指针
+ * @param vmm_iommu_attr IOMMU属性值
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_domain_get_attr(vmm_iommu_domain_t *domain, enum vmm_iommu_attr, void *data);
 
-/** Set attributes for IOMMU domain */
+/**
+ * @brief 设置IOMMU域的attr
+ * @param domain 域结构体指针
+ * @param vmm_iommu_attr IOMMU属性值
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_iommu_domain_set_attr(vmm_iommu_domain_t *domain, enum vmm_iommu_attr, void *data);
 
 /* =============== IOMMU Misc APIs =============== */
 
-/** Set IOMMU operations for given bus type */
+/**
+ * @brief 设置总线的IOMMU
+ * @param bus 设备总线结构体指针
+ * @param ops 操作集结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_bus_set_iommu(vmm_bus_t *bus, vmm_iommu_ops_t *ops);
 
-/** Check whethere IOMMU operations are available for given bus type */
+/**
+ * @brief 检查IOMMU是否存在
+ * @param bus 设备总线结构体指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_iommu_present(vmm_bus_t *bus);
 
-/**  Capability check on IOMMU for given bus type */
+/**
+ * @brief 检查IOMMU是否具备指定能力
+ * @param bus 设备总线结构体指针
+ * @param cap 能力值或容量值
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_iommu_capable(vmm_bus_t *bus, enum vmm_iommu_cap cap);
 
-/** Initialize IOMMU framework */
+/**
+ * @brief 初始化IOMMU
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_iommu_init(void);
 
 #endif

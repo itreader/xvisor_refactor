@@ -57,7 +57,7 @@
  */
 const unsigned char scsi_direction[256 / 8] = {0x28, 0x81, 0x14, 0x14, 0x20, 0x01, 0x90, 0x77, 0x0C, 0x20, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00,
                                                0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-VMM_EXPORT_SYMBOL(scsi_direction);
+VMM_ERR_XPORT_SYMBOL(scsi_direction);
 
 int scsi_inquiry(struct scsi_request *srb, struct scsi_transport *tr, void *private)
 {
@@ -65,7 +65,7 @@ int scsi_inquiry(struct scsi_request *srb, struct scsi_transport *tr, void *priv
     uint64_t datalen;
 
     if (!srb || !srb->data || (srb->datalen < 36) || !tr || !tr->transport) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     datalen = srb->datalen;
@@ -90,13 +90,13 @@ int scsi_inquiry(struct scsi_request *srb, struct scsi_transport *tr, void *priv
 
     if (!retry) {
         vmm_printf("%s: error in inquiry\n", __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(scsi_inquiry);
+VMM_ERR_XPORT_SYMBOL(scsi_inquiry);
 
 int scsi_request_sense(struct scsi_request *srb, struct scsi_transport *tr, void *private)
 {
@@ -106,7 +106,7 @@ int scsi_request_sense(struct scsi_request *srb, struct scsi_transport *tr, void
     unsigned char __cacheline_aligned sense_buf[sizeof(srb->sense_buf)];
 
     if (!srb || !tr || !tr->transport) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     data    = srb->data;
@@ -128,16 +128,16 @@ int scsi_request_sense(struct scsi_request *srb, struct scsi_transport *tr, void
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(scsi_request_sense);
+VMM_ERR_XPORT_SYMBOL(scsi_request_sense);
 
 int scsi_test_unit_ready(struct scsi_request *srb, struct scsi_transport *tr, void *private)
 {
-    int            rc = VMM_EFAIL, retries = 10;
+    int            rc = VMM_ERR_FAIL, retries = 10;
     unsigned char *data;
     uint64_t       datalen;
 
     if (!srb || !tr || !tr->transport) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     data    = srb->data;
@@ -170,12 +170,12 @@ int scsi_test_unit_ready(struct scsi_request *srb, struct scsi_transport *tr, vo
          * unless there is a user action.
          */
         if ((srb->sense_buf[2] == 0x02) && (srb->sense_buf[12] == 0x3a)) {
-            rc = VMM_ENODEV;
+            rc = VMM_ERR_NODEV;
             break;
         }
 
         vmm_mdelay(100);
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
     } while (retries--);
 
     srb->data    = data;
@@ -184,15 +184,15 @@ int scsi_test_unit_ready(struct scsi_request *srb, struct scsi_transport *tr, vo
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(scsi_test_unit_ready);
+VMM_ERR_XPORT_SYMBOL(scsi_test_unit_ready);
 
 int scsi_read_capacity(struct scsi_request *srb, struct scsi_transport *tr, void *private)
 {
-    int      rc = VMM_EFAIL, retry = 3;
+    int      rc = VMM_ERR_FAIL, retry = 3;
     uint64_t datalen;
 
     if (!srb || !srb->data || (srb->datalen < 8) || !tr || !tr->transport) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     datalen = srb->datalen;
@@ -209,7 +209,7 @@ int scsi_read_capacity(struct scsi_request *srb, struct scsi_transport *tr, void
             break;
         }
 
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
     } while (retry--);
 
     srb->datalen = datalen;
@@ -217,12 +217,12 @@ int scsi_read_capacity(struct scsi_request *srb, struct scsi_transport *tr, void
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(scsi_read_capacity);
+VMM_ERR_XPORT_SYMBOL(scsi_read_capacity);
 
 int scsi_read10(struct scsi_request *srb, uint64_t start, unsigned short blocks, struct scsi_transport *tr, void *private)
 {
     if (!srb || !tr || !tr->transport) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     memset(&srb->cmd, 0, sizeof(srb->cmd));
@@ -240,12 +240,12 @@ int scsi_read10(struct scsi_request *srb, uint64_t start, unsigned short blocks,
     return tr->transport(srb, tr, private);
 }
 
-VMM_EXPORT_SYMBOL(scsi_read10);
+VMM_ERR_XPORT_SYMBOL(scsi_read10);
 
 int scsi_write10(struct scsi_request *srb, uint64_t start, unsigned short blocks, struct scsi_transport *tr, void *private)
 {
     if (!srb || !tr || !tr->transport) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     memset(&srb->cmd, 0, sizeof(srb->cmd));
@@ -263,18 +263,18 @@ int scsi_write10(struct scsi_request *srb, uint64_t start, unsigned short blocks
     return tr->transport(srb, tr, private);
 }
 
-VMM_EXPORT_SYMBOL(scsi_write10);
+VMM_ERR_XPORT_SYMBOL(scsi_write10);
 
 int scsi_reset(struct scsi_transport *tr, void *private)
 {
     if (!tr || !tr->reset) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return tr->reset(tr, private);
 }
 
-VMM_EXPORT_SYMBOL(scsi_reset);
+VMM_ERR_XPORT_SYMBOL(scsi_reset);
 
 int scsi_get_info(struct scsi_info *info, uint32_t lun, struct scsi_transport *tr, void *private)
 {
@@ -284,7 +284,7 @@ int scsi_get_info(struct scsi_info *info, uint32_t lun, struct scsi_transport *t
     struct scsi_request               srb;
 
     if (!info || !tr || !tr->transport) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     memset(info, 0, sizeof(*info));
@@ -350,6 +350,6 @@ int scsi_get_info(struct scsi_info *info, uint32_t lun, struct scsi_transport *t
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(scsi_get_info);
+VMM_ERR_XPORT_SYMBOL(scsi_get_info);
 
 VMM_DECLARE_MODULE(MODULE_DESC, MODULE_AUTHOR, MODULE_LICENSE, MODULE_IPRIORITY, MODULE_INIT, MODULE_EXIT);

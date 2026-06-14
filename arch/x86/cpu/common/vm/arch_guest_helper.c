@@ -44,7 +44,7 @@ int arch_guest_init(struct vmm_guest *guest)
 
     if (private == NULL) {
         X86_DEBUG_LOG(arch_guest_helper, LVL_ERR, "ERROR: Failed to create guest private data.\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     guest->arch_private = (void *)private;
@@ -271,11 +271,11 @@ int gpa_to_hpa(struct vcpu_hw_context *context, physical_addr_t vaddr, physical_
 
     /* FIXME: Should we always do cacheable memory access here ?? */
     if (vmm_host_memory_read(pde_addr, &pde, sizeof(pde), TRUE) < sizeof(pde)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!(pde & 0x1)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* page directory entry */
@@ -283,11 +283,11 @@ int gpa_to_hpa(struct vcpu_hw_context *context, physical_addr_t vaddr, physical_
 
     /* FIXME: Should we always do cacheable memory access here ?? */
     if (vmm_host_memory_read(pte_addr, &pte, sizeof(pte), TRUE) < sizeof(pte)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!(pte & 0x1)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *hpa = ((pte & PAGE_MASK) + (vaddr & ~PAGE_MASK));
@@ -314,9 +314,9 @@ static inline int free_page_index_in_pglist(struct vcpu_hw_context *context)
         return boffs;
     }
 
-    if ((boffs = bitmap_find_free_region(context->shadow32_pg_map, NR_32BIT_PGLIST_PAGES, 1)) == VMM_ENOMEM) {
+    if ((boffs = bitmap_find_free_region(context->shadow32_pg_map, NR_32BIT_PGLIST_PAGES, 1)) == VMM_ERR_NOMEM) {
         vmm_printf("%s: No free pages to alloc for shadow table.\n", __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     context->pgmap_free_cache = boffs + 1;
@@ -339,7 +339,7 @@ virtual_addr_t get_free_page_for_pagemap(struct vcpu_hw_context *context, physic
     memset((void *)tvaddr, 0, PAGE_SIZE);
 
     if (page_phys) {
-        if (vmm_host_va2pa(tvaddr, page_phys) != VMM_OK) {
+        if (vmm_host_virtualAddr_to_physicalAddr(tvaddr, page_phys) != VMM_OK) {
             return 0;
         }
     }
@@ -362,15 +362,15 @@ int create_guest_shadow_map(
     if (!pde.present) {
         index = free_page_index_in_pglist(context);
 
-        if (index == VMM_EFAIL) {
-            return VMM_EFAIL;
+        if (index == VMM_ERR_FAIL) {
+            return VMM_ERR_FAIL;
         }
 
         tvaddr = (virtual_addr_t)(((virtual_addr_t)context->shadow32_pg_list) + (index * PAGE_SIZE));
 
         memset((void *)tvaddr, 0, PAGE_SIZE);
 
-        if (vmm_host_va2pa(tvaddr, &tpaddr) != VMM_OK) {
+        if (vmm_host_virtualAddr_to_physicalAddr(tvaddr, &tpaddr) != VMM_OK) {
             vmm_panic("%s: Failed to map vaddr to paddr for pde.\n", __func__);
         }
 
@@ -383,11 +383,11 @@ int create_guest_shadow_map(
 
     /* FIXME: Should this be cacheable memory access ? */
     if (vmm_host_memory_read(pte_addr, (void *)&pte, sizeof(pte), TRUE) < sizeof(pte)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (pte.present) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     memset(&pte, 0, sizeof(pte));
@@ -397,7 +397,7 @@ int create_guest_shadow_map(
 
     /* FIXME: Should this be cacheable memory access ? */
     if (vmm_host_memory_write(pte_addr, (void *)&pte, sizeof(pte), TRUE) < sizeof(pte)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     invalidate_vaddr_tlb(vaddr);
@@ -414,7 +414,7 @@ int update_guest_shadow_pgprot(struct vcpu_hw_context *context, virtual_addr_t v
     pde_addr = &context->shadow32_pgt[((vaddr >> 22) & 0x3ff)];
 
     if (unlikely(!PagePresent(pde_addr))) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (level == GUEST_PG_LVL_1) {
@@ -426,11 +426,11 @@ int update_guest_shadow_pgprot(struct vcpu_hw_context *context, virtual_addr_t v
     pte_addr = (physical_addr_t)(temp + ((vaddr >> 12) & 0x3ff));
 
     if (vmm_host_memory_read(pte_addr, (void *)&pte, sizeof(pte), TRUE) < sizeof(pte)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (unlikely(!PagePresent(&pte))) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Update the protection bits */
@@ -438,7 +438,7 @@ int update_guest_shadow_pgprot(struct vcpu_hw_context *context, virtual_addr_t v
 
     /* FIXME: Should this be cacheable memory access ? */
     if (vmm_host_memory_write(pte_addr, (void *)&pte, sizeof(pte), TRUE) < sizeof(pte)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
@@ -456,11 +456,11 @@ int lookup_guest_pagetable(
     uint32_t     pdindex, ptindex, pd_addr, pt_addr;
 
     if (unlikely(!context->g_cr3)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (unlikely(!lookedup_addr)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     pdindex = ((uint32_t)fault_addr) >> 22;
@@ -469,11 +469,11 @@ int lookup_guest_pagetable(
     pd_addr = context->g_cr3 + (pdindex * sizeof(uint32_t));
 
     if (vmm_guest_memory_read(context->assoc_vcpu->guest, pd_addr, &pd, sizeof(pd), 0) != sizeof(pd)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!PagePresent(&pd)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (pde) {
@@ -483,11 +483,11 @@ int lookup_guest_pagetable(
     pt_addr = ((pd.paddr << PAGE_SHIFT) + (ptindex * sizeof(uint32_t)));
 
     if (vmm_guest_memory_read(context->assoc_vcpu->guest, pt_addr, &pt, sizeof(pt), 0) != sizeof(pt)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!PagePresent(&pt)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (lookedup_addr) {
@@ -508,11 +508,11 @@ int lookup_shadow_pagetable(
     uint32_t     pdindex, ptindex, pd_addr, pt_addr;
 
     if (unlikely(!context->vmcb->cr3)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (unlikely(!lookedup_addr)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     pdindex = ((uint32_t)fault_addr) >> 22;
@@ -521,11 +521,11 @@ int lookup_shadow_pagetable(
     pd_addr = context->vmcb->cr3 + (pdindex * sizeof(uint32_t));
 
     if (vmm_host_memory_read(pd_addr, &pd, sizeof(pd), 0) != sizeof(pd)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!PagePresent(&pd)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (pde) {
@@ -535,11 +535,11 @@ int lookup_shadow_pagetable(
     pt_addr = ((pd.paddr << PAGE_SHIFT) + (ptindex * sizeof(uint32_t)));
 
     if (vmm_host_memory_read(pt_addr, &pt, sizeof(pt), 0) != sizeof(pt)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!PagePresent(&pt)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (lookedup_addr) {

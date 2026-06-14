@@ -105,19 +105,19 @@ static int cis_tpl_parse(
             if (tpl->parse) {
                 ret = tpl->parse(card, func, buf, size);
             } else {
-                ret = VMM_EILSEQ; /* known tuple, not parsed */
+                ret = VMM_ERR_ILSEQ; /* known tuple, not parsed */
             }
         } else {
             /* invalid tuple */
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
         }
 
-        if (ret && ret != VMM_EILSEQ && ret != VMM_ENOENT) {
+        if (ret && ret != VMM_ERR_ILSEQ && ret != VMM_ERR_NOENT) {
             vmm_lerror("%s: bad %s tuple 0x%02x (%u bytes)\n", mmc_hostname(card->host), tpl_descr, code, size);
         }
     } else {
         /* unknown tuple */
-        ret = VMM_ENOENT;
+        ret = VMM_ERR_NOENT;
     }
 
     return ret;
@@ -127,7 +127,7 @@ static int cistpl_funce_common(struct mmc_card *card, struct sdio_func *func, co
 {
     /* Only valid for the common CIS (function 0) */
     if (func) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* TPLFE_FN0_BLK_SIZE */
@@ -148,7 +148,7 @@ static int cistpl_funce_func(struct mmc_card *card, struct sdio_func *func, cons
 
     /* Only valid for the individual function's CIS (1-7) */
     if (!func) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /*
@@ -159,7 +159,7 @@ static int cistpl_funce_func(struct mmc_card *card, struct sdio_func *func, cons
     min_size = (vsn == SDIO_SDIO_REV_1_00) ? 28 : 42;
 
     if (size < min_size) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* TPLFE_MAX_BLK_SIZE */
@@ -193,7 +193,7 @@ static const struct cis_tpl cis_tpl_funce_list[] = {
 static int cistpl_funce(struct mmc_card *card, struct sdio_func *func, const unsigned char *buf, unsigned size)
 {
     if (size < 1) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return cis_tpl_parse(card, func, "CISTPL_FUNCE", cis_tpl_funce_list, array_size(cis_tpl_funce_list), buf[0], buf, size);
@@ -271,7 +271,7 @@ static int sdio_read_cis(struct mmc_card *card, struct sdio_func *func)
         this = vmm_malloc(sizeof(*this) + tpl_link);
 
         if (!this) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         for (i = 0; i < tpl_link; i++) {
@@ -290,7 +290,7 @@ static int sdio_read_cis(struct mmc_card *card, struct sdio_func *func)
         /* Try to parse the CIS tuple */
         ret = cis_tpl_parse(card, func, "CIS", cis_tpl_list, array_size(cis_tpl_list), tpl_code, this->data, tpl_link);
 
-        if (ret == VMM_EILSEQ || ret == VMM_ENOENT) {
+        if (ret == VMM_ERR_ILSEQ || ret == VMM_ERR_NOENT) {
             /*
              * The tuple is unknown or known but not parsed.
              */
@@ -386,7 +386,7 @@ static int sdio_send_io_op_cond(struct mmc_host *host, struct mmc_card *card)
     } while (!(cmd.response[0] & OCR_BUSY) && timeout--);
 
     if (timeout <= 0) {
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     if (mmc_host_is_spi(host)) { /* read OCR for spi */
@@ -457,7 +457,7 @@ static int sdio_read_cccr(struct mmc_card *card, uint32_t ocr)
 
     if (cccr_vsn > SDIO_CCCR_REV_3_00) {
         vmm_lerror("%s: unrecognised CCCR structure version %d\n", mmc_hostname(card->host), cccr_vsn);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     card->cccr.sdio_vsn = (data & 0xf0) >> 4;
@@ -758,7 +758,7 @@ int __sdio_attach(struct mmc_host *host)
     struct mmc_cmd   cmd;
 
     if (!host) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* If card instance available then do nothing */
@@ -780,7 +780,7 @@ int __sdio_attach(struct mmc_host *host)
     host->card = vmm_zalloc(sizeof(struct mmc_card));
 
     if (!host->card) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto detect_done;
     }
 
@@ -798,7 +798,7 @@ int __sdio_attach(struct mmc_host *host)
     /* init card, also take care of voltage selection */
     /* Attempt to detect sdio card */
     if (!mmc_getcd(host)) {
-        rc = VMM_ENOTAVAIL;
+        rc = VMM_ERR_NOTAVAIL;
         goto removecard;
     }
 
@@ -811,7 +811,7 @@ int __sdio_attach(struct mmc_host *host)
     } else {
         /* This is not a SDIO card */
         DPRINTF("sdio_attach: R4_MEMORY_PRESENT, may not be SDIO card\n");
-        rc = VMM_EIO;
+        rc = VMM_ERR_IO;
         goto removecard;
     }
 

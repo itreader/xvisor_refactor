@@ -114,7 +114,7 @@ static int virtio_rpmsg_init_vq(struct vmm_virtio_device *dev, uint32_t vq, uint
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -133,7 +133,7 @@ static int virtio_rpmsg_get_pfn_vq(struct vmm_virtio_device *dev, uint32_t vq)
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -294,7 +294,7 @@ static int virtio_rpmsg_notify_vq(struct vmm_virtio_device *dev, uint32_t vq)
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     }
 
@@ -329,7 +329,7 @@ static int virtio_rpmsg_rx_msg(
         __func__, rdev->node->name, src, dst, local, len, use_local_as_dst);
 
     if (!vmm_virtio_queue_available(vq)) {
-        return VMM_ENOSPC;
+        return VMM_ERR_NOSPC;
     }
 
     rc = vmm_virtio_queue_get_iovec(vq, iov, &iov_cnt, &total_len, &head);
@@ -340,7 +340,7 @@ static int virtio_rpmsg_rx_msg(
     }
 
     if (!iov_cnt || (iov->len < (sizeof(hdr) + len))) {
-        return VMM_ENOSPC;
+        return VMM_ERR_NOSPC;
     }
 
     if (use_local_as_dst) {
@@ -448,14 +448,14 @@ static int virtio_rpmsg_read_config(struct vmm_virtio_device *dev, uint32_t offs
 {
     /* No config reads */
 
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static int virtio_rpmsg_write_config(struct vmm_virtio_device *dev, uint32_t offset, void *src, uint32_t src_len)
 {
     /* No config writes */
 
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static int virtio_rpmsg_reset(struct vmm_virtio_device *dev)
@@ -501,7 +501,7 @@ static int virtio_rpmsg_connect(struct vmm_virtio_device *dev, struct vmm_virtio
 
     if (!rdev) {
         vmm_printf("%s: Failed to alloc virtio rpmsg device....\n", __func__);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     rdev->vdev = dev;
@@ -532,7 +532,7 @@ static int virtio_rpmsg_connect(struct vmm_virtio_device *dev, struct vmm_virtio
 
     if (!rdev->tx_buf_pool) {
         vmm_free(rdev);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     rdev->node = vmm_vmsg_node_create(dev->name, addr, VIRTIO_RPMSG_NODE_MAX_BUFF_SIZE, &virtio_rpmsg_ops, dom, rdev);
@@ -540,7 +540,7 @@ static int virtio_rpmsg_connect(struct vmm_virtio_device *dev, struct vmm_virtio
     if (!rdev->node) {
         mempool_destroy(rdev->tx_buf_pool);
         vmm_free(rdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     INIT_VMM_VMSG_NODE_LAZY(&rdev->tx_lazy, rdev->node, VIRTIO_RPMSG_QUEUE_SIZE / 16, rdev, virtio_rpmsg_tx_msgs);

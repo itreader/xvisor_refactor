@@ -18,12 +18,12 @@
  *
  * @file vmm_mbuf.c
  * @author Sukanto Ghosh <sukantoghosh@gmail.com>
- * @brief Network Buffer Handling
+ * @brief 网络缓冲区处理
  *
  * The code has been adapted from NetBSD 5.1.2 src/sys/kern/uipc_mbuf.c
  */
 
-/*
+/**
  * Copyright (c) 1996, 1997, 1999, 2001, 2007 The NetBSD Foundation, Inc.
  * All rights reserved.
  *
@@ -53,7 +53,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
+/**
  * Copyright (c) 1982, 1986, 1988, 1993
  *  The Regents of the University of California.  All rights reserved.
  *
@@ -103,13 +103,21 @@
 
 #define EPOOL_SLAB_COUNT 4
 
+/**
+ * @brief mbuf内存池控制结构，管理网络缓冲区的分配
+ */
 struct vmm_mbufpool_ctrl {
-    struct mempool *mpool;
-    struct mempool *epool_slabs[EPOOL_SLAB_COUNT];
+    struct mempool *mpool; /**< mpool成员 */
+    struct mempool *epool_slabs[EPOOL_SLAB_COUNT]; /**< epool_slabs成员 */
 };
 
 static struct vmm_mbufpool_ctrl mbpctrl;
 
+/**
+ * @brief 获取消息缓冲区池中slab缓冲区的大小
+ * @param slab slab分配器指针
+ * @return 大小值（字节）
+ */
 static uint32_t epool_slab_buf_size(uint32_t slab)
 {
     switch (slab) {
@@ -132,9 +140,18 @@ static uint32_t epool_slab_buf_size(uint32_t slab)
     return 0;
 }
 
+/**
+ * @brief 获取消息缓冲区池中slab缓冲区的的数量
+ * @param pool_sz 池大小
+ * @param slab slab分配器指针
+ * @return 数量值
+ */
 static uint32_t epool_slab_buf_count(uint32_t pool_sz, uint32_t slab)
 {
-    uint32_t slab_size, buf_size, weight, total_weight;
+    uint32_t slab_size;
+    uint32_t buf_size;
+    uint32_t weight;
+    uint32_t total_weight;
 
     switch (slab) {
         case 0:
@@ -174,9 +191,16 @@ static uint32_t epool_slab_buf_count(uint32_t pool_sz, uint32_t slab)
     return udiv32(slab_size, buf_size);
 }
 
+/**
+ * @brief 初始化mbufpool
+ * @return 数量值
+ */
 int __init vmm_mbufpool_init(void)
 {
-    uint32_t slab, b_size, b_count, epool_sz;
+    uint32_t slab;
+    uint32_t b_size;
+    uint32_t b_count;
+    uint32_t epool_sz;
 
     memset(&mbpctrl, 0, sizeof(mbpctrl));
 
@@ -186,7 +210,7 @@ int __init vmm_mbufpool_init(void)
     mbpctrl.mpool = mempool_ram_create(b_size, VMM_SIZE_TO_PAGE(b_size * b_count), VMM_PAGE_POOL_NORMAL);
 
     if (!mbpctrl.mpool) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Create ext slab pools */
@@ -206,6 +230,10 @@ int __init vmm_mbufpool_init(void)
     return VMM_OK;
 }
 
+/**
+ * @brief 内存缓冲池退出清理
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 void __exit vmm_mbufpool_exit(void)
 {
     uint32_t slab;
@@ -230,6 +258,13 @@ void __exit vmm_mbufpool_exit(void)
 /*
  * Copy data from an mbuf chain starting "off" bytes from the beginning,
  * continuing for "len" bytes, into the indicated buffer.
+ */
+/**
+ * @brief m copydata
+ * @param m 掩码或数据指针
+ * @param off 偏移量
+ * @param len 数据长度
+ * @param vp 虚拟端口指针
  */
 void m_copydata(struct vmm_mbuf *m, int off, int len, void *vp)
 {
@@ -267,13 +302,21 @@ void m_copydata(struct vmm_mbuf *m, int off, int len, void *vp)
     }
 }
 
-VMM_EXPORT_SYMBOL(m_copydata);
+VMM_ERR_XPORT_SYMBOL(m_copydata);
 
+/**
+ * @brief 释放消息缓冲区到池中
+ * @param m 掩码或数据指针
+ */
 static void mbuf_pool_free(struct vmm_mbuf *m)
 {
     mempool_free(mbpctrl.mpool, m);
 }
 
+/**
+ * @brief 释放消息缓冲区到堆中
+ * @param m 掩码或数据指针
+ */
 static void mbuf_heap_free(struct vmm_mbuf *m)
 {
     vmm_free(m);
@@ -286,38 +329,45 @@ static void mbuf_heap_free(struct vmm_mbuf *m)
  */
 struct vmm_mbuf *m_get(int nowait, int flags)
 {
-    struct vmm_mbuf *m;
+    struct vmm_mbuf *m; /**< m */
 
     /* TODO: implement non-blocking variant */
 
-    m = mempool_zalloc(mbpctrl.mpool);
+    m = mempool_zalloc(mbpctrl.mpool); /**< mempool_zalloc(mbpctrl.mpool)成员 */
 
     if (m) {
-        m->m_freefn = mbuf_pool_free;
+        m->m_freefn = mbuf_pool_free; /**< mbuf_pool_free成员 */
     } else if (NULL != (m = vmm_zalloc(sizeof(struct vmm_mbuf)))) {
-        m->m_freefn = mbuf_heap_free;
+        m->m_freefn = mbuf_heap_free; /**< mbuf_heap_free成员 */
     } else {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
     INIT_LIST_HEAD(&m->m_list);
-    m->m_list_private = NULL;
-    m->m_next         = NULL;
-    m->m_data         = NULL;
-    m->m_len          = 0;
-    m->m_flags        = flags;
+    m->m_list_private = NULL; /**< NULL成员 */
+    m->m_next         = NULL; /**< NULL成员 */
+    m->m_data         = NULL; /**< NULL成员 */
+    m->m_len          = 0; /**< 0 */
+    m->m_flags        = flags; /**< 标志位 */
 
     if (flags & M_PKTHDR) {
-        m->m_pktlen = 0;
+        m->m_pktlen = 0; /**< 0 */
     }
 
-    m->m_ref = 1;
+    m->m_ref = 1; /**< 1 */
 
-    return m;
+    return m; /**< m */
 }
 
-VMM_EXPORT_SYMBOL(m_get);
+VMM_ERR_XPORT_SYMBOL(m_get);
 
+/**
+ * @brief 将外部数据释放回池中
+ * @param m 掩码或数据指针
+ * @param ptr 通用指针
+ * @param size 大小
+ * @param arg 参数值
+ */
 static void ext_pool_free(struct vmm_mbuf *m, void *ptr, uint32_t size, void *arg)
 {
     struct mempool *mp = arg;
@@ -325,16 +375,37 @@ static void ext_pool_free(struct vmm_mbuf *m, void *ptr, uint32_t size, void *ar
     mempool_free(mp, ptr);
 }
 
+/**
+ * @brief 将外部数据释放回堆中
+ * @param m 掩码或数据指针
+ * @param ptr 通用指针
+ * @param size 大小
+ * @param arg 参数值
+ */
 static void ext_heap_free(struct vmm_mbuf *m, void *ptr, uint32_t size, void *arg)
 {
     vmm_free(ptr);
 }
 
+/**
+ * @brief 释放DMA外部数据
+ * @param m 掩码或数据指针
+ * @param ptr 通用指针
+ * @param size 大小
+ * @param arg 参数值
+ */
 static void ext_dma_free(struct vmm_mbuf *m, void *ptr, uint32_t size, void *arg)
 {
     vmm_dma_free(ptr);
 }
 
+/**
+ * @brief 获取消息缓冲区的外部扩展数据
+ * @param m 掩码或数据指针
+ * @param size 大小
+ * @param how 操作方式标识
+ * @return 目标对象指针，不存在返回NULL
+ */
 void *m_ext_get(struct vmm_mbuf *m, uint32_t size, enum vmm_mbuf_alloc_types how)
 {
     void           *buf;
@@ -342,14 +413,14 @@ void *m_ext_get(struct vmm_mbuf *m, uint32_t size, enum vmm_mbuf_alloc_types how
     struct mempool *mp = NULL;
 
     if (VMM_MBUF_ALLOC_DMA == how) {
-        buf = vmm_dma_malloc(size);
+        buf = vmm_dma_malloc(size); /**< vmm_dma_malloc(size)成员 */
 
         if (!buf) {
-            return NULL;
+            return NULL; /**< NULL成员 */
         }
 
-        m->m_flags |= M_EXT_DMA;
-        MEXTADD(m, buf, size, ext_dma_free, NULL);
+        m->m_flags |= M_EXT_DMA; /**< M_EXT_DMA成员 */
+        MEXTADD(m, buf, size, ext_dma_free, NULL); /**< NULL)成员 */
     } else {
         for (slab = 0; slab < EPOOL_SLAB_COUNT; slab++) {
             if (size <= epool_slab_buf_size(slab)) {
@@ -372,11 +443,15 @@ void *m_ext_get(struct vmm_mbuf *m, uint32_t size, enum vmm_mbuf_alloc_types how
     return m->m_extbuf;
 }
 
-VMM_EXPORT_SYMBOL(m_ext_get);
+VMM_ERR_XPORT_SYMBOL(m_ext_get);
 
 /*
  * m_ext_dma_ensure: Ensure that the data buffer is DMA proof, reallocating
  * and copying data to do so.
+ */
+/**
+ * @brief 确保消息缓冲区的外部数据适合DMA操作
+ * @param m 掩码或数据指针
  */
 void m_ext_dma_ensure(struct vmm_mbuf *m)
 {
@@ -403,6 +478,10 @@ void m_ext_dma_ensure(struct vmm_mbuf *m)
  * free the mbuf itself as well.
  */
 
+/**
+ * @brief 释放消息缓冲区的外部扩展数据
+ * @param m 掩码或数据指针
+ */
 void m_ext_free(struct vmm_mbuf *m)
 {
     if (!(--(m->m_extref)) && !(m->m_flags & M_EXT_DONTFREE)) {
@@ -423,18 +502,22 @@ void m_ext_free(struct vmm_mbuf *m)
     }
 }
 
-VMM_EXPORT_SYMBOL(m_ext_free);
+VMM_ERR_XPORT_SYMBOL(m_ext_free);
 
 struct vmm_mbuf *m_free(struct vmm_mbuf *m)
 {
-    struct vmm_mbuf *n;
+    struct vmm_mbuf *n; /**< n */
 
-    MFREE(m, n);
-    return (n);
+    MFREE(m, n); /**< n) */
+    return (n); /**< (n)成员 */
 }
 
-VMM_EXPORT_SYMBOL(m_free);
+VMM_ERR_XPORT_SYMBOL(m_free);
 
+/**
+ * @brief m freem
+ * @param m 掩码或数据指针
+ */
 void m_freem(struct vmm_mbuf *m)
 {
     struct vmm_mbuf *n;
@@ -449,8 +532,13 @@ void m_freem(struct vmm_mbuf *m)
     } while (m);
 }
 
-VMM_EXPORT_SYMBOL(m_freem);
+VMM_ERR_XPORT_SYMBOL(m_freem);
 
+/**
+ * @brief 输出消息缓冲区的数据内容用于调试
+ * @param buf 数据缓冲区指针
+ * @param buflen 大小
+ */
 static void mbuf_data_dump(char *buf, uint32_t buflen)
 {
     int index;
@@ -466,6 +554,10 @@ static void mbuf_data_dump(char *buf, uint32_t buflen)
     vmm_printf("\n");
 }
 
+/**
+ * @brief m dump
+ * @param m 掩码或数据指针
+ */
 void m_dump(struct vmm_mbuf *m)
 {
     vmm_printf("MBuf header\n");
@@ -486,4 +578,4 @@ void m_dump(struct vmm_mbuf *m)
     mbuf_data_dump(m->m_data, m->m_len);
 }
 
-VMM_EXPORT_SYMBOL(m_dump);
+VMM_ERR_XPORT_SYMBOL(m_dump);

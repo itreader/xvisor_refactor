@@ -80,7 +80,7 @@ static int cmd_virtual_disk_info(vmm_char_device_t *cdev, const char *virtual_di
 
     if (!virtual_disk) {
         vmm_cdev_printf(cdev, "Failed to find virtual disk\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     vmm_cdev_printf(
@@ -102,7 +102,7 @@ static int cmd_virtual_disk_detach(vmm_char_device_t *cdev, const char *virtual_
 
     if (!virtual_disk) {
         vmm_cdev_printf(cdev, "Failed to find virtual disk\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     vmm_virtual_disk_detach_block_device(virtual_disk);
@@ -116,7 +116,7 @@ static int cmd_virtual_disk_attach(vmm_char_device_t *cdev, const char *virtual_
 
     if (!virtual_disk) {
         vmm_cdev_printf(cdev, "Failed to find virtual disk\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     vmm_virtual_disk_attach_block_device(virtual_disk, bdev_name);
@@ -147,7 +147,7 @@ static int cmd_virtual_disk_exec(vmm_char_device_t *cdev, int argc, char **argv)
     }
 
     cmd_virtual_disk_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_virtual_disk = {

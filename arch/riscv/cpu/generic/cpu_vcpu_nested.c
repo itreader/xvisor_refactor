@@ -201,7 +201,7 @@ static int nested_software_tlb_init(vmm_vcpu_t *vcpu)
     software_tlb                               = vmm_zalloc(sizeof(*software_tlb));
 
     if (!software_tlb) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     INIT_LIST_HEAD(&software_tlb->intr_tlb.active_list);
@@ -213,7 +213,7 @@ static int nested_software_tlb_init(vmm_vcpu_t *vcpu)
 
     if (!software_tlb->entries) {
         vmm_free(software_tlb);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     for (i = 0; i < NESTED_SWTLB_MAX_ENTRY; i++) {
@@ -300,11 +300,11 @@ static int nested_nostage_perm_check(enum nested_xlate_access guest_access, uint
 {
     if ((guest_access == NESTED_XLATE_LOAD) || (guest_access == NESTED_XLATE_FETCH)) {
         if (!(reg_flags & (VMM_REGION_IS_RAM | VMM_REGION_IS_ROM))) {
-            return VMM_EFAULT;
+            return VMM_ERR_FAULT;
         }
     } else if (guest_access == NESTED_XLATE_STORE) {
         if (!(reg_flags & VMM_REGION_IS_RAM)) {
-            return VMM_EFAULT;
+            return VMM_ERR_FAULT;
         }
     }
 
@@ -326,7 +326,7 @@ static int nested_xlate_nostage_single(
     rc     = vmm_guest_physical_map(guest, inaddr, block_size, &outaddr, &availsz, &reg_flags);
 
     if (rc || (availsz < block_size)) {
-        return VMM_EFAULT;
+        return VMM_ERR_FAULT;
     }
 
     /* Check region permissions */
@@ -501,7 +501,7 @@ static int nested_xlate_gstage(struct nested_xlate_context *xc, physical_addr_t 
 #endif
 
             default:
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
         }
 
         pgtlb = (nprivate->hgatp & HGATP_PPN) << PAGE_TABLE_PAGE_SIZE_SHIFT;
@@ -526,7 +526,7 @@ static int nested_xlate_gstage(struct nested_xlate_context *xc, physical_addr_t 
     if (perm_fault) {
         xc->gstage_page_sz = page.size;
         nested_gstage_write_fault(xc, guest_gpa);
-        return VMM_EFAULT;
+        return VMM_ERR_FAULT;
     }
 
     /* Update host region details */
@@ -537,7 +537,7 @@ static int nested_xlate_gstage(struct nested_xlate_context *xc, physical_addr_t 
         xc->host_reg_flags = software_table_entry->shadow_reg_flags;
 
         /* Check shadow page permissions */
-        rc                 = VMM_EFAULT;
+        rc                 = VMM_ERR_FAULT;
 
         switch (guest_access) {
             case NESTED_XLATE_LOAD:
@@ -566,7 +566,7 @@ static int nested_xlate_gstage(struct nested_xlate_context *xc, physical_addr_t 
         }
 
         if (rc) {
-            if (rc == VMM_EFAULT) {
+            if (rc == VMM_ERR_FAULT) {
                 xc->nostage_page_sz = page.size;
                 nested_gstage_write_fault(xc, guest_gpa);
             }
@@ -581,7 +581,7 @@ static int nested_xlate_gstage(struct nested_xlate_context *xc, physical_addr_t 
         rc        = nested_xlate_nostage(xc, guest_hpa, guest_access);
 
         if (rc) {
-            if (rc == VMM_EFAULT) {
+            if (rc == VMM_ERR_FAULT) {
                 xc->nostage_page_sz = page.size;
                 nested_gstage_write_fault(xc, guest_gpa);
             }
@@ -736,7 +736,7 @@ static int nested_xlate_vsstage(struct nested_xlate_context *xc, physical_addr_t
 #endif
 
             default:
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
         }
 
         pgtlb = (nprivate->vsatp & SATP_PPN) << PAGE_TABLE_PAGE_SIZE_SHIFT;
@@ -761,7 +761,7 @@ static int nested_xlate_vsstage(struct nested_xlate_context *xc, physical_addr_t
     if (perm_fault) {
         xc->vsstage_page_sz = page.size;
         nested_vsstage_write_fault(xc, guest_gva);
-        return VMM_EFAULT;
+        return VMM_ERR_FAULT;
     }
 
     /* Calculate guest gpa */
@@ -771,7 +771,7 @@ static int nested_xlate_vsstage(struct nested_xlate_context *xc, physical_addr_t
     rc        = nested_xlate_gstage(xc, guest_gpa, guest_access);
 
     if (rc) {
-        if (rc == VMM_EFAULT) {
+        if (rc == VMM_ERR_FAULT) {
             nested_vsstage_write_fault(xc, guest_gva);
         }
 
@@ -807,7 +807,7 @@ int cpu_vcpu_nested_init(vmm_vcpu_t *vcpu)
     event                              = vmm_zalloc(sizeof(vmm_timer_event_t));
 
     if (!event) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     INIT_TIMER_EVENT(event, nested_timer_event_expired, vcpu);
@@ -822,7 +822,7 @@ int cpu_vcpu_nested_init(vmm_vcpu_t *vcpu)
 
     if (!nprivate->page_table) {
         vmm_free(nprivate->timer_event);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     rc = nested_software_tlb_init(vcpu);
@@ -924,7 +924,7 @@ int cpu_vcpu_nested_smode_csr_rmw(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t 
      * we only emulate these CSRs for virtual-VS/VU modes.
      */
     if (!riscv_nested_virt(vcpu)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /*
@@ -1477,7 +1477,7 @@ int cpu_vcpu_nested_page_fault(vmm_vcpu_t *vcpu, bool trap_from_smode, const str
     nested_xlate_context_init(&xc, vcpu, guest_access, trap_from_smode, csr_read(CSR_VSSTATUS), FALSE);
     rc = nested_xlate_gstage(&xc, guest_gpa, guest_access);
 
-    if (rc == VMM_EFAULT) {
+    if (rc == VMM_ERR_FAULT) {
         out_trap->sepc   = trap->sepc;
         out_trap->scause = xc.scause;
         out_trap->stval  = trap->stval;
@@ -1577,7 +1577,7 @@ int cpu_vcpu_nested_hlv(
     rc = nested_xlate_vsstage(&xc, vaddr, NESTED_XLATE_LOAD);
 
     if (rc) {
-        if (rc == VMM_EFAULT) {
+        if (rc == VMM_ERR_FAULT) {
             *out_scause = xc.scause;
             *out_stval  = xc.stval;
             *out_htval  = xc.htval;
@@ -1590,7 +1590,7 @@ int cpu_vcpu_nested_hlv(
     hpa = xc.host_pa | (vaddr & (xc.host_sz - 1));
 
     if (vmm_host_memory_read(hpa, data, len, TRUE) != len) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;
@@ -1618,7 +1618,7 @@ int cpu_vcpu_nested_hsv(
     rc = nested_xlate_vsstage(&xc, vaddr, NESTED_XLATE_STORE);
 
     if (rc) {
-        if (rc == VMM_EFAULT) {
+        if (rc == VMM_ERR_FAULT) {
             *out_scause = xc.scause;
             *out_stval  = xc.stval;
             *out_htval  = xc.htval;
@@ -1631,7 +1631,7 @@ int cpu_vcpu_nested_hsv(
     hpa = xc.host_pa | (vaddr & (xc.host_sz - 1));
 
     if (vmm_host_memory_write(hpa, (void *)data, len, TRUE) != len) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;

@@ -145,60 +145,60 @@ static struct omap_intc intc;
 
 static uint32_t intc_active_irq(uint32_t cpu_irq, uint32_t prev_irq)
 {
-    uint32_t hwirq, ret = UINT_MAX;
+    uint32_t hw_irq_num, ret = UINT_MAX;
 
     if (cpu_irq == CPU_EXTERNAL_IRQ) { /* armv7a IRQ */
-        hwirq = intc_read(INTC_SIR_IRQ);
+        hw_irq_num = intc_read(INTC_SIR_IRQ);
 
         /* Spurious IRQ ? */
-        if (hwirq & INTC_SIR_IRQ_SPURIOUSFLAG_M) {
+        if (hw_irq_num & INTC_SIR_IRQ_SPURIOUSFLAG_M) {
             goto done;
         }
 
-        hwirq = (hwirq & INTC_SIR_IRQ_ACTIVEIRQ_M);
+        hw_irq_num = (hw_irq_num & INTC_SIR_IRQ_ACTIVEIRQ_M);
 
-        if (intc.nr_irqs <= hwirq) {
+        if (intc.nr_irqs <= hw_irq_num) {
             goto done;
         }
 
-        ret = vmm_host_irq_domain_find_mapping(intc.domain, hwirq);
+        ret = vmm_host_irq_domain_find_mapping(intc.domain, hw_irq_num);
     } else if (cpu_irq == CPU_EXTERNAL_FIQ) { /* armv7a FIQ */
-        hwirq = intc_read(INTC_SIR_FIQ);
+        hw_irq_num = intc_read(INTC_SIR_FIQ);
 
         /* Spurious FIQ ? */
-        if (hwirq & INTC_SIR_FIQ_SPURIOUSFLAG_M) {
+        if (hw_irq_num & INTC_SIR_FIQ_SPURIOUSFLAG_M) {
             goto done;
         }
 
-        hwirq = (hwirq & INTC_SIR_FIQ_ACTIVEIRQ_M);
+        hw_irq_num = (hw_irq_num & INTC_SIR_FIQ_ACTIVEIRQ_M);
 
-        if (intc.nr_irqs <= hwirq) {
+        if (intc.nr_irqs <= hw_irq_num) {
             goto done;
         }
 
-        ret = vmm_host_irq_domain_find_mapping(intc.domain, hwirq);
+        ret = vmm_host_irq_domain_find_mapping(intc.domain, hw_irq_num);
     }
 
 done:
     return ret;
 }
 
-static void intc_mask(struct vmm_host_irq *irq)
+static void intc_mask(vmm_host_irq_t *irq)
 {
-    intc_write(INTC_MIR((irq->hwirq / INTC_BITS_PER_REG)), 0x1 << (irq->hwirq & (INTC_BITS_PER_REG - 1)));
+    intc_write(INTC_MIR((irq->hw_irq_num / INTC_BITS_PER_REG)), 0x1 << (irq->hw_irq_num & (INTC_BITS_PER_REG - 1)));
 }
 
-static void intc_unmask(struct vmm_host_irq *irq)
+static void intc_unmask(vmm_host_irq_t *irq)
 {
-    intc_write(INTC_MIR_CLEAR((irq->hwirq / INTC_BITS_PER_REG)), 0x1 << (irq->hwirq & (INTC_BITS_PER_REG - 1)));
+    intc_write(INTC_MIR_CLEAR((irq->hw_irq_num / INTC_BITS_PER_REG)), 0x1 << (irq->hw_irq_num & (INTC_BITS_PER_REG - 1)));
 }
 
-static void intc_eoi(struct vmm_host_irq *irq)
+static void intc_eoi(vmm_host_irq_t *irq)
 {
     intc_write(INTC_CONTROL, INTC_CONTROL_NEWIRQAGR_M);
 }
 
-static struct vmm_host_irq_chip intc_chip = {
+static vmm_host_irq_chip_t intc_chip = {
     .name       = "INTC",
     .irq_mask   = intc_mask,
     .irq_unmask = intc_unmask,
@@ -221,7 +221,7 @@ static int __init intc_init(vmm_device_tree_node_t *node, uint32_t nr_irqs)
     intc.domain = vmm_host_irq_domain_add(node, (int)irq_start, nr_irqs, &intc_ops, NULL);
 
     if (!intc.domain) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = vmm_device_tree_request_regmap(node, &intc.base_va, 0, "omap-intc");

@@ -47,7 +47,7 @@ static int __fatfs_control_flush_fat_cache(fatfs_control_t *ctrl, uint32_t index
             ctrl->bytes_per_sector);
 
         if (len != ctrl->bytes_per_sector) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
     }
 
@@ -98,7 +98,7 @@ static int __fatfs_control_load_fat_cache(fatfs_control_t *ctrl, uint32_t sect_n
         ctrl->bytes_per_sector);
 
     if (len != ctrl->bytes_per_sector) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     ctrl->fat_cache_num[index] = sect_num;
@@ -280,7 +280,7 @@ static int __fatfs_control_get_next_cluster(fatfs_control_t *ctrl, uint32_t clus
     uint32_t fat_entry, fat_off, fat_len, len;
 
     if (!__fatfs_control_valid_cluster(ctrl, clust)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     switch (ctrl->type) {
@@ -305,13 +305,13 @@ static int __fatfs_control_get_next_cluster(fatfs_control_t *ctrl, uint32_t clus
             break;
 
         default:
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
     };
 
     len = __fatfs_control_read_fat_cache(ctrl, &fat_entry_b[0], fat_off);
 
     if (len != fat_len) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     if (fat_len == 2) {
@@ -342,7 +342,7 @@ static int __fatfs_control_set_next_cluster(fatfs_control_t *ctrl, uint32_t clus
     uint32_t fat_entry, fat_off, fat_len, len;
 
     if (!__fatfs_control_valid_cluster(ctrl, clust)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     switch (ctrl->type) {
@@ -357,7 +357,7 @@ static int __fatfs_control_set_next_cluster(fatfs_control_t *ctrl, uint32_t clus
             len     = __fatfs_control_read_fat_cache(ctrl, &fat_entry_b[0], fat_off);
 
             if (len != fat_len) {
-                return VMM_EIO;
+                return VMM_ERR_IO;
             }
 
             fat_entry = ((uint32_t)fat_entry_b[1] << 8) | fat_entry_b[0];
@@ -393,13 +393,13 @@ static int __fatfs_control_set_next_cluster(fatfs_control_t *ctrl, uint32_t clus
             break;
 
         default:
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
     };
 
     len = __fatfs_control_write_fat_cache(ctrl, &fat_entry_b[0], fat_off);
 
     if (len != fat_len) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;
@@ -410,7 +410,7 @@ static int __fatfs_control_set_last_cluster(fatfs_control_t *ctrl, uint32_t clus
     int rc;
 
     if (!__fatfs_control_valid_cluster(ctrl, clust)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     switch (ctrl->type) {
@@ -427,7 +427,7 @@ static int __fatfs_control_set_last_cluster(fatfs_control_t *ctrl, uint32_t clus
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -444,7 +444,7 @@ static int __fatfs_control_nth_cluster(fatfs_control_t *ctrl, uint32_t clust, ui
     }
 
     if (!__fatfs_control_valid_cluster(ctrl, clust)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     for (i = 0; i < pos; i++) {
@@ -459,7 +459,7 @@ static int __fatfs_control_nth_cluster(fatfs_control_t *ctrl, uint32_t clust, ui
         }
 
         if (!__fatfs_control_valid_cluster(ctrl, clust)) {
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 
@@ -490,7 +490,7 @@ static int __fatfs_control_alloc_first_cluster(fatfs_control_t *ctrl, uint32_t *
     }
 
     if (!found) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     rc = __fatfs_control_set_last_cluster(ctrl, current);
@@ -513,7 +513,7 @@ static int __fatfs_control_append_free_cluster(fatfs_control_t *ctrl, uint32_t c
     uint32_t current, next, first, last;
 
     if (!__fatfs_control_valid_cluster(ctrl, clust)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     rc = __fatfs_control_get_next_cluster(ctrl, clust, &next);
@@ -561,7 +561,7 @@ static int __fatfs_control_append_free_cluster(fatfs_control_t *ctrl, uint32_t c
     }
 
     if (!found) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     rc = __fatfs_control_set_last_cluster(ctrl, current);
@@ -744,7 +744,7 @@ int fatfs_control_init(fatfs_control_t *ctrl, vmm_block_device_t *block_device)
     rlen                    = vmm_block_device_read(block_device, (uint8_t *)bsec, FAT_BOOTSECTOR_OFFSET, sizeof(fat_boot_sector_t));
 
     if (rlen != sizeof(fat_boot_sector_t)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     /* Save underlying block device pointer */
@@ -756,7 +756,7 @@ int fatfs_control_init(fatfs_control_t *ctrl, vmm_block_device_t *block_device)
 
     /* Sanity check bytes_per_sector and sector_per_cluster */
     if (!ctrl->bytes_per_sector || !ctrl->sectors_per_cluster) {
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     /* Frequently required info */
@@ -795,27 +795,27 @@ int fatfs_control_init(fatfs_control_t *ctrl, vmm_block_device_t *block_device)
     switch (ctrl->type) {
         case FAT_TYPE_12:
             if (memcmp(bsec->ext.e16.fs_type, "FAT12", 5)) {
-                return VMM_ENOSYS;
+                return VMM_ERR_NOSYS;
             }
 
             break;
 
         case FAT_TYPE_16:
             if (memcmp(bsec->ext.e16.fs_type, "FAT16", 5)) {
-                return VMM_ENOSYS;
+                return VMM_ERR_NOSYS;
             }
 
             break;
 
         case FAT_TYPE_32:
             if (memcmp(bsec->ext.e32.fs_type, "FAT32", 5)) {
-                return VMM_ENOSYS;
+                return VMM_ERR_NOSYS;
             }
 
             break;
 
         default:
-            return VMM_ENOSYS;
+            return VMM_ERR_NOSYS;
     }
 
     /* For FAT32, recompute derived info */
@@ -845,7 +845,7 @@ int fatfs_control_init(fatfs_control_t *ctrl, vmm_block_device_t *block_device)
     ctrl->fat_cache_buf = vmm_zalloc(FAT_TABLE_CACHE_SIZE * ctrl->bytes_per_sector);
 
     if (!ctrl->fat_cache_buf) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Load fat cache */
@@ -854,7 +854,7 @@ int fatfs_control_init(fatfs_control_t *ctrl, vmm_block_device_t *block_device)
 
     if (rlen != (FAT_TABLE_CACHE_SIZE * ctrl->bytes_per_sector)) {
         vmm_free(ctrl->fat_cache_buf);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;

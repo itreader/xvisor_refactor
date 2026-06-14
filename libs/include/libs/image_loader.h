@@ -50,14 +50,14 @@ int image_draw(struct frame_buffer_info *info, const struct frame_buffer_image *
 
 static inline int image_load(const char *path, struct image_format *fmt, struct frame_buffer_image *image)
 {
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 static inline void image_release(struct frame_buffer_image *image) {}
 
 static inline int image_draw(struct frame_buffer_info *info, const struct frame_buffer_image *image, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 #endif

@@ -57,7 +57,7 @@ int input_mt_init_slots(input_device_t *dev, uint32_t num_slots, uint32_t flags)
     }
 
     if (mt) {
-        return mt->num_slots != num_slots ? VMM_EINVALID : 0;
+        return mt->num_slots != num_slots ? VMM_ERR_INVALID : 0;
     }
 
     mt = vmm_zalloc(sizeof(*mt) + num_slots * sizeof(*mt->slots));
@@ -121,10 +121,10 @@ int input_mt_init_slots(input_device_t *dev, uint32_t num_slots, uint32_t flags)
     return 0;
 err_mem:
     vmm_free(mt);
-    return VMM_ENOMEM;
+    return VMM_ERR_NOMEM;
 }
 
-VMM_EXPORT_SYMBOL(input_mt_init_slots);
+VMM_ERR_XPORT_SYMBOL(input_mt_init_slots);
 
 void input_mt_destroy_slots(input_device_t *dev)
 {
@@ -136,7 +136,7 @@ void input_mt_destroy_slots(input_device_t *dev)
     dev->mt = NULL;
 }
 
-VMM_EXPORT_SYMBOL(input_mt_destroy_slots);
+VMM_ERR_XPORT_SYMBOL(input_mt_destroy_slots);
 
 void input_mt_report_slot_state(input_device_t *dev, uint32_t tool_type, bool active)
 {
@@ -166,7 +166,7 @@ void input_mt_report_slot_state(input_device_t *dev, uint32_t tool_type, bool ac
     input_event(dev, EV_ABS, ABS_MT_TOOL_TYPE, tool_type);
 }
 
-VMM_EXPORT_SYMBOL(input_mt_report_slot_state);
+VMM_ERR_XPORT_SYMBOL(input_mt_report_slot_state);
 
 void input_mt_report_finger_count(input_device_t *dev, int count)
 {
@@ -177,7 +177,7 @@ void input_mt_report_finger_count(input_device_t *dev, int count)
     input_event(dev, EV_KEY, BTN_TOOL_QUINTTAP, count == 5);
 }
 
-VMM_EXPORT_SYMBOL(input_mt_report_finger_count);
+VMM_ERR_XPORT_SYMBOL(input_mt_report_finger_count);
 
 void input_mt_report_pointer_emulation(input_device_t *dev, bool use_count)
 {
@@ -233,7 +233,7 @@ void input_mt_report_pointer_emulation(input_device_t *dev, bool use_count)
     }
 }
 
-VMM_EXPORT_SYMBOL(input_mt_report_pointer_emulation);
+VMM_ERR_XPORT_SYMBOL(input_mt_report_pointer_emulation);
 
 void input_mt_sync_frame(input_device_t *dev)
 {
@@ -260,7 +260,7 @@ void input_mt_sync_frame(input_device_t *dev)
     mt->frame++;
 }
 
-VMM_EXPORT_SYMBOL(input_mt_sync_frame);
+VMM_ERR_XPORT_SYMBOL(input_mt_sync_frame);
 
 static int adjust_dual(int *begin, int step, int *end, int eq)
 {
@@ -385,11 +385,11 @@ int input_mt_assign_slots(input_device_t *dev, int *slots, const struct input_mt
     int              nrc;
 
     if (!mt || !mt->red) {
-        return VMM_ENXIO;
+        return VMM_ERR_NXIO;
     }
 
     if (num_pos > mt->num_slots) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (num_pos < 1) {
@@ -403,7 +403,7 @@ int input_mt_assign_slots(input_device_t *dev, int *slots, const struct input_mt
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(input_mt_assign_slots);
+VMM_ERR_XPORT_SYMBOL(input_mt_assign_slots);
 
 int input_mt_get_slot_by_key(input_device_t *dev, int key)
 {
@@ -430,4 +430,4 @@ int input_mt_get_slot_by_key(input_device_t *dev, int key)
     return -1;
 }
 
-VMM_EXPORT_SYMBOL(input_mt_get_slot_by_key);
+VMM_ERR_XPORT_SYMBOL(input_mt_get_slot_by_key);

@@ -18,7 +18,7 @@
  *
  * @file vmm_vserial.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief source code for virtual serial port
+ * @brief 虚拟串口源代码
  */
 
 #include <libs/stringlib.h>
@@ -36,28 +36,48 @@
 #define MODULE_INIT      vmm_vserial_init
 #define MODULE_EXIT      vmm_vserial_exit
 
+/**
+ * @brief 虚拟串口控制结构（内部），维护串口设备的运行时状态
+ */
 struct vmm_vserial_ctrl {
-    vmm_mutex_t                   vser_list_lock;
-    double_list_t                 vser_list;
-    vmm_blocking_notifier_chain_t notifier_chain;
+    vmm_mutex_t                   vser_list_lock; /**< vser_list_lock成员 */
+    double_list_t                 vser_list; /**< vser_list成员 */
+    vmm_blocking_notifier_chain_t notifier_chain; /**< 通知器链 */
 };
 
 static struct vmm_vserial_ctrl vsctrl;
 
+/**
+ * @brief 注册虚拟串口客户端
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_register_client(vmm_notifier_block_t *nb)
 {
     return vmm_blocking_notifier_register(&vsctrl.notifier_chain, nb);
 }
 
-VMM_EXPORT_SYMBOL(vmm_vserial_register_client);
+VMM_ERR_XPORT_SYMBOL(vmm_vserial_register_client);
 
+/**
+ * @brief 注销虚拟串口客户端
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_unregister_client(vmm_notifier_block_t *nb)
 {
     return vmm_blocking_notifier_unregister(&vsctrl.notifier_chain, nb);
 }
 
-VMM_EXPORT_SYMBOL(vmm_vserial_unregister_client);
+VMM_ERR_XPORT_SYMBOL(vmm_vserial_unregister_client);
 
+/**
+ * @brief 虚拟串口 发送
+ * @param vser 虚拟串口设备指针
+ * @param src 源设备树节点
+ * @param len 大小
+ * @return 成功返回发送的字节数，失败返回0
+ */
 uint32_t vmm_vserial_send(struct vmm_vserial *vser, uint8_t *src, uint32_t len)
 {
     uint32_t i;
@@ -81,8 +101,15 @@ uint32_t vmm_vserial_send(struct vmm_vserial *vser, uint8_t *src, uint32_t len)
     return i;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vserial_send);
+VMM_ERR_XPORT_SYMBOL(vmm_vserial_send);
 
+/**
+ * @brief 虚拟串口 接收
+ * @param vser 虚拟串口设备指针
+ * @param dst 目标缓冲区指针
+ * @param len 大小
+ * @return 成功返回接收的字节数，失败返回0
+ */
 uint32_t vmm_vserial_receive(struct vmm_vserial *vser, uint8_t *dst, uint32_t len)
 {
     uint32_t                     i;
@@ -90,7 +117,7 @@ uint32_t vmm_vserial_receive(struct vmm_vserial *vser, uint8_t *dst, uint32_t le
     struct vmm_vserial_receiver *receiver;
 
     if (!vser || !dst) {
-        return 0;
+        return 0; /**< 0 */
     }
 
     vmm_spin_lock_irq_save(&vser->receiver_list_lock, flags);
@@ -117,8 +144,14 @@ uint32_t vmm_vserial_receive(struct vmm_vserial *vser, uint8_t *dst, uint32_t le
     return i;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vserial_receive);
+VMM_ERR_XPORT_SYMBOL(vmm_vserial_receive);
 
+/**
+ * @brief 注册虚拟串口接收器
+ * @param vser 虚拟串口设备指针
+ * @param (*recv 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_register_receiver(struct vmm_vserial *vser, void (*recv)(struct vmm_vserial *, void *, uint8_t), void *private)
 {
     uint8_t                      chval;
@@ -127,7 +160,7 @@ int vmm_vserial_register_receiver(struct vmm_vserial *vser, void (*recv)(struct 
     struct vmm_vserial_receiver *receiver;
 
     if (!vser || !recv) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     receiver = NULL;
@@ -145,14 +178,14 @@ int vmm_vserial_register_receiver(struct vmm_vserial *vser, void (*recv)(struct 
 
     if (found) {
         vmm_spin_unlock_irq_restore(&vser->receiver_list_lock, flags);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     receiver = vmm_malloc(sizeof(struct vmm_vserial_receiver));
 
     if (!receiver) {
         vmm_spin_unlock_irq_restore(&vser->receiver_list_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     INIT_LIST_HEAD(&receiver->head);
@@ -177,8 +210,14 @@ int vmm_vserial_register_receiver(struct vmm_vserial *vser, void (*recv)(struct 
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vserial_register_receiver);
+VMM_ERR_XPORT_SYMBOL(vmm_vserial_register_receiver);
 
+/**
+ * @brief 注销虚拟串口接收器
+ * @param vser 虚拟串口设备指针
+ * @param (*recv 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_unregister_receiver(struct vmm_vserial *vser, void (*recv)(struct vmm_vserial *, void *, uint8_t), void *private)
 {
     bool                         found;
@@ -186,7 +225,7 @@ int vmm_vserial_unregister_receiver(struct vmm_vserial *vser, void (*recv)(struc
     struct vmm_vserial_receiver *receiver;
 
     if (!vser || !recv) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     receiver = NULL;
@@ -204,7 +243,7 @@ int vmm_vserial_unregister_receiver(struct vmm_vserial *vser, void (*recv)(struc
 
     if (!found) {
         vmm_spin_unlock_irq_restore(&vser->receiver_list_lock, flags);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     list_del(&receiver->head);
@@ -216,50 +255,50 @@ int vmm_vserial_unregister_receiver(struct vmm_vserial *vser, void (*recv)(struc
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vserial_unregister_receiver);
+VMM_ERR_XPORT_SYMBOL(vmm_vserial_unregister_receiver);
 
 struct vmm_vserial *vmm_vserial_create(
     const char *name, bool (*can_send)(struct vmm_vserial *), int (*send)(struct vmm_vserial *, uint8_t), uint32_t receive_fifo_size, void *private)
 {
-    bool                     found;
-    struct vmm_vserial      *vser;
-    struct vmm_vserial_event event;
+    bool                     found; /**< found成员 */
+    struct vmm_vserial      *vser; /**< vser成员 */
+    struct vmm_vserial_event event; /**< 事件 */
 
     if (!name) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    vser  = NULL;
-    found = FALSE;
+    vser  = NULL; /**< NULL成员 */
+    found = FALSE; /**< FALSE成员 */
 
     vmm_mutex_lock(&vsctrl.vser_list_lock);
 
     list_for_each_entry(vser, &vsctrl.vser_list, head)
     {
         if (strcmp(name, vser->name) == 0) {
-            found = TRUE;
+            found = TRUE; /**< TRUE成员 */
             break;
         }
     }
 
     if (found) {
         vmm_mutex_unlock(&vsctrl.vser_list_lock);
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    vser = vmm_malloc(sizeof(struct vmm_vserial));
+    vser = vmm_malloc(sizeof(struct vmm_vserial)); /**< vmm_vserial))成员 */
 
     if (!vser) {
         vmm_mutex_unlock(&vsctrl.vser_list_lock);
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    vser->receive_fifo = fifo_alloc(1, receive_fifo_size);
+    vser->receive_fifo = fifo_alloc(1, receive_fifo_size); /**< receive_fifo_size)成员 */
 
     if (!(vser->receive_fifo)) {
         vmm_free(vser);
         vmm_mutex_unlock(&vsctrl.vser_list_lock);
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
     INIT_LIST_HEAD(&vser->head);
@@ -268,29 +307,34 @@ struct vmm_vserial *vmm_vserial_create(
         fifo_free(vser->receive_fifo);
         vmm_free(vser);
         vmm_mutex_unlock(&vsctrl.vser_list_lock);
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    vser->can_send = can_send;
-    vser->send     = send;
+    vser->can_send = can_send; /**< can_send成员 */
+    vser->send     = send; /**< send成员 */
     INIT_SPIN_LOCK(&vser->receiver_list_lock);
     INIT_LIST_HEAD(&vser->receiver_list);
-    vser->private = private;
+    vser->private = private; /**< 私有数据 */
 
-    list_add_tail(&vser->head, &vsctrl.vser_list);
+    list_add_tail(&vser->head, &vsctrl.vser_list); /**< &vsctrl.vser_list)成员 */
 
     vmm_mutex_unlock(&vsctrl.vser_list_lock);
 
     /* Broadcast create event */
-    event.vser = vser;
-    event.data = NULL;
-    vmm_blocking_notifier_call(&vsctrl.notifier_chain, VMM_VSERIAL_EVENT_CREATE, &event);
+    event.vser = vser; /**< vser成员 */
+    event.data = NULL; /**< NULL成员 */
+    vmm_blocking_notifier_call(&vsctrl.notifier_chain, VMM_VSERIAL_EVENT_CREATE, &event); /**< &event)成员 */
 
-    return vser;
+    return vser; /**< vser成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_vserial_create);
+VMM_ERR_XPORT_SYMBOL(vmm_vserial_create);
 
+/**
+ * @brief 销毁虚拟串口
+ * @param vser 虚拟串口设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_destroy(struct vmm_vserial *vser)
 {
     bool                     found;
@@ -298,7 +342,7 @@ int vmm_vserial_destroy(struct vmm_vserial *vser)
     struct vmm_vserial_event event;
 
     if (!vser) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     /* Broadcast destroy event */
@@ -310,7 +354,7 @@ int vmm_vserial_destroy(struct vmm_vserial *vser)
 
     if (list_empty(&vsctrl.vser_list)) {
         vmm_mutex_unlock(&vsctrl.vser_list_lock);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vs    = NULL;
@@ -326,7 +370,7 @@ int vmm_vserial_destroy(struct vmm_vserial *vser)
 
     if (!found) {
         vmm_mutex_unlock(&vsctrl.vser_list_lock);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     list_del(&vs->head);
@@ -339,26 +383,26 @@ int vmm_vserial_destroy(struct vmm_vserial *vser)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vserial_destroy);
+VMM_ERR_XPORT_SYMBOL(vmm_vserial_destroy);
 
 struct vmm_vserial *vmm_vserial_find(const char *name)
 {
-    bool                found;
-    struct vmm_vserial *vs;
+    bool                found; /**< found成员 */
+    struct vmm_vserial *vs; /**< vs */
 
     if (!name) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    found = FALSE;
-    vs    = NULL;
+    found = FALSE; /**< FALSE成员 */
+    vs    = NULL; /**< NULL成员 */
 
     vmm_mutex_lock(&vsctrl.vser_list_lock);
 
     list_for_each_entry(vs, &vsctrl.vser_list, head)
     {
         if (strcmp(vs->name, name) == 0) {
-            found = TRUE;
+            found = TRUE; /**< TRUE成员 */
             break;
         }
     }
@@ -366,14 +410,21 @@ struct vmm_vserial *vmm_vserial_find(const char *name)
     vmm_mutex_unlock(&vsctrl.vser_list_lock);
 
     if (!found) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    return vs;
+    return vs; /**< vs */
 }
 
-VMM_EXPORT_SYMBOL(vmm_vserial_find);
+VMM_ERR_XPORT_SYMBOL(vmm_vserial_find);
 
+/**
+ * @brief 虚拟串口 遍历
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_iterate(struct vmm_vserial *start, void *data, int (*fn)(struct vmm_vserial *vs, void *data))
 {
     int                 rc          = VMM_OK;
@@ -381,7 +432,7 @@ int vmm_vserial_iterate(struct vmm_vserial *start, void *data, int (*fn)(struct 
     struct vmm_vserial *vs          = NULL;
 
     if (!fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     vmm_mutex_lock(&vsctrl.vser_list_lock);
@@ -408,8 +459,12 @@ int vmm_vserial_iterate(struct vmm_vserial *start, void *data, int (*fn)(struct 
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vserial_iterate);
+VMM_ERR_XPORT_SYMBOL(vmm_vserial_iterate);
 
+/**
+ * @brief 获取虚拟串口的数量
+ * @return 数量值
+ */
 uint32_t vmm_vserial_count(void)
 {
     uint32_t            retval = 0;
@@ -427,8 +482,12 @@ uint32_t vmm_vserial_count(void)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vserial_count);
+VMM_ERR_XPORT_SYMBOL(vmm_vserial_count);
 
+/**
+ * @brief 初始化虚拟串口
+ * @return 数量值
+ */
 static int __init vmm_vserial_init(void)
 {
     memset(&vsctrl, 0, sizeof(vsctrl));
@@ -440,6 +499,10 @@ static int __init vmm_vserial_init(void)
     return VMM_OK;
 }
 
+/**
+ * @brief 虚拟串口子系统退出
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __exit vmm_vserial_exit(void)
 {
     /* Nothing to do here. */

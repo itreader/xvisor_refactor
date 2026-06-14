@@ -315,7 +315,7 @@ static inline int netif_rx(struct sk_buff *mb, struct net_device *dev)
     if (!port) {
         vmm_printf("%s Net dev %s has no switch attached\n", __func__, dev->name);
         m_freem(mb);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_port2switch_xfer_mbuf(port, mb);

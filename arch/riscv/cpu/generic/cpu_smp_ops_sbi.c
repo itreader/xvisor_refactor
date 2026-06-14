@@ -82,7 +82,7 @@ static int __init smp_sbi_cpu_boot(uint32_t cpu)
     physical_addr_t _start_secondary_nopen_pa;
 
     /* Get physical address secondary startup code */
-    rc = vmm_host_va2pa((virtual_addr_t)&_start_secondary_nopen, &_start_secondary_nopen_pa);
+    rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)&_start_secondary_nopen, &_start_secondary_nopen_pa);
 
     if (rc) {
         vmm_printf("%s: failed to get phys addr for entry point\n", __func__);

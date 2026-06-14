@@ -18,7 +18,7 @@
  *
  * @file vmm_schedule_algorithm_prr.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief implementation of priority round-robin scheduling algorithm
+ * @brief 优先级轮转调度算法实现
  */
 
 #include <libs/list.h>
@@ -26,27 +26,38 @@
 #include <vmm_heap.h>
 #include <vmm_schedule_algorithm.h>
 
+/**
+ * @brief 周期性实时调度算法的运行队列条目，包含红黑树节点、关联VCPU及周期性参数
+ */
 struct vmm_schedule_algorithm_rq_entry {
-    double_list_t head;
-    vmm_vcpu_t   *vcpu;
+    double_list_t head; /**< 链表头 */
+    vmm_vcpu_t   *vcpu; /**< 虚拟CPU */
 };
 
+/**
+ * @brief 周期性实时调度算法的运行队列，按优先级管理各红黑树根节点和VCPU计数
+ */
 struct vmm_schedule_algorithm_rq {
-    double_list_t list[VMM_VCPU_MAX_PRIORITY + 1];
+    double_list_t list[VMM_VCPU_MAX_PRIORITY + 1]; /**< 链表 */
 };
 
+/**
+ * @brief 调度算法VCPU初始化设置
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_schedule_algorithm_vcpu_setup(vmm_vcpu_t *vcpu)
 {
     struct vmm_schedule_algorithm_rq_entry *rq_entry;
 
     if (!vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     rq_entry = vmm_malloc(sizeof(struct vmm_schedule_algorithm_rq_entry));
 
     if (!rq_entry) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     INIT_LIST_HEAD(&rq_entry->head);
@@ -56,10 +67,15 @@ int vmm_schedule_algorithm_vcpu_setup(vmm_vcpu_t *vcpu)
     return VMM_OK;
 }
 
+/**
+ * @brief 调度算法VCPU清理回调
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_schedule_algorithm_vcpu_cleanup(vmm_vcpu_t *vcpu)
 {
     if (!vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (vcpu->sched_private) {
@@ -70,14 +86,20 @@ int vmm_schedule_algorithm_vcpu_cleanup(vmm_vcpu_t *vcpu)
     return VMM_OK;
 }
 
-int vmm_schedule_algorithm_rq_length(void *rq, uint8_t priority)
+/**
+ * @brief 获取调度算法就绪队列的长度
+ * @param rq 请求队列指针
+ * @param priority 优先级
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+int vmm_schedule_algorithm_ready_queue_length(void *rq, uint8_t priority)
 {
     struct vmm_schedule_algorithm_rq_entry *rq_entry;
     struct vmm_schedule_algorithm_rq       *rqi;
     int                                     count = 0;
 
     if (!rq) {
-        return -1;
+        return -1; /**< -1 */
     }
 
     rqi = rq;
@@ -90,20 +112,26 @@ int vmm_schedule_algorithm_rq_length(void *rq, uint8_t priority)
     return count;
 }
 
-int vmm_schedule_algorithm_rq_enqueue(void *rq, vmm_vcpu_t *vcpu)
+/**
+ * @brief 将VCPU加入调度算法的就绪队列
+ * @param rq 请求队列指针
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+int vmm_schedule_algorithm_ready_queue_enqueue(void *rq, vmm_vcpu_t *vcpu)
 {
     struct vmm_schedule_algorithm_rq_entry *rq_entry;
     struct vmm_schedule_algorithm_rq       *rqi;
 
     if (!rq || !vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     rqi      = rq;
     rq_entry = vcpu->sched_private;
 
     if (!rq_entry) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     list_add_tail(&rq_entry->head, &rqi->list[vcpu->priority]);
@@ -111,14 +139,21 @@ int vmm_schedule_algorithm_rq_enqueue(void *rq, vmm_vcpu_t *vcpu)
     return VMM_OK;
 }
 
-int vmm_schedule_algorithm_rq_dequeue(void *rq, vmm_vcpu_t **next, uint64_t *next_time_slice)
+/**
+ * @brief 从调度算法的就绪队列中取出VCPU
+ * @param rq 请求队列指针
+ * @param next 指向VCPU结构体的指针
+ * @param next_time_slice 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+int vmm_schedule_algorithm_ready_queue_dequeue(void *rq, vmm_vcpu_t **next, uint64_t *next_time_slice)
 {
     int                                     p;
     struct vmm_schedule_algorithm_rq_entry *rq_entry;
     struct vmm_schedule_algorithm_rq       *rqi;
 
     if (!rq) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     rqi = rq;
@@ -134,7 +169,7 @@ int vmm_schedule_algorithm_rq_dequeue(void *rq, vmm_vcpu_t **next, uint64_t *nex
     }
 
     if (!p) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     p        = p - 1;
@@ -152,18 +187,24 @@ int vmm_schedule_algorithm_rq_dequeue(void *rq, vmm_vcpu_t **next, uint64_t *nex
     return VMM_OK;
 }
 
-int vmm_schedule_algorithm_rq_detach(void *rq, vmm_vcpu_t *vcpu)
+/**
+ * @brief 从调度算法的就绪队列中分离指定VCPU
+ * @param rq 请求队列指针
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+int vmm_schedule_algorithm_ready_queue_detach(void *rq, vmm_vcpu_t *vcpu)
 {
     struct vmm_schedule_algorithm_rq_entry *rq_entry;
 
     if (!vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     rq_entry = vcpu->sched_private;
 
     if (!rq_entry) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     list_del_init(&rq_entry->head);
@@ -171,14 +212,20 @@ int vmm_schedule_algorithm_rq_detach(void *rq, vmm_vcpu_t *vcpu)
     return VMM_OK;
 }
 
-bool vmm_schedule_algorithm_rq_prempt_needed(void *rq, vmm_vcpu_t *current)
+/**
+ * @brief 检查调度算法就绪队列是否需要抢占
+ * @param rq 请求队列指针
+ * @param current 指向VCPU结构体的指针
+ * @return 就绪返回TRUE，未就绪返回FALSE
+ */
+bool vmm_schedule_algorithm_ready_queue_prempt_needed(void *rq, vmm_vcpu_t *current)
 {
     int                               p;
     bool                              ret = FALSE;
     struct vmm_schedule_algorithm_rq *rqi;
 
     if (!rq || !current) {
-        return FALSE;
+        return FALSE; /**< FALSE成员 */
     }
 
     rqi = rq;
@@ -197,26 +244,35 @@ bool vmm_schedule_algorithm_rq_prempt_needed(void *rq, vmm_vcpu_t *current)
     return ret;
 }
 
-void *vmm_schedule_algorithm_rq_create(void)
+/**
+ * @brief 创建调度算法就绪队列
+ * @return 成功返回创建的对象指针，失败返回NULL
+ */
+void *vmm_schedule_algorithm_ready_queue_create(void)
 {
     int                               p;
     struct vmm_schedule_algorithm_rq *rq = vmm_malloc(sizeof(struct vmm_schedule_algorithm_rq));
 
     if (rq) {
         for (p = 0; p <= VMM_VCPU_MAX_PRIORITY; p++) {
-            INIT_LIST_HEAD(&rq->list[p]);
+            INIT_LIST_HEAD(&rq->list[p]); /**< 链表 */
         }
     }
 
     return rq;
 }
 
-int vmm_schedule_algorithm_rq_destroy(void *rq)
+/**
+ * @brief 销毁调度算法就绪队列
+ * @param rq 请求队列指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+int vmm_schedule_algorithm_ready_queue_destroy(void *rq)
 {
     if (rq) {
         vmm_free(rq);
         return VMM_OK;
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }

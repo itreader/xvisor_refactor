@@ -135,7 +135,7 @@ static int cpu_vcpu_stage2_map(vmm_vcpu_t *vcpu, physical_addr_t fault_addr)
             "%s: availsz=0x%" PRIPSIZE " insufficent for "
             "guest_phys=0x%" PRIPADDR "\n",
             __func__, availsz, inaddr);
-        return VMM_ENOSPC;
+        return VMM_ERR_NOSPC;
     }
 
     pg.ia        = inaddr;
@@ -276,11 +276,11 @@ static int cpu_vcpu_emulate_load(vmm_vcpu_t *vcpu, arch_regs_t *regs, physical_a
         len   = 4;
         shift = 8 * (sizeof(ulong) - len);
     } else {
-        return VMM_ENOTSUPP;
+        return VMM_ERR_NOTSUPP;
     }
 
     if (fault_addr & (len - 1)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     switch (len) {
@@ -319,7 +319,7 @@ static int cpu_vcpu_emulate_load(vmm_vcpu_t *vcpu, arch_regs_t *regs, physical_a
             }
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -399,11 +399,11 @@ static int cpu_vcpu_emulate_store(vmm_vcpu_t *vcpu, arch_regs_t *regs, physical_
         len    = 4;
         data32 = GET_RS2C(insn, regs);
     } else {
-        return VMM_ENOTSUPP;
+        return VMM_ERR_NOTSUPP;
     }
 
     if (fault_addr & (len - 1)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     switch (len) {
@@ -423,7 +423,7 @@ static int cpu_vcpu_emulate_store(vmm_vcpu_t *vcpu, arch_regs_t *regs, physical_
             rc = vmm_device_emulate_emulate_write(vcpu, fault_addr, &data64, sizeof(data64), VMM_DEVICE_EMULATE_LITTLE_ENDIAN);
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -475,7 +475,7 @@ int cpu_vcpu_page_fault(vmm_vcpu_t *vcpu, arch_regs_t *regs, struct cpu_vcpu_tra
                 return cpu_vcpu_emulate_store(vcpu, regs, fault_addr, trap->htinst);
 
             default:
-                return VMM_ENOTSUPP;
+                return VMM_ERR_NOTSUPP;
         };
     }
 
@@ -1235,7 +1235,7 @@ int cpu_vcpu_general_fault(vmm_vcpu_t *vcpu, arch_regs_t *regs, struct cpu_vcpu_
      */
 
     if (!riscv_nested_virt(vcpu)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /*
@@ -1279,7 +1279,7 @@ int cpu_vcpu_illegal_insn_fault(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint64_t st
      */
 
     if (!riscv_nested_virt(vcpu)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (unlikely((insn & INSN_16BIT_MASK) != INSN_16BIT_MASK)) {
@@ -1340,7 +1340,7 @@ int cpu_vcpu_redirect_vsirq(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint64_t irq)
     struct cpu_vcpu_trap trap = {0};
 
     if (!vcpu || !vcpu->is_normal || !riscv_nested_virt(vcpu)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     trap.sepc   = regs->sepc;

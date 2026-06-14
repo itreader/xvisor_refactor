@@ -361,21 +361,21 @@
 
 #define write_ifar(val) asm volatile(" mcr     p15, 0, %0, c6, c0, 2\n\t" ::"r"((val)) : "memory", "cc")
 
-#define va2pa_c_pr(va)  asm volatile(" mcr     p15, 0, %0, c7, c8, 0\n\t" ::"r"((va)) : "memory", "cc")
+#define virtualAddr_to_physicalAddr_c_pr(va)  asm volatile(" mcr     p15, 0, %0, c7, c8, 0\n\t" ::"r"((va)) : "memory", "cc")
 
-#define va2pa_c_pw(va)  asm volatile(" mcr     p15, 0, %0, c7, c8, 1\n\t" ::"r"((va)) : "memory", "cc")
+#define virtualAddr_to_physicalAddr_c_pw(va)  asm volatile(" mcr     p15, 0, %0, c7, c8, 1\n\t" ::"r"((va)) : "memory", "cc")
 
-#define va2pa_c_ur(va)  asm volatile(" mcr     p15, 0, %0, c7, c8, 2\n\t" ::"r"((va)) : "memory", "cc")
+#define virtualAddr_to_physicalAddr_c_ur(va)  asm volatile(" mcr     p15, 0, %0, c7, c8, 2\n\t" ::"r"((va)) : "memory", "cc")
 
-#define va2pa_c_uw(va)  asm volatile(" mcr     p15, 0, %0, c7, c8, 3\n\t" ::"r"((va)) : "memory", "cc")
+#define virtualAddr_to_physicalAddr_c_uw(va)  asm volatile(" mcr     p15, 0, %0, c7, c8, 3\n\t" ::"r"((va)) : "memory", "cc")
 
-#define va2pa_ns_pr(va) asm volatile(" mcr     p15, 0, %0, c7, c8, 4\n\t" ::"r"((va)) : "memory", "cc")
+#define virtualAddr_to_physicalAddr_ns_pr(va) asm volatile(" mcr     p15, 0, %0, c7, c8, 4\n\t" ::"r"((va)) : "memory", "cc")
 
-#define va2pa_ns_pw(va) asm volatile(" mcr     p15, 0, %0, c7, c8, 5\n\t" ::"r"((va)) : "memory", "cc")
+#define virtualAddr_to_physicalAddr_ns_pw(va) asm volatile(" mcr     p15, 0, %0, c7, c8, 5\n\t" ::"r"((va)) : "memory", "cc")
 
-#define va2pa_ns_ur(va) asm volatile(" mcr     p15, 0, %0, c7, c8, 6\n\t" ::"r"((va)) : "memory", "cc")
+#define virtualAddr_to_physicalAddr_ns_ur(va) asm volatile(" mcr     p15, 0, %0, c7, c8, 6\n\t" ::"r"((va)) : "memory", "cc")
 
-#define va2pa_ns_uw(va) asm volatile(" mcr     p15, 0, %0, c7, c8, 7\n\t" ::"r"((va)) : "memory", "cc")
+#define virtualAddr_to_physicalAddr_ns_uw(va) asm volatile(" mcr     p15, 0, %0, c7, c8, 7\n\t" ::"r"((va)) : "memory", "cc")
 
 #define read_par()                                                                                                                                   \
     ({                                                                                                                                               \
@@ -528,9 +528,9 @@
 
 #define inv_tlb_hyp_mvais(va) asm volatile(" mcr     p15, 4, %0, c8, c3, 1\n\t" ::"r"((va)) : "memory", "cc")
 
-#define va2pa_hr(va)          asm volatile(" mcr     p15, 4, %0, c7, c8, 0\n\t" ::"r"((va)) : "memory", "cc")
+#define virtualAddr_to_physicalAddr_hr(va)          asm volatile(" mcr     p15, 4, %0, c7, c8, 0\n\t" ::"r"((va)) : "memory", "cc")
 
-#define va2pa_hw(va)          asm volatile(" mcr     p15, 4, %0, c7, c8, 1\n\t" ::"r"((va)) : "memory", "cc")
+#define virtualAddr_to_physicalAddr_hw(va)          asm volatile(" mcr     p15, 4, %0, c7, c8, 1\n\t" ::"r"((va)) : "memory", "cc")
 
 /* VFP Control Register Read/Write */
 

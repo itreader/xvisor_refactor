@@ -21,7 +21,7 @@
  * @brief generic arch device tree functions using libfdt library
  */
 
-#include <arch_cpu_aspace.h>
+#include <arch_cpu_addr_space.h>
 #include <arch_device_tree.h>
 #include <arch_sections.h>
 #include <generic_device_tree.h>
@@ -91,7 +91,7 @@ int __init arch_device_tree_ram_bank_setup(void)
     uint32_t                i, j, address_cells, size_cells;
 
     if (!device_tree_virt_size) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     address_cells = sizeof(physical_addr_t) / sizeof(fdt_cell_t);
@@ -106,7 +106,7 @@ int __init arch_device_tree_ram_bank_setup(void)
     fdt_root = libfdt_find_node(&fdt, VMM_DEVICE_TREE_PATH_SEPARATOR_STRING);
 
     if (!fdt_root) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = libfdt_get_property(&fdt, fdt_root, address_cells, size_cells, VMM_DEVICE_TREE_ADDR_CELLS_ATTR_NAME, &i, sizeof(i));
@@ -208,7 +208,7 @@ int __init arch_device_tree_ram_bank_count(uint32_t *bank_count)
 int __init arch_device_tree_ram_bank_start(uint32_t bank, physical_addr_t *addr)
 {
     if (bank >= bank_nr) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     *addr = bank_data[bank * 2];
@@ -219,7 +219,7 @@ int __init arch_device_tree_ram_bank_start(uint32_t bank, physical_addr_t *addr)
 int __init arch_device_tree_ram_bank_size(uint32_t bank, physical_size_t *size)
 {
     if (bank >= bank_nr) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     *size = bank_data[bank * 2 + 1];
@@ -260,7 +260,7 @@ int __init arch_device_tree_reserve_count(uint32_t *count)
     struct fdt_fileinfo fdt;
 
     if (!device_tree_virt_size) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     rc = libfdt_parse_fileinfo(device_tree_virt, &fdt);
@@ -286,7 +286,7 @@ int __init arch_device_tree_reserve_addr(uint32_t index, physical_addr_t *addr)
     struct fdt_fileinfo fdt;
 
     if (!device_tree_virt_size) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     rc = libfdt_parse_fileinfo(device_tree_virt, &fdt);
@@ -308,7 +308,7 @@ int __init arch_device_tree_reserve_addr(uint32_t index, physical_addr_t *addr)
     } else if (index == count && !device_tree_reserve_has_fdt(&fdt, count)) {
         *addr = device_tree_phys_base;
     } else {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return VMM_OK;
@@ -322,7 +322,7 @@ int __init arch_device_tree_reserve_size(uint32_t index, physical_size_t *size)
     struct fdt_fileinfo fdt;
 
     if (!device_tree_virt_size) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     rc = libfdt_parse_fileinfo(device_tree_virt, &fdt);
@@ -354,7 +354,7 @@ int __init arch_device_tree_reserve_size(uint32_t index, physical_size_t *size)
     } else if (index == count && !device_tree_reserve_has_fdt(&fdt, count)) {
         *size = device_tree_virt_size;
     } else {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return VMM_OK;
@@ -367,7 +367,7 @@ int __init arch_device_tree_populate(vmm_device_tree_node_t **root)
     struct fdt_fileinfo fdt;
 
     if (!device_tree_virt_size) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     rc = libfdt_parse_fileinfo(device_tree_virt, &fdt);

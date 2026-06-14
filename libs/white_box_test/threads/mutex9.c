@@ -117,7 +117,7 @@ static int mutex9_do_test(vmm_char_device_t *cdev)
         timeout  = etimeout;
         rc       = vmm_mutex_lock_timeout(&mutex1, &timeout);
 
-        if (rc != VMM_ETIMEDOUT) {
+        if (rc != VMM_ERR_TIMEDOUT) {
             vmm_cdev_printf(cdev, "error: did not timeout\n");
             failures++;
         }
@@ -134,7 +134,7 @@ static int mutex9_do_test(vmm_char_device_t *cdev)
     /* Stop worker thread. */
     vmm_threads_stop(workers[0]);
 
-    return (failures) ? VMM_EFAIL : 0;
+    return (failures) ? VMM_ERR_FAIL : 0;
 }
 
 static int mutex9_run(struct white_box_test *test, vmm_char_device_t *cdev, uint32_t test_hcpu)
@@ -152,7 +152,7 @@ static int mutex9_run(struct white_box_test *test, vmm_char_device_t *cdev, uint
         workers[i] = vmm_threads_create(wname, mutex9_worker_thread_main, (void *)(uint64_t)i, current_priority, VMM_THREAD_DEF_TIME_SLICE);
 
         if (workers[i] == NULL) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             goto destroy_workers;
         }
     }

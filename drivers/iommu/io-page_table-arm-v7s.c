@@ -190,7 +190,7 @@ static arm_v7s_iopte *iopte_deref(arm_v7s_iopte pte, int lvl)
         pte &= ARM_V7S_LVL_MASK(lvl);
     }
 
-    rc = vmm_host_pa2va((physical_addr_t)pte, &va);
+    rc = vmm_host_physicalAddr_to_virtualAddr((physical_addr_t)pte, &va);
 
     if (rc) {
         return NULL;
@@ -358,12 +358,12 @@ static int arm_v7s_init_pte(
             tblp                = ptep - ARM_V7S_LVL_IDX(iova, lvl);
 
             if (WARN_ON(__arm_v7s_unmap(data, iova + i * size, size, lvl, tblp) != size)) {
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
             }
         } else if (ptep[i]) {
             /* We require an unmap first */
             WARN_ON(!selftest_running);
-            return VMM_EEXIST;
+            return VMM_ERR_EXIST;
         }
     }
 
@@ -406,7 +406,7 @@ static int __arm_v7s_map(
 
     /* We can't allocate tables at the final level */
     if (WARN_ON(lvl == 2)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Grab a pointer to the next level */
@@ -416,10 +416,10 @@ static int __arm_v7s_map(
         cptep = __arm_v7s_alloc_table(lvl + 1, data);
 
         if (!cptep) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
-        rc = vmm_host_va2pa((virtual_addr_t)cptep, &pa);
+        rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)cptep, &pa);
         BUG_ON(rc);
 
         pte = ((arm_v7s_iopte)pa) | ARM_V7S_PTE_TYPE_TABLE;
@@ -709,7 +709,7 @@ static struct io_page_table *arm_v7s_alloc_page_table(struct io_page_table_cfg *
     /* Ensure the empty pgd is visible before any actual TTBR write */
     arch_smp_wmb();
 
-    rc = vmm_host_va2pa((virtual_addr_t)data->pgd, &pa);
+    rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)data->pgd, &pa);
     BUG_ON(rc);
 
     /* TTBRs */
@@ -768,7 +768,7 @@ static struct iommu_gather_ops dummy_tlb_ops = {
     ({                                                                                                                                               \
         vmm_lwarning("selftest", "arm-v7s failed\n");                                                                                                \
         selftest_running = FALSE;                                                                                                                    \
-        VMM_EFAIL;                                                                                                                                   \
+        VMM_ERR_FAIL;                                                                                                                                   \
     })
 
 static int __init arm_v7s_do_selftests(void)
@@ -792,7 +792,7 @@ static int __init arm_v7s_do_selftests(void)
 
     if (!ops) {
         vmm_lerror("selftest", "arm-v7s failed to allocate io page_table ops\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /*

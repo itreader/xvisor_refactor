@@ -18,7 +18,7 @@
  *
  * @file vmm_net.h
  * @author Sukanto Ghosh <sukantoghosh@gmail.com>
- * @brief Network Layer interface layer API.
+ * @brief 网络层接口API
  */
 #ifndef __VMM_NET_H_
 #define __VMM_NET_H_

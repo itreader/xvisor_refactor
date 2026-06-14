@@ -115,7 +115,7 @@ const struct video_terminal_emulate_font *video_terminal_emulate_find_font(const
     return NULL;
 }
 
-VMM_EXPORT_SYMBOL(video_terminal_emulate_find_font);
+VMM_ERR_XPORT_SYMBOL(video_terminal_emulate_find_font);
 
 /**
  *  Get default font
@@ -177,4 +177,4 @@ const struct video_terminal_emulate_font *video_terminal_emulate_get_default_fon
     return g;
 }
 
-VMM_EXPORT_SYMBOL(video_terminal_emulate_get_default_font);
+VMM_ERR_XPORT_SYMBOL(video_terminal_emulate_get_default_font);

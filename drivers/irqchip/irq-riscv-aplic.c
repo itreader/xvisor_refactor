@@ -93,21 +93,21 @@ struct aplic_priv {
 static uint32_t aplic_idc_parent_irq;
 static DEFINE_PER_CPU(struct aplic_idc, aplic_idcs);
 
-static void aplic_irq_unmask(struct vmm_host_irq *d)
+static void aplic_irq_unmask(vmm_host_irq_t *d)
 {
     struct aplic_priv *private = vmm_host_irq_get_chip_data(d);
 
-    vmm_writel(d->hwirq, private->regs + APLIC_SETIENUM);
+    vmm_writel(d->hw_irq_num, private->regs + APLIC_SETIENUM);
 }
 
-static void aplic_irq_mask(struct vmm_host_irq *d)
+static void aplic_irq_mask(vmm_host_irq_t *d)
 {
     struct aplic_priv *private = vmm_host_irq_get_chip_data(d);
 
-    vmm_writel(d->hwirq, private->regs + APLIC_CLRIENUM);
+    vmm_writel(d->hw_irq_num, private->regs + APLIC_CLRIENUM);
 }
 
-static int aplic_set_type(struct vmm_host_irq *d, uint32_t type)
+static int aplic_set_type(vmm_host_irq_t *d, uint32_t type)
 {
     uint32_t val = 0;
     void    *sourcecfg;
@@ -135,18 +135,18 @@ static int aplic_set_type(struct vmm_host_irq *d, uint32_t type)
             break;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     }
 
     sourcecfg = private->regs + APLIC_SOURCECFG_BASE;
-    sourcecfg += (d->hwirq - 1) * sizeof(uint32_t);
+    sourcecfg += (d->hw_irq_num - 1) * sizeof(uint32_t);
     vmm_writel(val, sourcecfg);
 
     return 0;
 }
 
 #ifdef CONFIG_SMP
-static int aplic_set_affinity(struct vmm_host_irq *d, const vmm_cpumask_t *mask_val, bool force)
+static int aplic_set_affinity(vmm_host_irq_t *d, const vmm_cpumask_t *mask_val, bool force)
 {
     struct aplic_priv *private = vmm_host_irq_get_chip_data(d);
     struct aplic_idc *idc;
@@ -164,19 +164,19 @@ static int aplic_set_affinity(struct vmm_host_irq *d, const vmm_cpumask_t *mask_
     }
 
     if (cpu >= vmm_cpu_count) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (private->nr_idcs) {
         idc    = &per_cpu(aplic_idcs, cpu);
         target = private->regs + APLIC_TARGET_BASE;
-        target += (d->hwirq - 1) * sizeof(uint32_t);
+        target += (d->hw_irq_num - 1) * sizeof(uint32_t);
         val = idc->hart_index & APLIC_TARGET_HART_IDX_MASK;
         val <<= APLIC_TARGET_HART_IDX_SHIFT;
         val |= APLIC_DEFAULT_PRIORITY;
         vmm_writel(val, target);
     } else {
-        msi = &private->msis[d->hwirq];
+        msi = &private->msis[d->hw_irq_num];
         return vmm_host_irq_set_affinity(msi->parent_irq, vmm_cpumask_of(cpu), force);
     }
 
@@ -184,7 +184,7 @@ static int aplic_set_affinity(struct vmm_host_irq *d, const vmm_cpumask_t *mask_
 }
 #endif
 
-static struct vmm_host_irq_chip aplic_chip = {
+static vmm_host_irq_chip_t aplic_chip = {
     .name         = "riscv-aplic",
     .irq_mask     = aplic_irq_mask,
     .irq_unmask   = aplic_irq_unmask,
@@ -194,7 +194,7 @@ static struct vmm_host_irq_chip aplic_chip = {
 #endif
 };
 
-static int aplic_irq_domain_map(struct vmm_host_irq_domain *dom, uint32_t hirq, uint32_t hwirq)
+static int aplic_irq_domain_map(struct vmm_host_irq_domain *dom, uint32_t hirq, uint32_t hw_irq_num)
 {
     struct aplic_priv *private = dom->host_data;
 
@@ -261,7 +261,7 @@ static vmm_irq_return_t aplic_msi_handle_irq(int irq, void *dev)
     irq                        = vmm_host_irq_domain_find_mapping(private->irq_domain, msi->hw_irq);
 
     if (unlikely(irq <= 0)) {
-        vmm_lwarning(private->dev->name, "can't find mapping for hwirq %u\n", msi->hw_irq);
+        vmm_lwarning(private->dev->name, "can't find mapping for hw_irq_num %u\n", msi->hw_irq);
     } else {
         vmm_host_generic_irq_exec(irq);
     }
@@ -344,7 +344,7 @@ static int aplic_setup_lmask_msis(struct aplic_priv *private)
 
     if (!imsic_global) {
         vmm_lerror(dev->name, "IMSIC global config not found\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Find number of guest index bits (LHXS) */
@@ -352,7 +352,7 @@ static int aplic_setup_lmask_msis(struct aplic_priv *private)
 
     if (APLIC_xMSICFGADDRH_LHXS_MASK < mc->lhxs) {
         vmm_lerror(dev->name, "IMSIC guest index bits big for APLIC LHXS\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Find number of HART index bits (LHXW) */
@@ -360,7 +360,7 @@ static int aplic_setup_lmask_msis(struct aplic_priv *private)
 
     if (APLIC_xMSICFGADDRH_LHXW_MASK < mc->lhxw) {
         vmm_lerror(dev->name, "IMSIC hart index bits big for APLIC LHXW\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Find number of group index bits (HHXW) */
@@ -368,7 +368,7 @@ static int aplic_setup_lmask_msis(struct aplic_priv *private)
 
     if (APLIC_xMSICFGADDRH_HHXW_MASK < mc->hhxw) {
         vmm_lerror(dev->name, "IMSIC group index bits big for APLIC HHXW\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Find first bit position of group index (HHXS) */
@@ -376,14 +376,14 @@ static int aplic_setup_lmask_msis(struct aplic_priv *private)
 
     if (mc->hhxs < (2 * APLIC_xMSICFGADDR_PPN_SHIFT)) {
         vmm_lerror(dev->name, "IMSIC group index shift should be >= %d\n", (2 * APLIC_xMSICFGADDR_PPN_SHIFT));
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     mc->hhxs -= (2 * APLIC_xMSICFGADDR_PPN_SHIFT);
 
     if (APLIC_xMSICFGADDRH_HHXS_MASK < mc->hhxs) {
         vmm_lerror(dev->name, "IMSIC group index shift big for APLIC HHXS\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Compute PPN base */
@@ -399,7 +399,7 @@ static int aplic_setup_lmask_msis(struct aplic_priv *private)
     private->msis = vmm_devm_calloc(dev, private->nr_irqs + 1, sizeof(*msi));
 
     if (!private->msis) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     for (i = 0; i <= private->nr_irqs; i++) {
@@ -538,7 +538,7 @@ static int aplic_setup_lmask_idcs(struct aplic_priv *private)
     }
 
     /* Fail if we were not able to setup IDC for any CPU */
-    return (setup_count) ? 0 : VMM_ENODEV;
+    return (setup_count) ? 0 : VMM_ERR_NODEV;
 }
 
 static int aplic_probe(vmm_device_t *dev)
@@ -552,7 +552,7 @@ static int aplic_probe(vmm_device_t *dev)
     private = vmm_zalloc(sizeof(*private));
 
     if (!private) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     dev->private = private;
@@ -599,7 +599,7 @@ static int aplic_probe(vmm_device_t *dev)
 
     if (!private->irq_domain) {
         vmm_lerror(dev->name, "failed to add irq_domain\n");
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_regmap;
     }
 
@@ -624,7 +624,7 @@ static int aplic_remove(vmm_device_t *dev)
     struct aplic_priv *private = dev->private;
 
     if (!private) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_host_irq_domain_remove(private->irq_domain);

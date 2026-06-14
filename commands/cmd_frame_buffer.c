@@ -185,7 +185,7 @@ static int cmd_frame_buffer_fillrect(vmm_char_device_t *cdev, struct frame_buffe
 
     if (argc < 5) {
         cmd_frame_buffer_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     memset(&rect, 0, sizeof(struct frame_buffer_fillrect));
@@ -197,22 +197,22 @@ static int cmd_frame_buffer_fillrect(vmm_char_device_t *cdev, struct frame_buffe
 
     if (info->var.xres <= rect.dx) {
         vmm_cdev_printf(cdev, "Error: x should be less than %d\n", info->var.xres);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (info->var.yres <= rect.dy) {
         vmm_cdev_printf(cdev, "Error: y should be less than %d\n", info->var.yres);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (info->var.xres <= (rect.dx + rect.width)) {
         vmm_cdev_printf(cdev, "Error: x+width should be less than %d\n", info->var.xres);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (info->var.yres <= (rect.dy + rect.height)) {
         vmm_cdev_printf(cdev, "Error: y+height should be less than %d\n", info->var.yres);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (info->fix.visual == FB_VISUAL_TRUECOLOR || info->fix.visual == FB_VISUAL_DIRECTCOLOR) {
@@ -229,7 +229,7 @@ static int cmd_frame_buffer_fillrect(vmm_char_device_t *cdev, struct frame_buffe
             "Color error, it should be "
             "0x%x <= color < 0x%x\n",
             color_start, color_start + color_len);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (argc > 5) {
@@ -238,7 +238,7 @@ static int cmd_frame_buffer_fillrect(vmm_char_device_t *cdev, struct frame_buffe
 
     if (!info->fbops || !info->fbops->frame_buffer_fillrect) {
         vmm_cdev_printf(cdev, "FB fillrect operation not defined\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     vmm_cdev_printf(cdev, "X: %d, Y: %d, W: %d, H: %d, color: %d\n", rect.dx, rect.dy, rect.width, rect.height, rect.color);
@@ -257,7 +257,7 @@ static int cmd_frame_buffer_image(vmm_char_device_t *cdev, struct frame_buffer_i
 
     if (argc < 1) {
         cmd_frame_buffer_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     memset(&image, 0, sizeof(image));
@@ -323,12 +323,12 @@ static int cmd_frame_buffer_blank(vmm_char_device_t *cdev, struct frame_buffer_i
 
     if (argc < 1) {
         cmd_frame_buffer_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!info->fbops || !info->fbops->fb_blank) {
         vmm_cdev_printf(cdev, "FB 'blank' operation not defined\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     blank = strtol(argv[0], NULL, 10);
@@ -356,7 +356,7 @@ static int cmd_frame_buffer_blank(vmm_char_device_t *cdev, struct frame_buffer_i
     }
 
     if (info->fbops->fb_blank(blank, info)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
@@ -378,14 +378,14 @@ static int cmd_frame_buffer_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc <= 2) {
         cmd_frame_buffer_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     info = fb_find(argv[2]);
 
     if (!info) {
         vmm_cdev_printf(cdev, "Error: Invalid FB %s\n", argv[2]);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (strcmp(argv[1], "info") == 0) {
@@ -398,7 +398,7 @@ static int cmd_frame_buffer_exec(vmm_char_device_t *cdev, int argc, char **argv)
         return cmd_frame_buffer_image(cdev, info, argc - 3, argv + 3);
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_frame_buffer = {

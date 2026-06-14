@@ -193,7 +193,7 @@ static arm_lpae_iopte_t *iopte_deref(arm_lpae_iopte_t pte, struct arm_lpae_io_pa
     virtual_addr_t  va = 0x0;
     physical_addr_t pa = ((pte) & ((1ULL << ARM_LPAE_MAX_ADDR_BITS) - 1) & ~(ARM_LPAE_GRANULE(d) - 1ULL));
 
-    rc                 = vmm_host_pa2va(pa, &va);
+    rc                 = vmm_host_physicalAddr_to_virtualAddr(pa, &va);
     BUG_ON(rc);
 
     return (arm_lpae_iopte_t *)va;
@@ -245,7 +245,7 @@ static int arm_lpae_init_pte(
     if (iopte_leaf(*ptep, lvl)) {
         /* We require an unmap first */
         WARN_ON(!selftest_running);
-        return VMM_EEXIST;
+        return VMM_ERR_EXIST;
     } else if (iopte_type(*ptep, lvl) == ARM_LPAE_PTE_TYPE_TABLE) {
         /*
          * We need to unmap and free the old table before
@@ -257,7 +257,7 @@ static int arm_lpae_init_pte(
         tblp                   = ptep - ARM_LPAE_LVL_IDX(iova, lvl, data);
 
         if (WARN_ON(__arm_lpae_unmap(data, iova, size, lvl, tblp) != size)) {
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 
@@ -298,7 +298,7 @@ static int __arm_lpae_map(
 
     /* We can't allocate tables at the final level */
     if (WARN_ON(lvl >= ARM_LPAE_MAX_LEVELS - 1)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Grab a pointer to the next level */
@@ -308,10 +308,10 @@ static int __arm_lpae_map(
         cptep = __arm_lpae_alloc_pages(ARM_LPAE_GRANULE(data), cfg);
 
         if (!cptep) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
-        rc = vmm_host_va2pa((virtual_addr_t)cptep, &pa);
+        rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)cptep, &pa);
 
         if (rc) {
             return rc;
@@ -748,7 +748,7 @@ static struct io_page_table *arm_64_lpae_alloc_page_table_s1(struct io_page_tabl
     /* Ensure the empty pgd is visible before any actual TTBR write */
     arch_smp_wmb();
 
-    rc = vmm_host_va2pa((virtual_addr_t)data->pgd, &pa);
+    rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)data->pgd, &pa);
 
     if (rc) {
         goto out_free_pgd;
@@ -863,7 +863,7 @@ static struct io_page_table *arm_64_lpae_alloc_page_table_s2(struct io_page_tabl
     /* Ensure the empty pgd is visible before any actual TTBR write */
     arch_smp_wmb();
 
-    rc = vmm_host_va2pa((virtual_addr_t)data->pgd, &pa);
+    rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)data->pgd, &pa);
 
     if (rc) {
         goto out_free_pgd;
@@ -991,7 +991,7 @@ static void __init arm_lpae_dump_ops(struct io_page_table_ops *ops)
         vmm_lwarning("selftest", "test failed for fmt idx %d\n", (i));                                                                               \
         arm_lpae_dump_ops(ops);                                                                                                                      \
         selftest_running = FALSE;                                                                                                                    \
-        VMM_EFAIL;                                                                                                                                   \
+        VMM_ERR_FAIL;                                                                                                                                   \
     })
 
 static int __init arm_lpae_run_tests(struct io_page_table_cfg *cfg)
@@ -1014,7 +1014,7 @@ static int __init arm_lpae_run_tests(struct io_page_table_cfg *cfg)
 
         if (!ops) {
             vmm_lerror("selftest", "failed to allocate io page_table ops\n");
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         /*
@@ -1146,7 +1146,7 @@ static int __init arm_lpae_do_selftests(void)
 
     vmm_linfo("selftest", "completed with %d PASS %d FAIL\n", pass, fail);
 
-    return fail ? VMM_EFAIL : 0;
+    return fail ? VMM_ERR_FAIL : 0;
 }
 
 static int __init lpae_selftest_init(void)

@@ -130,7 +130,7 @@ static DECLARE_BITMAP(us_disk_bmap, US_MAX_DISKS);
 
 static int usb_storage_alloc_disk_num(void)
 {
-    int         i, disk_num = VMM_ENOTAVAIL;
+    int         i, disk_num = VMM_ERR_NOTAVAIL;
     irq_flags_t flags;
 
     vmm_spin_lock_irq_save(&us_disk_bmap_lock, flags);
@@ -226,7 +226,7 @@ static int usb_storage_BBB_comdat(struct scsi_request *srb, struct usb_storage *
 
     /* sanity checks */
     if (srb->cmdlen > CBWCDBLENGTH) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* always OUT to the ep */
@@ -331,20 +331,20 @@ again:
 
     if (CSWSIGNATURE != vmm_le32_to_cpu(csw.dCSWSignature)) {
         usb_storage_BBB_reset(tr, us);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     } else if ((us->CBWTag - 1) != vmm_le32_to_cpu(csw.dCSWTag)) {
         usb_storage_BBB_reset(tr, us);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     } else if (csw.bCSWStatus > CSWSTATUS_PHASE) {
         usb_storage_BBB_reset(tr, us);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     } else if (csw.bCSWStatus == CSWSTATUS_PHASE) {
         usb_storage_BBB_reset(tr, us);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     } else if (data_actlen > srb->datalen) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     } else if (csw.bCSWStatus == CSWSTATUS_FAILED) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;
@@ -411,7 +411,7 @@ static int usb_storage_probe(struct usb_interface *intf, const struct usb_device
     us = vmm_zalloc(sizeof(*us));
 
     if (!us) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail;
     }
 
@@ -446,7 +446,7 @@ static int usb_storage_probe(struct usb_interface *intf, const struct usb_device
 
     /* Do some basic sanity checks, and bail if we find a problem */
     if (!us->ep_in || !us->ep_out || (intf->desc.bInterfaceProtocol == US_PR_CBI && !us->ep_int)) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto fail_free_device;
     }
 

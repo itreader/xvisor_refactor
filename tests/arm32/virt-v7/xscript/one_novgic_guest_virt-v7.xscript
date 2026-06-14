@@ -5,9 +5,9 @@ share_memory create default 0x1000000 21
 vfs guest_fdt_load guest0 /images/arm32/virt-v7-guest.dtb 2 mem0,physical_size,physsize,0x10000000 net0,switch,string,br0 share_memory0,shared_mem,string,default
 
 # Replace guest0 vGIC emulator with GIC emulator
-device_tree attr set /guests/guest0/aspace/gic_dist compatible string virt,gic
-device_tree attr set /guests/guest0/aspace/gic_dist physical_size physsize 0x20000
-device_tree node del /guests/guest0/aspace/gic_cpu
+device_tree attr set /guests/guest0/addr_space/gic_dist compatible string virt,gic
+device_tree attr set /guests/guest0/addr_space/gic_dist physical_size physsize 0x20000
+device_tree node del /guests/guest0/addr_space/gic_cpu
 
 # Create guest0
 guest create guest0

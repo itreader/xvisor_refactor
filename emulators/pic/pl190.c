@@ -169,7 +169,7 @@ static int pl190_reg_read(struct pl190_emulator_state *s, uint32_t offset, uint3
     int i;
 
     if (!s || !dst) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (offset >= 0xfe0 && offset < 0x1000) {
@@ -252,7 +252,7 @@ static int pl190_reg_read(struct pl190_emulator_state *s, uint32_t offset, uint3
             break;
 
         default:
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
             break;
     }
 
@@ -262,7 +262,7 @@ static int pl190_reg_read(struct pl190_emulator_state *s, uint32_t offset, uint3
 static int pl190_reg_write(struct pl190_emulator_state *s, uint32_t offset, uint32_t src_mask, uint32_t src)
 {
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     src = src & ~src_mask;
@@ -331,13 +331,13 @@ static int pl190_reg_write(struct pl190_emulator_state *s, uint32_t offset, uint
         case 0xc0: /* ITCR */
             if (src) {
                 /* Test mode not implemented */
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             break;
 
         default:
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
             break;
     }
 
@@ -426,7 +426,7 @@ static int pl190_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(struct pl190_emulator_state));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto pl190_emulator_probe_done;
     }
 
@@ -483,7 +483,7 @@ static int pl190_emulator_remove(vmm_emulate_device_t *edev)
     struct pl190_emulator_state *s = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     for (i = s->base_irq; i < (s->base_irq + s->num_irq); i++) {

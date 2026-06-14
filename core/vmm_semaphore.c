@@ -18,7 +18,7 @@
  *
  * @file vmm_semaphore.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief Implementation of sempahore locks for Orphan VCPU (or Thread).
+ * @brief 孤儿VCPU（或线程）信号量实现
  */
 
 #include <arch_cpu_irq.h>
@@ -27,15 +27,24 @@
 #include <vmm_semaphore.h>
 #include <vmm_stdio.h>
 
+/**
+ * @brief 信号量资源结构，封装等待队列中的等待者信息
+ */
 struct vmm_semaphore_resource {
-    double_list_t       head;
-    uint32_t            count;
-    vmm_semaphore_t    *sem;
-    vmm_vcpu_t         *vcpu;
-    vmm_vcpu_resource_t res;
+    double_list_t       head; /**< 链表头 */
+    uint32_t            count; /**< 计数 */
+    vmm_semaphore_t    *sem; /**< 信号量 */
+    vmm_vcpu_t         *vcpu; /**< 虚拟CPU */
+    vmm_vcpu_resource_t res; /**< 保留/结果 */
 };
 
-/* Note: This function must be called with semaphore waitqueue lock held */
+/* 注意：此函数必须在信号量等待队列锁持有状态下调用 */
+/**
+ * @brief 查找信号量资源
+ * @param sem 信号量指针
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 static struct vmm_semaphore_resource *__semaphore_find_resource(vmm_semaphore_t *sem, vmm_vcpu_t *vcpu)
 {
     bool                           found = FALSE;
@@ -44,7 +53,7 @@ static struct vmm_semaphore_resource *__semaphore_find_resource(vmm_semaphore_t 
     list_for_each_entry(sres, &sem->res_list, head)
     {
         if (sres->vcpu == vcpu) {
-            found = TRUE;
+            found = TRUE; /**< TRUE成员 */
             break;
         }
     }
@@ -52,7 +61,12 @@ static struct vmm_semaphore_resource *__semaphore_find_resource(vmm_semaphore_t 
     return (found) ? sres : NULL;
 }
 
-/* Note: This function must be called with semaphore waitqueue lock held */
+/* 注意：此函数必须在信号量等待队列锁持有状态下调用 */
+/**
+ * @brief 获取信号量等待队列中的首个资源
+ * @param sem 信号量指针
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 static struct vmm_semaphore_resource *__semaphore_first_resource(vmm_semaphore_t *sem)
 {
     if (list_empty(&sem->res_list)) {
@@ -62,6 +76,11 @@ static struct vmm_semaphore_resource *__semaphore_first_resource(vmm_semaphore_t
     return list_first_entry(&sem->res_list, struct vmm_semaphore_resource, head);
 }
 
+/**
+ * @brief   信号量 清理
+ * @param vcpu 指向VCPU结构体的指针
+ * @param vcpu_res 指向VCPU结构体的指针
+ */
 static void __vmm_semaphore_cleanup(vmm_vcpu_t *vcpu, vmm_vcpu_resource_t *vcpu_res)
 {
     irq_flags_t                    flags;
@@ -96,6 +115,11 @@ static void __vmm_semaphore_cleanup(vmm_vcpu_t *vcpu, vmm_vcpu_resource_t *vcpu_
     vmm_spin_unlock_irq_restore(&sem->wait_queue.lock, flags);
 }
 
+/**
+ * @brief 获取信号量当前可用计数
+ * @param sem 信号量指针
+ * @return 当前信号量可用计数
+ */
 uint32_t vmm_semaphore_avail(vmm_semaphore_t *sem)
 {
     uint32_t    ret;
@@ -112,6 +136,11 @@ uint32_t vmm_semaphore_avail(vmm_semaphore_t *sem)
     return ret;
 }
 
+/**
+ * @brief 获取信号量最大限制值
+ * @param sem 信号量指针
+ * @return 信号量最大限制值
+ */
 uint32_t vmm_semaphore_limit(vmm_semaphore_t *sem)
 {
     uint32_t    ret;
@@ -128,6 +157,11 @@ uint32_t vmm_semaphore_limit(vmm_semaphore_t *sem)
     return ret;
 }
 
+/**
+ * @brief 释放信号量（V操作）
+ * @param sem 信号量指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_semaphore_up(vmm_semaphore_t *sem)
 {
     int                            rc = VMM_OK;
@@ -163,11 +197,11 @@ int vmm_semaphore_up(vmm_semaphore_t *sem)
 
         rc = __vmm_waitqueue_wakefirst(&sem->wait_queue);
 
-        if (rc == VMM_ENOENT) {
+        if (rc == VMM_ERR_NOENT) {
             rc = VMM_OK;
         }
     } else {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
     }
 
     vmm_spin_unlock_irq_restore(&sem->wait_queue.lock, flags);
@@ -175,6 +209,12 @@ int vmm_semaphore_up(vmm_semaphore_t *sem)
     return rc;
 }
 
+/**
+ * @brief 信号量获取的通用实现
+ * @param sem 信号量指针
+ * @param timeout 时间值（纳秒）
+ * @return 获取到的值，失败返回错误码
+ */
 static int semaphore_down_common(vmm_semaphore_t *sem, uint64_t *timeout)
 {
     int                            rc = VMM_OK;
@@ -222,11 +262,22 @@ static int semaphore_down_common(vmm_semaphore_t *sem, uint64_t *timeout)
     return rc;
 }
 
+/**
+ * @brief 获取信号量（P操作）
+ * @param sem 信号量指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_semaphore_down(vmm_semaphore_t *sem)
 {
     return semaphore_down_common(sem, NULL);
 }
 
+/**
+ * @brief 带超时的获取信号量
+ * @param sem 信号量指针
+ * @param timeout 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_semaphore_down_timeout(vmm_semaphore_t *sem, uint64_t *timeout)
 {
     return semaphore_down_common(sem, timeout);

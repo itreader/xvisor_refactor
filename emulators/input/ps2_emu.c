@@ -77,7 +77,7 @@ void ps2_emu_queue(struct ps2_emu_state *s, int b)
     }
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_queue);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_queue);
 
 uint32_t ps2_emu_read_data(struct ps2_emu_state *s)
 {
@@ -131,7 +131,7 @@ uint32_t ps2_emu_read_data(struct ps2_emu_state *s)
     return val;
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_read_data);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_read_data);
 
 static int ps2_emu_queue_count(struct ps2_emu_state *s)
 {
@@ -266,14 +266,14 @@ struct ps2_emu_keyboard *ps2_emu_alloc_keyboard(const char *name, void (*update_
     return k;
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_alloc_keyboard);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_alloc_keyboard);
 
 int ps2_emu_free_keyboard(struct ps2_emu_keyboard *k)
 {
     int rc;
 
     if (!k) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     rc = vmm_vkeyboard_destroy(k->keyboard);
@@ -282,14 +282,14 @@ int ps2_emu_free_keyboard(struct ps2_emu_keyboard *k)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_free_keyboard);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_free_keyboard);
 
 int ps2_emu_reset_keyboard(struct ps2_emu_keyboard *k)
 {
     irq_flags_t flags;
 
     if (!k) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save(&k->lock, flags);
@@ -304,7 +304,7 @@ int ps2_emu_reset_keyboard(struct ps2_emu_keyboard *k)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_reset_keyboard);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_reset_keyboard);
 
 /* Note: This function must be called with keyboard lock held */
 static void __ps2_emu_set_ledstate(struct ps2_emu_keyboard *k, int ledstate)
@@ -326,7 +326,7 @@ int ps2_emu_write_keyboard(struct ps2_emu_keyboard *k, int val)
     irq_flags_t flags;
 
     if (!k) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save(&k->lock, flags);
@@ -434,14 +434,14 @@ int ps2_emu_write_keyboard(struct ps2_emu_keyboard *k, int val)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_write_keyboard);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_write_keyboard);
 
 int ps2_emu_keyboard_set_translation(struct ps2_emu_keyboard *k, int mode)
 {
     irq_flags_t flags;
 
     if (!k) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save(&k->lock, flags);
@@ -451,7 +451,7 @@ int ps2_emu_keyboard_set_translation(struct ps2_emu_keyboard *k, int mode)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_keyboard_set_translation);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_keyboard_set_translation);
 
 /* ===== Mouse Emulation APIs ===== */
 
@@ -590,14 +590,14 @@ struct ps2_emu_mouse *ps2_emu_alloc_mouse(const char *name, void (*update_irq)(v
     return m;
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_alloc_mouse);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_alloc_mouse);
 
 int ps2_emu_free_mouse(struct ps2_emu_mouse *m)
 {
     int rc;
 
     if (!m) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     rc = vmm_vmouse_destroy(m->mouse);
@@ -606,14 +606,14 @@ int ps2_emu_free_mouse(struct ps2_emu_mouse *m)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_free_mouse);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_free_mouse);
 
 int ps2_emu_reset_mouse(struct ps2_emu_mouse *m)
 {
     irq_flags_t flags;
 
     if (!m) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save(&m->lock, flags);
@@ -636,14 +636,14 @@ int ps2_emu_reset_mouse(struct ps2_emu_mouse *m)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_reset_mouse);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_reset_mouse);
 
 int ps2_emu_write_mouse(struct ps2_emu_mouse *m, int val)
 {
     irq_flags_t flags;
 
     if (!m) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save(&m->lock, flags);
@@ -805,12 +805,12 @@ int ps2_emu_write_mouse(struct ps2_emu_mouse *m, int val)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_write_mouse);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_write_mouse);
 
 int ps2_emu_mouse_fake_event(struct ps2_emu_mouse *m)
 {
     if (!m) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     ps2_emu_mouse_event(m->mouse, 1, 0, 0, 0);
@@ -818,6 +818,6 @@ int ps2_emu_mouse_fake_event(struct ps2_emu_mouse *m)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(ps2_emu_mouse_fake_event);
+VMM_ERR_XPORT_SYMBOL(ps2_emu_mouse_fake_event);
 
 VMM_DECLARE_MODULE(MODULE_DESC, MODULE_AUTHOR, MODULE_LICENSE, MODULE_IPRIORITY, MODULE_INIT, MODULE_EXIT);

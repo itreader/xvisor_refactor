@@ -173,7 +173,7 @@ static int xenon_mmc_phy_init(struct sdhci_host *host)
 
     if (time <= 0) {
         vmm_lerror(host->hw_name, "Failed to enable MMC internal clock in time\n");
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     /* Init PHY */
@@ -204,7 +204,7 @@ static int xenon_mmc_phy_init(struct sdhci_host *host)
 
     if (time <= 0) {
         vmm_lerror(host->hw_name, "Failed to init MMC PHY in time\n");
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     return 0;
@@ -395,7 +395,7 @@ static int xenon_sdhci_driver_probe(vmm_device_t *dev)
     host = sdhci_alloc_host(dev, sizeof(struct xenon_sdhci_private));
 
     if (!host) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_nothing;
     }
 
@@ -419,7 +419,7 @@ static int xenon_sdhci_driver_probe(vmm_device_t *dev)
     private->irq = vmm_device_tree_irq_parse_map(dev->of_node, 0);
 
     if (!private->irq) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto free_reg;
     }
 
@@ -479,7 +479,7 @@ static int xenon_sdhci_driver_probe(vmm_device_t *dev)
 
         default:
             vmm_lerror(host->hw_name, "Invalid \"bus-width\" value\n");
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             goto free_clock;
     };
 
@@ -532,7 +532,7 @@ static int xenon_sdhci_driver_remove(vmm_device_t *dev)
     struct xenon_sdhci_priv *private = sdhci_private(host);
 
     if (!host || !private) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     sdhci_remove_host(host, 1);

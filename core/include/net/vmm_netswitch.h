@@ -20,7 +20,7 @@
  * @file vmm_netswitch.h
  * @author Pranav Sawargaonkar <pranav.sawargaonkar@gmail.com>
  * @author Sukanto Ghosh <sukantoghosh@gmail.com>
- * @brief Generic netswitch interface header.
+ * @brief 通用网络交换机接口头文件
  */
 
 #ifndef __VMM_NETSWITCH_H_
@@ -39,47 +39,68 @@ struct vmm_netport;
 struct vmm_netport_lazy;
 struct vmm_mbuf;
 
+/**
+ * @brief 网络交换机结构，管理虚拟网络端口的数据转发
+ */
 struct vmm_netswitch {
     /* === Private members === */
     /* Underly class device */
-    vmm_device_t                 dev;
+    vmm_device_t                 dev; /**< 设备 */
     /* Lock to protect port list */
-    vmm_rwlock_t                 port_list_lock;
+    vmm_rwlock_t                 port_list_lock; /**< port_list_lock成员 */
     /* List of ports */
-    double_list_t                port_list;
+    double_list_t                port_list; /**< port_list成员 */
     /* === Public members === */
     /* Policy */
-    struct vmm_netswitch_policy *policy;
+    struct vmm_netswitch_policy *policy; /**< policy成员 */
     /* Name */
-    char                         name[VMM_FIELD_NAME_SIZE];
+    char                         name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
     /* Flags */
-    int                          flags;
+    int                          flags; /**< 标志位 */
     /* Handle RX packets from port to switch */
-    int (*port2switch_xfer)(struct vmm_netswitch *, struct vmm_netport *, struct vmm_mbuf *);
+    int (*port2switch_xfer)(struct vmm_netswitch *, struct vmm_netport *, struct vmm_mbuf *); /**< port2switch_xfer成员 */
     /* Handle enabling of a port */
-    int (*port_add)(struct vmm_netswitch *, struct vmm_netport *);
+    int (*port_add)(struct vmm_netswitch *, struct vmm_netport *); /**< port_add成员 */
     /* Handle disabling of a port */
-    int (*port_remove)(struct vmm_netswitch *, struct vmm_netport *);
+    int (*port_remove)(struct vmm_netswitch *, struct vmm_netport *); /**< port_remove成员 */
     /* Switch private data */
-    void *private;
+    void *private; /**< 私有数据 */
 };
 
+/**
+ * @brief 网络交换机策略，定义数据包匹配和转发规则
+ */
 struct vmm_netswitch_policy {
     /* === Private members === */
-    double_list_t head;
+    double_list_t head; /**< 链表头 */
     /* === Public members === */
-    char          name[VMM_FIELD_NAME_SIZE];
-    struct vmm_netswitch *(*create)(struct vmm_netswitch_policy *policy, const char *name, int argc, char **argv);
-    void (*destroy)(struct vmm_netswitch_policy *policy, struct vmm_netswitch *nsw);
+    char          name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
+    struct vmm_netswitch *(*create)(struct vmm_netswitch_policy *policy, const char *name, int argc, char **argv); /**< create成员 */
+    void (*destroy)(struct vmm_netswitch_policy *policy, struct vmm_netswitch *nsw); /**< destroy成员 */
 };
 
-/** Transfer packets from port to switch */
+/**
+ * @brief 端口到交换机转发消息缓冲区
+ * @param src 源设备树节点
+ * @param mbuf 网络消息缓冲区指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_port2switch_xfer_mbuf(struct vmm_netport *src, struct vmm_mbuf *mbuf);
 
-/** Lazy transfer from port to switch */
+/**
+ * @brief 延迟将端口数据传输到网络交换机
+ * @param lazy 是否延迟处理标志
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_port2switch_xfer_lazy(struct vmm_netport_lazy *lazy);
 
-/** Transfer packets from switch to port */
+/**
+ * @brief 交换机到端口转发消息缓冲区
+ * @param nsw 网络交换机结构体指针
+ * @param dst 目标缓冲区指针
+ * @param mbuf 网络消息缓冲区指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_switch2port_xfer_mbuf(struct vmm_netswitch *nsw, struct vmm_netport *dst, struct vmm_mbuf *mbuf);
 
 /** Allocate new network switch (used by network switch policy)
@@ -87,52 +108,110 @@ int vmm_switch2port_xfer_mbuf(struct vmm_netswitch *nsw, struct vmm_netport *dst
  */
 struct vmm_netswitch *vmm_netswitch_alloc(struct vmm_netswitch_policy *nsp, const char *name);
 
-/** Deallocate a network switch (used by network switch policy) */
+/**
+ * @brief 释放网络交换机
+ * @param nsw 网络交换机结构体指针
+ */
 void vmm_netswitch_free(struct vmm_netswitch *nsw);
 
-/** Add a port to the netswitch */
+/**
+ * @brief 网络交换机 端口 添加
+ * @param nsw 网络交换机结构体指针
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_port_add(struct vmm_netswitch *nsw, struct vmm_netport *port);
 
-/** Remove a port to the netswitch */
+/**
+ * @brief 网络交换机 端口 移除
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_port_remove(struct vmm_netport *port);
 
-/** Register a network switch (used by network switch policy) */
+/**
+ * @brief 注册网络交换机
+ * @param nsw 网络交换机结构体指针
+ * @param parent 父设备树节点
+ * @param private 私有数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_register(struct vmm_netswitch *nsw, vmm_device_t *parent, void *private);
 
-/** Unregister a network switch (used by network switch policy) */
+/**
+ * @brief 注销网络交换机
+ * @param nsw 网络交换机结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_unregister(struct vmm_netswitch *nsw);
 
 /** Find a network switch */
 struct vmm_netswitch *vmm_netswitch_find(const char *name);
 
-/** Iterate over each network switch */
+/**
+ * @brief 网络交换机 遍历
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_iterate(struct vmm_netswitch *start, void *data, int (*fn)(struct vmm_netswitch *nsw, void *data));
 
 /** Get default network switch */
 struct vmm_netswitch *vmm_netswitch_default(void);
 
-/** Count number of network switches */
+/**
+ * @brief 获取网络交换机的数量
+ * @return 数量值
+ */
 uint32_t vmm_netswitch_count(void);
 
-/** Register network switch policy */
+/**
+ * @brief 注册网络交换策略
+ * @param nsp 节点特定数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_policy_register(struct vmm_netswitch_policy *nsp);
 
-/** Unregister network switch policy */
+/**
+ * @brief 注销网络交换策略
+ * @param nsp 节点特定数据指针
+ */
 void vmm_netswitch_policy_unregister(struct vmm_netswitch_policy *nsp);
 
-/** Iterate over each network switch policy */
+/**
+ * @brief 按策略遍历网络交换机
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_policy_iterate(struct vmm_netswitch_policy *start, void *data, int (*fn)(struct vmm_netswitch_policy *, void *));
 
 /** Find a network switch policy */
 struct vmm_netswitch_policy *vmm_netswitch_policy_find(const char *name);
 
-/** Count number of network switch policy */
+/**
+ * @brief 获取网络交换策略的数量
+ * @return 数量值
+ */
 uint32_t vmm_netswitch_policy_count(void);
 
-/** Create a network switch using a network switch policy */
+/**
+ * @brief 网络交换机策略创建交换机实例
+ * @param policy_name 调度策略名称
+ * @param switch_name 交换机名称
+ * @param argc 参数个数
+ * @param argv 参数数组
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_policy_create_switch(const char *policy_name, const char *switch_name, int argc, char **argv);
 
-/** Create a network switch using a network switch policy */
+/**
+ * @brief 网络交换机策略销毁交换机实例
+ * @param nsw 网络交换机结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netswitch_policy_destroy_switch(struct vmm_netswitch *nsw);
 
 #endif /* __VMM_NETSWITCH_H_ */

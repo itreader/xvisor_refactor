@@ -347,7 +347,7 @@ int arch_guest_init(struct vmm_guest *guest)
         guest->arch_private = vmm_malloc(sizeof(struct arm_guest_private));
 
         if (!guest->arch_private) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         page_table_attr = MMU_ATTR_REMOTE_TLB_FLUSH;
@@ -357,7 +357,7 @@ int arch_guest_init(struct vmm_guest *guest)
         if (!arm_guest_private(guest)->ttbl) {
             vmm_free(guest->arch_private);
             guest->arch_private = NULL;
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         if (vmm_device_tree_read_u32(guest->node, "psci_version", &arm_guest_private(guest)->psci_version)) {
@@ -455,7 +455,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
     } else if (strcmp(attr, "armv8,generic") == 0) {
         cpuid = ARM_CPUID_ARMV8;
     } else {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto done;
     }
 
@@ -463,7 +463,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
         /* Check if the host supports A32 mode @ EL1 */
         if (!cpu_supports_el1_a32()) {
             vmm_printf("Host does not support AArch32 mode\n");
-            rc = VMM_ENOTAVAIL;
+            rc = VMM_ERR_NOTAVAIL;
             goto done;
         }
 
@@ -484,7 +484,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
         vcpu->arch_private = vmm_zalloc(sizeof(struct arm_private));
 
         if (!vcpu->arch_private) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto done;
         }
 

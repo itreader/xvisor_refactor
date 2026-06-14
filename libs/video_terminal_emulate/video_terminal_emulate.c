@@ -80,7 +80,7 @@ uint32_t video_terminal_emulate_key2flags(uint32_t code)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(video_terminal_emulate_key2flags);
+VMM_ERR_XPORT_SYMBOL(video_terminal_emulate_key2flags);
 
 /* FIXME: */
 int video_terminal_emulate_key2str(uint32_t code, uint32_t flags, char *out)
@@ -494,7 +494,7 @@ int video_terminal_emulate_key2str(uint32_t code, uint32_t flags, char *out)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(video_terminal_emulate_key2str);
+VMM_ERR_XPORT_SYMBOL(video_terminal_emulate_key2str);
 
 static int video_terminal_emulate_add_input(struct video_terminal_emulate *v, char *str)
 {
@@ -1454,14 +1454,14 @@ free_video_terminal_emulate:
     return NULL;
 }
 
-VMM_EXPORT_SYMBOL(video_terminal_emulate_create);
+VMM_ERR_XPORT_SYMBOL(video_terminal_emulate_create);
 
 int video_terminal_emulate_destroy(struct video_terminal_emulate *v)
 {
     int rc, rc1, rc2, rc3;
 
     if (!v) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Set freeze state (for sanity) */
@@ -1505,6 +1505,6 @@ int video_terminal_emulate_destroy(struct video_terminal_emulate *v)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(video_terminal_emulate_destroy);
+VMM_ERR_XPORT_SYMBOL(video_terminal_emulate_destroy);
 
 VMM_DECLARE_MODULE(MODULE_DESC, MODULE_AUTHOR, MODULE_LICENSE, MODULE_IPRIORITY, MODULE_INIT, MODULE_EXIT);

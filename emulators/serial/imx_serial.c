@@ -383,7 +383,7 @@ static int imx_reg_write(struct imx_state *s, uint32_t offset, uint32_t src_mask
     vmm_spin_unlock(&s->lock);
 
     if (!(_reg_read(s, UCR1) | UCR1_UARTEN) || !(_reg_read(s, UCR2) | UCR2_TXEN)) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if (recv_char) {
@@ -435,14 +435,14 @@ static int imx_vserial_send(struct vmm_vserial *vser, uint8_t data)
     struct imx_state *s = vmm_vserial_private(vser);
 
     if (!(_reg_read(s, UCR1) & UCR1_UARTEN) || !(_reg_read(s, UCR2) & UCR2_RXEN)) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     vmm_spin_lock(&s->lock);
 
     if (fifo_isfull(s->rd_fifo)) {
         vmm_spin_unlock(&s->lock);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     fifo_enqueue(s->rd_fifo, &data, TRUE);
@@ -552,7 +552,7 @@ static int imx_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ede
     s = vmm_zalloc(sizeof(struct imx_state));
 
     if (!s) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto imx_emulator_probe_done;
     }
 
@@ -576,7 +576,7 @@ static int imx_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ede
     s->rd_fifo = fifo_alloc(1, IMX_FIFO_SIZE);
 
     if (!s->rd_fifo) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto imx_emulator_probe_freestate_fail;
     }
 
@@ -584,7 +584,7 @@ static int imx_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ede
     strlcat(name, "/", sizeof(name));
 
     if (strlcat(name, edev->node->name, sizeof(name)) >= sizeof(name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto imx_emulator_probe_freerbuf_fail;
     }
 

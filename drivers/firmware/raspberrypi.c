@@ -123,18 +123,18 @@ int rpi_firmware_property_list(struct rpi_firmware *fw, void *data, size_t tag_s
 
     /* Packets are processed a dword at a time. */
     if (((virtual_addr_t)data & 3) || (size & 3)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     buf_va = vmm_host_alloc_pages(VMM_SIZE_TO_PAGE(size), VMM_MEMORY_FLAGS_NORMAL_NOCACHE);
 
     if (!buf_va) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     buf = (uint32_t *)buf_va;
 
-    ret = vmm_host_va2pa(buf_va, &buf_pa);
+    ret = vmm_host_virtualAddr_to_physicalAddr(buf_va, &buf_pa);
 
     if (ret) {
         vmm_host_free_pages(buf_va, VMM_SIZE_TO_PAGE(size));
@@ -169,7 +169,7 @@ int rpi_firmware_property_list(struct rpi_firmware *fw, void *data, size_t tag_s
          * But single-tag is the most common, so go with it.
          */
         vmm_lerror(fw->cl.dev->name, "Request 0x%08x returned status 0x%08x\n", buf[2], buf[1]);
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
     }
 
     vmm_host_free_pages(buf_va, VMM_SIZE_TO_PAGE(size));
@@ -177,7 +177,7 @@ int rpi_firmware_property_list(struct rpi_firmware *fw, void *data, size_t tag_s
     return ret;
 }
 
-VMM_EXPORT_SYMBOL_GPL(rpi_firmware_property_list);
+VMM_ERR_XPORT_SYMBOL_GPL(rpi_firmware_property_list);
 
 /**
  * rpi_firmware_property - Submit single firmware property
@@ -213,7 +213,7 @@ int rpi_firmware_property(struct rpi_firmware *fw, uint32_t tag, void *tag_data,
     return ret;
 }
 
-VMM_EXPORT_SYMBOL_GPL(rpi_firmware_property);
+VMM_ERR_XPORT_SYMBOL_GPL(rpi_firmware_property);
 
 static void rpi_firmware_print_firmware_revision(struct rpi_firmware *fw)
 {
@@ -238,7 +238,7 @@ static int rpi_firmware_probe(vmm_device_t *dev)
     fw = vmm_devm_zalloc(dev, sizeof(*fw));
 
     if (!fw) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     fw->cl.dev         = dev;
@@ -250,7 +250,7 @@ static int rpi_firmware_probe(vmm_device_t *dev)
     if (VMM_IS_ERR(fw->chan)) {
         int ret = VMM_PTR_ERR(fw->chan);
 
-        if (ret != VMM_EPROBE_DEFER) {
+        if (ret != VMM_ERR_PROBE_DEFER) {
             vmm_lerror(dev->name, "Failed to get mbox channel: %d\n", ret);
         }
 
@@ -292,7 +292,7 @@ struct rpi_firmware *rpi_firmware_get(vmm_device_tree_node_t *firmware_node)
     return vmm_device_driver_get_data(dev);
 }
 
-VMM_EXPORT_SYMBOL_GPL(rpi_firmware_get);
+VMM_ERR_XPORT_SYMBOL_GPL(rpi_firmware_get);
 
 static struct vmm_device_tree_nodeid rpi_firmware_devid_table[] = {
     {.compatible = "raspberrypi,bcm2835-firmware"},

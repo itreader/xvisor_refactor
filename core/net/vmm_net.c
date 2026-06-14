@@ -18,7 +18,7 @@
  *
  * @file vmm_net.c
  * @author Sukanto Ghosh <sukantoghosh@gmail.com>
- * @brief Network framework.
+ * @brief 网络框架
  */
 
 #include <net/vmm_net.h>
@@ -35,6 +35,10 @@
 #define MODULE_INIT      vmm_net_init
 #define MODULE_EXIT      vmm_net_exit
 
+/**
+ * @brief 初始化网络
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __init vmm_net_init(void)
 {
     int rc = VMM_OK;
@@ -103,6 +107,10 @@ net_init_done:
     return rc;
 }
 
+/**
+ * @brief 网络子系统退出清理
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __exit vmm_net_exit(void)
 {
     vmm_bridge_exit();

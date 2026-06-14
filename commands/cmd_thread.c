@@ -108,7 +108,7 @@ static int cmd_thread_exec(vmm_char_device_t *cdev, int argc, char **argv)
     }
 
     cmd_thread_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_thread = {

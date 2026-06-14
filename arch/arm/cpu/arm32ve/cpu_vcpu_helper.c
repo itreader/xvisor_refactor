@@ -405,7 +405,7 @@ int cpu_vcpu_spsr_update(vmm_vcpu_t *vcpu, uint32_t mode, uint32_t new_spsr)
 {
     /* Sanity check */
     if (!vcpu || !vcpu->is_normal) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (vcpu != vmm_scheduler_current_vcpu()) {
@@ -456,7 +456,7 @@ int arch_guest_init(struct vmm_guest *guest)
         guest->arch_private = vmm_zalloc(sizeof(struct arm_guest_private));
 
         if (!guest->arch_private) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         page_table_attr = MMU_ATTR_REMOTE_TLB_FLUSH;
@@ -466,7 +466,7 @@ int arch_guest_init(struct vmm_guest *guest)
         if (!arm_guest_private(guest)->ttbl) {
             vmm_free(guest->arch_private);
             guest->arch_private = NULL;
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         if (vmm_device_tree_read_u32(guest->node, "psci_version", &arm_guest_private(guest)->psci_version)) {
@@ -579,7 +579,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
     } else if (strcmp(attr, "armv7a,generic") == 0) {
         cpuid = ARM_CPUID_ARMV7;
     } else {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto done;
     }
 
@@ -589,7 +589,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
         vcpu->arch_private = vmm_zalloc(sizeof(struct arm_private));
 
         if (!vcpu->arch_private) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto done;
         }
 

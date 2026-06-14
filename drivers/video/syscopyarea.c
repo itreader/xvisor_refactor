@@ -407,4 +407,4 @@ void sys_copyarea(struct frame_buffer_info *p, const struct frame_buffer_copyare
     }
 }
 
-VMM_EXPORT_SYMBOL(sys_copyarea);
+VMM_ERR_XPORT_SYMBOL(sys_copyarea);

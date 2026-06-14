@@ -28,10 +28,10 @@
 struct vmm_char_device;
 typedef struct vmm_char_device vmm_char_device_t;
 
-/** Get start (or base) address of VAPOOL */
+/** Get start (or base) address of VIRTUAL_ADDR_POOL */
 virtual_addr_t arch_cpu_addr_space_virtual_address_pool_start(void);
 
-/** Estimate size of VAPOOL */
+/** Estimate size of VIRTUAL_ADDR_POOL */
 virtual_size_t arch_cpu_addr_space_virtual_address_pool_estimate_size(physical_size_t total_ram);
 
 /** Print address space details (i.e. stats or summary) */
@@ -49,16 +49,16 @@ int arch_cpu_addr_space_secondary_init(void);
  *  NOTE: If arch does note have huge pages then simply return
  *  VMM_PAGE_SHIFT
  */
-uint32_t arch_cpu_addr_space_hugepage_log2size(void);
+uint32_t arch_cpu_addr_space_huge_page_log2size(void);
 
 /** Map given page virtual address to page physical address */
-int arch_cpu_addr_space_map(virtual_addr_t page_va, virtual_size_t page_sz, physical_addr_t page_pa, uint32_t mem_flags);
+int arch_cpu_addr_space_map(virtual_addr_t page_va, virtual_size_t page_sz, physical_addr_t page_pa, uint32_t memory_flags);
 
 /** Unmap given page based on its virtual address */
 int arch_cpu_addr_space_unmap(virtual_addr_t page_va);
 
 /** Find out physical address mapped by given virtual address */
-int arch_cpu_addr_space_va2pa(virtual_addr_t va, physical_addr_t *pa);
+int arch_cpu_addr_space_virtualAddr_to_physicalAddr(virtual_addr_t va, physical_addr_t *pa);
 
 /** Read data from memory with given physical adress
  *  NOTE: This arch function is optional.

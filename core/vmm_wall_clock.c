@@ -18,7 +18,7 @@
  *
  * @file vmm_wall_clock.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief source file for wall-clock subsystem
+ * @brief 壁钟子系统源文件
  *
  *  This source has been adapted from linux/kernel/time.c
  *
@@ -38,21 +38,30 @@
 #include <vmm_timer.h>
 #include <vmm_wall_clock.h>
 
+/**
+ * @brief 壁钟子系统控制结构，维护系统时间和时钟操作
+ */
 struct vmm_wall_clock_ctrl {
-    vmm_spinlock_t   lock;
-    vmm_time_value_t tv;
-    vmm_timezone_t   tz;
-    uint64_t         last_modify_tstamp;
+    vmm_spinlock_t   lock; /**< 自旋锁 */
+    vmm_time_value_t tv; /**< 时间值 */
+    vmm_timezone_t   tz; /**< 时区 */
+    uint64_t         last_modify_tstamp; /**< last_modify_tstamp成员 */
 };
 
 static struct vmm_wall_clock_ctrl wclk;
 
+/**
+ * @brief 设置时间值的归一化值
+ * @param tv 时间值结构体指针
+ * @param sec 秒数
+ * @param nsec 纳秒值
+ */
 void vmm_time_value_set_normalized(vmm_time_value_t *tv, time64_t sec, time64_t nsec)
 {
     while (nsec >= NSEC_PER_SEC) {
-        /*
-         * The following asm() prevents the compiler from
-         * optimising this loop into a modulo operation. See
+/*
+ * The following asm() prevents the compiler from
+ * optimising this loop into a modulo operation. See
          * also __iter_div_u64_rem() in include/linux/time.h
          */
         asm("" : "+rm"(nsec));
@@ -70,6 +79,12 @@ void vmm_time_value_set_normalized(vmm_time_value_t *tv, time64_t sec, time64_t 
     tv->tv_nsec = nsec;
 }
 
+/**
+ * @brief 将两个时间值相加
+ * @param lhs 左侧操作数
+ * @param rhs 右侧操作数
+ * @return 时间值（纳秒）
+ */
 vmm_time_value_t vmm_time_value_add(vmm_time_value_t lhs, vmm_time_value_t rhs)
 {
     vmm_time_value_t tv_delta;
@@ -82,6 +97,12 @@ vmm_time_value_t vmm_time_value_add(vmm_time_value_t lhs, vmm_time_value_t rhs)
     return tv_delta;
 }
 
+/**
+ * @brief 将两个时间值相减
+ * @param lhs 左侧操作数
+ * @param rhs 右侧操作数
+ * @return 时间值（纳秒）
+ */
 vmm_time_value_t vmm_time_value_sub(vmm_time_value_t lhs, vmm_time_value_t rhs)
 {
     vmm_time_value_t tv_delta;
@@ -94,6 +115,11 @@ vmm_time_value_t vmm_time_value_sub(vmm_time_value_t lhs, vmm_time_value_t rhs)
     return tv_delta;
 }
 
+/**
+ * @brief 将纳秒转换为timeval结构体
+ * @param nsec 纳秒值
+ * @return 时间值（纳秒）
+ */
 vmm_time_value_t vmm_ns_to_timeval(const time64_t nsec)
 {
     vmm_time_value_t tv;
@@ -125,12 +151,24 @@ static int __isleap(long year)
 }
 
 /* do a mathdiv for long type */
+/**
+ * @brief 数学除法辅助函数
+ * @param a 参数值
+ * @param b 字节值或缓冲区
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static long math_div(long a, long b)
 {
     return sdiv64(a, b) - (smod64(a, b) < 0);
 }
 
 /* How many leap years between y1 and y2, y1 must less or equal to y2 */
+/**
+ * @brief 计算两个年份之间的闰年数
+ * @param y1 Y1坐标值
+ * @param y2 Y2坐标值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static long leaps_between(long y1, long y2)
 {
     long leaps1 = math_div(y1 - 1, 4) - math_div(y1 - 1, 100) + math_div(y1 - 1, 400);
@@ -149,9 +187,17 @@ static const unsigned short __mon_yday[2][13] = {
 #define SECS_PER_HOUR (60 * 60)
 #define SECS_PER_DAY  (SECS_PER_HOUR * 24)
 
+/**
+ * @brief 根据墙上时钟时间生成日历信息
+ * @param totalsecs 总秒数
+ * @param offset 偏移量（字节）
+ * @param result 结果值指针
+ */
 void vmm_wall_clock_mkinfo(time64_t totalsecs, int offset, vmm_time_info_t *result)
 {
-    long                  days, rem, y;
+    long days;
+    long rem;
+    long y;
     const unsigned short *ip;
 
     days = sdiv64(totalsecs, SECS_PER_DAY);
@@ -221,7 +267,8 @@ void vmm_wall_clock_mkinfo(time64_t totalsecs, int offset, vmm_time_info_t *resu
 time64_t vmm_wall_clock_mktime(
     const uint32_t year0, const uint32_t mon0, const uint32_t day, const uint32_t hour, const uint32_t min, const uint32_t sec)
 {
-    uint32_t year = year0, mon = mon0;
+    uint32_t year = year0;
+    uint32_t mon = mon0;
     uint64_t ret;
 
     /* 1..12 -> 11,12,1..10 */
@@ -249,12 +296,17 @@ time64_t vmm_wall_clock_mktime(
     return (time64_t)ret;
 }
 
+/**
+ * @brief 设置壁钟的本地时间
+ * @param tv 时间值结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_wall_clock_set_local_time(vmm_time_value_t *tv)
 {
     irq_flags_t flags;
 
     if (!tv) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save(&wclk.lock, flags);
@@ -268,13 +320,20 @@ int vmm_wall_clock_set_local_time(vmm_time_value_t *tv)
     return VMM_OK;
 }
 
+/**
+ * @brief 获取壁钟的本地时间
+ * @param tv 时间值结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_wall_clock_get_local_time(vmm_time_value_t *tv)
 {
     irq_flags_t flags;
-    uint64_t    tdiff, tdiv, tmod;
+    uint64_t tdiff;
+    uint64_t tdiv;
+    uint64_t tmod;
 
     if (!tv) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save(&wclk.lock, flags);
@@ -299,13 +358,18 @@ int vmm_wall_clock_get_local_time(vmm_time_value_t *tv)
     return VMM_OK;
 }
 
+/**
+ * @brief 设置壁钟的时区
+ * @param tz 时区信息指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_wall_clock_set_timezone(vmm_timezone_t *tz)
 {
     int         minuteswest;
     irq_flags_t flags;
 
     if (!tz) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save(&wclk.lock, flags);
@@ -320,12 +384,17 @@ int vmm_wall_clock_set_timezone(vmm_timezone_t *tz)
     return VMM_OK;
 }
 
+/**
+ * @brief 获取壁钟的时区
+ * @param tz 时区信息指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_wall_clock_get_timezone(vmm_timezone_t *tz)
 {
     irq_flags_t flags;
 
     if (!tz) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save(&wclk.lock, flags);
@@ -338,6 +407,12 @@ int vmm_wall_clock_get_timezone(vmm_timezone_t *tz)
     return VMM_OK;
 }
 
+/**
+ * @brief 设置壁钟的日历时间
+ * @param tv 时间值结构体指针
+ * @param tz 时区信息指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_wall_clock_set_timeofday(vmm_time_value_t *tv, vmm_timezone_t *tz)
 {
     int rc;
@@ -357,6 +432,12 @@ int vmm_wall_clock_set_timeofday(vmm_time_value_t *tv, vmm_timezone_t *tz)
     return VMM_OK;
 }
 
+/**
+ * @brief 获取壁钟的日历时间
+ * @param tv 时间值结构体指针
+ * @param tz 时区信息指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_wall_clock_get_timeofday(vmm_time_value_t *tv, vmm_timezone_t *tz)
 {
     int rc;
@@ -376,6 +457,10 @@ int vmm_wall_clock_get_timeofday(vmm_time_value_t *tv, vmm_timezone_t *tz)
     return VMM_OK;
 }
 
+/**
+ * @brief 初始化壁钟
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_wall_clock_init(void)
 {
     memset(&wclk, 0, sizeof(wclk));

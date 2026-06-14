@@ -67,16 +67,16 @@ static int psci_to_xvisor_errno(long errno)
             return VMM_OK;
 
         case PSCI_RET_NOT_SUPPORTED:
-            return VMM_EOPNOTSUPP;
+            return VMM_ERR_OPNOTSUPP;
 
         case PSCI_RET_INVALID_PARAMS:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
 
         case PSCI_RET_DENIED:
-            return VMM_EACCESS;
+            return VMM_ERR_ACCESS;
 
         default:
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
     };
 }
 
@@ -115,7 +115,7 @@ static int __noinline invoke_psci_fn_smc(uint64_t func, uint64_t arg0, uint64_t 
     long ret;
 
     if (!psci_avail) {
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     ret = invoke_psci_fn_smc_raw(func, arg0, arg1, arg2);
@@ -174,7 +174,7 @@ static int psci_0_2_init(vmm_device_tree_node_t *psci)
 
     if (PSCI_VERSION_MAJOR(ver) == 0 && PSCI_VERSION_MINOR(ver) < 2) {
         vmm_lerror("psci", "Conflicting PSCI version detected.\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     psci_0_2_set_functions();
@@ -196,7 +196,7 @@ static int psci_0_1_init(vmm_device_tree_node_t *psci)
 
     if (rc) {
         vmm_printf("%s: Can't find 'cpu_on' attribute\n", __func__);
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     /* Retrieve the "cpu_suspend" attribute */
@@ -204,7 +204,7 @@ static int psci_0_1_init(vmm_device_tree_node_t *psci)
 
     if (rc) {
         vmm_printf("%s: Can't find 'cpu_suspend' attribute\n", __func__);
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     /* Retrieve the "cpu_off" attribute */
@@ -212,7 +212,7 @@ static int psci_0_1_init(vmm_device_tree_node_t *psci)
 
     if (rc) {
         vmm_printf("%s: Can't find 'cpu_off' attribute\n", __func__);
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     /* Retrieve the "migrate" attribute */
@@ -220,7 +220,7 @@ static int psci_0_1_init(vmm_device_tree_node_t *psci)
 
     if (rc) {
         vmm_printf("%s: Can't find 'migrate' attribute\n", __func__);
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     return VMM_OK;

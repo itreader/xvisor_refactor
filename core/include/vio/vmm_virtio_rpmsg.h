@@ -18,7 +18,7 @@
  *
  * @file vmm_virtio_rpmsg.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief VirtIO RPMSG Framework Interface.
+ * @brief VirtIO RPMSG框架接口
  *
  * This header has been derived from linux kernel source:
  * <linux_source>/drivers/rpmsg/virtio_rpmsg_bus.c
@@ -52,12 +52,12 @@
  * Every message sent(/received) on the rpmsg bus begins with this header.
  */
 struct vmm_rpmsg_hdr {
-    uint32_t src;
-    uint32_t dst;
-    uint32_t reserved;
-    uint16_t len;
-    uint16_t flags;
-    uint8_t  data[0];
+    uint32_t src; /**< 源 */
+    uint32_t dst; /**< 目标 */
+    uint32_t reserved; /**< 保留 */
+    uint16_t len; /**< 长度 */
+    uint16_t flags; /**< 标志位 */
+    uint8_t  data[0]; /**< 数据 */
 } __attribute__((packed));
 
 /**
@@ -70,9 +70,9 @@ struct vmm_rpmsg_hdr {
  * about its removal.
  */
 struct vmm_rpmsg_ns_msg {
-    char     name[VMM_VIRTIO_RPMSG_NS_NAME_SIZE];
-    uint32_t addr;
-    uint32_t flags;
+    char     name[VMM_VIRTIO_RPMSG_NS_NAME_SIZE]; /**< 名称 */
+    uint32_t addr; /**< 地址 */
+    uint32_t flags; /**< 标志位 */
 } __attribute__((packed));
 
 /**
@@ -82,8 +82,8 @@ struct vmm_rpmsg_ns_msg {
  * @VMM_VIRTIO_RPMSG_NS_DESTROY: a known remote service was just destroyed
  */
 enum vmm_rpmsg_ns_flags {
-    VMM_VIRTIO_RPMSG_NS_CREATE  = 0,
-    VMM_VIRTIO_RPMSG_NS_DESTROY = 1,
+    VMM_VIRTIO_RPMSG_NS_CREATE  = 0, /**< 0 */
+    VMM_VIRTIO_RPMSG_NS_DESTROY = 1, /**< 1 */
 };
 
 #endif /* __VMM_VIRTIO_RPMSG_H__ */

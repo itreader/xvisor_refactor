@@ -61,7 +61,7 @@ static inline struct ram_backed_device *initrd_ram_backed_device_get(void)
 
 static inline int initrd_device_tree_update(uint64_t start, uint64_t end)
 {
-    return VMM_ENOSYS;
+    return VMM_ERR_NOSYS;
 }
 
 #endif

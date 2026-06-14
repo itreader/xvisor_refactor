@@ -79,7 +79,7 @@ static int scsi_disk_rq_read(vmm_block_request_queue_t *brq, vmm_request_t *r, v
             }
 
             if ((srb.sense_buf[2] == 0x02) && (srb.sense_buf[12] == 0x3a)) {
-                return VMM_ENODEV;
+                return VMM_ERR_NODEV;
             }
 
             retry--;
@@ -132,7 +132,7 @@ static int scsi_disk_rq_write(vmm_block_request_queue_t *brq, vmm_request_t *r, 
             }
 
             if ((srb.sense_buf[2] == 0x02) && (srb.sense_buf[12] == 0x3a)) {
-                return VMM_ENODEV;
+                return VMM_ERR_NODEV;
             }
 
             retry--;
@@ -165,21 +165,21 @@ struct scsi_disk *scsi_create_disk(
     struct scsi_disk *disk = NULL;
 
     if (!name || !max_pending || !blks_per_xfer || !tr || !tr->transport || !tr->reset) {
-        return VMM_ERR_PTR(VMM_EINVALID);
+        return VMM_ERR_RR_PTR(VMM_ERR_INVALID);
     }
 
     /* Reset SCSI transport */
     err = scsi_reset(tr, tr_private);
 
     if (err) {
-        return VMM_ERR_PTR(err);
+        return VMM_ERR_RR_PTR(err);
     }
 
     /* Alloc SCSI disk */
     disk = vmm_zalloc(sizeof(*disk));
 
     if (!disk) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     disk->blks_per_xfer = blks_per_xfer;
@@ -191,13 +191,13 @@ struct scsi_disk *scsi_create_disk(
 
     if (err) {
         vmm_free(disk);
-        return VMM_ERR_PTR(err);
+        return VMM_ERR_RR_PTR(err);
     }
 
     /* Alloc block device instance */
     if (!(disk->block_device = vmm_block_device_alloc())) {
         vmm_free(disk);
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     /* Setup block device instance */
@@ -215,7 +215,7 @@ struct scsi_disk *scsi_create_disk(
     if (!disk->brq) {
         vmm_block_device_free(disk->block_device);
         vmm_free(disk);
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     disk->block_device->rq = vmm_block_request_queue_to_rq(disk->brq);
@@ -225,18 +225,18 @@ struct scsi_disk *scsi_create_disk(
         vmm_block_request_queue_destroy(disk->brq);
         vmm_block_device_free(disk->block_device);
         vmm_free(disk);
-        return VMM_ERR_PTR(err);
+        return VMM_ERR_RR_PTR(err);
     }
 
     return disk;
 }
 
-VMM_EXPORT_SYMBOL(scsi_create_disk);
+VMM_ERR_XPORT_SYMBOL(scsi_create_disk);
 
 int scsi_destroy_disk(struct scsi_disk *disk)
 {
     if (!disk) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_block_device_unregister(disk->block_device);
@@ -247,6 +247,6 @@ int scsi_destroy_disk(struct scsi_disk *disk)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(scsi_destroy_disk);
+VMM_ERR_XPORT_SYMBOL(scsi_destroy_disk);
 
 VMM_DECLARE_MODULE(MODULE_DESC, MODULE_AUTHOR, MODULE_LICENSE, MODULE_IPRIORITY, MODULE_INIT, MODULE_EXIT);

@@ -61,7 +61,7 @@ int usb_hcd_submit_urb(struct urb *urb)
     return status;
 }
 
-VMM_EXPORT_SYMBOL(usb_hcd_submit_urb);
+VMM_ERR_XPORT_SYMBOL(usb_hcd_submit_urb);
 
 int usb_hcd_unlink_urb(struct urb *urb, int status)
 {
@@ -86,7 +86,7 @@ int usb_hcd_unlink_urb(struct urb *urb, int status)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(usb_hcd_unlink_urb);
+VMM_ERR_XPORT_SYMBOL(usb_hcd_unlink_urb);
 
 void usb_hcd_giveback_urb(struct usb_hcd *hcd, struct urb *urb, int status)
 {
@@ -103,7 +103,7 @@ void usb_hcd_giveback_urb(struct usb_hcd *hcd, struct urb *urb, int status)
     usb_free_urb(urb);
 }
 
-VMM_EXPORT_SYMBOL(usb_hcd_giveback_urb);
+VMM_ERR_XPORT_SYMBOL(usb_hcd_giveback_urb);
 
 vmm_irq_return_t usb_hcd_irq(int irq, void *__hcd)
 {
@@ -126,7 +126,7 @@ vmm_irq_return_t usb_hcd_irq(int irq, void *__hcd)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(usb_hcd_irq);
+VMM_ERR_XPORT_SYMBOL(usb_hcd_irq);
 
 struct usb_hcd *usb_create_hcd(const struct hc_driver *driver, vmm_device_t *dev, const char *bus_name)
 {
@@ -154,7 +154,7 @@ struct usb_hcd *usb_create_hcd(const struct hc_driver *driver, vmm_device_t *dev
     return hcd;
 }
 
-VMM_EXPORT_SYMBOL(usb_create_hcd);
+VMM_ERR_XPORT_SYMBOL(usb_create_hcd);
 
 static int usb_hcd_request_irqs(struct usb_hcd *hcd, uint32_t irqnum, uint64_t irqflags)
 {
@@ -233,7 +233,7 @@ int usb_add_hcd(struct usb_hcd *hcd, uint32_t irqnum, uint64_t irqflags)
         if (strcmp(hcd->bus_name, thcd->bus_name) == 0) {
             vmm_printf("%s: bus_name=%s alread registered\n", hcd->dev->name, hcd->bus_name);
             vmm_mutex_unlock(&usb_hcd_list_lock);
-            return VMM_EEXIST;
+            return VMM_ERR_EXIST;
         }
     }
     hcd->bus_num = usb_hcd_count;
@@ -245,7 +245,7 @@ int usb_add_hcd(struct usb_hcd *hcd, uint32_t irqnum, uint64_t irqflags)
 
     if ((rhdev = usb_alloc_device(NULL, hcd, 0)) == NULL) {
         vmm_printf("%s: unable to allocate root hub\n", hcd->dev->name);
-        retval = VMM_ENOMEM;
+        retval = VMM_ERR_NOMEM;
         goto err_allocate_root_hub;
     }
 
@@ -265,7 +265,7 @@ int usb_add_hcd(struct usb_hcd *hcd, uint32_t irqnum, uint64_t irqflags)
             break;
 
         default:
-            retval = VMM_EINVALID;
+            retval = VMM_ERR_INVALID;
             goto err_set_rh_speed;
     }
 
@@ -334,7 +334,7 @@ err_allocate_root_hub:
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(usb_add_hcd);
+VMM_ERR_XPORT_SYMBOL(usb_add_hcd);
 
 void usb_hcd_died(struct usb_hcd *hcd)
 {
@@ -360,7 +360,7 @@ void usb_hcd_died(struct usb_hcd *hcd)
     /* Make sure that the other roothub is also deallocated. */
 }
 
-VMM_EXPORT_SYMBOL(usb_hcd_died);
+VMM_ERR_XPORT_SYMBOL(usb_hcd_died);
 
 void usb_remove_hcd(struct usb_hcd *hcd)
 {
@@ -398,14 +398,14 @@ void usb_remove_hcd(struct usb_hcd *hcd)
     vmm_mutex_unlock(&usb_hcd_list_lock);
 }
 
-VMM_EXPORT_SYMBOL(usb_remove_hcd);
+VMM_ERR_XPORT_SYMBOL(usb_remove_hcd);
 
 void usb_ref_hcd(struct usb_hcd *hcd)
 {
     arch_atomic_add(&hcd->refcnt, 1);
 }
 
-VMM_EXPORT_SYMBOL(usb_ref_hcd);
+VMM_ERR_XPORT_SYMBOL(usb_ref_hcd);
 
 void usb_dref_hcd(struct usb_hcd *hcd)
 {
@@ -416,7 +416,7 @@ void usb_dref_hcd(struct usb_hcd *hcd)
     vmm_free(hcd);
 }
 
-VMM_EXPORT_SYMBOL(usb_dref_hcd);
+VMM_ERR_XPORT_SYMBOL(usb_dref_hcd);
 
 void usb_hcd_shutdown(struct usb_hcd *hcd)
 {
@@ -425,7 +425,7 @@ void usb_hcd_shutdown(struct usb_hcd *hcd)
     }
 }
 
-VMM_EXPORT_SYMBOL(usb_hcd_shutdown);
+VMM_ERR_XPORT_SYMBOL(usb_hcd_shutdown);
 
 int __init usb_hcd_init(void)
 {

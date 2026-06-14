@@ -346,7 +346,7 @@ static int kern2_do_test(vmm_char_device_t *cdev, uint64_t darg, enum kern2_dela
         failures++;
     }
 
-    return (failures) ? VMM_EFAIL : VMM_OK;
+    return (failures) ? VMM_ERR_FAIL : VMM_OK;
 }
 
 static int kern2_run(struct white_box_test *test, vmm_char_device_t *cdev, uint32_t test_hcpu)

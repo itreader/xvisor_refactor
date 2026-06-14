@@ -594,7 +594,7 @@ static int ldb_disp_init(struct mxc_dispdrv_handle *disp, struct mxc_dispdrv_set
 
         if (VMM_OK != ret) {
             dev_err(ldb->dev, "get register mapping fail.\n");
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         ldb->control_reg = ldb->reg + 2;
@@ -885,7 +885,7 @@ static int ldb_probe(vmm_device_t *dev)
     nodeid = vmm_platform_match_nodeid(dev);
 
     if (!nodeid) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     data = nodeid->data;
@@ -894,13 +894,13 @@ static int ldb_probe(vmm_device_t *dev)
     ldb = vmm_devm_zalloc(dev, sizeof(struct ldb_data));
 
     if (!ldb) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     plat_data = vmm_devm_zalloc(dev, sizeof(struct fsl_mxc_ldb_platform_data));
 
     if (!plat_data) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     plat_data->devtype = data->driver_data;

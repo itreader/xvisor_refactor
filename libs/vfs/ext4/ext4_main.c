@@ -58,7 +58,7 @@ int ext4fs_mount(struct mount *m, const char *dev, uint32_t flags)
     ctrl = vmm_zalloc(sizeof(struct ext4fs_control));
 
     if (!ctrl) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Setup control info */
@@ -170,7 +170,7 @@ static int ext4fs_unmount(struct mount *m)
     struct ext4fs_control *ctrl = m->m_data;
 
     if (!ctrl) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = ext4fs_control_exit(ctrl);
@@ -185,7 +185,7 @@ static int ext4fs_msync(struct mount *m)
     struct ext4fs_control *ctrl = m->m_data;
 
     if (!ctrl) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return ext4fs_control_sync(ctrl);
@@ -199,7 +199,7 @@ static int ext4fs_vget(struct mount *m, struct vnode *v)
     node = vmm_zalloc(sizeof(struct ext4fs_node));
 
     if (!node) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     rc        = ext4fs_node_init(node);
@@ -215,7 +215,7 @@ static int ext4fs_vput(struct mount *m, struct vnode *v)
     struct ext4fs_node *node = v->v_data;
 
     if (!node) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = ext4fs_node_exit(node);
@@ -267,7 +267,7 @@ static int ext4fs_truncate(struct vnode *v, loff_t off)
     uint64_t            filesize = ext4fs_node_get_size(node);
 
     if (filesize <= fileoff) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = ext4fs_node_truncate(node, fileoff);
@@ -288,7 +288,7 @@ static int ext4fs_sync(struct vnode *v)
     struct ext4fs_node *node = v->v_data;
 
     if (!node) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return ext4fs_node_sync(node);
@@ -406,9 +406,9 @@ static int ext4fs_create(struct vnode *dv, const char *name, uint32_t mode)
 
     rc                        = ext4fs_node_find_dirent(dnode, name, &dent);
 
-    if (rc != VMM_ENOENT) {
+    if (rc != VMM_ERR_NOENT) {
         if (!rc) {
-            return VMM_EEXIST;
+            return VMM_ERR_EXIST;
         } else {
             return rc;
         }
@@ -471,7 +471,7 @@ static int ext4fs_remove(struct vnode *dv, struct vnode *v, const char *name)
     }
 
     if (__le32(dent.inode) != node->inode_no) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     rc = ext4fs_node_del_dirent(dnode, name);
@@ -498,9 +498,9 @@ static int ext4fs_rename(struct vnode *sv, const char *sname, struct vnode *v, s
 
     rc                        = ext4fs_node_find_dirent(dnode, dname, &dent);
 
-    if (rc != VMM_ENOENT) {
+    if (rc != VMM_ERR_NOENT) {
         if (!rc) {
-            return VMM_EEXIST;
+            return VMM_ERR_EXIST;
         } else {
             return rc;
         }
@@ -544,9 +544,9 @@ static int ext4fs_mkdir(struct vnode *dv, const char *name, uint32_t mode)
 
     rc                           = ext4fs_node_find_dirent(dnode, name, &dent);
 
-    if (rc != VMM_ENOENT) {
+    if (rc != VMM_ERR_NOENT) {
         if (!rc) {
-            return VMM_EEXIST;
+            return VMM_ERR_EXIST;
         } else {
             return rc;
         }
@@ -657,7 +657,7 @@ static int ext4fs_rmdir(struct vnode *dv, struct vnode *v, const char *name)
     }
 
     if (__le32(dent.inode) != node->inode_no) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     rc = ext4fs_node_truncate(node, 0);

@@ -80,7 +80,7 @@ static int piix3_ide_probe(vmm_device_t *dev)
             if (controller == NULL) {
                 vmm_printf("ERROR: Failed to allocate host "
                            "controller instance.\n");
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             controller->bar0 = 0x1f0;
@@ -92,7 +92,7 @@ static int piix3_ide_probe(vmm_device_t *dev)
                 vmm_free(controller);
                 vmm_printf("ERROR: Failed to initialize IDE "
                            "controller.\n");
-                return VMM_ENODEV;
+                return VMM_ERR_NODEV;
             }
 
             /* Print Summary: */
@@ -113,7 +113,7 @@ static int piix3_ide_probe(vmm_device_t *dev)
 
                 if (ide_add_drive(drive) != VMM_OK) {
                     vmm_printf("ERROR: Failed to add drive to block layer.\n");
-                    return VMM_EFAIL;
+                    return VMM_ERR_FAIL;
                 }
             }
 
@@ -121,7 +121,7 @@ static int piix3_ide_probe(vmm_device_t *dev)
         }
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static struct vmm_device_tree_nodeid piix3_ide_devid_table[] = {

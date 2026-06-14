@@ -18,7 +18,7 @@
  *
  * @file vmm_initfn.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief source file for device-tree based init functions
+ * @brief 基于设备树的初始化函数实现
  */
 
 #include <vmm_error.h>
@@ -26,6 +26,13 @@
 #include <vmm_smp.h>
 #include <vmm_stdio.h>
 
+/**
+ * @brief 查找初始化函数节点ID表
+ * @param node 设备树节点指针
+ * @param match 匹配回调函数
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __init initfn_nidtable_found(vmm_device_tree_node_t *node, const struct vmm_device_tree_nodeid *match, void *data)
 {
     int          err;
@@ -47,6 +54,11 @@ static void __init initfn_nidtable_found(vmm_device_tree_node_t *node, const str
 #endif
 }
 
+/**
+ * @brief 执行初始化函数
+ * @param subsys 子系统名称字符串
+ * @return 编号值
+ */
 static int initfn_do(const char *subsys)
 {
     const struct vmm_device_tree_nodeid *matches;
@@ -66,16 +78,28 @@ static int initfn_do(const char *subsys)
     return VMM_OK;
 }
 
+/**
+ * @brief 执行nascent阶段初始化函数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_initfn_nascent(void)
 {
     return initfn_do("initfn_nascent");
 }
 
+/**
+ * @brief 执行early阶段初始化函数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_initfn_early(void)
 {
     return initfn_do("initfn_early");
 }
 
+/**
+ * @brief 执行final阶段初始化函数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_initfn_final(void)
 {
     return initfn_do("initfn_final");

@@ -18,7 +18,7 @@
  *
  * @file vmm_vmsg.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for virtual messaging subsystem
+ * @brief 虚拟消息子系统头文件
  */
 
 /*
@@ -65,27 +65,41 @@
 #define VMM_VMSG_EVENT_DESTROY_NODE   0x04
 
 /** Representation of virtual messaging notifier event */
+/**
+ * @brief 虚拟消息事件，封装跨客户机的消息通知数据
+ */
 struct vmm_vmsg_event {
-    void *data;
+    void *data; /**< 数据 */
 };
 
-/** Register a notifier client to receive virtual messaging events */
+/**
+ * @brief 注册虚拟消息客户端
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmsg_register_client(vmm_notifier_block_t *nb);
 
-/** Unregister a notifier client to not receive virtual messaging events */
+/**
+ * @brief 注销虚拟消息客户端
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmsg_unregister_client(vmm_notifier_block_t *nb);
 
 /** Representation of a virtual message */
+/**
+ * @brief 虚拟消息结构，维护消息源/目标节点和载荷数据
+ */
 struct vmm_vmsg {
-    struct xref ref_count;
-    uint32_t    dst;
-    uint32_t    src;
-    uint32_t    local;
-    void       *data;
-    size_t      len;
-    void *private;
-    void (*free_data)(struct vmm_vmsg *);
-    void (*free_hdr)(struct vmm_vmsg *);
+    struct xref ref_count; /**< 引用计数 */
+    uint32_t    dst; /**< 目标 */
+    uint32_t    src; /**< 源 */
+    uint32_t    local; /**< local成员 */
+    void       *data; /**< 数据 */
+    size_t      len; /**< 长度 */
+    void *private; /**< 私有数据 */
+    void (*free_data)(struct vmm_vmsg *); /**< free_data成员 */
+    void (*free_hdr)(struct vmm_vmsg *); /**< free_hdr成员 */
 };
 
 #define INIT_VMSG(__m, __dst, __src, __local, __d, __l, __p, __fd, __fh)                                                                             \
@@ -102,23 +116,29 @@ struct vmm_vmsg {
     } while (0)
 
 /** Representation of a virtual messaging domain */
+/**
+ * @brief 虚拟消息域，管理同一通信域内的所有消息节点
+ */
 struct vmm_vmsg_domain {
-    double_list_t head;
-    char          name[VMM_FIELD_NAME_SIZE];
-    void *private;
-    vmm_mutex_t   node_lock;
-    double_list_t node_list;
+    double_list_t head; /**< 链表头 */
+    char          name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
+    void *private; /**< 私有数据 */
+    vmm_mutex_t   node_lock; /**< node_lock成员 */
+    double_list_t node_list; /**< node_list成员 */
 };
 
 struct vmm_vmsg_node;
 
+/**
+ * @brief 虚拟消息节点懒加载，延迟初始化节点资源
+ */
 struct vmm_vmsg_node_lazy {
-    struct vmm_vmsg_node *node;
-    atomic_t              sched_count;
-    double_list_t         head;
-    int                   budget;
-    void                 *arg;
-    void (*xfer)(struct vmm_vmsg_node *, void *, int);
+    struct vmm_vmsg_node *node; /**< 节点 */
+    atomic_t              sched_count; /**< sched_count成员 */
+    double_list_t         head; /**< 链表头 */
+    int                   budget; /**< budget成员 */
+    void                 *arg; /**< 参数 */
+    void (*xfer)(struct vmm_vmsg_node *, void *, int); /**< 传输 */
 };
 
 #define INIT_VMM_VMSG_NODE_LAZY(__lazy, __node, __budget, __arg, __xfer)                                                                             \
@@ -132,30 +152,42 @@ struct vmm_vmsg_node_lazy {
     } while (0)
 
 /** Representation of a virtual messaging node operations */
+/**
+ * @brief 虚拟消息节点操作接口，定义发送和接收回调
+ */
 struct vmm_vmsg_node_ops {
-    void (*peer_up)(struct vmm_vmsg_node *node, const char *peer_name, uint32_t peer_addr);
-    void (*peer_down)(struct vmm_vmsg_node *node, const char *peer_name, uint32_t peer_addr);
-    bool (*can_recv_msg)(struct vmm_vmsg_node *node);
-    int (*recv_msg)(struct vmm_vmsg_node *node, struct vmm_vmsg *msg);
+    void (*peer_up)(struct vmm_vmsg_node *node, const char *peer_name, uint32_t peer_addr); /**< peer_up成员 */
+    void (*peer_down)(struct vmm_vmsg_node *node, const char *peer_name, uint32_t peer_addr); /**< peer_down成员 */
+    bool (*can_recv_msg)(struct vmm_vmsg_node *node); /**< can_recv_msg成员 */
+    int (*recv_msg)(struct vmm_vmsg_node *node, struct vmm_vmsg *msg); /**< recv_msg成员 */
 };
 
 /** Representation of a virtual messaging node */
+/**
+ * @brief 虚拟消息节点结构，表示域内一个可收发消息的端点
+ */
 struct vmm_vmsg_node {
-    uint32_t      addr;
-    double_list_t head;
-    double_list_t domain_head;
-    char          name[VMM_FIELD_NAME_SIZE];
-    uint32_t      max_data_len;
-    void *private;
-    atomic_t                  is_ready;
-    struct vmm_vmsg_domain   *domain;
-    struct vmm_vmsg_node_ops *ops;
+    uint32_t      addr; /**< 地址 */
+    double_list_t head; /**< 链表头 */
+    double_list_t domain_head; /**< domain_head成员 */
+    char          name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
+    uint32_t      max_data_len; /**< max_data_len成员 */
+    void *private; /**< 私有数据 */
+    atomic_t                  is_ready; /**< is_ready成员 */
+    struct vmm_vmsg_domain   *domain; /**< 域 */
+    struct vmm_vmsg_node_ops *ops; /**< 操作集 */
 };
 
-/** Increment ref count of virtual message */
+/**
+ * @brief 增加虚拟消息引用计数
+ * @param msg 消息字符串
+ */
 void vmm_vmsg_ref(struct vmm_vmsg *msg);
 
-/** Decrement ref count of virtual message */
+/**
+ * @brief 减少虚拟消息引用计数
+ * @param msg 消息字符串
+ */
 void vmm_vmsg_dref(struct vmm_vmsg *msg);
 
 /** Allocate new virtual message with data allocated externally */
@@ -165,7 +197,9 @@ struct vmm_vmsg *vmm_vmsg_alloc_ext(
 /** Allocate new virtual message from heap */
 struct vmm_vmsg *vmm_vmsg_alloc(uint32_t dst, uint32_t src, uint32_t local, size_t len, void *private);
 
-/** Free a virtual message */
+/**
+ * @brief 释放虚拟消息
+ */
 static inline void vmm_vmsg_free(struct vmm_vmsg *msg)
 {
     vmm_vmsg_dref(msg);
@@ -174,22 +208,46 @@ static inline void vmm_vmsg_free(struct vmm_vmsg *msg)
 /** Create a virtual messaging domain */
 struct vmm_vmsg_domain *vmm_vmsg_domain_create(const char *name, void *private);
 
-/** Destroy a virtual messaging domain */
+/**
+ * @brief 销毁消息域
+ * @param domain 域结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmsg_domain_destroy(struct vmm_vmsg_domain *domain);
 
-/** Iterate over each virtual messaging domain */
+/**
+ * @brief 虚拟消息 域 遍历
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmsg_domain_iterate(struct vmm_vmsg_domain *start, void *data, int (*fn)(struct vmm_vmsg_domain *, void *));
 
 /** Find a virtual messaging domain with given name */
 struct vmm_vmsg_domain *vmm_vmsg_domain_find(const char *name);
 
-/** Count of available virtual messaging domains */
+/**
+ * @brief 获取消息域的数量
+ * @return 数量值
+ */
 uint32_t vmm_vmsg_domain_count(void);
 
-/** Iterate over each virtual messaging node of a domain */
+/**
+ * @brief 遍历虚拟消息域中的所有节点
+ * @param domain 域结构体指针
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmsg_domain_node_iterate(struct vmm_vmsg_domain *domain, struct vmm_vmsg_node *start, void *data, int (*fn)(struct vmm_vmsg_node *, void *));
 
-/** Get name of virtual messaging domain */
+/**
+ * @brief 获取消息域的名称
+ * @param domain 域结构体指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 const char *vmm_vmsg_domain_get_name(struct vmm_vmsg_domain *domain);
 
 /**
@@ -201,7 +259,11 @@ const char *vmm_vmsg_domain_get_name(struct vmm_vmsg_domain *domain);
 struct vmm_vmsg_node *vmm_vmsg_node_create(
     const char *name, uint32_t addr, uint32_t max_data_len, struct vmm_vmsg_node_ops *ops, struct vmm_vmsg_domain *domain, void *private);
 
-/** Destroy a virtual messaging node */
+/**
+ * @brief 销毁消息节点
+ * @param node 设备树节点指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmsg_node_destroy(struct vmm_vmsg_node *node);
 
 /** Retrive private context of virtual messaging node */
@@ -210,45 +272,92 @@ static inline void *vmm_vmsg_node_private(struct vmm_vmsg_node *node)
     return (node) ? node->private : NULL;
 }
 
-/** Iterate over each virtual messaging node */
+/**
+ * @brief 虚拟消息 节点 遍历
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmsg_node_iterate(struct vmm_vmsg_node *start, void *data, int (*fn)(struct vmm_vmsg_node *, void *));
 
 /** Find a virtual messaging node with given name */
 struct vmm_vmsg_node *vmm_vmsg_node_find(const char *name);
 
-/** Count of available virtual messaging nodes */
+/**
+ * @brief 获取消息节点的数量
+ * @return 数量值
+ */
 uint32_t vmm_vmsg_node_count(void);
 
-/** Send message from virtual messaging node */
+/**
+ * @brief 向虚拟消息节点发送数据
+ * @param node 设备树节点指针
+ * @param msg 消息字符串
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmsg_node_send(struct vmm_vmsg_node *node, struct vmm_vmsg *msg);
 
-/** Faster Send message from virtual messaging node
- * Note: This function can only be called from Orphan context
+/**
+ * @brief 通过虚拟消息节点快速发送消息
+ * @param node 设备树节点指针
+ * @param msg 消息字符串
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_vmsg_node_send_fast(struct vmm_vmsg_node *node, struct vmm_vmsg *msg);
 
-/** Schedule lazy work for virtual messaging node */
+/**
+ * @brief 延迟启动虚拟消息节点
+ * @param lazy 是否延迟处理标志
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmsg_node_start_lazy(struct vmm_vmsg_node_lazy *lazy);
 
-/** Stop a scheduled lazy work for virtual messaging node */
+/**
+ * @brief 延迟停止虚拟消息节点
+ * @param lazy 是否延迟处理标志
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmsg_node_stop_lazy(struct vmm_vmsg_node_lazy *lazy);
 
-/** Mark virtual messaging node as ready */
+/**
+ * @brief 虚拟消息 节点 就绪
+ * @param node 设备树节点指针
+ */
 void vmm_vmsg_node_ready(struct vmm_vmsg_node *node);
 
-/** Mark virtual messaging node as not-ready */
+/**
+ * @brief 将虚拟消息节点标记为未就绪
+ * @param node 设备树节点指针
+ */
 void vmm_vmsg_node_notready(struct vmm_vmsg_node *node);
 
-/** Check whether virtual messaging node is ready */
+/**
+ * @brief 检查虚拟消息节点是否就绪
+ * @param node 设备树节点指针
+ * @return 就绪返回TRUE，否则返回FALSE
+ */
 bool vmm_vmsg_node_is_ready(struct vmm_vmsg_node *node);
 
-/** Get name of virtual messaging node */
+/**
+ * @brief 获取消息节点的名称
+ * @param node 设备树节点指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 const char *vmm_vmsg_node_get_name(struct vmm_vmsg_node *node);
 
-/** Get address of virtual messaging node */
+/**
+ * @brief 获取消息节点的addr
+ * @param node 设备树节点指针
+ * @return 成功返回节点地址，失败返回VMM_VMSG_NODE_ADDR_ANY
+ */
 uint32_t vmm_vmsg_node_get_addr(struct vmm_vmsg_node *node);
 
-/** Get maximum data len of virtual messaging node */
+/**
+ * @brief 获取消息节点的最大数据长度
+ * @param node 设备树节点指针
+ * @return 成功返回最大数据长度，失败返回0
+ */
 uint32_t vmm_vmsg_node_get_max_data_len(struct vmm_vmsg_node *node);
 
 /** Get domain of virtual messaging node */

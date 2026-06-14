@@ -280,7 +280,7 @@ static int emulate_psci_0_2_call(vmm_vcpu_t *vcpu, arch_regs_t *regs)
             break;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     }
 
     emulate_psci_set_reg(vcpu, regs, 0, val);
@@ -317,7 +317,7 @@ static int emulate_psci_0_1_call(vmm_vcpu_t *vcpu, arch_regs_t *regs)
             break;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     }
 
     emulate_psci_set_reg(vcpu, regs, 0, val);
@@ -328,7 +328,7 @@ static int emulate_psci_0_1_call(vmm_vcpu_t *vcpu, arch_regs_t *regs)
 int emulate_psci_call(vmm_vcpu_t *vcpu, arch_regs_t *regs, bool is_smc)
 {
     if (!vcpu || !regs) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     switch (emulate_psci_version(vcpu)) {
@@ -342,5 +342,5 @@ int emulate_psci_call(vmm_vcpu_t *vcpu, arch_regs_t *regs, bool is_smc)
             break;
     };
 
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }

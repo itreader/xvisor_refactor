@@ -149,7 +149,7 @@ static int fw_cfg_add_bytes_read_callback(fw_cfg_state_t *s, uint16_t key, FWCfg
     key &= FW_CFG_ENTRY_MASK;
 
     if (key >= FW_CFG_MAX_ENTRY && len > 0xffffffff) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     s->entries[arch][key].data            = data;
@@ -207,13 +207,13 @@ int fw_cfg_add_callback(fw_cfg_state_t *s, uint16_t key, FWCfgCallback callback,
     int arch = !!(key & FW_CFG_ARCH_LOCAL);
 
     if (!(key & FW_CFG_WRITE_CHANNEL)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     key &= FW_CFG_ENTRY_MASK;
 
     if (key >= FW_CFG_MAX_ENTRY && len > 0xffffffff) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     s->entries[arch][key].data            = data;
@@ -238,7 +238,7 @@ int fw_cfg_add_file_callback(fw_cfg_state_t *s, const char *filename, FWCfgReadC
     index = vmm_be32_to_cpu(s->files->count);
 
     if (index >= FW_CFG_FILE_SLOTS) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     fw_cfg_add_bytes_read_callback(s, FW_CFG_FILE_FIRST + index, callback, callback_opaque, data, len);
@@ -300,7 +300,7 @@ static int fwcfg_emulator_write8(vmm_emulate_device_t *edev, physical_addr_t off
             break;
 
         default:
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
     }
 
     /* Ignore it. */
@@ -319,7 +319,7 @@ static int fwcfg_emulator_write16(vmm_emulate_device_t *edev, physical_addr_t of
             break;
 
         default:
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
     }
 
     /* Ignore it. */
@@ -338,7 +338,7 @@ static int fwcfg_emulator_write32(vmm_emulate_device_t *edev, physical_addr_t of
             break;
 
         default:
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
     }
 
     /* Ignore it. */
@@ -359,7 +359,7 @@ static int fwcfg_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(fw_cfg_state_t));
 
     if (!s) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     fw_cfg_add_bytes(s, FW_CFG_SIGNATURE, (char *)"QEMU", 4);

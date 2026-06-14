@@ -148,13 +148,13 @@ int fb_default_terminal_getc(uint8_t *ch)
 
         /* Try to dequeue from default_terminal fifo */
         if (!fifo_dequeue(fb_fifo, ch)) {
-            return VMM_ENOTAVAIL;
+            return VMM_ERR_NOTAVAIL;
         }
 
         return VMM_OK;
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 extern struct multiboot_info boot_info;
@@ -170,7 +170,7 @@ int fb_default_terminal_init(void)
 
     if (!fb_fifo) {
         vmm_printf("%s: No memory for fifo\n", __func__);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     INIT_COMPLETION(&fb_fifo_cmpl);

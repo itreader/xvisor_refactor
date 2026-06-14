@@ -389,7 +389,7 @@ static int ns16550_reg_write(struct ns16550_state *s, uint32_t addr, uint32_t sr
     bool    update_irq = FALSE;
 
     if (s->reg_io_width != io_width) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     addr >>= s->reg_shift;
@@ -472,7 +472,7 @@ static int ns16550_reg_write(struct ns16550_state *s, uint32_t addr, uint32_t sr
             break;
 
         default:
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             break;
     }
 
@@ -516,7 +516,7 @@ static int ns16550_reg_read(struct ns16550_state *s, uint32_t addr, uint32_t *ds
     bool update_irq = FALSE;
 
     if (s->reg_io_width != io_width) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     addr >>= s->reg_shift;
@@ -569,7 +569,7 @@ static int ns16550_reg_read(struct ns16550_state *s, uint32_t addr, uint32_t *ds
             break;
 
         default:
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             break;
     }
 
@@ -706,7 +706,7 @@ static int ns16550_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t 
 
     if (!s) {
         vmm_lerror(edev->node->name, "Failed to allocate serial emulator's state.\n");
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto uart16550a_emulator_probe_done;
     }
 
@@ -732,7 +732,7 @@ static int ns16550_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t 
 
     if (!s->recv_fifo) {
         vmm_lerror(edev->node->name, "Failed to allocate uart receive fifo.\n");
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto uart16550a_emulator_probe_freestate_fail;
     }
 
@@ -740,7 +740,7 @@ static int ns16550_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t 
 
     if (!s->xmit_fifo) {
         vmm_lerror(edev->node->name, "Failed to allocate uart transmit fifo.\n");
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto uart16550a_emulator_probe_freestate_fail;
     }
 
@@ -748,7 +748,7 @@ static int ns16550_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t 
     strlcat(name, "/", sizeof(name));
 
     if (strlcat(name, edev->node->name, sizeof(name)) >= sizeof(name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto uart16550a_emulator_probe_freerbuf_fail;
     }
 

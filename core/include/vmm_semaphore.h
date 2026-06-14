@@ -18,7 +18,7 @@
  *
  * @file vmm_semaphore.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief Header file of sempahore locks for Orphan VCPU (or Thread).
+ * @brief 孤儿VCPU（或线程）信号量头文件
  */
 
 #ifndef __VMM_SEMAPHORE_H__
@@ -27,12 +27,14 @@
 #include <vmm_types.h>
 #include <vmm_waitqueue.h>
 
-/** Semaphore lock structure */
+/**
+ * @brief 信号量锁结构，提供计数型同步机制，维护等待队列和可用计数
+ */
 typedef struct vmm_semaphore {
-    uint32_t         limit;
-    uint32_t         value;
-    double_list_t    res_list;
-    vmm_wait_queue_t wait_queue;
+    uint32_t         limit; /**< 限制值 */
+    uint32_t         value; /**< 值 */
+    double_list_t    res_list; /**< res_list成员 */
+    vmm_wait_queue_t wait_queue; /**< 等待队列 */
 } vmm_semaphore_t;
 
 /** Initialize semaphore lock */
@@ -52,19 +54,40 @@ typedef struct vmm_semaphore {
 
 #define DEFINE_SEMAPHORE(__sem, __lim, __val) vmm_semaphore_t __sem = __SEMAPHORE_INITIALIZER(__sem, __lim, __val)
 
-/** Ger semaphore available count */
+/**
+ * @brief 获取信号量当前可用计数
+ * @param sem 信号量指针
+ * @return 当前信号量可用计数
+ */
 uint32_t vmm_semaphore_avail(vmm_semaphore_t *sem);
 
-/** Get maximum value (or limit) of semaphore */
+/**
+ * @brief 获取信号量最大限制值
+ * @param sem 信号量指针
+ * @return 信号量最大限制值
+ */
 uint32_t vmm_semaphore_limit(vmm_semaphore_t *sem);
 
-/** Release (or increment) semaphore */
+/**
+ * @brief 释放信号量（V操作）
+ * @param sem 信号量指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_semaphore_up(vmm_semaphore_t *sem);
 
-/** Acquire (or decrement) semaphore */
+/**
+ * @brief 获取信号量（P操作）
+ * @param sem 信号量指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_semaphore_down(vmm_semaphore_t *sem);
 
-/** Acquire (or decrement) semaphore with timeout */
+/**
+ * @brief 带超时的获取信号量
+ * @param sem 信号量指针
+ * @param timeout 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_semaphore_down_timeout(vmm_semaphore_t *sem, uint64_t *timeout);
 
 #endif /* __VMM_SEMAPHORE_H__ */

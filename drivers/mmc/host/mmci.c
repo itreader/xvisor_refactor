@@ -87,10 +87,10 @@ static int mmci_wait_for_command_end(struct mmc_host *mmc, struct mmc_cmd *cmd)
 
     if (hoststatus & SDI_STA_CTIMEOUT) {
         debug("%s: CMD%d time out\n", __func__, cmd->cmdidx);
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     } else if ((hoststatus & SDI_STA_CCRCFAIL) && (cmd->resp_type & MMC_RSP_CRC)) {
         vmm_printf("%s: CMD%d CRC error\n", __func__, cmd->cmdidx);
-        return VMM_EILSEQ;
+        return VMM_ERR_ILSEQ;
     }
 
     if (cmd->resp_type & MMC_RSP_PRESENT) {
@@ -177,20 +177,20 @@ static int mmci_read_bytes(struct mmc_host *mmc, uint32_t *dest, uint32_t blkcou
             "%s: Read data timed out, "
             "xfercount: %llu, status: 0x%08X\n",
             __func__, xfercount, status);
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     } else if (status & SDI_STA_DCRCFAIL) {
         vmm_printf("%s: Read data bytes CRC error: 0x%x\n", __func__, status);
-        return VMM_EILSEQ;
+        return VMM_ERR_ILSEQ;
     } else if (status & SDI_STA_RXOVERR) {
         vmm_printf("%s: Read data RX overflow error\n", __func__);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     vmm_writel(SDI_ICR_MASK, &host->base->status_clear);
 
     if (xfercount) {
         vmm_printf("%s: Read data error, xfercount: %llu\n", __func__, xfercount);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;
@@ -243,17 +243,17 @@ static int mmci_write_bytes(struct mmc_host *mmc, uint32_t *src, uint32_t blkcou
             "%s: Write data timed out, "
             "xfercount:%llu,status:0x%08X\n",
             __func__, xfercount, status);
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     } else if (status & SDI_STA_DCRCFAIL) {
         vmm_printf("%s: Write data CRC error\n", __func__);
-        return VMM_EILSEQ;
+        return VMM_ERR_ILSEQ;
     }
 
     vmm_writel(SDI_ICR_MASK, &host->base->status_clear);
 
     if (xfercount) {
         vmm_printf("%s: Write data error, xfercount:%llu", __func__, xfercount);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;
@@ -261,7 +261,7 @@ static int mmci_write_bytes(struct mmc_host *mmc, uint32_t *src, uint32_t blkcou
 
 static int mmci_data_transfer(struct mmc_host *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 {
-    int               error     = VMM_ETIMEDOUT;
+    int               error     = VMM_ERR_TIMEDOUT;
     struct mmci_host *host      = mmc_private(mmc);
     uint32_t          blksz     = 0;
     uint32_t          data_ctrl = 0;
@@ -420,14 +420,14 @@ static int mmci_driver_probe(vmm_device_t *dev)
     devid = vmm_platform_match_nodeid(dev);
 
     if (!devid) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto free_nothing;
     }
 
     mmc = mmc_alloc_host(sizeof(struct mmci_host), dev);
 
     if (!mmc) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_nothing;
     }
 
@@ -444,7 +444,7 @@ static int mmci_driver_probe(vmm_device_t *dev)
     host->irq0 = vmm_device_tree_irq_parse_map(dev->of_node, 0);
 
     if (!host->irq0) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto free_reg;
     }
 

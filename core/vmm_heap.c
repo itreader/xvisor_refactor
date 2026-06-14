@@ -21,7 +21,7 @@
  * @author Himanshu Chauhan (hschauhan@nulltrace.org)
  * @author Anup Patel (anup@brainfault.org)
  * @author Ankit Jindal (thatsjindal@gmail.com)
- * @brief heap management using buddy allocator
+ * @brief 基于伙伴分配器的堆管理
  */
 
 #include <libs/buddy.h>
@@ -33,15 +33,18 @@
 #include <vmm_host_virtual_address_pool.h>
 #include <vmm_stdio.h>
 
+/**
+ * @brief 堆内存控制结构，管理内存池的分配状态
+ */
 struct vmm_heap_control {
-    struct buddy_allocator ba;
-    void                  *hk_start;
-    uint64_t               hk_size;
-    void                  *mem_start;
-    uint64_t               mem_size;
-    void                  *heap_start;
-    physical_addr_t        heap_start_pa;
-    uint64_t               heap_size;
+    struct buddy_allocator ba; /**< ba */
+    void                  *hk_start; /**< hk_start成员 */
+    uint64_t               hk_size; /**< hk_size成员 */
+    void                  *mem_start; /**< mem_start成员 */
+    uint64_t               mem_size; /**< mem_size成员 */
+    void                  *heap_start; /**< heap_start成员 */
+    physical_addr_t        heap_start_pa; /**< heap_start_pa成员 */
+    uint64_t               heap_size; /**< heap_size成员 */
 };
 
 static struct vmm_heap_control normal_heap;
@@ -50,6 +53,12 @@ static struct vmm_heap_control dma_heap;
 #define HEAP_MIN_BIN (VMM_CACHE_LINE_SHIFT)
 #define HEAP_MAX_BIN (VMM_PAGE_SHIFT)
 
+/**
+ * @brief 堆内存分配
+ * @param heap 堆结构体指针
+ * @param size 数据大小（字节数）
+ * @return 成功返回目标指针，失败返回NULL
+ */
 static void *heap_malloc(struct vmm_heap_control *heap, virtual_size_t size)
 {
     int      rc;
@@ -69,10 +78,17 @@ static void *heap_malloc(struct vmm_heap_control *heap, virtual_size_t size)
     return (void *)addr;
 }
 
+/**
+ * @brief 从堆中分配指定大小的内存块
+ * @param heap 堆结构体指针
+ * @param ptr 通用指针
+ * @return 大小值（字节）
+ */
 static virtual_size_t heap_alloc_size(struct vmm_heap_control *heap, const void *ptr)
 {
     int      rc;
-    uint64_t aaddr, asize;
+    uint64_t aaddr;
+    uint64_t asize;
 
     BUG_ON(!ptr);
     BUG_ON(ptr < heap->mem_start);
@@ -87,6 +103,11 @@ static virtual_size_t heap_alloc_size(struct vmm_heap_control *heap, const void 
     return asize - ((uint64_t)ptr - aaddr);
 }
 
+/**
+ * @brief 堆内存释放
+ * @param heap 堆结构体指针
+ * @param ptr 通用指针
+ */
 static void heap_free(struct vmm_heap_control *heap, void *ptr)
 {
     int rc;
@@ -102,32 +123,53 @@ static void heap_free(struct vmm_heap_control *heap, void *ptr)
     }
 }
 
-static int heap_pa2va(struct vmm_heap_control *heap, physical_addr_t pa, virtual_addr_t *va)
+/**
+ * @brief 堆物理地址转虚拟地址
+ * @param heap 堆结构体指针
+ * @param pa 待操作的物理地址
+ * @param va 待操作的虚拟地址
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+static int heap_physicalAddr_to_virtualAddr(struct vmm_heap_control *heap, physical_addr_t pa, virtual_addr_t *va)
 {
     int rc = VMM_OK;
 
     if ((heap->heap_start_pa <= pa) && (pa < (heap->heap_start_pa + heap->heap_size))) {
         *va = (virtual_addr_t)heap->heap_start + (pa - heap->heap_start_pa);
     } else {
-        rc = vmm_host_pa2va(pa, va);
+        rc = vmm_host_physicalAddr_to_virtualAddr(pa, va);
     }
 
     return rc;
 }
 
-static int heap_va2pa(struct vmm_heap_control *heap, virtual_addr_t va, physical_addr_t *pa)
+/**
+ * @brief 堆虚拟地址转物理地址
+ * @param heap 堆结构体指针
+ * @param va 待操作的虚拟地址
+ * @param pa 待操作的物理地址
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+static int heap_virtualAddr_to_physicalAddr(struct vmm_heap_control *heap, virtual_addr_t va, physical_addr_t *pa)
 {
     int rc = VMM_OK;
 
     if (((virtual_addr_t)heap->heap_start <= va) && (va < ((virtual_addr_t)heap->heap_start + heap->heap_size))) {
         *pa = (physical_addr_t)(va - (virtual_addr_t)heap->heap_start) + heap->heap_start_pa;
     } else {
-        rc = vmm_host_va2pa(va, pa);
+        rc = vmm_host_virtualAddr_to_physicalAddr(va, pa);
     }
 
     return rc;
 }
 
+/**
+ * @brief 堆 打印 状态
+ * @param heap 堆结构体指针
+ * @param cdev 字符设备指针
+ * @param name 目标对象的名称
+ * @return 状态值
+ */
 static int heap_print_state(struct vmm_heap_control *heap, vmm_char_device_t *cdev, const char *name)
 {
     uint64_t idx;
@@ -152,16 +194,25 @@ static int heap_print_state(struct vmm_heap_control *heap, vmm_char_device_t *cd
     return VMM_OK;
 }
 
-static int heap_init(struct vmm_heap_control *heap, bool use_hugepage, bool is_normal, virtual_size_t size, uint32_t mem_flags)
+/**
+ * @brief 堆子系统初始化
+ * @param heap 堆结构体指针
+ * @param use_huge_page 是否使用大页标志
+ * @param is_normal 是否为普通节点
+ * @param size 数据大小（字节数）
+ * @param memory_flags 标志位
+ * @return 状态值
+ */
+static int heap_init(struct vmm_heap_control *heap, bool use_huge_page, bool is_normal, virtual_size_t size, uint32_t memory_flags)
 {
     int      rc       = VMM_OK;
-    uint32_t hp_shift = vmm_host_hugepage_shift();
+    uint32_t hp_shift = vmm_host_huge_page_shift();
 
     if (!size) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
-    if (use_hugepage) {
+    if (use_huge_page) {
         size = roundup2_order_size(size, hp_shift);
     } else {
         size = roundup2_order_size(size, VMM_PAGE_SHIFT);
@@ -171,17 +222,17 @@ static int heap_init(struct vmm_heap_control *heap, bool use_hugepage, bool is_n
 
     heap->heap_size = size;
 
-    if (use_hugepage) {
-        heap->heap_start = (void *)vmm_host_alloc_hugepages((heap->heap_size >> hp_shift), mem_flags);
+    if (use_huge_page) {
+        heap->heap_start = (void *)vmm_host_alloc_huge_pages((heap->heap_size >> hp_shift), memory_flags);
     } else {
-        heap->heap_start = (void *)vmm_host_alloc_pages(VMM_SIZE_TO_PAGE(heap->heap_size), mem_flags);
+        heap->heap_start = (void *)vmm_host_alloc_pages(VMM_SIZE_TO_PAGE(heap->heap_size), memory_flags);
     }
 
     if (!heap->heap_start) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
-    rc = vmm_host_va2pa((virtual_addr_t)heap->heap_start, &heap->heap_start_pa);
+    rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)heap->heap_start, &heap->heap_start_pa);
 
     if (rc) {
         goto fail_free_pages;
@@ -201,7 +252,7 @@ static int heap_init(struct vmm_heap_control *heap, bool use_hugepage, bool is_n
         heap->hk_start = vmm_malloc(heap->hk_size);
 
         if (!heap->hk_start) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto fail_free_pages;
         }
 
@@ -222,11 +273,21 @@ fail_free_pages:
     return rc;
 }
 
+/**
+ * @brief malloc
+ * @param size 数据大小（字节数）
+ * @return 成功返回目标指针，失败返回NULL
+ */
 void *vmm_malloc(virtual_size_t size)
 {
     return heap_malloc(&normal_heap, size);
 }
 
+/**
+ * @brief zalloc
+ * @param size 数据大小（字节数）
+ * @return 成功返回分配的内存指针，失败返回NULL
+ */
 void *vmm_zalloc(virtual_size_t size)
 {
     void *ret = vmm_malloc(size);
@@ -238,6 +299,12 @@ void *vmm_zalloc(virtual_size_t size)
     return ret;
 }
 
+/**
+ * @brief calloc
+ * @param element_count 元素数量
+ * @param element_size 单个元素大小（字节）
+ * @return 成功返回分配的内存指针，失败返回NULL
+ */
 void *vmm_calloc(virtual_size_t element_count, virtual_size_t element_size)
 {
     if (!element_count) {
@@ -247,6 +314,11 @@ void *vmm_calloc(virtual_size_t element_count, virtual_size_t element_size)
     return vmm_zalloc(element_count * element_size);
 }
 
+/**
+ * @brief strdup
+ * @param str 待处理的字符串
+ * @return 成功返回分配的内存指针，失败返回NULL
+ */
 char *vmm_strdup(const char *str)
 {
     char  *tstr;
@@ -269,41 +341,75 @@ char *vmm_strdup(const char *str)
     return tstr;
 }
 
+/**
+ * @brief 分配指定大小的内存
+ * @param ptr 通用指针
+ * @return 大小值（字节）
+ */
 virtual_size_t vmm_alloc_size(const void *ptr)
 {
     return heap_alloc_size(&normal_heap, ptr);
 }
 
+/**
+ * @brief free
+ * @param ptr 通用指针
+ */
 void vmm_free(void *ptr)
 {
     heap_free(&normal_heap, ptr);
 }
 
+/**
+ * @brief 获取普通堆的起始虚拟地址
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 virtual_addr_t vmm_normal_heap_start_va(void)
 {
     return (virtual_addr_t)normal_heap.heap_start;
 }
 
+/**
+ * @brief 普通 堆 大小
+ * @return 大小值（字节）
+ */
 virtual_size_t vmm_normal_heap_size(void)
 {
     return (virtual_size_t)normal_heap.heap_size;
 }
 
+/**
+ * @brief 获取普通堆管理元数据的大小
+ * @return 大小值（字节）
+ */
 virtual_size_t vmm_normal_heap_hksize(void)
 {
     return normal_heap.hk_size;
 }
 
+/**
+ * @brief 获取普通堆的空闲内存大小
+ * @return 大小值（字节）
+ */
 virtual_size_t vmm_normal_heap_free_size(void)
 {
     return buddy_bins_free_space(&normal_heap.ba);
 }
 
+/**
+ * @brief 将普通堆的分配状态输出到字符设备
+ * @param cdev 字符设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_normal_heap_print_state(vmm_char_device_t *cdev)
 {
     return heap_print_state(&normal_heap, cdev, "Normal");
 }
 
+/**
+ * @brief 初始化堆
+ * @return 状态值
+ */
 int __init vmm_heap_init(void)
 {
     int rc;
@@ -323,11 +429,21 @@ int __init vmm_heap_init(void)
     return VMM_OK;
 }
 
+/**
+ * @brief DMA malloc
+ * @param size 数据大小（字节数）
+ * @return 成功返回目标指针，失败返回NULL
+ */
 void *vmm_dma_malloc(virtual_size_t size)
 {
     return heap_malloc(&dma_heap, size);
 }
 
+/**
+ * @brief DMA zalloc
+ * @param size 数据大小（字节数）
+ * @return 成功返回分配的内存指针，失败返回NULL
+ */
 void *vmm_dma_zalloc(virtual_size_t size)
 {
     void *ret = vmm_dma_malloc(size);
@@ -339,6 +455,12 @@ void *vmm_dma_zalloc(virtual_size_t size)
     return ret;
 }
 
+/**
+ * @brief 分配DMA物理内存并清零
+ * @param size 数据大小（字节数）
+ * @param paddr 物理地址值
+ * @return 成功返回分配的内存指针，失败返回NULL
+ */
 void *vmm_dma_zalloc_phy(virtual_size_t size, physical_addr_t *paddr)
 {
     int        ret;
@@ -356,7 +478,7 @@ void *vmm_dma_zalloc_phy(virtual_size_t size, physical_addr_t *paddr)
         return cpu_addr;
     }
 
-    ret = vmm_host_va2pa((virtual_addr_t)cpu_addr, &dma_addr);
+    ret = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)cpu_addr, &dma_addr);
 
     if (VMM_OK == ret) {
         *paddr = dma_addr;
@@ -365,12 +487,17 @@ void *vmm_dma_zalloc_phy(virtual_size_t size, physical_addr_t *paddr)
     return cpu_addr;
 }
 
-virtual_addr_t vmm_dma_pa2va(physical_addr_t pa)
+/**
+ * @brief DMA物理地址转虚拟地址
+ * @param pa 待操作的物理地址
+ * @return 成功返回分配结果，失败返回错误码
+ */
+virtual_addr_t vmm_dma_physicalAddr_to_virtualAddr(physical_addr_t pa)
 {
     int            rc;
     virtual_addr_t va = 0x0;
 
-    rc                = heap_pa2va(&dma_heap, pa, &va);
+    rc                = heap_physicalAddr_to_virtualAddr(&dma_heap, pa, &va);
 
     if (rc != VMM_OK) {
         BUG_ON(1);
@@ -379,12 +506,17 @@ virtual_addr_t vmm_dma_pa2va(physical_addr_t pa)
     return va;
 }
 
-physical_addr_t vmm_dma_va2pa(virtual_addr_t va)
+/**
+ * @brief DMA虚拟地址转物理地址
+ * @param va 待操作的虚拟地址
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+physical_addr_t vmm_dma_virtualAddr_to_physicalAddr(virtual_addr_t va)
 {
     int             rc;
     physical_addr_t pa = 0x0;
 
-    rc                 = heap_va2pa(&dma_heap, va, &pa);
+    rc                 = heap_virtualAddr_to_physicalAddr(&dma_heap, va, &pa);
 
     if (rc != VMM_OK) {
         BUG_ON(1);
@@ -393,11 +525,22 @@ physical_addr_t vmm_dma_va2pa(virtual_addr_t va)
     return pa;
 }
 
+/**
+ * @brief is  DMA
+ * @param va 待操作的虚拟地址
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_is__dma(void *va)
 {
     return ((va > dma_heap.heap_start) && (va < (dma_heap.heap_start + dma_heap.heap_size)));
 }
 
+/**
+ * @brief 将DMA缓冲区同步到设备（CPU写完成后交给设备读取）
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param end 结束位置或结束地址
+ * @param dir 方向标识
+ */
 void vmm_dma_sync_for_device(virtual_addr_t start, virtual_addr_t end, enum vmm_dma_direction dir)
 {
     if (dir == DMA_FROM_DEVICE) {
@@ -409,6 +552,12 @@ void vmm_dma_sync_for_device(virtual_addr_t start, virtual_addr_t end, enum vmm_
     }
 }
 
+/**
+ * @brief 将DMA缓冲区同步到CPU（设备写完成后交给CPU读取）
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param end 结束位置或结束地址
+ * @param dir 方向标识
+ */
 void vmm_dma_sync_for_cpu(virtual_addr_t start, virtual_addr_t end, enum vmm_dma_direction dir)
 {
     if (dir == DMA_FROM_DEVICE || dir == DMA_BIDIRECTIONAL) {
@@ -418,55 +567,102 @@ void vmm_dma_sync_for_cpu(virtual_addr_t start, virtual_addr_t end, enum vmm_dma
     }
 }
 
+/**
+ * @brief DMA 映射
+ * @param vaddr 虚拟地址值
+ * @param size 数据大小（字节数）
+ * @param dir 方向标识
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 physical_addr_t vmm_dma_map(virtual_addr_t vaddr, virtual_size_t size, enum vmm_dma_direction dir)
 {
     vmm_dma_sync_for_device(vaddr, vaddr + size, dir);
 
-    return vmm_dma_va2pa(vaddr);
+    return vmm_dma_virtualAddr_to_physicalAddr(vaddr);
 }
 
+/**
+ * @brief DMA unmap
+ * @param dma_addr DMA物理地址
+ * @param size 数据大小（字节数）
+ * @param dir 方向标识
+ */
 void vmm_dma_unmap(physical_addr_t dma_addr, physical_size_t size, enum vmm_dma_direction dir)
 {
-    virtual_addr_t vaddr = vmm_dma_pa2va((physical_addr_t)dma_addr);
+    virtual_addr_t vaddr = vmm_dma_physicalAddr_to_virtualAddr((physical_addr_t)dma_addr);
 
     vmm_dma_sync_for_cpu(vaddr, vaddr + size, dir);
 }
 
+/**
+ * @brief 从DMA堆中分配指定大小的内存
+ * @param ptr 通用指针
+ * @return 大小值（字节）
+ */
 virtual_size_t vmm_dma_alloc_size(const void *ptr)
 {
     return heap_alloc_size(&dma_heap, ptr);
 }
 
+/**
+ * @brief 释放DMA
+ * @param ptr 通用指针
+ */
 void vmm_dma_free(void *ptr)
 {
     heap_free(&dma_heap, ptr);
 }
 
+/**
+ * @brief 获取DMA堆的起始虚拟地址
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 virtual_addr_t vmm_dma_heap_start_va(void)
 {
     return (virtual_addr_t)dma_heap.heap_start;
 }
 
+/**
+ * @brief 获取DMA堆的总大小
+ * @return 大小值（字节）
+ */
 virtual_size_t vmm_dma_heap_size(void)
 {
     return (virtual_size_t)dma_heap.heap_size;
 }
 
+/**
+ * @brief 获取DMA堆管理元数据的大小
+ * @return 大小值（字节）
+ */
 virtual_size_t vmm_dma_heap_hksize(void)
 {
     return dma_heap.hk_size;
 }
 
+/**
+ * @brief 获取DMA堆的空闲内存大小
+ * @return 大小值（字节）
+ */
 virtual_size_t vmm_dma_heap_free_size(void)
 {
     return buddy_bins_free_space(&dma_heap.ba);
 }
 
+/**
+ * @brief 将DMA堆的分配状态输出到字符设备
+ * @param cdev 字符设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_dma_heap_print_state(vmm_char_device_t *cdev)
 {
     return heap_print_state(&dma_heap, cdev, "DMA");
 }
 
+/**
+ * @brief 初始化DMA堆
+ * @return 状态值
+ */
 int __init vmm_dma_heap_init(void)
 {
     int rc;

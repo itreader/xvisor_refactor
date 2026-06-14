@@ -90,13 +90,13 @@ static int guest_read_gva(struct vcpu_hw_context *context, uint32_t vaddr, uint8
             "Failed to convert guest virtual 0x%x to guest "
             "physical.\n",
             vaddr);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* FIXME: Should we always do cacheable memory access here ?? */
     if (vmm_guest_memory_read(context->assoc_vcpu->guest, gphys, where, size, TRUE) < size) {
         X86_DEBUG_LOG(svm_intercept, LVL_ERR, "Failed to read guest pa 0x%lx\n", gphys);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
@@ -109,7 +109,7 @@ static int guest_read_fault_inst(struct vcpu_hw_context *context, x86_inst *g_in
 
     if (gva_to_gpa(context, context->vmcb->rip, &rip_phys)) {
         X86_DEBUG_LOG(svm_intercept, LVL_ERR, "Failed to convert guest virtual 0x%" PRIADDR " to guest physical.\n", context->vmcb->rip);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* FIXME: Should we always do cacheable memory access here ?? */
@@ -119,7 +119,7 @@ static int guest_read_fault_inst(struct vcpu_hw_context *context, x86_inst *g_in
             "Failed to read instruction at intercepted "
             "instruction pointer. (0x%" PRIPADDR ")\n",
             rip_phys);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;

@@ -47,7 +47,7 @@ static int foundation_v8_clcd_setup(struct clcd_fb *fb)
     fb->panel          = versatile_clcd_get_panel("XVGA");
 
     if (!fb->panel) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return versatile_clcd_setup_dma(fb, framesize);

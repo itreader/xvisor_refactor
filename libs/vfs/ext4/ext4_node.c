@@ -59,7 +59,7 @@ int ext4fs_node_read_block(struct ext4fs_node *node, uint32_t blkno, uint32_t bl
     struct ext4fs_control *ctrl = node->ctrl;
 
     if (blklen > ctrl->block_size) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* If the block number is 0 then
@@ -75,7 +75,7 @@ int ext4fs_node_read_block(struct ext4fs_node *node, uint32_t blkno, uint32_t bl
         node->cached_block = vmm_zalloc(ctrl->block_size);
 
         if (!node->cached_block) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
     }
 
@@ -110,7 +110,7 @@ int ext4fs_node_write_block(struct ext4fs_node *node, uint32_t blkno, uint32_t b
     struct ext4fs_control *ctrl = node->ctrl;
 
     if (blklen > ctrl->block_size) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* We skip writes to block number 0
@@ -124,7 +124,7 @@ int ext4fs_node_write_block(struct ext4fs_node *node, uint32_t blkno, uint32_t b
         node->cached_block = vmm_zalloc(ctrl->block_size);
 
         if (!node->cached_block) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
     }
 
@@ -232,7 +232,7 @@ int ext4fs_node_read_blockno(struct ext4fs_node *node, uint32_t blkpos, uint32_t
             node->indir_block = vmm_malloc(ctrl->block_size);
 
             if (!node->indir_block) {
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             rc = ext4fs_devread(ctrl, node->indir_blockno, 0, ctrl->block_size, (char *)node->indir_block);
@@ -253,7 +253,7 @@ int ext4fs_node_read_blockno(struct ext4fs_node *node, uint32_t blkpos, uint32_t
             node->dindir1_block = vmm_malloc(ctrl->block_size);
 
             if (!node->dindir1_block) {
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             rc = ext4fs_devread(ctrl, node->dindir1_blockno, 0, ctrl->block_size, (char *)node->dindir1_block);
@@ -269,7 +269,7 @@ int ext4fs_node_read_blockno(struct ext4fs_node *node, uint32_t blkpos, uint32_t
             node->dindir2_block = vmm_malloc(ctrl->block_size);
 
             if (!node->dindir2_block) {
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             node->dindir2_blockno = 0;
@@ -298,7 +298,7 @@ int ext4fs_node_read_blockno(struct ext4fs_node *node, uint32_t blkpos, uint32_t
         *blkno = __le32(node->dindir2_block[dindir2_blockpos]);
     } else {
         /* Tripple indirect.  */
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
@@ -323,7 +323,7 @@ int ext4fs_node_write_blockno(struct ext4fs_node *node, uint32_t blkpos, uint32_
             node->indir_block = vmm_malloc(ctrl->block_size);
 
             if (!node->indir_block) {
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             rc = ext4fs_devread(ctrl, node->indir_blockno, 0, ctrl->block_size, (char *)node->indir_block);
@@ -345,7 +345,7 @@ int ext4fs_node_write_blockno(struct ext4fs_node *node, uint32_t blkpos, uint32_
             node->dindir1_block = vmm_malloc(ctrl->block_size);
 
             if (!node->dindir1_block) {
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             rc = ext4fs_devread(ctrl, node->dindir1_blockno, 0, ctrl->block_size, (char *)node->dindir1_block);
@@ -361,7 +361,7 @@ int ext4fs_node_write_blockno(struct ext4fs_node *node, uint32_t blkpos, uint32_
             node->dindir2_block = vmm_malloc(ctrl->block_size);
 
             if (!node->dindir2_block) {
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             node->dindir2_blockno = 0;
@@ -403,7 +403,7 @@ int ext4fs_node_write_blockno(struct ext4fs_node *node, uint32_t blkpos, uint32_
         node->dindir2_dirty                   = TRUE;
     } else {
         /* Tripple indirect.  */
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
@@ -825,11 +825,11 @@ int ext4fs_node_read_dirent(struct ext4fs_node *dnode, loff_t off, struct dirent
     uint64_t           fileoff  = off;
 
     if (filesize <= fileoff) {
-        return VMM_ENOENT;
+        return VMM_ERR_NOENT;
     }
 
     if (filesize < (sizeof(struct ext2_dirent) + fileoff)) {
-        return VMM_ENOENT;
+        return VMM_ERR_NOENT;
     }
 
     d->d_reclen = 0;
@@ -838,7 +838,7 @@ int ext4fs_node_read_dirent(struct ext4fs_node *dnode, loff_t off, struct dirent
         readlen = ext4fs_node_read(dnode, fileoff, sizeof(struct ext2_dirent), (char *)&dent);
 
         if (readlen != sizeof(struct ext2_dirent)) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         if (dent.namelen > (VFS_MAX_NAME - 1)) {
@@ -848,7 +848,7 @@ int ext4fs_node_read_dirent(struct ext4fs_node *dnode, loff_t off, struct dirent
         readlen = ext4fs_node_read(dnode, fileoff + sizeof(struct ext2_dirent), dent.namelen, d->d_name);
 
         if (readlen != dent.namelen) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         d->d_name[dent.namelen] = '\0';
@@ -927,7 +927,7 @@ int ext4fs_node_find_dirent(struct ext4fs_node *dnode, const char *name, struct 
         rlen = ext4fs_node_read(dnode, off, sizeof(struct ext2_dirent), (char *)dent);
 
         if (rlen != sizeof(struct ext2_dirent)) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         if (dent->namelen > (VFS_MAX_NAME - 1)) {
@@ -937,7 +937,7 @@ int ext4fs_node_find_dirent(struct ext4fs_node *dnode, const char *name, struct 
         rlen = ext4fs_node_read(dnode, off + sizeof(struct ext2_dirent), dent->namelen, filename);
 
         if (rlen != dent->namelen) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         filename[dent->namelen] = '\0';
@@ -953,7 +953,7 @@ int ext4fs_node_find_dirent(struct ext4fs_node *dnode, const char *name, struct 
     }
 
     if (!found) {
-        return VMM_ENOENT;
+        return VMM_ERR_NOENT;
     }
 
     /* Add dent to lookup table */
@@ -974,7 +974,7 @@ int ext4fs_node_add_dirent(struct ext4fs_node *dnode, const char *name, uint32_t
 
     /* Sanity check */
     if (!strcmp(name, ".") || !strcmp(name, "..")) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Compute size of directory entry required */
@@ -988,7 +988,7 @@ int ext4fs_node_add_dirent(struct ext4fs_node *dnode, const char *name, uint32_t
         rlen = ext4fs_node_read(dnode, off, sizeof(struct ext2_dirent), (char *)&dent);
 
         if (rlen != sizeof(struct ext2_dirent)) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         if (direntlen < (__le16(dent.direntlen) - dent.namelen - sizeof(struct ext2_dirent))) {
@@ -1010,7 +1010,7 @@ int ext4fs_node_add_dirent(struct ext4fs_node *dnode, const char *name, uint32_t
             /* Directory filesize should always be
              * multiple of block size.
              */
-            return VMM_EUNKNOWN;
+            return VMM_ERR_UNKNOWN;
         }
 
         memset(filename, 0, VFS_MAX_NAME);
@@ -1019,7 +1019,7 @@ int ext4fs_node_add_dirent(struct ext4fs_node *dnode, const char *name, uint32_t
             wlen = ext4fs_node_write(dnode, off + rlen, VFS_MAX_NAME, (char *)filename);
 
             if (wlen != VFS_MAX_NAME) {
-                return VMM_EIO;
+                return VMM_ERR_IO;
             }
         }
 
@@ -1034,7 +1034,7 @@ int ext4fs_node_add_dirent(struct ext4fs_node *dnode, const char *name, uint32_t
         wlen           = ext4fs_node_write(dnode, off, sizeof(struct ext2_dirent), (char *)&dent);
 
         if (wlen != sizeof(struct ext2_dirent)) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         off += __le16(dent.direntlen);
@@ -1052,7 +1052,7 @@ int ext4fs_node_add_dirent(struct ext4fs_node *dnode, const char *name, uint32_t
     wlen                       = ext4fs_node_write(dnode, off, sizeof(struct ext2_dirent), (char *)&dent);
 
     if (wlen != sizeof(struct ext2_dirent)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     off += sizeof(struct ext2_dirent);
@@ -1060,7 +1060,7 @@ int ext4fs_node_add_dirent(struct ext4fs_node *dnode, const char *name, uint32_t
     wlen = ext4fs_node_write(dnode, off, strlen(filename), (char *)filename);
 
     if (wlen != strlen(filename)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     /* Increment nlinks field of inode */
@@ -1080,7 +1080,7 @@ int ext4fs_node_del_dirent(struct ext4fs_node *dnode, const char *name)
 
     /* Sanity check */
     if (!strcmp(name, ".") || !strcmp(name, "..")) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Delete dent from lookup table */
@@ -1098,7 +1098,7 @@ int ext4fs_node_del_dirent(struct ext4fs_node *dnode, const char *name)
         rlen = ext4fs_node_read(dnode, off, sizeof(struct ext2_dirent), (char *)&dent);
 
         if (rlen != sizeof(struct ext2_dirent)) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         if (dent.namelen > (VFS_MAX_NAME - 1)) {
@@ -1108,7 +1108,7 @@ int ext4fs_node_del_dirent(struct ext4fs_node *dnode, const char *name)
         rlen = ext4fs_node_read(dnode, off + sizeof(struct ext2_dirent), dent.namelen, filename);
 
         if (rlen != dent.namelen) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         filename[dent.namelen] = '\0';
@@ -1127,7 +1127,7 @@ int ext4fs_node_del_dirent(struct ext4fs_node *dnode, const char *name)
     }
 
     if (!found || !poff) {
-        return VMM_ENOENT;
+        return VMM_ERR_NOENT;
     }
 
     /* Stretch previous directory entry to delete directory entry */
@@ -1136,7 +1136,7 @@ int ext4fs_node_del_dirent(struct ext4fs_node *dnode, const char *name)
     wlen            = ext4fs_node_write(dnode, poff, sizeof(struct ext2_dirent), (char *)&pdent);
 
     if (wlen != sizeof(struct ext2_dirent)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     /* Decrement nlinks field of inode */

@@ -98,7 +98,7 @@ static int vfs_findroot(const char *path, struct mount **mp, char **root)
     int           len, max_len = 0;
 
     if (!path || !mp || !root) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* find mount point from nearest path */
@@ -119,7 +119,7 @@ static int vfs_findroot(const char *path, struct mount **mp, char **root)
     vmm_mutex_unlock(&m_vfs_control.mount_list_lock);
 
     if (m == NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *root = (char *)(path + max_len);
@@ -335,7 +335,7 @@ static int vfs_vnode_stat(struct vnode *v, struct stat *st)
             break;
 
         default:
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
     };
 
     st->st_mode = mode;
@@ -360,21 +360,21 @@ static int vfs_vnode_access(struct vnode *v, uint32_t mode)
     vmm_mutex_unlock(&v->v_lock);
 
     if ((mode & R_OK) && !(vmode & (S_IRUSR | S_IRGRP | S_IROTH))) {
-        return VMM_EACCESS;
+        return VMM_ERR_ACCESS;
     }
 
     if (mode & W_OK) {
         if (v->v_mount->m_flags & MOUNT_RDONLY) {
-            return VMM_EACCESS;
+            return VMM_ERR_ACCESS;
         }
 
         if (!(vmode & (S_IWUSR | S_IWGRP | S_IWOTH))) {
-            return VMM_EACCESS;
+            return VMM_ERR_ACCESS;
         }
     }
 
     if ((mode & X_OK) && !(vmode & (S_IXUSR | S_IXGRP | S_IXOTH))) {
-        return VMM_EACCESS;
+        return VMM_ERR_ACCESS;
     }
 
     return 0;
@@ -445,7 +445,7 @@ static int vfs_vnode_acquire(const char *path, struct vnode **vp)
      * the local node in the file system.
      */
     if (vfs_findroot(path, &m, &p)) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     /* find target vnode, started from root directory.
@@ -453,7 +453,7 @@ static int vfs_vnode_acquire(const char *path, struct vnode **vp)
      * the target vnode.
      */
     if (!m->m_root) {
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     dv = v = m->m_root;
@@ -490,7 +490,7 @@ static int vfs_vnode_acquire(const char *path, struct vnode **vp)
 
             if (v == NULL) {
                 vfs_vnode_vput(dv);
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             /* find a vnode in this directory. */
@@ -672,21 +672,21 @@ int vfs_mount(const char *dir, const char *fsname, const char *dev, uint32_t fla
 
     /* sanity check */
     if (!dir || *dir == '\0' || !(flags & MOUNT_MASK)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* find a file system. */
     if (!(fs = vfs_filesystem_find(fsname))) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* NULL cannot be specified as a dev. */
     if (dev != NULL) {
         if (!(block_device = vmm_block_device_find(dev))) {
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     } else {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* For read-only devices mount as read-only */
@@ -697,7 +697,7 @@ int vfs_mount(const char *dir, const char *fsname, const char *dev, uint32_t fla
 
     /* create vfs mount entry. */
     if (!(m = vmm_zalloc(sizeof(struct mount)))) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     INIT_LIST_HEAD(&m->m_link);
@@ -708,7 +708,7 @@ int vfs_mount(const char *dir, const char *fsname, const char *dev, uint32_t fla
 
     if (strlcpy(m->m_path, dir, sizeof(m->m_path)) >= sizeof(m->m_path)) {
         vmm_free(m);
-        return VMM_EOVERFLOW;
+        return VMM_ERR_OVERFLOW;
     }
 
     m->m_device = block_device;
@@ -720,13 +720,13 @@ int vfs_mount(const char *dir, const char *fsname, const char *dev, uint32_t fla
     } else {
         if (vfs_vnode_acquire(dir, &v_covered) != 0) {
             vmm_free(m);
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
         }
 
         if (v_covered->v_type != VDIR) {
             vfs_vnode_release(v_covered);
             vmm_free(m);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 
@@ -739,7 +739,7 @@ int vfs_mount(const char *dir, const char *fsname, const char *dev, uint32_t fla
         }
 
         vmm_free(m);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     v->v_type  = VDIR;
@@ -784,7 +784,7 @@ int vfs_mount(const char *dir, const char *fsname, const char *dev, uint32_t fla
             }
 
             vmm_free(m);
-            return VMM_EBUSY;
+            return VMM_ERR_BUSY;
         }
     }
 
@@ -795,7 +795,7 @@ int vfs_mount(const char *dir, const char *fsname, const char *dev, uint32_t fla
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vfs_mount);
+VMM_ERR_XPORT_SYMBOL(vfs_mount);
 
 int vfs_unmount(const char *path)
 {
@@ -819,7 +819,7 @@ int vfs_unmount(const char *path)
     /* root fs can not be unmounted. */
     if (!found) {
         vmm_mutex_unlock(&m_vfs_control.mount_list_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* mount point reference count should be 1
@@ -827,7 +827,7 @@ int vfs_unmount(const char *path)
      */
     if (arch_atomic_read(&m->m_refcnt) > 1) {
         vmm_mutex_unlock(&m_vfs_control.mount_list_lock);
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     /* remove mount point and break */
@@ -859,7 +859,7 @@ int vfs_unmount(const char *path)
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_unmount);
+VMM_ERR_XPORT_SYMBOL(vfs_unmount);
 
 struct mount *vfs_mount_get(int index)
 {
@@ -896,7 +896,7 @@ struct mount *vfs_mount_get(int index)
     return m;
 }
 
-VMM_EXPORT_SYMBOL(vfs_mount_get);
+VMM_ERR_XPORT_SYMBOL(vfs_mount_get);
 
 uint32_t vfs_mount_count(void)
 {
@@ -917,7 +917,7 @@ uint32_t vfs_mount_count(void)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(vfs_mount_count);
+VMM_ERR_XPORT_SYMBOL(vfs_mount_count);
 
 static int vfs_lookup_dir(const char *path, struct vnode **vp, char **name)
 {
@@ -928,17 +928,17 @@ static int vfs_lookup_dir(const char *path, struct vnode **vp, char **name)
 
     /* get the path for directory. */
     if (strlcpy(buf, path, sizeof(buf)) >= sizeof(buf)) {
-        return VMM_EOVERFLOW;
+        return VMM_ERR_OVERFLOW;
     }
 
     file = strrchr(buf, '/');
 
     if (!file) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!buf[0]) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (file == buf) {
@@ -955,7 +955,7 @@ static int vfs_lookup_dir(const char *path, struct vnode **vp, char **name)
 
     if (v->v_type != VDIR) {
         vfs_vnode_release(v);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     *vp   = v;
@@ -964,7 +964,7 @@ static int vfs_lookup_dir(const char *path, struct vnode **vp, char **name)
     *name = strrchr(path, '/');
 
     if (*name == NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *name += 1;
@@ -982,7 +982,7 @@ int vfs_open(const char *path, uint32_t flags, uint32_t mode)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!path || !(flags & O_ACCMODE)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (flags & O_CREAT) {
@@ -1019,7 +1019,7 @@ int vfs_open(const char *path, uint32_t flags, uint32_t mode)
             /* file already exits */
             if (flags & O_EXCL) {
                 vfs_vnode_release(v);
-                return VMM_ENOTAVAIL;
+                return VMM_ERR_NOTAVAIL;
             }
 
             flags &= ~O_CREAT;
@@ -1038,7 +1038,7 @@ int vfs_open(const char *path, uint32_t flags, uint32_t mode)
             if (v->v_type == VDIR) {
                 /* open directory with writable. */
                 vfs_vnode_release(v);
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
             }
         }
     }
@@ -1047,7 +1047,7 @@ int vfs_open(const char *path, uint32_t flags, uint32_t mode)
     if (flags & O_TRUNC) {
         if (!(flags & O_WRONLY) || (v->v_type == VDIR)) {
             vfs_vnode_release(v);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         vmm_mutex_lock(&v->v_lock);
@@ -1065,7 +1065,7 @@ int vfs_open(const char *path, uint32_t flags, uint32_t mode)
 
     if (fd < 0) {
         vfs_vnode_release(v);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     f = vfs_fd_to_file(fd);
@@ -1082,7 +1082,7 @@ int vfs_open(const char *path, uint32_t flags, uint32_t mode)
     return fd;
 }
 
-VMM_EXPORT_SYMBOL(vfs_open);
+VMM_ERR_XPORT_SYMBOL(vfs_open);
 
 int vfs_close(int fd)
 {
@@ -1095,7 +1095,7 @@ int vfs_close(int fd)
     f = vfs_fd_to_file(fd);
 
     if (!f) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&f->f_lock);
@@ -1104,7 +1104,7 @@ int vfs_close(int fd)
 
     if (!v) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&v->v_lock);
@@ -1125,7 +1125,7 @@ int vfs_close(int fd)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vfs_close);
+VMM_ERR_XPORT_SYMBOL(vfs_close);
 
 size_t vfs_read(int fd, void *buf, size_t len)
 {
@@ -1175,7 +1175,7 @@ size_t vfs_read(int fd, void *buf, size_t len)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(vfs_read);
+VMM_ERR_XPORT_SYMBOL(vfs_read);
 
 size_t vfs_write(int fd, void *buf, size_t len)
 {
@@ -1225,7 +1225,7 @@ size_t vfs_write(int fd, void *buf, size_t len)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(vfs_write);
+VMM_ERR_XPORT_SYMBOL(vfs_write);
 
 loff_t vfs_lseek(int fd, loff_t off, int whence)
 {
@@ -1304,7 +1304,7 @@ loff_t vfs_lseek(int fd, loff_t off, int whence)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(vfs_lseek);
+VMM_ERR_XPORT_SYMBOL(vfs_lseek);
 
 int vfs_fsync(int fd)
 {
@@ -1317,7 +1317,7 @@ int vfs_fsync(int fd)
     f = vfs_fd_to_file(fd);
 
     if (!f) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&f->f_lock);
@@ -1326,12 +1326,12 @@ int vfs_fsync(int fd)
 
     if (!v) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!(f->f_flags & O_WRONLY)) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&v->v_lock);
@@ -1343,7 +1343,7 @@ int vfs_fsync(int fd)
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_fsync);
+VMM_ERR_XPORT_SYMBOL(vfs_fsync);
 
 int vfs_fchmod(int fd, uint32_t mode)
 {
@@ -1356,7 +1356,7 @@ int vfs_fchmod(int fd, uint32_t mode)
     f = vfs_fd_to_file(fd);
 
     if (!f) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&f->f_lock);
@@ -1365,7 +1365,7 @@ int vfs_fchmod(int fd, uint32_t mode)
 
     if (!v) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     mode &= (S_IRWXU | S_IRWXG | S_IRWXO);
@@ -1379,7 +1379,7 @@ int vfs_fchmod(int fd, uint32_t mode)
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_fchmod);
+VMM_ERR_XPORT_SYMBOL(vfs_fchmod);
 
 int vfs_fstat(int fd, struct stat *st)
 {
@@ -1390,13 +1390,13 @@ int vfs_fstat(int fd, struct stat *st)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!st) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     f = vfs_fd_to_file(fd);
 
     if (!f) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&f->f_lock);
@@ -1405,7 +1405,7 @@ int vfs_fstat(int fd, struct stat *st)
 
     if (!v) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     err = vfs_vnode_stat(v, st);
@@ -1415,7 +1415,7 @@ int vfs_fstat(int fd, struct stat *st)
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_fstat);
+VMM_ERR_XPORT_SYMBOL(vfs_fstat);
 
 int vfs_opendir(const char *name)
 {
@@ -1426,7 +1426,7 @@ int vfs_opendir(const char *name)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!name) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((fd = vfs_open(name, O_RDONLY, 0)) < 0) {
@@ -1436,7 +1436,7 @@ int vfs_opendir(const char *name)
     f = vfs_fd_to_file(fd);
 
     if (!f) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&f->f_lock);
@@ -1445,13 +1445,13 @@ int vfs_opendir(const char *name)
 
     if (!v) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (v->v_type != VDIR) {
         vmm_mutex_unlock(&f->f_lock);
         vfs_close(fd);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_unlock(&f->f_lock);
@@ -1459,7 +1459,7 @@ int vfs_opendir(const char *name)
     return fd;
 }
 
-VMM_EXPORT_SYMBOL(vfs_opendir);
+VMM_ERR_XPORT_SYMBOL(vfs_opendir);
 
 int vfs_closedir(int fd)
 {
@@ -1471,7 +1471,7 @@ int vfs_closedir(int fd)
     f = vfs_fd_to_file(fd);
 
     if (!f) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&f->f_lock);
@@ -1480,12 +1480,12 @@ int vfs_closedir(int fd)
 
     if (!v) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (v->v_type != VDIR) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_unlock(&f->f_lock);
@@ -1493,7 +1493,7 @@ int vfs_closedir(int fd)
     return vfs_close(fd);
 }
 
-VMM_EXPORT_SYMBOL(vfs_closedir);
+VMM_ERR_XPORT_SYMBOL(vfs_closedir);
 
 int vfs_readdir(int fd, struct dirent *dir)
 {
@@ -1504,13 +1504,13 @@ int vfs_readdir(int fd, struct dirent *dir)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!dir) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     f = vfs_fd_to_file(fd);
 
     if (!f) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&f->f_lock);
@@ -1519,12 +1519,12 @@ int vfs_readdir(int fd, struct dirent *dir)
 
     if (!v) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (v->v_type != VDIR) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&v->v_lock);
@@ -1540,7 +1540,7 @@ int vfs_readdir(int fd, struct dirent *dir)
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_readdir);
+VMM_ERR_XPORT_SYMBOL(vfs_readdir);
 
 int vfs_rewinddir(int fd)
 {
@@ -1552,7 +1552,7 @@ int vfs_rewinddir(int fd)
     f = vfs_fd_to_file(fd);
 
     if (!f) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&f->f_lock);
@@ -1561,12 +1561,12 @@ int vfs_rewinddir(int fd)
 
     if (!v) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (v->v_type != VDIR) {
         vmm_mutex_unlock(&f->f_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     f->f_offset = 0;
@@ -1576,7 +1576,7 @@ int vfs_rewinddir(int fd)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vfs_rewinddir);
+VMM_ERR_XPORT_SYMBOL(vfs_rewinddir);
 
 int vfs_mkdir(const char *path, uint32_t mode)
 {
@@ -1587,12 +1587,12 @@ int vfs_mkdir(const char *path, uint32_t mode)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!path) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!(err = vfs_vnode_acquire(path, &v))) {
         vfs_vnode_release(v);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* notice: vp is invalid here */
@@ -1627,7 +1627,7 @@ fail:
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_mkdir);
+VMM_ERR_XPORT_SYMBOL(vfs_mkdir);
 
 static int vfs_check_dir_empty(const char *path)
 {
@@ -1659,7 +1659,7 @@ static int vfs_check_dir_empty(const char *path)
     vfs_closedir(fd);
 
     if (count) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return VMM_OK;
@@ -1674,7 +1674,7 @@ int vfs_rmdir(const char *path)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!path) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((err = vfs_check_dir_empty(path))) {
@@ -1687,7 +1687,7 @@ int vfs_rmdir(const char *path)
 
     if ((v->v_flags == VROOT) || (arch_atomic_read(&v->v_refcnt) >= 2)) {
         vfs_vnode_release(v);
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     if ((err = vfs_vnode_access(v, W_OK))) {
@@ -1727,7 +1727,7 @@ fail:
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_rmdir);
+VMM_ERR_XPORT_SYMBOL(vfs_rmdir);
 
 int vfs_rename(const char *src, const char *dest)
 {
@@ -1739,19 +1739,19 @@ int vfs_rename(const char *src, const char *dest)
 
     /* if source and dest are the same, do nothing */
     if (!strncmp(src, dest, VFS_MAX_PATH)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* if source is root directory then, do nothing */
     if (!strcmp(src, "/")) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* if dest is a directory of source then, do nothing */
     len = strlen(src);
 
     if ((len < strlen(dest)) && !strncmp(src, dest, len) && (dest[len] == '/')) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* get source v1 */
@@ -1766,7 +1766,7 @@ int vfs_rename(const char *src, const char *dest)
 
     /* check if source is busy ? */
     if (arch_atomic_read(&v1->v_refcnt) >= 2) {
-        err = VMM_EBUSY;
+        err = VMM_ERR_BUSY;
         goto fail1;
     }
 
@@ -1780,7 +1780,7 @@ int vfs_rename(const char *src, const char *dest)
 
     if (!err) {
         vfs_vnode_release(v2);
-        err = VMM_EEXIST;
+        err = VMM_ERR_EXIST;
         goto fail2;
     }
 
@@ -1791,7 +1791,7 @@ int vfs_rename(const char *src, const char *dest)
 
     /* the sv and dv must be on same file system */
     if (sv->v_mount != dv->v_mount) {
-        err = VMM_EIO;
+        err = VMM_ERR_IO;
         goto fail3;
     }
 
@@ -1839,7 +1839,7 @@ fail1:
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_rename);
+VMM_ERR_XPORT_SYMBOL(vfs_rename);
 
 int vfs_unlink(const char *path)
 {
@@ -1850,7 +1850,7 @@ int vfs_unlink(const char *path)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!path) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((err = vfs_vnode_acquire(path, &v))) {
@@ -1859,12 +1859,12 @@ int vfs_unlink(const char *path)
 
     if (v->v_type == VDIR) {
         vfs_vnode_release(v);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((v->v_flags == VROOT) || (arch_atomic_read(&v->v_refcnt) >= 2)) {
         vfs_vnode_release(v);
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     if ((err = vfs_vnode_access(v, W_OK))) {
@@ -1913,7 +1913,7 @@ fail1:
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_unlink);
+VMM_ERR_XPORT_SYMBOL(vfs_unlink);
 
 int vfs_access(const char *path, uint32_t mode)
 {
@@ -1923,7 +1923,7 @@ int vfs_access(const char *path, uint32_t mode)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!path) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((err = vfs_vnode_acquire(path, &v))) {
@@ -1937,7 +1937,7 @@ int vfs_access(const char *path, uint32_t mode)
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_access);
+VMM_ERR_XPORT_SYMBOL(vfs_access);
 
 int vfs_chmod(const char *path, uint32_t mode)
 {
@@ -1947,7 +1947,7 @@ int vfs_chmod(const char *path, uint32_t mode)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!path) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((err = vfs_vnode_acquire(path, &v))) {
@@ -1974,7 +1974,7 @@ fail:
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_chmod);
+VMM_ERR_XPORT_SYMBOL(vfs_chmod);
 
 int vfs_stat(const char *path, struct stat *st)
 {
@@ -1984,7 +1984,7 @@ int vfs_stat(const char *path, struct stat *st)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!path || !st) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((err = vfs_vnode_acquire(path, &v))) {
@@ -1998,7 +1998,7 @@ int vfs_stat(const char *path, struct stat *st)
     return err;
 }
 
-VMM_EXPORT_SYMBOL(vfs_stat);
+VMM_ERR_XPORT_SYMBOL(vfs_stat);
 
 int vfs_filesystem_register(struct filesystem *fs)
 {
@@ -2008,7 +2008,7 @@ int vfs_filesystem_register(struct filesystem *fs)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!fs || !fs->name) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     fst   = NULL;
@@ -2026,7 +2026,7 @@ int vfs_filesystem_register(struct filesystem *fs)
 
     if (found) {
         vmm_mutex_unlock(&m_vfs_control.fs_list_lock);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     INIT_LIST_HEAD(&fs->head);
@@ -2037,7 +2037,7 @@ int vfs_filesystem_register(struct filesystem *fs)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vfs_filesystem_register);
+VMM_ERR_XPORT_SYMBOL(vfs_filesystem_register);
 
 int vfs_filesystem_unregister(struct filesystem *fs)
 {
@@ -2047,14 +2047,14 @@ int vfs_filesystem_unregister(struct filesystem *fs)
     BUG_ON(!vmm_scheduler_orphan_context());
 
     if (!fs || !fs->name) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_mutex_lock(&m_vfs_control.fs_list_lock);
 
     if (list_empty(&m_vfs_control.fs_list)) {
         vmm_mutex_unlock(&m_vfs_control.fs_list_lock);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     fst   = NULL;
@@ -2069,7 +2069,7 @@ int vfs_filesystem_unregister(struct filesystem *fs)
 
     if (!found) {
         vmm_mutex_unlock(&m_vfs_control.fs_list_lock);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     list_del(&fs->head);
@@ -2079,7 +2079,7 @@ int vfs_filesystem_unregister(struct filesystem *fs)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vfs_filesystem_unregister);
+VMM_ERR_XPORT_SYMBOL(vfs_filesystem_unregister);
 
 struct filesystem *vfs_filesystem_find(const char *name)
 {
@@ -2114,7 +2114,7 @@ struct filesystem *vfs_filesystem_find(const char *name)
     return fst;
 }
 
-VMM_EXPORT_SYMBOL(vfs_filesystem_find);
+VMM_ERR_XPORT_SYMBOL(vfs_filesystem_find);
 
 struct filesystem *vfs_filesystem_get(int index)
 {
@@ -2151,7 +2151,7 @@ struct filesystem *vfs_filesystem_get(int index)
     return fst;
 }
 
-VMM_EXPORT_SYMBOL(vfs_filesystem_get);
+VMM_ERR_XPORT_SYMBOL(vfs_filesystem_get);
 
 uint32_t vfs_filesystem_count(void)
 {
@@ -2172,7 +2172,7 @@ uint32_t vfs_filesystem_count(void)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(vfs_filesystem_count);
+VMM_ERR_XPORT_SYMBOL(vfs_filesystem_count);
 
 static int __init vfs_init(void)
 {
@@ -2196,7 +2196,7 @@ static int __init vfs_init(void)
     m_vfs_control.fd_bmap = vmm_zalloc(bitmap_estimate_size(VFS_MAX_FD));
 
     if (!m_vfs_control.fd_bmap) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     bitmap_zero(m_vfs_control.fd_bmap, VFS_MAX_FD);

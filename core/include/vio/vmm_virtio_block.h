@@ -18,7 +18,7 @@
  *
  * @file vmm_virtio_block.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief VirtIO Block Device Interface.
+ * @brief VirtIO块设备接口
  *
  * This header has been derived from linux kernel source:
  * <linux_source>/include/uapi/linux/virtio_block.h
@@ -81,73 +81,79 @@
 
 #define VMM_VIRTIO_BLK_ID_BYTES 20 /* ID string length */
 
+/**
+ * @brief VirtIO块设备配置空间，保存容量、块大小等设备参数
+ */
 struct vmm_virtio_block_config {
     /* The capacity (in 512-byte sectors). */
-    uint64_t capacity;
+    uint64_t capacity; /**< 容量 */
     /* The maximum segment size (if VMM_VIRTIO_BLK_F_SIZE_MAX) */
-    uint32_t size_max;
+    uint32_t size_max; /**< 最大大小 */
     /* The maximum number of segments (if VMM_VIRTIO_BLK_F_SEG_MAX) */
-    uint32_t seg_max;
+    uint32_t seg_max; /**< 最大分段 */
 
     /* geometry the device (if VMM_VIRTIO_BLK_F_GEOMETRY) */
+    /**
+     * @brief VirtIO块设备几何信息，保存柱面/磁头/扇区参数
+     */
     struct vmm_virtio_block_geometry {
-        uint16_t cylinders;
-        uint8_t  heads;
-        uint8_t  sectors;
-    } geometry;
+        uint16_t cylinders; /**< 柱面数 */
+        uint8_t  heads; /**< 磁头数 */
+        uint8_t  sectors; /**< 扇区数 */
+    } geometry; /**< 几何参数 */
 
     /* block size of device (if VMM_VIRTIO_BLK_F_BLK_SIZE) */
-    uint32_t block_size;
+    uint32_t block_size; /**< block_size成员 */
 
     /* the next 4 entries are guarded by VMM_VIRTIO_BLK_F_TOPOLOGY  */
     /* exponent for physical block per logical block. */
-    uint8_t  physical_block_exp;
+    uint8_t  physical_block_exp; /**< physical_block_exp成员 */
     /* alignment offset in logical blocks. */
-    uint8_t  alignment_offset;
+    uint8_t  alignment_offset; /**< alignment_offset成员 */
     /* minimum I/O size without performance penalty in logical blocks. */
-    uint16_t min_io_size;
+    uint16_t min_io_size; /**< min_io_size成员 */
     /* optimal sustained I/O size in logical blocks. */
-    uint32_t opt_io_size;
+    uint32_t opt_io_size; /**< opt_io_size成员 */
 
     /* writeback mode (if VMM_VIRTIO_BLK_F_CONFIG_WCE) */
-    uint8_t wce;
-    uint8_t unused;
+    uint8_t wce; /**< 写缓存使能 */
+    uint8_t unused; /**< unused成员 */
 
     /* number of vqs, only available when VMM_VIRTIO_BLK_F_MQ is set */
-    uint16_t num_queues;
+    uint16_t num_queues; /**< 队列数 */
 
     /* the next 3 entries are guarded by VMM_VIRTIO_BLK_F_DISCARD */
     /*
      * The maximum discard sectors (in 512-byte sectors) for
      * one segment.
      */
-    uint32_t max_discard_sectors;
+    uint32_t max_discard_sectors; /**< 最大丢弃扇区数 */
     /*
      * The maximum number of discard segments in a
      * discard command.
      */
-    uint32_t max_discard_seg;
+    uint32_t max_discard_seg; /**< 最大丢弃分段 */
     /* Discard commands must be aligned to this number of sectors. */
-    uint32_t discard_sector_alignment;
+    uint32_t discard_sector_alignment; /**< 丢弃扇区对齐 */
 
     /* the next 3 entries are guarded by VMM_VIRTIO_BLK_F_WRITE_ZEROES */
     /*
      * The maximum number of write zeroes sectors (in 512-byte sectors) in
      * one segment.
      */
-    uint32_t max_write_zeroes_sectors;
+    uint32_t max_write_zeroes_sectors; /**< 最大写零扇区数 */
     /*
      * The maximum number of segments in a write zeroes
      * command.
      */
-    uint32_t max_write_zeroes_seg;
+    uint32_t max_write_zeroes_seg; /**< max_write_zeroes_seg成员 */
     /*
      * Set if a VMM_VIRTIO_BLK_T_WRITE_ZEROES request may result in the
      * deallocation of one or more of the sectors.
      */
-    uint8_t  write_zeroes_may_unmap;
+    uint8_t  write_zeroes_may_unmap; /**< write_zeroes_may_unmap成员 */
 
-    uint8_t unused1[3];
+    uint8_t unused1[3]; /**< unused1成员 */
 } __attribute__((packed));
 
 /*
@@ -184,33 +190,42 @@ struct vmm_virtio_block_config {
 #define VMM_VIRTIO_BLK_T_BARRIER      0x80000000
 
 /* This is the first element of the read scatter-gather list. */
+/**
+ * @brief VirtIO块设备输出头，包含请求类型和扇区偏移
+ */
 struct vmm_virtio_block_outhdr {
     /* VMM_VIRTIO_BLK_T */
-    uint32_t type;
+    uint32_t type; /**< 类型 */
     /* io priority. */
-    uint32_t ioprio;
+    uint32_t ioprio; /**< ioprio成员 */
     /* Sector (ie. 512 byte offset) */
-    uint64_t sector;
+    uint64_t sector; /**< 扇区 */
 } __attribute__((packed));
 
 /* Unmap this range (only valid for write zeroes command) */
 #define VMM_VIRTIO_BLK_WRITE_ZEROES_FLAG_UNMAP 0x00000001
 
 /* Discard/write zeroes range for each request. */
+/**
+ * @brief VirtIO块设备丢弃/写零请求，指定范围和选项
+ */
 struct virtio_block_discard_write_zeroes {
     /* discard/write zeroes start sector */
-    uint64_t sector;
+    uint64_t sector; /**< 扇区 */
     /* number of discard/write zeroes sectors */
-    uint32_t num_sectors;
+    uint32_t num_sectors; /**< num_sectors成员 */
     /* flags for this range */
-    uint32_t flags;
+    uint32_t flags; /**< 标志位 */
 } __attribute__((packed));
 
+/**
+ * @brief VirtIO SCSI响应头，包含状态码和传输长度
+ */
 struct vmm_virtio_scsi_inhdr {
-    uint32_t errors;
-    uint32_t data_len;
-    uint32_t sense_len;
-    uint32_t residual;
+    uint32_t errors; /**< errors成员 */
+    uint32_t data_len; /**< data_len成员 */
+    uint32_t sense_len; /**< sense_len成员 */
+    uint32_t residual; /**< residual成员 */
 } __attribute__((packed));
 
 /* And this is the final byte of the write scatter-gather list. */

@@ -165,7 +165,7 @@ int versatile_clcd_setup_dma(struct clcd_fb *fb, uint64_t framesize)
     physical_addr_t smem_pa;
 
     if (!fb->dev->of_node) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (vmm_device_tree_read_u32(fb->dev->of_node, "use_dma", &use_dma)) {
@@ -179,10 +179,10 @@ int versatile_clcd_setup_dma(struct clcd_fb *fb, uint64_t framesize)
 
         if (!screen_base) {
             vmm_printf("CLCD: unable to alloc framebuffer\n");
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
-        rc = vmm_host_va2pa((virtual_addr_t)screen_base, &smem_pa);
+        rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)screen_base, &smem_pa);
 
         if (rc) {
             return rc;
@@ -198,14 +198,14 @@ int versatile_clcd_setup_dma(struct clcd_fb *fb, uint64_t framesize)
         smem_len = val[1];
 
         if (smem_len < framesize) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         screen_base = (void *)vmm_host_iomap(smem_pa, smem_len);
 
         if (!screen_base) {
             vmm_printf("CLCD: unable to map framebuffer\n");
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
     }
 

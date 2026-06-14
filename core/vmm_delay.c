@@ -18,7 +18,7 @@
  *
  * @file vmm_delay.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief source file for soft delay subsystem
+ * @brief 软延迟子系统实现
  */
 
 #include <arch_cpu.h>
@@ -36,6 +36,10 @@ static uint64_t loops_per_msec[CONFIG_CPU_COUNT];
 static uint64_t loops_per_usec[CONFIG_CPU_COUNT];
 static uint64_t loops_per_nsec[CONFIG_CPU_COUNT];
 
+/**
+ * @brief 纳秒级睡眠函数
+ * @param nsecs 睡眠的纳秒数
+ */
 static void nanosec_sleep(uint64_t nsecs)
 {
     int              rc;
@@ -45,27 +49,43 @@ static void nanosec_sleep(uint64_t nsecs)
 
     rc = vmm_waitqueue_sleep_timeout(&wait_queue, &nsecs);
 
-    if (rc != VMM_ETIMEDOUT) {
+    if (rc != VMM_ERR_TIMEDOUT) {
         vmm_printf("%s: sleep timeout failed (error %d)\n", __func__, rc);
         WARN_ON(1);
     }
 }
 
+/**
+ * @brief 微秒级睡眠函数
+ * @param usecs 睡眠的微秒数
+ */
 void vmm_usleep(uint64_t usecs)
 {
     nanosec_sleep((uint64_t)usecs * 1000ULL);
 }
 
+/**
+ * @brief 毫秒级睡眠函数
+ * @param msecs 睡眠的毫秒数
+ */
 void vmm_msleep(uint64_t msecs)
 {
     nanosec_sleep((uint64_t)msecs * 1000000ULL);
 }
 
+/**
+ * @brief 秒级睡眠函数
+ * @param secs 睡眠的秒数
+ */
 void vmm_ssleep(uint64_t secs)
 {
     nanosec_sleep((uint64_t)secs * 1000000000ULL);
 }
 
+/**
+ * @brief 纳秒级延迟函数
+ * @param nsecs 延迟的纳秒数
+ */
 void vmm_ndelay(uint64_t nsecs)
 {
     uint64_t    lpnsec;
@@ -78,6 +98,10 @@ void vmm_ndelay(uint64_t nsecs)
     arch_delay_loop(nsecs * lpnsec);
 }
 
+/**
+ * @brief 微秒级延迟函数
+ * @param usecs 延迟的微秒数
+ */
 void vmm_udelay(uint64_t usecs)
 {
     uint64_t    lpusec;
@@ -90,6 +114,10 @@ void vmm_udelay(uint64_t usecs)
     arch_delay_loop(usecs * lpusec);
 }
 
+/**
+ * @brief 毫秒级延迟函数
+ * @param msecs 延迟的毫秒数
+ */
 void vmm_mdelay(uint64_t msecs)
 {
     uint64_t    lpmsec;
@@ -102,6 +130,10 @@ void vmm_mdelay(uint64_t msecs)
     arch_delay_loop(msecs * lpmsec);
 }
 
+/**
+ * @brief 秒级延迟函数
+ * @param secs 延迟的秒数
+ */
 void vmm_sdelay(uint64_t secs)
 {
     uint32_t    i;
@@ -117,19 +149,33 @@ void vmm_sdelay(uint64_t secs)
     }
 }
 
+/**
+ * @brief 估算CPU的MHz频率
+ * @param cpu CPU编号
+ * @return 返回估算的CPU频率（MHz）
+ */
 uint64_t vmm_delay_estimate_cpu_mhz(uint32_t cpu)
 {
     return arch_delay_loop_cycles(loops_per_usec[cpu]);
 }
 
+/**
+ * @brief 估算CPU的KHz频率
+ * @param cpu CPU编号
+ * @return 返回估算的CPU频率（KHz）
+ */
 uint64_t vmm_delay_estimate_cpu_khz(uint32_t cpu)
 {
     return arch_delay_loop_cycles(loops_per_msec[cpu]);
 }
 
+/**
+ * @brief 重新校准延迟循环参数
+ */
 void vmm_delay_recaliberate(void)
 {
-    uint64_t    nsecs, tstamp;
+    uint64_t nsecs;
+    uint64_t tstamp;
     irq_flags_t flags;
     uint32_t    cpu = vmm_smp_processor_id();
 
@@ -148,6 +194,12 @@ void vmm_delay_recaliberate(void)
     arch_cpu_irq_restore(flags);
 }
 
+/**
+ * @brief 延迟子系统启动函数
+ * @param cpu_hotplug CPU热插拔通知结构体
+ * @param cpu CPU编号
+ * @return 返回操作结果
+ */
 static int delay_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t cpu)
 {
     vmm_delay_recaliberate();
@@ -161,6 +213,10 @@ static vmm_cpu_hotplug_notify_t delay_cpu_hotplug = {
     .startup = delay_startup,
 };
 
+/**
+ * @brief 初始化延迟子系统
+ * @return 返回初始化结果
+ */
 int __init vmm_delay_init(void)
 {
     uint32_t i;

@@ -19,7 +19,7 @@
  * @file vmm_load_balancer.c
  * @author Jean-Christophe Dubois (jcd@tribudubois.net)
  * @author Anup Patel (anup@brainfault.org)
- * @brief source file for hypervisor load balancer
+ * @brief Hypervisor负载均衡实现
  */
 
 #include <vmm_completion.h>
@@ -34,17 +34,25 @@
 #define LOAD_BALANCER_TIMESLICE VMM_VCPU_DEF_TIME_SLICE
 #define LOAD_BALANCER_PERIOD    (CONFIG_LOAD_BALANCER_PERIOD_SECS * 1000000000ULL)
 
+/**
+ * @brief 负载均衡器控制结构，管理算法注册和调度周期
+ */
 struct vmm_load_balancer_ctrl {
-    vmm_mutex_t                    curr_algo_lock;
-    struct vmm_load_balancer_algo *curr_algo;
-    vmm_mutex_t                    algo_list_lock;
-    double_list_t                  algo_list;
-    vmm_completion_t               load_balancer_cmpl;
-    vmm_thread_t                  *load_balancer_thread;
+    vmm_mutex_t                    curr_algo_lock; /**< curr_algo_lock成员 */
+    struct vmm_load_balancer_algo *curr_algo; /**< curr_algo成员 */
+    vmm_mutex_t                    algo_list_lock; /**< algo_list_lock成员 */
+    double_list_t                  algo_list; /**< algo_list成员 */
+    vmm_completion_t               load_balancer_cmpl; /**< load_balancer_cmpl成员 */
+    vmm_thread_t                  *load_balancer_thread; /**< load_balancer_thread成员 */
 };
 
 static struct vmm_load_balancer_ctrl lbctrl;
 
+/**
+ * @brief 负载均衡器主线程函数
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int load_balancer_main(void *data)
 {
     uint64_t tstamp;
@@ -71,19 +79,24 @@ static int load_balancer_main(void *data)
 
 struct vmm_load_balancer_algo *vmm_load_balancer_current_algo(void)
 {
-    struct vmm_load_balancer_algo *ret;
+    struct vmm_load_balancer_algo *ret; /**< 返回值 */
 
     vmm_mutex_lock(&lbctrl.curr_algo_lock);
-    ret = lbctrl.curr_algo;
+    ret = lbctrl.curr_algo; /**< lbctrl.curr_algo成员 */
     vmm_mutex_unlock(&lbctrl.curr_algo_lock);
 
-    return ret;
+    return ret; /**< 返回值 */
 }
 
+/**
+ * @brief 选择最佳的负载均衡算法
+ * @return 成功返回目标指针，失败返回NULL
+ */
 static struct vmm_load_balancer_algo *__load_balancer_best_algo(void)
 {
     uint32_t                       best_rating;
-    struct vmm_load_balancer_algo *algo, *best_algo;
+    struct vmm_load_balancer_algo *algo = NULL;
+    struct vmm_load_balancer_algo *best_algo = NULL;
 
     best_rating = 0;
     best_algo   = NULL;
@@ -98,15 +111,21 @@ static struct vmm_load_balancer_algo *__load_balancer_best_algo(void)
     return best_algo;
 }
 
+/**
+ * @brief 注册负载均衡算法
+ * @param lbalgo 负载均衡算法指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_load_balancer_register_algo(struct vmm_load_balancer_algo *lbalgo)
 {
     int                            rc = VMM_OK;
     bool                           found;
-    struct vmm_load_balancer_algo *algo, *best_algo;
+    struct vmm_load_balancer_algo *algo = NULL;
+    struct vmm_load_balancer_algo *best_algo = NULL;
 
     /* Sanity checks */
     if (!lbalgo) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     /* Lock algo list */
@@ -124,7 +143,7 @@ int vmm_load_balancer_register_algo(struct vmm_load_balancer_algo *lbalgo)
 
     if (found) {
         vmm_mutex_unlock(&lbctrl.algo_list_lock);
-        return VMM_EEXIST;
+        return VMM_ERR_EXIST;
     }
 
     /* Add registered algo instance to algo list */
@@ -159,15 +178,21 @@ int vmm_load_balancer_register_algo(struct vmm_load_balancer_algo *lbalgo)
     return rc;
 }
 
+/**
+ * @brief 注销负载均衡算法
+ * @param lbalgo 负载均衡算法指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_load_balancer_unregister_algo(struct vmm_load_balancer_algo *lbalgo)
 {
     int                            rc = VMM_OK;
     bool                           found;
-    struct vmm_load_balancer_algo *algo, *best_algo;
+    struct vmm_load_balancer_algo *algo = NULL;
+    struct vmm_load_balancer_algo *best_algo = NULL;
 
     /* Sanity checks */
     if (!lbalgo || !lbalgo->balance) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     /* Lock algo list */
@@ -185,7 +210,7 @@ int vmm_load_balancer_unregister_algo(struct vmm_load_balancer_algo *lbalgo)
 
     if (!found) {
         vmm_mutex_unlock(&lbctrl.algo_list_lock);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     /* Update current algo */
@@ -232,6 +257,10 @@ int vmm_load_balancer_unregister_algo(struct vmm_load_balancer_algo *lbalgo)
     return rc;
 }
 
+/**
+ * @brief 初始化负载均衡器
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_load_balancer_init(void)
 {
     int rc;
@@ -251,7 +280,7 @@ int __init vmm_load_balancer_init(void)
     lbctrl.load_balancer_thread = vmm_threads_create("load_balancer", load_balancer_main, NULL, LOAD_BALANCER_PRIORITY, LOAD_BALANCER_TIMESLICE);
 
     if (!lbctrl.load_balancer_thread) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Set load_balancer thread affinity to this cpu */

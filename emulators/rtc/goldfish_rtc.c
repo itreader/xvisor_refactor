@@ -144,7 +144,7 @@ static int goldfish_rtc_emulator_read(vmm_emulate_device_t *edev, physical_addr_
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -212,7 +212,7 @@ static int goldfish_rtc_emulator_write(vmm_emulate_device_t *edev, physical_addr
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -263,7 +263,7 @@ static int goldfish_rtc_emulator_probe(struct vmm_guest *guest, vmm_emulate_devi
     s = vmm_zalloc(sizeof(struct goldfish_rtc_state));
 
     if (!s) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto goldfish_rtc_emulator_probe_done;
     }
 
@@ -293,7 +293,7 @@ static int goldfish_rtc_emulator_remove(vmm_emulate_device_t *edev)
     struct goldfish_rtc_state *s = edev->private;
 
     if (!s) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_timer_event_stop(&s->event);

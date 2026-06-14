@@ -18,7 +18,7 @@
  *
  * @file vmm_mutex.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief Header file of mutext locks for Orphan VCPU (or Thread).
+ * @brief 孤儿VCPU（或线程）互斥锁头文件
  */
 
 #ifndef __VMM_MUTEX_H__
@@ -27,16 +27,20 @@
 #include <vmm_types.h>
 #include <vmm_waitqueue.h>
 
-/** Mutex lock structure */
+/**
+ * @brief 互斥锁结构，基于自旋锁实现的互斥同步，维护等待队列
+ */
 typedef struct vmm_mutex {
-    uint32_t            lock;
-    vmm_vcpu_resource_t res;
-    vmm_vcpu_t         *owner;
-    vmm_wait_queue_t    wait_queue;
+    uint32_t            lock; /**< 自旋锁 */
+    vmm_vcpu_resource_t res; /**< 保留/结果 */
+    vmm_vcpu_t         *owner; /**< 所有者 */
+    vmm_wait_queue_t    wait_queue; /**< 等待队列 */
 } vmm_mutex_t;
 
-/** Cleanup callback for mutex when VCPU is destroyed
- *  Note: This function should not be directly called from anywhere.
+/**
+ * @brief   互斥锁 清理
+ * @param vcpu 指向VCPU结构体的指针
+ * @param vcpu_res 指向VCPU结构体的指针
  */
 void __vmm_mutex_cleanup(vmm_vcpu_t *vcpu, vmm_vcpu_resource_t *vcpu_res);
 
@@ -58,24 +62,47 @@ void __vmm_mutex_cleanup(vmm_vcpu_t *vcpu, vmm_vcpu_resource_t *vcpu_res);
 
 #define DEFINE_MUTEX(__mut) vmm_mutex_t __mut = __MUTEX_INITIALIZER(__mut)
 
-/** Check if mutex is available */
+/**
+ * @brief 检查互斥锁是否可用
+ * @param mut 互斥锁指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_mutex_avail(vmm_mutex_t *mut);
 
-/** Get mutex owner */
+/**
+ * @brief 获取互斥锁持有者
+ * @param mut 互斥锁指针
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_vcpu_t *vmm_mutex_owner(vmm_mutex_t *mut);
 
-/** Unlock mutex */
+/**
+ * @brief 释放互斥锁锁
+ * @param mut 互斥锁指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_mutex_unlock(vmm_mutex_t *mut);
 
-/** Try to lock mutex without sleeping
- *  NOTE: Returns 1 upon success and 0 on failure
+/**
+ * @brief 尝试获取互斥锁（非阻塞）
+ * @param mut 互斥锁指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_mutex_trylock(vmm_mutex_t *mut);
 
-/** Lock mutex */
+/**
+ * @brief 获取互斥锁锁
+ * @param mut 互斥锁指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_mutex_lock(vmm_mutex_t *mut);
 
-/** Lock mutex with timeout */
+/**
+ * @brief 带超时的获取互斥锁
+ * @param mut 互斥锁指针
+ * @param timeout 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_mutex_lock_timeout(vmm_mutex_t *mut, uint64_t *timeout);
 
 #endif /* __VMM_MUTEX_H__ */

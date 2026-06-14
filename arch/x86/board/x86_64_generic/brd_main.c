@@ -73,12 +73,12 @@ static int generic_reset(void)
         arch_cpu_wait_for_irq();
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int generic_shutdown(void)
 {
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int __init boot_module_initrd(physical_addr_t start, physical_addr_t end)
@@ -91,7 +91,7 @@ static int __init boot_module_initrd(physical_addr_t start, physical_addr_t end)
     /* There should be a /chosen node */
     if (!node) {
         vmm_printf("%s: No chosen node\n", __func__);
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto _done;
     }
 
@@ -121,11 +121,11 @@ static int __init boot_modules_init(void)
         return VMM_OK;
     }
 
-    modlist = (struct multiboot_mod_list *)vmm_host_memmap(boot_info.mods_addr, (boot_info.mods_count * (4 * 1024)), VMM_MEMORY_FLAGS_NORMAL);
+    modlist = (struct multiboot_mod_list *)vmm_host_memory_map(boot_info.mods_addr, (boot_info.mods_count * (4 * 1024)), VMM_MEMORY_FLAGS_NORMAL);
 
     if (modlist == NULL) {
         vmm_printf("Boot info module address mapping failed!\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     for (i = 0; i < boot_info.mods_count; i++) {
@@ -140,7 +140,7 @@ static int __init boot_modules_init(void)
                 break;
 
             default:
-                rc = VMM_ENODEV;
+                rc = VMM_ERR_NODEV;
                 vmm_printf("Unknown Mod Start: 0x%" PRIx32 " Mod End: 0x%" PRIx32 "\n", modlist->mod_start, modlist->mod_end);
         }
     }
@@ -148,7 +148,7 @@ static int __init boot_modules_init(void)
 _done:
 
     if (modlist) {
-        vmm_host_memunmap((virtual_addr_t)modlist);
+        vmm_host_memory_unmap((virtual_addr_t)modlist);
     }
 
     return rc;
@@ -156,7 +156,7 @@ _done:
 
 int __init arch_board_nascent_init(void)
 {
-    /* Host aspace, Heap, and Device tree available. */
+    /* Host addr_space, Heap, and Device tree available. */
 
     /* Nothing to do here. */
 
@@ -198,7 +198,7 @@ int __init arch_board_final_init(void)
     node = vmm_device_tree_find_compatible(NULL, NULL, "simple-bus");
 
     if (!node) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Do platform device probing using device driver framework */

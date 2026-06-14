@@ -18,7 +18,7 @@
  *
  * @file vmm_pixel_ops.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for pixel conversion helper APIs
+ * @brief 像素转换辅助API头文件
  *
  * The header has been largely adapted from QEMU sources:
  * include/ui/pixel_ops.h

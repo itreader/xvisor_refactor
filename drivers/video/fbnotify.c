@@ -46,7 +46,7 @@ int fb_register_client(vmm_notifier_block_t *nb)
     return vmm_blocking_notifier_register(&fb_notifier_list, nb);
 }
 
-VMM_EXPORT_SYMBOL(fb_register_client);
+VMM_ERR_XPORT_SYMBOL(fb_register_client);
 
 /**
  *  Unregister a client notifier
@@ -57,7 +57,7 @@ int fb_unregister_client(vmm_notifier_block_t *nb)
     return vmm_blocking_notifier_unregister(&fb_notifier_list, nb);
 }
 
-VMM_EXPORT_SYMBOL(fb_unregister_client);
+VMM_ERR_XPORT_SYMBOL(fb_unregister_client);
 
 /**
  * Notify clients of fb_events
@@ -67,4 +67,4 @@ int fb_notifier_call_chain(uint64_t val, void *v)
     return vmm_blocking_notifier_call(&fb_notifier_list, val, v);
 }
 
-VMM_EXPORT_SYMBOL(fb_notifier_call_chain);
+VMM_ERR_XPORT_SYMBOL(fb_notifier_call_chain);

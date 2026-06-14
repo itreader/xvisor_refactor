@@ -202,7 +202,7 @@ int cpu_vcpu_emulate_mcr_mrc_cp15(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t 
     if (iss & ISS_MCR_MRC_DIR_MASK) {
         /* MRC CP15 */
         if (!cpu_vcpu_cp15_read(vcpu, regs, opc1, opc2, CRn, CRm, &t)) {
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
         }
 
         if (!rc) {
@@ -213,7 +213,7 @@ int cpu_vcpu_emulate_mcr_mrc_cp15(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t 
         t = cpu_vcpu_reg64_read(vcpu, regs, Rt);
 
         if (!cpu_vcpu_cp15_write(vcpu, regs, opc1, opc2, CRn, CRm, t)) {
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
         }
     }
 
@@ -235,7 +235,7 @@ done:
 /* TODO: To be implemented later */
 int cpu_vcpu_emulate_mcrr_mrrc_cp15(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
 {
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 int cpu_vcpu_emulate_mcr_mrc_cp14(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
@@ -259,7 +259,7 @@ int cpu_vcpu_emulate_mcr_mrc_cp14(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t 
     if (iss & ISS_MCR_MRC_DIR_MASK) {
         /* MRC CP14 */
         if (!cpu_vcpu_cp14_read(vcpu, regs, opc1, opc2, CRn, CRm, &t)) {
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
         }
 
         if (!rc) {
@@ -270,7 +270,7 @@ int cpu_vcpu_emulate_mcr_mrc_cp14(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t 
         t = cpu_vcpu_reg64_read(vcpu, regs, Rt);
 
         if (!cpu_vcpu_cp14_write(vcpu, regs, opc1, opc2, CRn, CRm, t)) {
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
         }
     }
 
@@ -292,13 +292,13 @@ done:
 /* TODO: To be implemented later */
 int cpu_vcpu_emulate_mcrr_mrrc_cp14(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
 {
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 /* TODO: To be implemented later */
 int cpu_vcpu_emulate_ldc_stc_cp14(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
 {
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 int cpu_vcpu_emulate_simd_fp_regs(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
@@ -421,7 +421,7 @@ int cpu_vcpu_emulate_msr_mrs_system(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_
 
     if (read) {
         if (!cpu_vcpu_sysregs_read(vcpu, regs, iss & ISS_SYSREG_MASK, &data)) {
-            rc = VMM_ENOTAVAIL;
+            rc = VMM_ERR_NOTAVAIL;
         }
 
         if (!rc) {
@@ -431,7 +431,7 @@ int cpu_vcpu_emulate_msr_mrs_system(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_
         data = cpu_vcpu_reg64_read(vcpu, regs, Xt);
 
         if (!cpu_vcpu_sysregs_write(vcpu, regs, iss & ISS_SYSREG_MASK, data)) {
-            rc = VMM_ENOTAVAIL;
+            rc = VMM_ERR_NOTAVAIL;
         }
     }
 
@@ -517,7 +517,7 @@ int cpu_vcpu_emulate_load(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -576,7 +576,7 @@ int cpu_vcpu_emulate_store(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uin
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 

@@ -81,7 +81,7 @@ static int cmd_backlight_brightness(vmm_char_device_t *cdev, int __unused argc, 
 
     if (argc <= 2) {
         cmd_backlight_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     list_for_each_entry(bd_elt, &backlight_dev_list, entry)
@@ -94,7 +94,7 @@ static int cmd_backlight_brightness(vmm_char_device_t *cdev, int __unused argc, 
 
     if (NULL == bd) {
         cmd_backlight_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (argc == 3) {
@@ -151,7 +151,7 @@ static int cmd_backlight_exec(vmm_char_device_t *cdev, int argc, char **argv)
     }
 
     cmd_backlight_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_backlight = {

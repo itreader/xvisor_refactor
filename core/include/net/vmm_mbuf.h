@@ -18,7 +18,7 @@
  *
  * @file vmm_mbuf.h
  * @author Sukanto Ghosh <sukantoghosh@gmail.com>
- * @brief Network Buffer Handling
+ * @brief 网络缓冲区处理
  *
  * The code has been adapted from NetBSD 5.1.2 src/sys/sys/mbuff.c
  */
@@ -96,11 +96,14 @@
 struct vmm_mbuf;
 
 /* header at beginning of each mbuf: */
+/**
+ * @brief mbuf头部结构，保存缓冲链指针、数据位置和标志
+ */
 struct m_hdr {
-    uint32_t         mh_refcnt;
+    uint32_t         mh_refcnt; /**< mbuf头部引用计数 */
     struct vmm_mbuf *mh_next; /* next buffer in chain */
     char            *mh_data; /* location of data */
-    void (*mh_freefn)(struct vmm_mbuf *);
+    void (*mh_freefn)(struct vmm_mbuf *); /**< mh_freefn成员 */
     /* free routine */
     int mh_len;   /* amount of data in this mbuf */
     int mh_flags; /* flags; see below */
@@ -113,21 +116,27 @@ struct m_pkthdr {
     int len; /* total packet length */
 };
 
+/**
+ * @brief mbuf外部存储结构，描述外部内存缓冲区的地址和大小
+ */
 struct m_ext {
     uint32_t ext_refcnt; /* reference count */
     char    *ext_buf;    /* start of buffer */
     uint32_t ext_size;   /* size of buffer, for ext_free */
     void(*ext_free)      /* free routine if not the usual */
-        (struct vmm_mbuf *, void *, uint32_t, void *);
+        (struct vmm_mbuf *, void *, uint32_t, void *); /**< ) */
     void *ext_arg;       /* argument for ext_free */
 };
 
+/**
+ * @brief 网络缓冲结构（mbuf），管理网络数据包的存储和链式传递
+ */
 struct vmm_mbuf {
     double_list_t   m_list;         /* for list of mbufs */
     void           *m_list_private; /* private data of mbuf list */
-    struct m_hdr    m_hdr;
-    struct m_pkthdr m_pkthdr;
-    struct m_ext    m_ext;
+    struct m_hdr    m_hdr; /**< m_hdr成员 */
+    struct m_pkthdr m_pkthdr; /**< m_pkthdr成员 */
+    struct m_ext    m_ext; /**< m_ext成员 */
 };
 
 #define m_next                 m_hdr.mh_next
@@ -268,8 +277,11 @@ struct vmm_mbuf {
 /*
  * mbuf allocation types.
  */
+/**
+ * @brief mbuf分配类型枚举，区分不同场景的缓冲区分配来源
+ */
 enum vmm_mbuf_alloc_types {
-    VMM_MBUF_ALLOC_DEFAULT = 0,
+    VMM_MBUF_ALLOC_DEFAULT = 0, /**< 0 */
     VMM_MBUF_ALLOC_DMA     = 1
 };
 
@@ -278,17 +290,53 @@ enum vmm_mbuf_alloc_types {
  */
 struct vmm_mbuf *m_free(struct vmm_mbuf *m);
 struct vmm_mbuf *m_get(int nowait, int flags);
+/**
+ * @brief 获取消息缓冲区的外部扩展数据
+ * @param m 掩码或数据指针
+ * @param size 大小
+ * @param how 操作方式标识
+ */
 void            *m_ext_get(struct vmm_mbuf *m, uint32_t size, enum vmm_mbuf_alloc_types how);
+/**
+ * @brief 确保消息缓冲区的外部数据适合DMA操作
+ * @param m 掩码或数据指针
+ */
 void             m_ext_dma_ensure(struct vmm_mbuf *m);
+/**
+ * @brief m copydata
+ * @param m 掩码或数据指针
+ * @param off 偏移量
+ * @param len 数据长度
+ * @param vp 虚拟端口指针
+ */
 void             m_copydata(struct vmm_mbuf *m, int off, int len, void *vp);
+/**
+ * @brief m freem
+ * @param m 掩码或数据指针
+ */
 void             m_freem(struct vmm_mbuf *m);
+/**
+ * @brief 释放消息缓冲区的外部扩展数据
+ * @param m 掩码或数据指针
+ */
 void             m_ext_free(struct vmm_mbuf *m);
+/**
+ * @brief m dump
+ * @param m 掩码或数据指针
+ */
 void             m_dump(struct vmm_mbuf *m);
 
 /*
  * mbuf pool initializaton and exit.
  */
+/**
+ * @brief 初始化mbufpool
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int  vmm_mbufpool_init(void);
+/**
+ * @brief 函数接口
+ */
 void vmm_mbufpool_exit(void);
 
 #endif /* __VMM_MBUF_H_ */

@@ -21,7 +21,7 @@
 		gentimer_phys_irq = <30>;
 	};
 
-	aspace {
+	addr_space {
 		guest_irq_count = <2048>;
 
 		MEM0: mem0 {

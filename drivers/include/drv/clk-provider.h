@@ -157,13 +157,13 @@ struct clock_rate_request {
  *      as a uint8_t corresponding to the parent in either the .parent_names
  *      or .parents arrays.  This function in affect translates an
  *      array index into the value programmed into the hardware.
- *      Returns 0 on success, VMM_EERROR otherwise.
+ *      Returns 0 on success, VMM_ERR_ERROR otherwise.
  *
  * @set_rate:   Change the rate of this clock. The requested rate is specified
  *      by the second argument, which should typically be the return
  *      of .round_rate call.  The third argument gives the parent rate
  *      which is likely helpful for most .set_rate implementation.
- *      Returns 0 on success, VMM_EERROR otherwise.
+ *      Returns 0 on success, VMM_ERR_ERROR otherwise.
  *
  * @recalc_accuracy: Recalculate the accuracy of this clock. The clock accuracy
  *      is expressed in ppb (parts per billion). The parent accuracy is
@@ -181,7 +181,7 @@ struct clock_rate_request {
  *      unnecessary) for clocks with 0 or 1 parents as well as
  *      for clocks that can tolerate switching the rate and the parent
  *      separately via calls to .set_parent and .set_rate.
- *      Returns 0 on success, VMM_EERROR otherwise.
+ *      Returns 0 on success, VMM_ERR_ERROR otherwise.
  *
  * @recalc_accuracy: Recalculate the accuracy of this clock. The clock accuracy
  *      is expressed in ppb (parts per billion). The parent accuracy is
@@ -196,7 +196,7 @@ struct clock_rate_request {
  *
  * @set_phase:  Shift the phase this clock signal in degrees specified
  *      by the second argument. Valid values for degrees are
- *      0-359. Return 0 on success, otherwise VMM_EERROR.
+ *      0-359. Return 0 on success, otherwise VMM_ERR_ERROR.
  *
  * @init:   Perform platform-specific initialization magic.
  *      This is not not used by any of the basic clock types.
@@ -760,22 +760,22 @@ static inline void devm_of_clock_del_provider(vmm_device_t *dev) {}
 
 static inline struct clk *of_clock_src_simple_get(struct vmm_device_tree_phandle_args *clkspec, void *data)
 {
-    return VMM_ERR_PTR(VMM_ENOENT);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOENT);
 }
 
 static inline struct clock_hw *of_clock_hw_simple_get(struct vmm_device_tree_phandle_args *clkspec, void *data)
 {
-    return VMM_ERR_PTR(VMM_ENOENT);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOENT);
 }
 
 static inline struct clk *of_clock_src_onecell_get(struct vmm_device_tree_phandle_args *clkspec, void *data)
 {
-    return VMM_ERR_PTR(VMM_ENOENT);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOENT);
 }
 
 static inline struct clock_hw *of_clock_hw_onecell_get(struct vmm_device_tree_phandle_args *clkspec, void *data)
 {
-    return VMM_ERR_PTR(VMM_ENOENT);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOENT);
 }
 
 static inline uint32_t of_clock_get_parent_count(vmm_device_tree_node_t *np)

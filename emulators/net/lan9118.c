@@ -1500,7 +1500,7 @@ static int lan9118_reg_read(struct lan9118_state *s, physical_addr_t offset, uin
 
         default:
             vmm_printf("lan9118_read: Bad reg 0x%x\n", (int)offset);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
     }
 
     vmm_spin_unlock(&s->lock);
@@ -1567,7 +1567,7 @@ static int lan9118_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t 
 
     if (!s) {
         vmm_printf("%s: state alloc failed\n", __func__);
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto lan9118_emulator_probe_done;
     }
 
@@ -1587,7 +1587,7 @@ static int lan9118_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t 
 
     if (!s->port) {
         vmm_printf("%s: netport alloc failed\n", __func__);
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto lan9118_emulator_probe_freestate_failed;
     }
 

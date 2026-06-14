@@ -83,7 +83,7 @@ static int virtio_console_init_vq(struct vmm_virtio_device *dev, uint32_t vq, ui
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -102,7 +102,7 @@ static int virtio_console_get_pfn_vq(struct vmm_virtio_device *dev, uint32_t vq)
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -186,7 +186,7 @@ static int virtio_console_notify_vq(struct vmm_virtio_device *dev, uint32_t vq)
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     }
 
@@ -320,7 +320,7 @@ static int virtio_console_reset(struct vmm_virtio_device *dev)
     struct virtio_console_dev *cdev = dev->emu_data;
 
     if (!fifo_clear(cdev->emerg_rd)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = vmm_virtio_queue_cleanup(&cdev->vqs[VIRTIO_CONSOLE_RX_QUEUE]);
@@ -346,7 +346,7 @@ static int virtio_console_connect(struct vmm_virtio_device *dev, struct vmm_virt
 
     if (!cdev) {
         vmm_printf("Failed to allocate virtio console device....\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     cdev->vdev = dev;
@@ -355,14 +355,14 @@ static int virtio_console_connect(struct vmm_virtio_device *dev, struct vmm_virt
     cdev->vser = vmm_vserial_create(cdev->name, &virtio_console_vserial_can_send, &virtio_console_vserial_send, VIRTIO_CONSOLE_VSERIAL_FIFO_SZ, cdev);
 
     if (!cdev->vser) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cdev->emerg_rd = fifo_alloc(1, VIRTIO_CONSOLE_VSERIAL_FIFO_SZ);
 
     if (!cdev->emerg_rd) {
         vmm_vserial_destroy(cdev->vser);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     cdev->config.cols         = 80;

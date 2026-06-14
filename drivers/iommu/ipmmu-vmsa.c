@@ -331,7 +331,7 @@ static int ipmmu_domain_init_context(struct ipmmu_vmsa_domain *domain)
     domain->iop     = alloc_io_page_table_ops(ARM_32_LPAE_S1, &domain->cfg, domain);
 
     if (!domain->iop) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /*
@@ -506,7 +506,7 @@ static int ipmmu_attach_device(vmm_iommu_domain_t *io_domain, vmm_device_t *dev)
 
     if (!mmu) {
         vmm_lerror(dev->name, "Cannot attach to IPMMU\n");
-        return VMM_ENXIO;
+        return VMM_ERR_NXIO;
     }
 
     vmm_spin_lock_irq_save(&domain->lock, flags);
@@ -523,7 +523,7 @@ static int ipmmu_attach_device(vmm_iommu_domain_t *io_domain, vmm_device_t *dev)
          * different IOMMUs to the same domain.
          */
         vmm_lerror(dev->name, "Can't attach IPMMU %s to domain on IPMMU %s\n", mmu->node->name, domain->mmu->node->name);
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
     }
 
     vmm_spin_unlock_irq_restore(&domain->lock, flags);
@@ -559,7 +559,7 @@ static int ipmmu_map(vmm_iommu_domain_t *io_domain, physical_addr_t iova, physic
     struct ipmmu_vmsa_domain *domain = to_vmsa_domain(io_domain);
 
     if (!domain) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     return domain->iop->map(domain->iop, iova, paddr, size, prot);
@@ -598,7 +598,7 @@ static int ipmmu_find_utlbs(ipmmu_vmsa_device_t *mmu, vmm_device_t *dev, uint32_
         vmm_device_tree_dref_node(args.np);
 
         if (args.np != mmu->node || args.args_count != 1) {
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         utlbs[i] = args.args[0];
@@ -615,11 +615,11 @@ static int ipmmu_add_device(vmm_device_t *dev)
     uint32_t                   *utlbs;
     uint32_t                    i;
     int                         num_utlbs;
-    int                         ret = VMM_ENODEV;
+    int                         ret = VMM_ERR_NODEV;
 
     if (dev->iommu_private) {
         vmm_lwarning(dev->name, "IOMMU driver already assigned to device\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Find the master corresponding to the device. */
@@ -627,13 +627,13 @@ static int ipmmu_add_device(vmm_device_t *dev)
     num_utlbs = vmm_device_tree_count_phandle_with_args(dev->of_node, "iommus", "#iommu-cells");
 
     if (num_utlbs < 0) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     utlbs = vmm_zalloc(num_utlbs * sizeof(*utlbs));
 
     if (!utlbs) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     vmm_spin_lock(&ipmmu_devices_lock);
@@ -659,7 +659,7 @@ static int ipmmu_add_device(vmm_device_t *dev)
 
     for (i = 0; i < num_utlbs; ++i) {
         if (utlbs[i] >= mmu->num_utlbs) {
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             goto error;
         }
     }
@@ -689,7 +689,7 @@ static int ipmmu_add_device(vmm_device_t *dev)
     archdata = vmm_zalloc(sizeof(*archdata));
 
     if (!archdata) {
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto error_remove_dev;
     }
 
@@ -761,7 +761,7 @@ static int ipmmu_init(vmm_device_tree_node_t *node)
 
     if (!mmu) {
         vmm_lerror(node->name, "cannot allocate device data\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     ret = vmm_device_tree_request_regmap(node, &va, 0, "IPMMU");
@@ -798,7 +798,7 @@ static int ipmmu_init(vmm_device_tree_node_t *node)
         vmm_lerror(node->name, "cannot map device irq\n");
         vmm_device_tree_regunmap_release(node, va, 0);
         vmm_free(mmu);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if ((ret = vmm_host_irq_register(hirq, node->name, ipmmu_irq, mmu))) {
@@ -816,7 +816,7 @@ static int ipmmu_init(vmm_device_tree_node_t *node)
         vmm_host_irq_unregister(hirq, mmu);
         vmm_device_tree_regunmap_release(node, va, 0);
         vmm_free(mmu);
-        return VMM_EOVERFLOW;
+        return VMM_ERR_OVERFLOW;
     }
 
     ret = vmm_iommu_controller_register(&mmu->controller);

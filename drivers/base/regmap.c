@@ -65,7 +65,7 @@ bool regmap_reg_in_ranges(uint32_t reg, const struct regmap_range *ranges, uint3
     return false;
 }
 
-VMM_EXPORT_SYMBOL(regmap_reg_in_ranges);
+VMM_ERR_XPORT_SYMBOL(regmap_reg_in_ranges);
 
 bool regmap_check_range_table(struct regmap *map, uint32_t reg, const struct regmap_access_table *table)
 {
@@ -82,7 +82,7 @@ bool regmap_check_range_table(struct regmap *map, uint32_t reg, const struct reg
     return regmap_reg_in_ranges(reg, table->yes_ranges, table->n_yes_ranges);
 }
 
-VMM_EXPORT_SYMBOL(regmap_check_range_table);
+VMM_ERR_XPORT_SYMBOL(regmap_check_range_table);
 
 bool regmap_writeable(struct regmap *map, uint32_t reg)
 {
@@ -444,7 +444,7 @@ int regmap_attach_dev(vmm_device_t *dev, struct regmap *map, const struct regmap
     m        = vmm_device_resource_alloc(dev_get_regmap_release, sizeof(*m));
 
     if (!m) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     *m = map;
@@ -453,7 +453,7 @@ int regmap_attach_dev(vmm_device_t *dev, struct regmap *map, const struct regmap
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(regmap_attach_dev);
+VMM_ERR_XPORT_SYMBOL(regmap_attach_dev);
 
 static enum regmap_endian regmap_get_reg_endian(const struct regmap_bus *bus, const struct regmap_config *config)
 {
@@ -527,12 +527,12 @@ enum regmap_endian regmap_get_val_endian(vmm_device_t *dev, const struct regmap_
     return REGMAP_ENDIAN_BIG;
 }
 
-VMM_EXPORT_SYMBOL(regmap_get_val_endian);
+VMM_ERR_XPORT_SYMBOL(regmap_get_val_endian);
 
 struct regmap *__regmap_init(vmm_device_t *dev, const struct regmap_bus *bus, void *bus_context, const struct regmap_config *config)
 {
     struct regmap     *map;
-    int                ret = VMM_EINVALID;
+    int                ret = VMM_ERR_INVALID;
     enum regmap_endian reg_endian, val_endian;
 
     if (!config) {
@@ -542,7 +542,7 @@ struct regmap *__regmap_init(vmm_device_t *dev, const struct regmap_bus *bus, vo
     map = vmm_zalloc(sizeof(*map));
 
     if (map == NULL) {
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto err;
     }
 
@@ -869,7 +869,7 @@ struct regmap *__regmap_init(vmm_device_t *dev, const struct regmap_bus *bus, vo
     map->work_buf = vmm_zalloc(map->format.buf_size);
 
     if (map->work_buf == NULL) {
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto err_map;
     }
 
@@ -894,10 +894,10 @@ skip_format_initialization:
 err_map:
     vmm_free(map);
 err:
-    return VMM_ERR_PTR(ret);
+    return VMM_ERR_RR_PTR(ret);
 }
 
-VMM_EXPORT_SYMBOL(__regmap_init);
+VMM_ERR_XPORT_SYMBOL(__regmap_init);
 
 static void devm_regmap_release(vmm_device_t *dev, void *res)
 {
@@ -911,7 +911,7 @@ struct regmap *__devm_regmap_init(vmm_device_t *dev, const struct regmap_bus *bu
     ptr = vmm_device_resource_alloc(devm_regmap_release, sizeof(*ptr));
 
     if (!ptr) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     regmap = __regmap_init(dev, bus, bus_context, config);
@@ -926,7 +926,7 @@ struct regmap *__devm_regmap_init(vmm_device_t *dev, const struct regmap_bus *bu
     return regmap;
 }
 
-VMM_EXPORT_SYMBOL(__devm_regmap_init);
+VMM_ERR_XPORT_SYMBOL(__devm_regmap_init);
 
 void regmap_exit(struct regmap *map)
 {
@@ -938,7 +938,7 @@ void regmap_exit(struct regmap *map)
     vmm_free(map);
 }
 
-VMM_EXPORT_SYMBOL(regmap_exit);
+VMM_ERR_XPORT_SYMBOL(regmap_exit);
 
 static int dev_get_regmap_match(vmm_device_t *dev, void *res, void *data)
 {
@@ -980,7 +980,7 @@ struct regmap *dev_get_regmap(vmm_device_t *dev, const char *name)
     return *r;
 }
 
-VMM_EXPORT_SYMBOL(dev_get_regmap);
+VMM_ERR_XPORT_SYMBOL(dev_get_regmap);
 
 /**
  * regmap_get_device() - Obtain the device from a regmap
@@ -994,7 +994,7 @@ vmm_device_t *regmap_get_device(struct regmap *map)
     return map->dev;
 }
 
-VMM_EXPORT_SYMBOL(regmap_get_device);
+VMM_ERR_XPORT_SYMBOL(regmap_get_device);
 
 static void regmap_set_work_buf_flag_mask(struct regmap *map, int max_bytes, uint64_t mask)
 {
@@ -1016,7 +1016,7 @@ int _regmap_raw_write(struct regmap *map, uint32_t reg, const void *val, size_t 
 {
     void  *work_val = map->work_buf + map->format.reg_bytes + map->format.pad_bytes;
     void  *buf;
-    int    ret = VMM_ENOTSUPP;
+    int    ret = VMM_ERR_NOTSUPP;
     size_t len;
     int    i;
 
@@ -1026,7 +1026,7 @@ int _regmap_raw_write(struct regmap *map, uint32_t reg, const void *val, size_t 
     if (map->writeable_reg) {
         for (i = 0; i < udiv64(val_len, map->format.val_bytes); i++) {
             if (!map->writeable_reg(map->dev, reg + regmap_get_offset(map, i))) {
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
             }
         }
     }
@@ -1055,12 +1055,12 @@ int _regmap_raw_write(struct regmap *map, uint32_t reg, const void *val, size_t 
     }
 
     /* If that didn't work fall back on linearising by hand. */
-    if (ret == VMM_ENOTSUPP) {
+    if (ret == VMM_ERR_NOTSUPP) {
         len = map->format.reg_bytes + map->format.pad_bytes + val_len;
         buf = vmm_zalloc(len);
 
         if (!buf) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         memcpy(buf, map->work_buf, map->format.reg_bytes);
@@ -1083,7 +1083,7 @@ bool regmap_can_raw_write(struct regmap *map)
     return map->bus && map->bus->write && map->format.format_val && map->format.format_reg;
 }
 
-VMM_EXPORT_SYMBOL(regmap_can_raw_write);
+VMM_ERR_XPORT_SYMBOL(regmap_can_raw_write);
 
 /**
  * regmap_get_raw_read_max - Get the maximum size we can read
@@ -1095,7 +1095,7 @@ size_t regmap_get_raw_read_max(struct regmap *map)
     return map->max_raw_read;
 }
 
-VMM_EXPORT_SYMBOL(regmap_get_raw_read_max);
+VMM_ERR_XPORT_SYMBOL(regmap_get_raw_read_max);
 
 /**
  * regmap_get_raw_write_max - Get the maximum size we can read
@@ -1107,7 +1107,7 @@ size_t regmap_get_raw_write_max(struct regmap *map)
     return map->max_raw_write;
 }
 
-VMM_EXPORT_SYMBOL(regmap_get_raw_write_max);
+VMM_ERR_XPORT_SYMBOL(regmap_get_raw_write_max);
 
 static int _regmap_bus_formatted_write(void *context, uint32_t reg, uint32_t val)
 {
@@ -1147,7 +1147,7 @@ int _regmap_write(struct regmap *map, uint32_t reg, uint32_t val)
     void *context = _regmap_map_get_context(map);
 
     if (!regmap_writeable(map, reg)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return map->reg_write(context, reg, val);
@@ -1168,7 +1168,7 @@ int regmap_write(struct regmap *map, uint32_t reg, uint32_t val)
     int ret;
 
     if (!is_aligned(reg, map->reg_stride)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     map->lock(map->lock_arg);
@@ -1180,7 +1180,7 @@ int regmap_write(struct regmap *map, uint32_t reg, uint32_t val)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(regmap_write);
+VMM_ERR_XPORT_SYMBOL(regmap_write);
 
 /**
  * regmap_raw_write() - Write raw values to one or more registers
@@ -1203,15 +1203,15 @@ int regmap_raw_write(struct regmap *map, uint32_t reg, const void *val, size_t v
     int ret;
 
     if (!regmap_can_raw_write(map)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (umod64(val_len, map->format.val_bytes)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (map->max_raw_write && map->max_raw_write > val_len) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     map->lock(map->lock_arg);
@@ -1223,7 +1223,7 @@ int regmap_raw_write(struct regmap *map, uint32_t reg, const void *val, size_t v
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(regmap_raw_write);
+VMM_ERR_XPORT_SYMBOL(regmap_raw_write);
 
 /**
  * regmap_bulk_write() - Write multiple registers to the device
@@ -1246,7 +1246,7 @@ int regmap_bulk_write(struct regmap *map, uint32_t reg, const void *val, size_t 
     size_t total_size = val_bytes * val_count;
 
     if (!is_aligned(reg, map->reg_stride)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /*
@@ -1286,7 +1286,7 @@ int regmap_bulk_write(struct regmap *map, uint32_t reg, const void *val, size_t 
 #endif
 
                 default:
-                    ret = VMM_EINVALID;
+                    ret = VMM_ERR_INVALID;
                     goto out;
             }
 
@@ -1320,7 +1320,7 @@ int regmap_bulk_write(struct regmap *map, uint32_t reg, const void *val, size_t 
                     break;
 
                 default:
-                    return VMM_EINVALID;
+                    return VMM_ERR_INVALID;
             }
 
             ret = regmap_write(map, reg + (i * map->reg_stride), ival);
@@ -1366,7 +1366,7 @@ int regmap_bulk_write(struct regmap *map, uint32_t reg, const void *val, size_t 
         void *wval;
 
         if (!val_count) {
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         wval = vmm_zalloc(val_count * val_bytes);
@@ -1374,7 +1374,7 @@ int regmap_bulk_write(struct regmap *map, uint32_t reg, const void *val, size_t 
 
         if (!wval) {
             vmm_lerror(map->dev->name, "Error in memory allocation\n");
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         for (i = 0; i < val_count * val_bytes; i += val_bytes) {
@@ -1391,14 +1391,14 @@ int regmap_bulk_write(struct regmap *map, uint32_t reg, const void *val, size_t 
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(regmap_bulk_write);
+VMM_ERR_XPORT_SYMBOL(regmap_bulk_write);
 
 static int _regmap_raw_read(struct regmap *map, uint32_t reg, void *val, uint32_t val_len)
 {
     WARN_ON(!map->bus);
 
     if (!map->bus || !map->bus->read) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     map->format.format_reg(map->work_buf, reg, map->reg_shift);
@@ -1420,7 +1420,7 @@ static int _regmap_bus_read(void *context, uint32_t reg, uint32_t *val)
     struct regmap *map = context;
 
     if (!map->format.parse_val) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     ret = _regmap_raw_read(map, reg, map->work_buf, map->format.val_bytes);
@@ -1437,7 +1437,7 @@ static int _regmap_read(struct regmap *map, uint32_t reg, uint32_t *val)
     void *context = _regmap_map_get_context(map);
 
     if (!regmap_readable(map, reg)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return map->reg_read(context, reg, val);
@@ -1458,7 +1458,7 @@ int regmap_read(struct regmap *map, uint32_t reg, uint32_t *val)
     int ret;
 
     if (!is_aligned(reg, map->reg_stride)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     map->lock(map->lock_arg);
@@ -1470,7 +1470,7 @@ int regmap_read(struct regmap *map, uint32_t reg, uint32_t *val)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(regmap_read);
+VMM_ERR_XPORT_SYMBOL(regmap_read);
 
 /**
  * regmap_raw_read() - Read raw data from the device
@@ -1491,31 +1491,31 @@ int regmap_raw_read(struct regmap *map, uint32_t reg, void *val, size_t val_len)
     int      ret, i;
 
     if (!map->bus) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (umod64(val_len, map->format.val_bytes)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!is_aligned(reg, map->reg_stride)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (val_count == 0) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     map->lock(map->lock_arg);
 
     if (regmap_volatile_range(map, reg, val_count)) {
         if (!map->bus->read) {
-            ret = VMM_ENOTSUPP;
+            ret = VMM_ERR_NOTSUPP;
             goto out;
         }
 
         if (map->max_raw_read && map->max_raw_read < val_len) {
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             goto out;
         }
 
@@ -1542,7 +1542,7 @@ out:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(regmap_raw_read);
+VMM_ERR_XPORT_SYMBOL(regmap_raw_read);
 
 /**
  * regmap_bulk_read() - Read multiple registers from the device
@@ -1562,7 +1562,7 @@ int regmap_bulk_read(struct regmap *map, uint32_t reg, void *val, size_t val_cou
     bool   vol       = regmap_volatile_range(map, reg, val_count);
 
     if (!is_aligned(reg, map->reg_stride)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (map->bus && map->format.parse_inplace && vol) {
@@ -1667,7 +1667,7 @@ int regmap_bulk_read(struct regmap *map, uint32_t reg, void *val, size_t val_cou
                         break;
 
                     default:
-                        return VMM_EINVALID;
+                        return VMM_ERR_INVALID;
                 }
             }
         }
@@ -1676,7 +1676,7 @@ int regmap_bulk_read(struct regmap *map, uint32_t reg, void *val, size_t val_cou
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(regmap_bulk_read);
+VMM_ERR_XPORT_SYMBOL(regmap_bulk_read);
 
 static int _regmap_update_bits(struct regmap *map, uint32_t reg, uint32_t mask, uint32_t val, bool *change, bool force_write)
 {
@@ -1750,7 +1750,7 @@ int regmap_update_bits_base(struct regmap *map, uint32_t reg, uint32_t mask, uin
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(regmap_update_bits_base);
+VMM_ERR_XPORT_SYMBOL(regmap_update_bits_base);
 
 /**
  * regmap_get_val_bytes() - Report the size of a register value
@@ -1763,13 +1763,13 @@ VMM_EXPORT_SYMBOL(regmap_update_bits_base);
 int regmap_get_val_bytes(struct regmap *map)
 {
     if (map->format.format_write) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return map->format.val_bytes;
 }
 
-VMM_EXPORT_SYMBOL(regmap_get_val_bytes);
+VMM_ERR_XPORT_SYMBOL(regmap_get_val_bytes);
 
 /**
  * regmap_get_max_register() - Report the max register value
@@ -1781,10 +1781,10 @@ VMM_EXPORT_SYMBOL(regmap_get_val_bytes);
  */
 int regmap_get_max_register(struct regmap *map)
 {
-    return map->max_register ? map->max_register : VMM_EINVALID;
+    return map->max_register ? map->max_register : VMM_ERR_INVALID;
 }
 
-VMM_EXPORT_SYMBOL(regmap_get_max_register);
+VMM_ERR_XPORT_SYMBOL(regmap_get_max_register);
 
 /**
  * regmap_get_reg_stride() - Report the register address stride
@@ -1799,12 +1799,12 @@ int regmap_get_reg_stride(struct regmap *map)
     return map->reg_stride;
 }
 
-VMM_EXPORT_SYMBOL(regmap_get_reg_stride);
+VMM_ERR_XPORT_SYMBOL(regmap_get_reg_stride);
 
 int regmap_parse_val(struct regmap *map, const void *buf, uint32_t *val)
 {
     if (!map->format.parse_val) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     *val = map->format.parse_val(buf);
@@ -1812,4 +1812,4 @@ int regmap_parse_val(struct regmap *map, const void *buf, uint32_t *val)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(regmap_parse_val);
+VMM_ERR_XPORT_SYMBOL(regmap_parse_val);

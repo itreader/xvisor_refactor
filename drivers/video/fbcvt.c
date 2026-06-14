@@ -401,4 +401,4 @@ int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(fb_find_mode_cvt);
+VMM_ERR_XPORT_SYMBOL(fb_find_mode_cvt);

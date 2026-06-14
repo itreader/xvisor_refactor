@@ -150,7 +150,7 @@ long clock_get_accuracy(struct clk *clk);
  * @degrees: number of degrees the signal is shifted
  *
  * Shifts the phase of a clock signal by the specified degrees. Returns 0 on
- * success, VMM_EERROR otherwise.
+ * success, VMM_ERR_ERROR otherwise.
  */
 int clock_set_phase(struct clk *clk, int degrees);
 
@@ -159,7 +159,7 @@ int clock_set_phase(struct clk *clk, int degrees);
  * @clk: clock signal source
  *
  * Returns the phase shift of a clock node in degrees, otherwise returns
- * VMM_EERROR.
+ * VMM_ERR_ERROR.
  */
 int clock_get_phase(struct clk *clk);
 
@@ -180,27 +180,27 @@ bool clock_is_match(const struct clk *p, const struct clk *q);
 
 static inline int clock_notifier_register(struct clk *clk, vmm_notifier_block_t *nb)
 {
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 static inline int clock_notifier_unregister(struct clk *clk, vmm_notifier_block_t *nb)
 {
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 static inline long clock_get_accuracy(struct clk *clk)
 {
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 static inline long clock_set_phase(struct clk *clk, int phase)
 {
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 static inline long clock_get_phase(struct clk *clk)
 {
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 static inline bool clock_is_match(const struct clk *p, const struct clk *q)
@@ -696,17 +696,17 @@ struct clk *of_clock_get_from_provider(struct vmm_device_tree_phandle_args *clks
 #else
 static inline struct clk *of_clock_get(vmm_device_tree_node_t *np, int index)
 {
-    return VMM_ERR_PTR(VMM_ENOENT);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOENT);
 }
 
 static inline struct clk *of_clock_get_by_name(vmm_device_tree_node_t *np, const char *name)
 {
-    return VMM_ERR_PTR(VMM_ENOENT);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOENT);
 }
 
 static inline struct clk *of_clock_get_from_provider(struct vmm_device_tree_phandle_args *clkspec)
 {
-    return VMM_ERR_PTR(VMM_ENOENT);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOENT);
 }
 #endif
 

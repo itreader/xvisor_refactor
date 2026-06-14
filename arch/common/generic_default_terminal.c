@@ -33,17 +33,17 @@
 
 static int unknown_default_terminal_putc(uint8_t ch)
 {
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int unknown_default_terminal_getc(uint8_t *ch)
 {
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int __init unknown_default_terminal_init(vmm_device_tree_node_t *node)
 {
-    return VMM_ENODEV;
+    return VMM_ERR_NODEV;
 }
 
 static struct default_terminal_ops unknown_ops = {
@@ -61,7 +61,7 @@ static uint32_t       pl011_default_terminal_baud;
 static int pl011_default_terminal_putc(uint8_t ch)
 {
     if (!pl011_lowlevel_can_putc(pl011_default_terminal_base)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     pl011_lowlevel_putc(pl011_default_terminal_base, ch);
@@ -71,7 +71,7 @@ static int pl011_default_terminal_putc(uint8_t ch)
 static int pl011_default_terminal_getc(uint8_t *ch)
 {
     if (!pl011_lowlevel_can_getc(pl011_default_terminal_base)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *ch = pl011_lowlevel_getc(pl011_default_terminal_base);
@@ -124,7 +124,7 @@ static struct uart_8250_port uart8250_port;
 static int uart8250_default_terminal_putc(uint8_t ch)
 {
     if (!uart_8250_lowlevel_can_putc(&uart8250_port)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     uart_8250_lowlevel_putc(&uart8250_port, ch);
@@ -134,7 +134,7 @@ static int uart8250_default_terminal_putc(uint8_t ch)
 static int uart8250_default_terminal_getc(uint8_t *ch)
 {
     if (!uart_8250_lowlevel_can_getc(&uart8250_port)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *ch = uart_8250_lowlevel_getc(&uart8250_port);
@@ -197,7 +197,7 @@ static uint32_t       omap_default_terminal_baud;
 static int omap_default_terminal_putc(uint8_t ch)
 {
     if (!omap_uart_lowlevel_can_putc(omap_default_terminal_base, 2)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     omap_uart_lowlevel_putc(omap_default_terminal_base, 2, ch);
@@ -207,7 +207,7 @@ static int omap_default_terminal_putc(uint8_t ch)
 static int omap_default_terminal_getc(uint8_t *ch)
 {
     if (!omap_uart_lowlevel_can_getc(omap_default_terminal_base, 2)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *ch = omap_uart_lowlevel_getc(omap_default_terminal_base, 2);
@@ -263,7 +263,7 @@ static uint32_t       imx_default_terminal_baud;
 static int imx_default_terminal_putc(uint8_t ch)
 {
     if (!imx_lowlevel_can_putc(imx_default_terminal_base)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     imx_lowlevel_putc(imx_default_terminal_base, ch);
@@ -273,7 +273,7 @@ static int imx_default_terminal_putc(uint8_t ch)
 static int imx_default_terminal_getc(uint8_t *ch)
 {
     if (!imx_lowlevel_can_getc(imx_default_terminal_base)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *ch = imx_lowlevel_getc(imx_default_terminal_base);
@@ -328,7 +328,7 @@ static uint32_t       samsung_default_terminal_baud;
 static int samsung_default_terminal_putc(uint8_t ch)
 {
     if (!samsung_lowlevel_can_putc(samsung_default_terminal_base)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     samsung_lowlevel_putc(samsung_default_terminal_base, ch);
@@ -338,7 +338,7 @@ static int samsung_default_terminal_putc(uint8_t ch)
 static int samsung_default_terminal_getc(uint8_t *ch)
 {
     if (!samsung_lowlevel_can_getc(samsung_default_terminal_base)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *ch = samsung_lowlevel_getc(samsung_default_terminal_base);
@@ -400,7 +400,7 @@ static bool           scif_default_terminal_use_intclk;
 static int scif_default_terminal_putc(uint8_t ch)
 {
     if (!scif_lowlevel_can_putc(scif_default_terminal_base, scif_regtype)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     scif_lowlevel_putc(scif_default_terminal_base, scif_regtype, ch);
@@ -410,7 +410,7 @@ static int scif_default_terminal_putc(uint8_t ch)
 static int scif_default_terminal_getc(uint8_t *ch)
 {
     if (!scif_lowlevel_can_getc(scif_default_terminal_base, scif_regtype)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *ch = scif_lowlevel_getc(scif_default_terminal_base, scif_regtype);
@@ -485,7 +485,7 @@ static bool           bcm283x_mu_default_terminal_skip_baud_config;
 static int bcm283x_mu_default_terminal_putc(uint8_t ch)
 {
     if (!bcm283x_mu_lowlevel_can_putc(bcm283x_mu_default_terminal_base)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     bcm283x_mu_lowlevel_putc(bcm283x_mu_default_terminal_base, ch);
@@ -495,7 +495,7 @@ static int bcm283x_mu_default_terminal_putc(uint8_t ch)
 static int bcm283x_mu_default_terminal_getc(uint8_t *ch)
 {
     if (!bcm283x_mu_lowlevel_can_getc(bcm283x_mu_default_terminal_base)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *ch = bcm283x_mu_lowlevel_getc(bcm283x_mu_default_terminal_base);
@@ -549,7 +549,7 @@ struct zynq_uart_private uart_port;
 static int zynq_uart_default_terminal_getc(uint8_t *ch)
 {
     if (!zynq_uart_lowlevel_can_getc(uart_port.regs)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *ch = zynq_uart_lowlevel_getc(uart_port.regs);
@@ -559,7 +559,7 @@ static int zynq_uart_default_terminal_getc(uint8_t *ch)
 static int zynq_uart_default_terminal_putc(uint8_t ch)
 {
     if (!zynq_uart_lowlevel_can_putc(uart_port.regs)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     zynq_uart_lowlevel_putc(uart_port.regs, ch);
@@ -656,7 +656,7 @@ int __init arch_default_terminal_init(void)
 
     if (!node || !vmm_device_tree_is_available(node)) {
         vmm_device_tree_dref_node(node);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Find console from chosen node */

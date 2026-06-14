@@ -643,7 +643,7 @@ static int mxc_hdmi_core_probe(vmm_device_t *dev)
     struct mxc_hdmi_data *hdmi_data = NULL;
     uint64_t              flags;
     virtual_addr_t        base_va = 0L;
-    int                   ret     = VMM_EFAIL;
+    int                   ret     = VMM_ERR_FAIL;
 
     hdmi_core_init                = 0;
     hdmi_dma_running              = 0;

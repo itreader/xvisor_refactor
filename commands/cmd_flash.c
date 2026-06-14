@@ -97,14 +97,14 @@ static int flash_args_common(vmm_char_device_t *cdev, int argc, char **argv, fla
 
     if (argc < 3) {
         cmd_flash_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     op->id = atoi(argv[2]);
 
     if (NULL == (op->mtd = mtd_get_device(op->id))) {
         vmm_cdev_printf(cdev, "MTD device id %d does not exists\n", op->id);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     op->offset = 0;
@@ -129,7 +129,7 @@ static int flash_args(vmm_char_device_t *cdev, int argc, char **argv, flash_op *
 
         if (1 > op->len) {
             vmm_cdev_printf(cdev, "Ucorrect length %d\n", op->len);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     } else {
         if (MTD_NANDFLASH == op->mtd->type) {
@@ -160,7 +160,7 @@ static int cmd_flash_read(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (NULL == (op.buf = vmm_malloc(op.buf_len))) {
         vmm_cdev_printf(cdev, "Failed to allocate read buffer\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     while (op.len) {
@@ -214,7 +214,7 @@ static int flash_erase(vmm_char_device_t *cdev, flash_op *op)
             "Uncorrect length 0x%X, a block size is "
             "0x%08X\n",
             op->len, op->mtd->erase_size);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     op->offset &= ~op->mtd->erase_size_mask;
@@ -303,7 +303,7 @@ static int cmd_flash_write(vmm_char_device_t *cdev, int argc, char **argv)
     }
 
     if (NULL == (buf = vmm_malloc(argc - 5))) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     for (idx = 0; idx < argc - 4; ++idx) {
@@ -378,7 +378,7 @@ static int cmd_flash_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 fail:
     cmd_flash_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_flash = {

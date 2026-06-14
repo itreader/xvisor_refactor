@@ -291,7 +291,7 @@ bootstrap32:
  *
  * Contrary to the original design, Xvisor uses these
  * same set of page tables rather than starting afresh.
- * So essentially when ever the VAPOOL changes, this
+ * So essentially when ever the VIRTUAL_ADDR_POOL changes, this
  * has to be changed accordingly. - Himanshu 13/10/2013
  */
 .section .bootstrap.bss,"aw",@progbits

@@ -243,7 +243,7 @@ static int arm_inst_ldrh_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     imm32 = arm_zero_extend((imm4H << 4) | imm4L, 32);
@@ -253,7 +253,7 @@ static int arm_inst_ldrh_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (wback && (Rn == Rt))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -295,7 +295,7 @@ static int arm_inst_ldrh_l(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rt == 15) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -332,7 +332,7 @@ static int arm_inst_ldrh_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index   = (P == 1) ? TRUE : FALSE;
@@ -343,12 +343,12 @@ static int arm_inst_ldrh_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (Rm == 15)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (Rn == 15 || Rn == Rt)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -393,14 +393,14 @@ static int arm_inst_ldrht(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     if (regform) {
         if ((Rt == 15) || (Rn == 15) || (Rn == Rt) || (Rm == 15)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32 = 0;
     } else {
         if ((Rt == 15) || (Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32 = arm_zero_extend((imm4H << 4) | imm4L, 32);
@@ -438,7 +438,7 @@ static int arm_inst_ldrex(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (Rn == 15)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -470,12 +470,12 @@ static int arm_inst_strex(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rd == 15) || (Rt == 15) || (Rn == 15)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((Rd == Rn) || (Rd == Rt)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -512,7 +512,7 @@ static int arm_inst_strh_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     imm32 = arm_zero_extend((imm4H << 4) | imm4L, 32);
@@ -522,7 +522,7 @@ static int arm_inst_strh_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (wback && ((Rn == 15) || (Rn == Rt)))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -562,7 +562,7 @@ static int arm_inst_strh_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index   = (P == 1) ? TRUE : FALSE;
@@ -573,12 +573,12 @@ static int arm_inst_strh_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (Rm == 15)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (Rn == 15 || Rn == Rt)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -621,14 +621,14 @@ static int arm_inst_strht(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     if (regform) {
         if ((Rt == 15) || (Rn == 15) || (Rn == Rt) || (Rm == 15)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32 = 0;
     } else {
         if ((Rt == 15) || (Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32 = arm_zero_extend((imm4H << 4) | imm4L, 32);
@@ -672,7 +672,7 @@ static int arm_inst_ldrsh_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     imm32 = arm_zero_extend((imm4H << 4) | imm4L, 32);
@@ -682,7 +682,7 @@ static int arm_inst_ldrsh_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (wback && (Rn == Rt))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -724,7 +724,7 @@ static int arm_inst_ldrsh_l(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rt == 15) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -761,7 +761,7 @@ static int arm_inst_ldrsh_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index   = (P == 1) ? TRUE : FALSE;
@@ -772,12 +772,12 @@ static int arm_inst_ldrsh_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (Rm == 15)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (Rn == 15 || Rn == Rt)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -822,14 +822,14 @@ static int arm_inst_ldrsht(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     if (regform) {
         if ((Rt == 15) || (Rn == 15) || (Rn == Rt) || (Rm == 15)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32 = 0;
     } else {
         if ((Rt == 15) || (Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32 = arm_zero_extend((imm4H << 4) | imm4L, 32);
@@ -874,7 +874,7 @@ static int arm_inst_ldrsb_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     imm32 = arm_zero_extend((imm4H << 4) | imm4L, 32);
@@ -884,7 +884,7 @@ static int arm_inst_ldrsb_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (wback && (Rn == Rt))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -926,7 +926,7 @@ static int arm_inst_ldrsb_l(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rt == 15) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -963,7 +963,7 @@ static int arm_inst_ldrsb_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index   = (P == 1) ? TRUE : FALSE;
@@ -974,12 +974,12 @@ static int arm_inst_ldrsb_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (Rm == 15)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (Rn == 15 || Rn == Rt)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -1024,14 +1024,14 @@ static int arm_inst_ldrsbt(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     if (regform) {
         if ((Rt == 15) || (Rn == 15) || (Rn == Rt) || (Rm == 15)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32 = 0;
     } else {
         if ((Rt == 15) || (Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32 = arm_zero_extend((imm4H << 4) | imm4L, 32);
@@ -1075,12 +1075,12 @@ static int arm_inst_ldrd_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rt & 0x1) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     imm32 = arm_zero_extend((imm4H << 4) | imm4L, 32);
@@ -1090,12 +1090,12 @@ static int arm_inst_ldrd_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (wback && ((Rn == Rt) || (Rn == (Rt + 1)))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (Rt == 14) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -1141,7 +1141,7 @@ static int arm_inst_ldrd_l(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rt & 0x1) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     imm32 = arm_zero_extend((imm4H << 4) | imm4L, 32);
@@ -1149,7 +1149,7 @@ static int arm_inst_ldrd_l(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rt == 14) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -1192,12 +1192,12 @@ static int arm_inst_ldrd_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rt & 0x1) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index = (P == 1) ? TRUE : FALSE;
@@ -1206,12 +1206,12 @@ static int arm_inst_ldrd_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 14) || (Rm == 15) || (Rm == Rt) || (Rm == (Rt + 1))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (Rn == 15 || (Rn == Rt) || (Rn == (Rt + 1)))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -1261,12 +1261,12 @@ static int arm_inst_strd_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rt & 0x1) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     imm32 = arm_zero_extend((imm4H << 4) | imm4L, 32);
@@ -1276,12 +1276,12 @@ static int arm_inst_strd_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (wback && ((Rn == 15) || (Rn == Rt) || (Rn == (Rt + 1)))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (Rt == 14) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -1331,7 +1331,7 @@ static int arm_inst_strd_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index = (P == 1) ? TRUE : FALSE;
@@ -1340,12 +1340,12 @@ static int arm_inst_strd_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 14) || (Rm == 15)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (Rn == 15 || (Rn == Rt) || (Rn == (Rt + 1)))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -1386,7 +1386,7 @@ static int arm_inst_movw_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rd == 15) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     result = (imm4 << 12) | imm12;
@@ -1690,7 +1690,7 @@ static int arm_instgrp_dataproc(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vc
     }
 
     arm_unpredictable(regs, vcpu, inst, __func__);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 /** Emulate 'str (immediate)' instruction */
@@ -1711,12 +1711,12 @@ static int arm_inst_str_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (((P == 0) || (W == 1)) && ((Rn == 15) || (Rn == Rt))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -1757,7 +1757,7 @@ static int arm_inst_str_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index   = (P == 1) ? TRUE : FALSE;
@@ -1767,12 +1767,12 @@ static int arm_inst_str_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rm == 15) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (Rn == 15 || Rn == Rt)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -1816,7 +1816,7 @@ static int arm_inst_strt(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     if (regform) {
         if ((Rm == 15) || (Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32   = 0;
@@ -1824,7 +1824,7 @@ static int arm_inst_strt(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     } else {
         if ((Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32   = arm_zero_extend(imm12, 32);
@@ -1869,7 +1869,7 @@ static int arm_inst_strb_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     imm32 = arm_zero_extend(imm12, 32);
@@ -1879,12 +1879,12 @@ static int arm_inst_strb_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rt == 15) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && ((Rn == 15) || (Rn == Rt))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -1926,7 +1926,7 @@ static int arm_inst_strb_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index   = (P == 1) ? TRUE : FALSE;
@@ -1936,12 +1936,12 @@ static int arm_inst_strb_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (Rm == 15)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (Rn == 15 || Rn == Rt)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -1985,7 +1985,7 @@ static int arm_inst_strbt(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     if (regform) {
         if ((Rt == 15) || (Rm == 15) || (Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32   = 0;
@@ -1993,7 +1993,7 @@ static int arm_inst_strbt(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     } else {
         if ((Rt == 15) || (Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32   = arm_zero_extend(imm12, 32);
@@ -2035,12 +2035,12 @@ static int arm_inst_ldr_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (((P == 0) || (W == 1)) && (Rn == Rt)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -2116,7 +2116,7 @@ static int arm_inst_ldr_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index   = (P == 1) ? TRUE : FALSE;
@@ -2126,12 +2126,12 @@ static int arm_inst_ldr_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rm == 15) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (Rn == 15 || Rn == Rt)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -2177,7 +2177,7 @@ static int arm_inst_ldrt(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     if (regform) {
         if ((Rt == 15) || (Rm == 15) || (Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32   = 0;
@@ -2185,7 +2185,7 @@ static int arm_inst_ldrt(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     } else {
         if ((Rt == 15) || (Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32   = arm_zero_extend(imm12, 32);
@@ -2231,7 +2231,7 @@ static int arm_inst_ldrb_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     imm32 = arm_zero_extend(imm12, 32);
@@ -2241,12 +2241,12 @@ static int arm_inst_ldrb_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rt == 15) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (Rn == Rt)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -2287,7 +2287,7 @@ static int arm_inst_ldrb_l(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (Rt == 15) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -2326,7 +2326,7 @@ static int arm_inst_ldrb_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((P == 0) && (W == 1)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index   = (P == 1) ? TRUE : FALSE;
@@ -2336,12 +2336,12 @@ static int arm_inst_ldrb_r(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (Rm == 15)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (Rn == 15 || Rn == Rt)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (arm_condition_passed(cond, regs)) {
@@ -2387,7 +2387,7 @@ static int arm_inst_ldrbt(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     if (regform) {
         if ((Rt == 15) || (Rm == 15) || (Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32   = 0;
@@ -2395,7 +2395,7 @@ static int arm_inst_ldrbt(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     } else {
         if ((Rt == 15) || (Rn == 15) || (Rn == Rt)) {
             arm_unpredictable(regs, vcpu, inst, __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         imm32   = arm_zero_extend(imm12, 32);
@@ -2573,14 +2573,14 @@ static int arm_instgrp_ldrstr(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu
     }
 
     arm_unpredictable(regs, vcpu, inst, __func__);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 /** Emulate media instructions */
 static int arm_instgrp_media(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 {
     arm_unpredictable(regs, vcpu, inst, __func__);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 /** Emulate Block load (LDMIA, LDMDA, LDMIB, LDMDB) instructions */
@@ -2603,12 +2603,12 @@ static int arm_inst_ldm(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rn == 15) || (!reg_list)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (wback && (reg_list & (0x1 << Rn))) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* get all the flags */
@@ -2696,7 +2696,7 @@ static int arm_inst_stm(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rn == 15) || (!reg_list)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* get all the flags */
@@ -2808,7 +2808,7 @@ static int arm_instgrp_brblk(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
     }
 
     arm_unpredictable(regs, vcpu, inst, __func__);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 /** Emulate 'stc/stc2' instruction */
@@ -2837,7 +2837,7 @@ static int arm_inst_stcx(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rn == 15) && wback) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((cp->ldcstc_accept == NULL) || (cp->ldcstc_done == NULL) || (cp->ldcstc_read == NULL)) {
@@ -2902,7 +2902,7 @@ static int arm_inst_ldcx_i(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rn == 15) && wback) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((cp->ldcstc_accept == NULL) || (cp->ldcstc_done == NULL) || (cp->ldcstc_write == NULL)) {
@@ -2966,7 +2966,7 @@ static int arm_inst_ldcx_l(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if (W == 1) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((cp->ldcstc_accept == NULL) || (cp->ldcstc_done == NULL) || (cp->ldcstc_write == NULL)) {
@@ -3017,7 +3017,7 @@ static int arm_inst_mcrrx(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (Rt2 == 15)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((cp->write2 == NULL)) {
@@ -3055,7 +3055,7 @@ static int arm_inst_mrrcx(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
 
     if ((Rt == 15) || (Rt2 == 15)) {
         arm_unpredictable(regs, vcpu, inst, __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((cp->read2 == NULL)) {
@@ -3458,7 +3458,7 @@ static int arm_instgrp_coproc(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu
 
     arm_unpredictable(regs, vcpu, inst, __func__);
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int arm_instgrp_uncond(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu)
@@ -3490,7 +3490,7 @@ static int arm_instgrp_uncond(uint32_t inst, arch_regs_t *regs, vmm_vcpu_t *vcpu
     }
 
     arm_unpredictable(regs, vcpu, inst, __func__);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 int emulate_arm_inst(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t inst)
@@ -3499,11 +3499,11 @@ int emulate_arm_inst(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t inst)
 
     /* Sanity check */
     if (!vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!vcpu->is_normal) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cond = ARM_INST_DECODE(inst, ARM_INST_COND_MASK, ARM_INST_COND_SHIFT);
@@ -3550,5 +3550,5 @@ int emulate_arm_inst(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t inst)
 
     arm_unpredictable(regs, vcpu, inst, __func__);
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }

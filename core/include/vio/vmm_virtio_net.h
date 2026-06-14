@@ -18,7 +18,7 @@
  *
  * @file vmm_virtio_net.h
  * @author Pranav Sawargaonkar (pranav.sawargaonkar@gmail.com)
- * @brief VirtIO Net Framework Interface.
+ * @brief VirtIO网络框架接口
  *
  * This header has been derived from linux kernel source:
  * <linux_source>/include/uapi/linux/virtio_net.h
@@ -94,30 +94,36 @@
 #define VMM_VIRTIO_NET_S_LINK_UP  1       /* Link is up */
 #define VMM_VIRTIO_NET_S_ANNOUNCE 2       /* Announcement is needed */
 
+/**
+ * @brief VirtIO网络配置，保存MAC地址和最大队列对数
+ */
 struct vmm_virtio_net_config {
     /* The config defining mac address (if VIRTIO_NET_F_MAC) */
-    uint8_t  mac[6];
+    uint8_t  mac[6]; /**< MAC地址 */
     /* See VIRTIO_NET_F_STATUS and VIRTIO_NET_S_* above */
-    uint16_t status;
+    uint16_t status; /**< 状态 */
     /* Maximum number of each of transmit and receive queues;
      * see VIRTIO_NET_F_MQ and VIRTIO_NET_CTRL_MQ.
      * Legal values are between 1 and 0x8000
      */
-    uint16_t max_virtqueue_pairs;
+    uint16_t max_virtqueue_pairs; /**< max_virtqueue_pairs成员 */
 } __attribute__((packed));
 
 /* This is the first element of the scatter-gather list.  If you don't
  * specify GSO or CSUM features, you can simply ignore the header. */
+/**
+ * @brief VirtIO网络包头，包含校验和卸载和GSO分段信息
+ */
 struct vmm_virtio_net_hdr {
 #define VIRTIO_NET_HDR_F_NEEDS_CSUM 1  // Use csum_start, csum_offset
 #define VIRTIO_NET_HDR_F_DATA_VALID 2  // Csum is valid
-    uint8_t flags;
+    uint8_t flags; /**< 标志位 */
 #define VIRTIO_NET_HDR_GSO_NONE  0     // Not a GSO frame
 #define VIRTIO_NET_HDR_GSO_TCPV4 1     // GSO frame, IPv4 TCP (TSO)
 #define VIRTIO_NET_HDR_GSO_UDP   3     // GSO frame, IPv4 UDP (UFO)
 #define VIRTIO_NET_HDR_GSO_TCPV6 4     // GSO frame, IPv6 TCP
 #define VIRTIO_NET_HDR_GSO_ECN   0x80  // TCP has ECN set
-    uint8_t  gso_type;
+    uint8_t  gso_type; /**< gso_type成员 */
     uint16_t hdr_len;                  /* Ethernet + IP + tcp/udp hdrs */
     uint16_t gso_size;                 /* Bytes to append to hdr_len per frame */
     uint16_t csum_start;               /* Position to start checksumming from */
@@ -126,8 +132,11 @@ struct vmm_virtio_net_hdr {
 
 /* This is the version of the header to use when the MRG_RXBUF
  * feature has been negotiated. */
+/**
+ * @brief VirtIO合并接收包头，扩展基本包头增加分段数
+ */
 struct vmm_virtio_net_hdr_mrg_rxbuf {
-    struct vmm_virtio_net_hdr hdr;
+    struct vmm_virtio_net_hdr hdr; /**< 头部 */
     uint16_t                  num_buffers; /* Number of merged rx buffers */
 };
 
@@ -138,9 +147,12 @@ struct vmm_virtio_net_hdr_mrg_rxbuf {
  * and an ack/status response in the last entry.  Data for the
  * command goes in between.
  */
+/**
+ * @brief VirtIO网络控制头，指定控制命令的类别和子命令
+ */
 struct vmm_virtio_net_ctrl_hdr {
-    uint8_t class;
-    uint8_t cmd;
+    uint8_t class; /**< 类 */
+    uint8_t cmd; /**< 命令 */
 } __attribute__((packed));
 
 typedef uint8_t vmm_virtio_net_ctrl_ack_t;
@@ -178,9 +190,12 @@ typedef uint8_t vmm_virtio_net_ctrl_ack_t;
  * This functionality is present if the VIRTIO_NET_F_CTRL_RX feature
  * is available.
  */
+/**
+ * @brief VirtIO MAC地址控制，保存MAC地址表条目数
+ */
 struct vmm_virtio_net_ctrl_mac {
-    uint32_t entries;
-    uint8_t  macs[][ETH_ALEN];
+    uint32_t entries; /**< entries成员 */
+    uint8_t  macs[][ETH_ALEN]; /**< MAC地址数组 */
 } __attribute__((packed));
 
 #define VMM_VIRTIO_NET_CTRL_MAC           1
@@ -221,8 +236,11 @@ struct vmm_virtio_net_ctrl_mac {
  * Accordingly, driver should not transmit new packets  on virtqueues other than
  * specified.
  */
+/**
+ * @brief VirtIO多队列控制，保存启用的队列对数
+ */
 struct vmm_virtio_net_ctrl_mq {
-    uint16_t virtqueue_pairs;
+    uint16_t virtqueue_pairs; /**< virtqueue_pairs成员 */
 };
 
 #define VMM_VIRTIO_NET_CTRL_MQ              4

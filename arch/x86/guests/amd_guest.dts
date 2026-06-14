@@ -14,7 +14,7 @@
 				};
 			};
 
-			aspace {
+			addr_space {
 				guest_irq_count = <256>;
 
 				/*

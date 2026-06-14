@@ -18,7 +18,7 @@
  *
  * @file vmm_vcpu_irq.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief source code for vcpu irq processing
+ * @brief VCPU中断处理源代码
  */
 
 #include <arch_vcpu.h>
@@ -37,12 +37,20 @@
 
 #define WFI_YIELD_THRESHOLD 100
 
+/**
+ * @brief 处理单个虚拟CPU中断
+ * @param vcpu 指向VCPU结构体的指针
+ * @param regs 寄存器上下文指针
+ * @return 中断处理结果
+ */
 static bool vcpu_irq_process_one(vmm_vcpu_t *vcpu, arch_regs_t *regs)
 {
     /* Proceed only if we have pending execute */
     if (arch_atomic_dec_if_positive(&vcpu->irqs.execute_pending) >= 0) {
         int      irq_no = -1;
-        uint32_t i, tmp_prio, irq_count = vcpu->irqs.irq_count;
+        uint32_t i;
+        uint32_t tmp_prio;
+        uint32_t irq_count = vcpu->irqs.irq_count;
         uint32_t irq_prio = 0;
 
         /* Find the irq number to process */
@@ -83,6 +91,11 @@ static bool vcpu_irq_process_one(vmm_vcpu_t *vcpu, arch_regs_t *regs)
     return FALSE;
 }
 
+/**
+ * @brief 虚拟CPU 中断 处理
+ * @param vcpu 指向VCPU结构体的指针
+ * @param regs 寄存器上下文指针
+ */
 void vmm_vcpu_irq_process(vmm_vcpu_t *vcpu, arch_regs_t *regs)
 {
     /* For non-normal vcpu dont do anything */
@@ -104,6 +117,11 @@ void vmm_vcpu_irq_process(vmm_vcpu_t *vcpu, arch_regs_t *regs)
     }
 }
 
+/**
+ * @brief 虚拟CPU 中断 等待中断 恢复
+ * @param vcpu 指向VCPU结构体的指针
+ * @param data 用户自定义数据指针
+ */
 static void vcpu_irq_wfi_resume(vmm_vcpu_t *vcpu, void *data)
 {
     irq_flags_t flags;
@@ -146,11 +164,21 @@ static void vcpu_irq_wfi_resume(vmm_vcpu_t *vcpu, void *data)
     }
 }
 
+/**
+ * @brief VCPU等待中断并设置超时
+ * @param ev 定时器事件
+ */
 static void vcpu_irq_wfi_timeout(vmm_timer_event_t *ev)
 {
     vmm_manager_vcpu_hcpu_func(ev->private, VMM_VCPU_STATE_INTERRUPTIBLE, vcpu_irq_wfi_resume, ev, FALSE);
 }
 
+/**
+ * @brief 虚拟CPU 中断 断言
+ * @param vcpu 指向VCPU结构体的指针
+ * @param irq_no 中断号
+ * @param reason 原因标识
+ */
 void vmm_vcpu_irq_assert(vmm_vcpu_t *vcpu, uint32_t irq_no, uint64_t reason)
 {
     bool asserted = FALSE;
@@ -188,6 +216,11 @@ void vmm_vcpu_irq_assert(vmm_vcpu_t *vcpu, uint32_t irq_no, uint64_t reason)
     }
 }
 
+/**
+ * @brief 虚拟CPU 中断 清除
+ * @param vcpu 指向VCPU结构体的指针
+ * @param irq_no 中断号
+ */
 void vmm_vcpu_irq_clear(vmm_vcpu_t *vcpu, uint32_t irq_no)
 {
     /* For non-normal vcpu dont do anything */
@@ -215,6 +248,11 @@ void vmm_vcpu_irq_clear(vmm_vcpu_t *vcpu, uint32_t irq_no)
     vcpu->irqs.irq[irq_no].reason = 0x0;
 }
 
+/**
+ * @brief 虚拟CPU 中断 去断言
+ * @param vcpu 指向VCPU结构体的指针
+ * @param irq_no 中断号
+ */
 void vmm_vcpu_irq_deassert(vmm_vcpu_t *vcpu, uint32_t irq_no)
 {
     /* For non-normal vcpu dont do anything */
@@ -239,25 +277,38 @@ void vmm_vcpu_irq_deassert(vmm_vcpu_t *vcpu, uint32_t irq_no)
     vcpu->irqs.irq[irq_no].reason = 0x0;
 }
 
+/**
+ * @brief 恢复VCPU中断等待状态
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vcpu_irq_wait_resume(vmm_vcpu_t *vcpu)
 {
     /* Sanity Checks */
     if (!vcpu || !vcpu->is_normal) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Resume VCPU from wfi */
     return vmm_manager_vcpu_hcpu_func(vcpu, VMM_VCPU_STATE_INTERRUPTIBLE, vcpu_irq_wfi_resume, NULL, FALSE);
 }
 
+/**
+ * @brief VCPU等待中断超时处理
+ * @param vcpu 指向VCPU结构体的指针
+ * @param nsecs 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vcpu_irq_wait_timeout(vmm_vcpu_t *vcpu, uint64_t nsecs)
 {
     irq_flags_t flags;
-    bool        have_irq, try_vcpu_yield = FALSE, try_vcpu_pause = FALSE;
+    bool have_irq;
+    bool try_vcpu_yield = FALSE;
+    bool try_vcpu_pause = FALSE;
 
     /* Sanity Checks */
     if (!vcpu || !vcpu->is_normal) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Ensure given VCPU is current VCPU */
@@ -329,6 +380,11 @@ done:
     return VMM_OK;
 }
 
+/**
+ * @brief 检查虚拟CPU中断是否处于等待状态
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_vcpu_irq_wait_state(vmm_vcpu_t *vcpu)
 {
     bool        ret = FALSE;
@@ -336,7 +392,7 @@ bool vmm_vcpu_irq_wait_state(vmm_vcpu_t *vcpu)
 
     /* Sanity Checks */
     if (!vcpu || !vcpu->is_normal) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Lock VCPU WFI */
@@ -351,15 +407,21 @@ bool vmm_vcpu_irq_wait_state(vmm_vcpu_t *vcpu)
     return ret;
 }
 
+/**
+ * @brief 初始化VCPU中断
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vcpu_irq_init(vmm_vcpu_t *vcpu)
 {
     int                rc;
-    uint32_t           ite, irq_count;
+    uint32_t ite;
+    uint32_t irq_count;
     vmm_timer_event_t *ev;
 
     /* Sanity Checks */
     if (!vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* For Orphan VCPU just return */
@@ -379,7 +441,7 @@ int vmm_vcpu_irq_init(vmm_vcpu_t *vcpu)
         vcpu->irqs.irq = vmm_zalloc(sizeof(struct vmm_vcpu_irq) * irq_count);
 
         if (!vcpu->irqs.irq) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         /* Create wfi_timeout event */
@@ -388,7 +450,7 @@ int vmm_vcpu_irq_init(vmm_vcpu_t *vcpu)
         if (!ev) {
             vmm_free(vcpu->irqs.irq);
             vcpu->irqs.irq = NULL;
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         vcpu->irqs.wfi.private = ev;
@@ -433,11 +495,16 @@ int vmm_vcpu_irq_init(vmm_vcpu_t *vcpu)
     return rc;
 }
 
+/**
+ * @brief VCPU中断子系统反初始化
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vcpu_irq_deinit(vmm_vcpu_t *vcpu)
 {
     /* Sanity Checks */
     if (!vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* For Orphan VCPU just return */

@@ -243,7 +243,7 @@ static void telnetd_fill_rx_buffer(void)
     /* Recieve netstack socket buffer */
     rc = netstack_socket_recv(tdctrl.active_sk, &buf, -1);
 
-    if (rc == VMM_ETIMEDOUT) {
+    if (rc == VMM_ERR_TIMEDOUT) {
         TELNETD_DPRINTF("%s: Socket read timedout\n", __func__);
         return;
     } else if (rc) {
@@ -381,7 +381,7 @@ static int telnetd_main(void *data)
     tdctrl.sk = netstack_socket_alloc(NETSTACK_SOCKET_TCP);
 
     if (!tdctrl.sk) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Bind socket to port number */
@@ -507,7 +507,7 @@ static int __init daemon_telnetd_init(void)
     node = vmm_device_tree_getnode(VMM_DEVICE_TREE_PATH_SEPARATOR_STRING VMM_DEVICE_TREE_VMMINFO_NODE_NAME);
 
     if (!node) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (vmm_device_tree_read_u32(node, "telnetd_priority", &telnetd_priority)) {
@@ -537,14 +537,14 @@ static int __init daemon_telnetd_init(void)
     tdctrl.tx_buf                 = vmm_zalloc(TELNETD_TX_BUFFER_SIZE);
 
     if (!tdctrl.tx_buf) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     tdctrl.rx_buf = vmm_zalloc(TELNETD_RX_BUFFER_SIZE);
 
     if (!tdctrl.rx_buf) {
         vmm_free(tdctrl.tx_buf);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Setup telnetd dummy character device */

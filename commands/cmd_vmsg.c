@@ -153,7 +153,7 @@ static int cmd_vmsg_domain_create(vmm_char_device_t *cdev, const char *name)
 
     if (domain) {
         vmm_cdev_printf(cdev, "Domain already exist\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     domain = vmm_vmsg_domain_create(name, NULL);
@@ -163,7 +163,7 @@ static int cmd_vmsg_domain_create(vmm_char_device_t *cdev, const char *name)
         ret = VMM_OK;
     } else {
         vmm_cdev_printf(cdev, "%s: Failed to create\n", name);
-        ret = VMM_EFAIL;
+        ret = VMM_ERR_FAIL;
     }
 
     return ret;
@@ -176,7 +176,7 @@ static int cmd_vmsg_domain_destroy(vmm_char_device_t *cdev, const char *name)
 
     if (!domain) {
         vmm_cdev_printf(cdev, "Failed to find domain\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if ((ret = vmm_vmsg_domain_destroy(domain))) {
@@ -209,7 +209,7 @@ static int cmd_vmsg_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 fail:
     cmd_vmsg_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_vmsg = {

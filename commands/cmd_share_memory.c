@@ -87,7 +87,7 @@ static int cmd_share_memory_create(vmm_char_device_t *cdev, const char *name, ph
 
     if (VMM_IS_ERR_OR_NULL(share_memory)) {
         vmm_cdev_printf(cdev, "Failed to create %s shared memory\n", name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_cdev_printf(cdev, "Created %s shared memory\n", name);
@@ -101,7 +101,7 @@ static int cmd_share_memory_destroy(vmm_char_device_t *cdev, const char *name)
 
     if (!share_memory) {
         vmm_cdev_printf(cdev, "Failed to find %s shared memory\n", name);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     vmm_share_memory_dref(share_memory);
@@ -140,7 +140,7 @@ static int cmd_share_memory_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 fail:
     cmd_share_memory_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_share_memory = {

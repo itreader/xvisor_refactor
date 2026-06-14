@@ -106,7 +106,7 @@ static int cmd_virtual_input_keyboard_event(vmm_char_device_t *cdev, const char 
 
     if (!vk) {
         vmm_cdev_printf(cdev, "Error: virtual keyboard %s not found\n", vkeyboard_name);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Press the Keys (or Key Down) */
@@ -142,7 +142,7 @@ static int cmd_virtual_input_mouse_event(
 
     if (!vm) {
         vmm_cdev_printf(cdev, "Error: virtual mouse %s not found\n", vmouse_name);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Determine mouse displacement */
@@ -224,7 +224,7 @@ static int cmd_virtual_input_exec(vmm_char_device_t *cdev, int argc, char **argv
     }
 
     cmd_virtual_input_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_virtual_input = {

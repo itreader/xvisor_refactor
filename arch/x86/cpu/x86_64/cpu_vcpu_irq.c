@@ -86,7 +86,7 @@ int arch_vcpu_irq_deassert(vmm_vcpu_t *vcpu, uint32_t irq_no, uint64_t reason)
             "%s: WARNING!!! IRQ %d on vcpu %s not active to deassert! Currently active: %d\n", __func__, irq_no, vcpu->name,
             vcpu_private->int_pending);
         vmm_spin_unlock_irq_restore_lite(&vcpu_private->lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     x86_vcpu_private(vcpu)->int_pending = irq_no;

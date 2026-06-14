@@ -18,7 +18,7 @@
  *
  * @file vmm_vspi.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for virtual spi framework
+ * @brief 虚拟SPI框架头文件
  */
 #ifndef _VMM_VSPI_H__
 #define _VMM_VSPI_H__
@@ -41,78 +41,140 @@ typedef struct vmm_virtual_spi_host  vmm_virtual_spi_host_t;
 typedef struct vmm_virtual_spi_slave vmm_virtual_spi_slave_t;
 
 /** Representation of a virtual spi slave */
+/**
+ * @brief 虚拟SPI从设备，定义片选和数据传输回调
+ */
 struct vmm_virtual_spi_slave {
-    vmm_emulate_device_t   *edev;
-    vmm_virtual_spi_host_t *vsh;
-    char                    name[VMM_FIELD_NAME_SIZE];
-    uint32_t                chip_select;
-    uint32_t (*xfer)(struct vmm_virtual_spi_slave *vss, uint32_t data, void *private);
-    void *private;
+    vmm_emulate_device_t   *edev; /**< 仿真设备 */
+    vmm_virtual_spi_host_t *vsh; /**< 虚拟串口头 */
+    char                    name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
+    uint32_t                chip_select; /**< chip_select成员 */
+    uint32_t (*xfer)(struct vmm_virtual_spi_slave *vss, uint32_t data, void *private); /**< 传输 */
+    void *private; /**< 私有数据 */
 };
 
 /** Representation of a virtual spi host */
+/**
+ * @brief 虚拟SPI主控制器，管理从设备列表和总线操作
+ */
 struct vmm_virtual_spi_host {
-    double_list_t         head;
-    vmm_emulate_device_t *edev;
-    char                  name[VMM_FIELD_NAME_SIZE];
+    double_list_t         head; /**< 链表头 */
+    vmm_emulate_device_t *edev; /**< 仿真设备 */
+    char                  name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
 
-    void (*xfer)(struct vmm_virtual_spi_host *vsh, void *private);
-    vmm_completion_t xfer_avail;
-    vmm_thread_t    *xfer_worker;
+    void (*xfer)(struct vmm_virtual_spi_host *vsh, void *private); /**< 传输 */
+    vmm_completion_t xfer_avail; /**< xfer_avail成员 */
+    vmm_thread_t    *xfer_worker; /**< xfer_worker成员 */
 
-    uint32_t chip_select_count;
+    uint32_t chip_select_count; /**< chip_select_count成员 */
 
-    vmm_mutex_t               slaves_lock;
-    vmm_virtual_spi_slave_t **slaves;
+    vmm_mutex_t               slaves_lock; /**< slaves_lock成员 */
+    vmm_virtual_spi_slave_t **slaves; /**< slaves成员 */
 
-    void *private;
+    void *private; /**< 私有数据 */
 };
 
-/** Get virtual spi host for virtual spi slave */
+/**
+ * @brief 获取SPI从设备的主机
+ * @param vss 虚拟屏幕表面指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 vmm_virtual_spi_host_t *vmm_vspislave_get_host(vmm_virtual_spi_slave_t *vss);
 
-/** Get name of virtual spi slave */
+/**
+ * @brief 获取SPI从设备的名称
+ * @param vss 虚拟屏幕表面指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 const char *vmm_vspislave_get_name(vmm_virtual_spi_slave_t *vss);
 
-/** Get chip select of virtual spi slave */
+/**
+ * @brief 获取SPI从设备的片选信号
+ * @param vss 虚拟屏幕表面指针
+ * @return SPI片选编号，失败返回U32_MAX
+ */
 uint32_t vmm_vspislave_get_chip_select(vmm_virtual_spi_slave_t *vss);
 
 /** Create a virtual spi slave */
 vmm_virtual_spi_slave_t *vmm_vspislave_create(
     vmm_emulate_device_t *edev, uint32_t chip_select, uint32_t (*xfer)(vmm_virtual_spi_slave_t *, uint32_t, void *), void *private);
 
-/** Destroy a virtual spi slave */
+/**
+ * @brief 销毁vspislave
+ * @param vss 虚拟屏幕表面指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vspislave_destroy(vmm_virtual_spi_slave_t *vss);
 
-/** Transfer data to a virtual spi slave of given virtual spi host */
+/**
+ * @brief 执行虚拟SPI主机的数据传输
+ * @param vsh 虚拟串口句柄
+ * @param chip_select 片选信号值
+ * @param data 用户自定义数据指针
+ * @return 成功返回传输的字节数，失败返回错误码
+ */
 uint32_t vmm_vspihost_xfer_data(vmm_virtual_spi_host_t *vsh, uint32_t chip_select, uint32_t data);
 
-/** Schedule transfer for given virtual spi host */
+/**
+ * @brief 调度虚拟SPI主机的传输请求
+ * @param vsh 虚拟串口句柄
+ */
 void vmm_vspihost_schedule_xfer(vmm_virtual_spi_host_t *vsh);
 
-/** Get name of virtual spi host */
+/**
+ * @brief 获取SPI主控制器的名称
+ * @param vsh 虚拟串口句柄
+ * @return 目标对象指针，不存在返回NULL
+ */
 const char *vmm_vspihost_get_name(vmm_virtual_spi_host_t *vsh);
 
-/** Get number of chip selects for virtual spi host */
+/**
+ * @brief 获取SPI主控制器片选获取的数量
+ * @param vsh 虚拟串口句柄
+ * @return 数量值
+ */
 uint32_t vmm_vspihost_get_chip_select_count(vmm_virtual_spi_host_t *vsh);
 
-/** Iterate over each virtual spi slave of given virtual spi host */
+/**
+ * @brief 遍历虚拟SPI主机从设备
+ * @param vsh 虚拟串口句柄
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vspihost_iterate_slaves(vmm_virtual_spi_host_t *vsh, void *data, int (*fn)(vmm_virtual_spi_host_t *, vmm_virtual_spi_slave_t *, void *));
 
 /** Create a virtual spi host */
 vmm_virtual_spi_host_t *vmm_vspihost_create(
     const char *name_prefix, vmm_emulate_device_t *edev, void (*xfer)(vmm_virtual_spi_host_t *, void *), uint32_t chip_select_count, void *private);
 
-/** Destroy a virtual spi host */
+/**
+ * @brief 销毁vspihost
+ * @param vsh 虚拟串口句柄
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vspihost_destroy(vmm_virtual_spi_host_t *vsh);
 
-/** Find virtual spi host for given emulated device */
+/**
+ * @brief 查找vspihost
+ * @param edev 模拟设备实例指针
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_virtual_spi_host_t *vmm_vspihost_find(vmm_emulate_device_t *edev);
 
-/** Iterate over each virtual spi host */
+/**
+ * @brief 遍历虚拟SPI主机实例
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vspihost_iterate(vmm_virtual_spi_host_t *start, void *data, int (*fn)(vmm_virtual_spi_host_t *, void *));
 
-/** Count of available virtual spi hosts */
+/**
+ * @brief 获取SPI主控制器的数量
+ * @return 数量值
+ */
 uint32_t vmm_vspihost_count(void);
 
 #endif

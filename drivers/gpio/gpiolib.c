@@ -454,13 +454,13 @@ static struct lock_class_key gpiochip_irq_lock_class;
  * gpiochip_irq_map() - maps an IRQ into a GPIO irqchip
  * @d: the irq_domain used by this irqchip
  * @irq: the global irq number used by this GPIO irqchip irq
- * @hwirq: the local IRQ/GPIO line offset on this gpiochip
+ * @hw_irq_num: the local IRQ/GPIO line offset on this gpiochip
  *
  * This function will set up the mapping for a certain IRQ line on a
  * gpiochip by assigning the gpiochip as chip data, and using the irqchip
  * stored inside the gpiochip.
  */
-static int gpiochip_irq_map(struct irq_domain *d, uint32_t irq, irq_hw_number_t hwirq)
+static int gpiochip_irq_map(struct irq_domain *d, uint32_t irq, irq_hw_number_t hw_irq_num)
 {
     struct gpio_chip *chip = d->host_data;
 
@@ -517,8 +517,8 @@ static int gpiochip_irq_reqres(struct irq_data *d)
 {
     struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
 
-    if (gpio_lock_as_irq(chip, d->hwirq)) {
-        chip_err(chip, "unable to lock HW IRQ %lu for IRQ\n", d->hwirq);
+    if (gpio_lock_as_irq(chip, d->hw_irq_num)) {
+        chip_err(chip, "unable to lock HW IRQ %lu for IRQ\n", d->hw_irq_num);
         return -EINVAL;
     }
 
@@ -529,7 +529,7 @@ static void gpiochip_irq_relres(struct irq_data *d)
 {
     struct gpio_chip *chip = irq_data_get_irq_chip_data(d);
 
-    gpio_unlock_as_irq(chip, d->hwirq);
+    gpio_unlock_as_irq(chip, d->hw_irq_num);
 }
 
 static int gpiochip_to_irq(struct gpio_chip *chip, unsigned offset)

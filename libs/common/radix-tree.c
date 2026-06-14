@@ -165,7 +165,7 @@ static int radix_tree_extend(struct radix_tree_root *root, uint64_t index)
         uint32_t newheight;
 
         if (!(node = radix_tree_node_alloc(root))) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto out;
         }
 
@@ -208,7 +208,7 @@ int radix_tree_insert(struct radix_tree_root *root, uint64_t index, void *item)
     uint64_t                flags;
 
     if (!item || radix_tree_is_indirect_ptr(item)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_write_lock_irq_save_lite(&root->lock, flags);
@@ -233,7 +233,7 @@ int radix_tree_insert(struct radix_tree_root *root, uint64_t index, void *item)
         if (slot == NULL) {
             /* Have to add a child node.  */
             if (!(slot = radix_tree_node_alloc(root))) {
-                rc = VMM_ENOMEM;
+                rc = VMM_ERR_NOMEM;
                 goto out;
             }
 
@@ -257,7 +257,7 @@ int radix_tree_insert(struct radix_tree_root *root, uint64_t index, void *item)
     }
 
     if (slot != NULL) {
-        rc = VMM_EEXIST;
+        rc = VMM_ERR_EXIST;
         goto out;
     }
 

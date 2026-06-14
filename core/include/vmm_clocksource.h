@@ -18,7 +18,7 @@
  *
  * @file vmm_clocksource.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for state free clocksource
+ * @brief 无状态时钟源头文件
  */
 #ifndef _VMM_CLOCKSOURCE_H__
 #define _VMM_CLOCKSOURCE_H__
@@ -65,19 +65,19 @@ typedef struct vmm_clocksource vmm_clocksource_t;
  * @resume:     resume function for the clocksource, if necessary
  */
 struct vmm_clocksource {
-    double_list_t head;
-    const char   *name;
-    int           rating;
-    uint64_t      mask;
-    uint32_t      freq;
-    uint32_t      mult;
-    uint32_t      shift;
-    uint64_t (*read)(vmm_clocksource_t *cs);
-    int (*enable)(vmm_clocksource_t *cs);
-    void (*disable)(vmm_clocksource_t *cs);
-    void (*clocksource)(vmm_clocksource_t *cs);
-    void (*resume)(vmm_clocksource_t *cs);
-    void *private;
+    double_list_t head; /**< 链表头 */
+    const char   *name; /**< 名称 */
+    int           rating; /**< rating成员 */
+    uint64_t      mask; /**< 掩码 */
+    uint32_t      freq; /**< 频率 */
+    uint32_t      mult; /**< 乘数/多播 */
+    uint32_t      shift; /**< shift成员 */
+    uint64_t (*read)(vmm_clocksource_t *cs); /**< 读 */
+    int (*enable)(vmm_clocksource_t *cs); /**< enable成员 */
+    void (*disable)(vmm_clocksource_t *cs); /**< disable成员 */
+    void (*clocksource)(vmm_clocksource_t *cs); /**< clocksource成员 */
+    void (*resume)(vmm_clocksource_t *cs); /**< 恢复 */
+    void *private; /**< 私有数据 */
 };
 
 /* simplify initialization of mask field */
@@ -104,23 +104,27 @@ typedef int (*vmm_clocksource_init_t)(vmm_device_tree_node_t *);
  * @nsec:       continuously increasing count
  */
 struct vmm_timecounter {
-    vmm_clocksource_t *cs;
-    uint64_t           cycles_last;
-    uint64_t           nsec;
+    vmm_clocksource_t *cs; /**< 校验和/片选 */
+    uint64_t           cycles_last; /**< cycles_last成员 */
+    uint64_t           nsec; /**< nsec成员 */
 };
 
 typedef struct vmm_timecounter vmm_timecounter_t;
 
-/** Convert kHz clocksource to clocksource mult */
+/**
+ * @brief 将kHz频率转换为时钟源乘数
+ */
 static inline uint32_t vmm_clocksource_khz2mult(uint32_t khz, uint32_t shift)
 {
-    uint64_t tmp = ((uint64_t)1000000) << shift;
-    tmp += khz >> 1;
-    tmp = udiv64(tmp, khz);
-    return (uint32_t)tmp;
+    uint64_t tmp = ((uint64_t)1000000) << shift; /**< shift成员 */
+    tmp += khz >> 1; /**< 1 */
+    tmp = udiv64(tmp, khz); /**< khz)成员 */
+    return (uint32_t)tmp; /**< (uint32_t)tmp成员 */
 }
 
-/** Convert Hz clocksource to clocksource mult */
+/**
+ * @brief 将Hz频率转换为时钟源乘数
+ */
 static inline uint32_t vmm_clocksource_hz2mult(uint32_t hz, uint32_t shift)
 {
     uint64_t tmp = ((uint64_t)1000000000) << shift;
@@ -132,45 +136,96 @@ static inline uint32_t vmm_clocksource_hz2mult(uint32_t hz, uint32_t shift)
 /** Convert delta cycles to nsecs */
 #define vmm_clocksource_delta2nsecs(cycles, mult, shift) (((cycles) * (mult)) >> (shift))
 
-/** Get clocksource frequency of nanosecond counter */
+/**
+ * @brief 获取时间计数器时钟源的频率
+ * @param tc 时钟计数器指针
+ * @return 成功返回时钟源频率(Hz)，失败返回0
+ */
 uint32_t vmm_timecounter_clocksource_frequency(vmm_timecounter_t *tc);
 
-/** Get current value from nanosecond counter (nanoseconds elapsed) */
+/**
+ * @brief 读取时间计数器当前值
+ * @param tc 时钟计数器指针
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_timecounter_read(vmm_timecounter_t *tc);
 
 #if defined(CONFIG_PROFILE)
-/** Special version for profile */
+/**
+ * @brief 读取时间计数器用于性能分析
+ * @param tc 时钟计数器指针
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_timecounter_read_for_profile(vmm_timecounter_t *tc);
 #endif
 
-/** Start nanosecond counter (nanoseconds elapsed) */
+/**
+ * @brief 启动timecounter
+ * @param tc 时钟计数器指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_timecounter_start(vmm_timecounter_t *tc);
 
-/** Stop nanosecond counter (nanoseconds elapsed) */
+/**
+ * @brief 停止timecounter
+ * @param tc 时钟计数器指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_timecounter_stop(vmm_timecounter_t *tc);
 
-/** Initialize nanosecond counter */
+/**
+ * @brief 初始化timecounter
+ * @param tc 时钟计数器指针
+ * @param cs 时钟源结构体指针
+ * @param start_nsec 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_timecounter_init(vmm_timecounter_t *tc, vmm_clocksource_t *cs, uint64_t start_nsec);
 
-/** Register clocksource */
+/**
+ * @brief 注册时钟源
+ * @param cs 时钟源结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_clocksource_register(vmm_clocksource_t *cs);
 
-/** Register clocksource */
+/**
+ * @brief 注销时钟源
+ * @param cs 时钟源结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_clocksource_unregister(vmm_clocksource_t *cs);
 
-/** Get best rated clocksource */
+/**
+ * @brief 获取最佳时钟源
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_clocksource_t *vmm_clocksource_best(void);
 
-/** Find a clocksource */
+/**
+ * @brief 查找时钟源
+ * @param name 目标对象的名称
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_clocksource_t *vmm_clocksource_find(const char *name);
 
-/** Retrive clocksource with given index */
+/**
+ * @brief 时钟源 获取
+ * @param index 数组中的索引位置
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_clocksource_t *vmm_clocksource_get(int index);
 
-/** Count number of clocksources */
+/**
+ * @brief 获取时钟源的数量
+ * @return 数量值
+ */
 uint32_t vmm_clocksource_count(void);
 
-/** Initialize clocksource management subsystem */
+/**
+ * @brief 初始化时钟源
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_clocksource_init(void);
 
 #endif

@@ -47,25 +47,25 @@
 
 static struct vmm_host_irq_domain *intc_domain __read_mostly;
 
-static void riscv_irqchip_mask_irq(struct vmm_host_irq *d)
+static void riscv_irqchip_mask_irq(vmm_host_irq_t *d)
 {
-    if (d->hwirq < BITS_PER_LONG) {
-        csr_clear(CSR_SIE, BIT(d->hwirq));
+    if (d->hw_irq_num < BITS_PER_LONG) {
+        csr_clear(CSR_SIE, BIT(d->hw_irq_num));
     } else {
-        csr_clear(CSR_SIEH, BIT(d->hwirq - BITS_PER_LONG));
+        csr_clear(CSR_SIEH, BIT(d->hw_irq_num - BITS_PER_LONG));
     }
 }
 
-static void riscv_irqchip_unmask_irq(struct vmm_host_irq *d)
+static void riscv_irqchip_unmask_irq(vmm_host_irq_t *d)
 {
-    if (d->hwirq < BITS_PER_LONG) {
-        csr_set(CSR_SIE, BIT(d->hwirq));
+    if (d->hw_irq_num < BITS_PER_LONG) {
+        csr_set(CSR_SIE, BIT(d->hw_irq_num));
     } else {
-        csr_set(CSR_SIEH, BIT(d->hwirq - BITS_PER_LONG));
+        csr_set(CSR_SIEH, BIT(d->hw_irq_num - BITS_PER_LONG));
     }
 }
 
-static struct vmm_host_irq_chip riscv_irqchip = {
+static vmm_host_irq_chip_t riscv_irqchip = {
     .name       = "riscv-intc",
     .irq_mask   = riscv_irqchip_mask_irq,
     .irq_unmask = riscv_irqchip_unmask_irq,
@@ -135,7 +135,7 @@ static int __init riscv_intc_init(vmm_device_tree_node_t *node)
 
     if (!intc_domain) {
         vmm_lerror("riscv-intc", "failed to add irq domain\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Create IRQ mappings */

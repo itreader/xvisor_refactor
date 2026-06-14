@@ -18,7 +18,7 @@
  *
  * @file vmm_cpumask.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief Interface for managing set of CPUs
+ * @brief CPU集合管理接口
  *
  * The header has been largely adapted from:
  * linux-xxx/include/linux/cpumask.h
@@ -32,9 +32,12 @@
 #include <vmm_types.h>
 #include <libs/bitmap.h>
 
+/**
+ * @brief CPU掩码结构，用于表示一组CPU核心的位图
+ */
 struct vmm_cpumask
 {
-    DECLARE_BITMAP(bits, CONFIG_CPU_COUNT);
+    DECLARE_BITMAP(bits, CONFIG_CPU_COUNT); /**< CONFIG_CPU_COUNT)成员 */
 };
 
 typedef struct vmm_cpumask vmm_cpumask_t;
@@ -81,6 +84,11 @@ static inline const vmm_cpumask_t *get_cpu_mask(uint32_t cpu)
 {
     const uint64_t *p = cpu_bit_bitmap[1 + cpu % BITS_PER_LONG];
     p -= cpu / BITS_PER_LONG;
+/**
+ * @brief 将位图转换为CPU掩码
+ * @param p 数据指针
+ * @return 掩码值
+ */
     return to_cpumask(p);
 }
 
@@ -91,13 +99,17 @@ static inline const vmm_cpumask_t *get_cpu_mask(uint32_t cpu)
 #define vmm_cpumask_of(cpu) (get_cpu_mask(cpu))
 
 /**
- * vmm_cpumask_size - size to allocate for a 'vmm_cpumask_t' in bytes
- * This will eventually be a runtime variable, depending on vmm_cpu_count.
+ * @brief 获取CPU掩码需要分配的字节大小
  */
 static inline size_t vmm_cpumask_size(void)
 {
     /* FIXME: Once all cpumask assignments are eliminated, this
      * can be vmm_cpu_count */
+/**
+ * @brief 将位数转换为long数组元素个数
+ * @param CONFIG_CPU_COUNT 参数
+ * @return 大小值（字节）
+ */
     return BITS_TO_LONGS(CONFIG_CPU_COUNT) * sizeof(long);
 }
 
@@ -273,22 +285,20 @@ static inline uint32_t vmm_cpumask_any_but(const vmm_cpumask_t *mask,
     for ((cpu) = 0; (cpu) < 1; (cpu)++, (void)mask, (void)and)
 #else
 /**
- * vmm_cpumask_first - get the first cpu in a cpumask
- * @srcp: the cpumask pointer
- *
- * Returns >= vmm_cpu_count if no cpus set.
+ * @brief 获取CPU掩码中第一个置位的CPU编号，若无则返回>=CPU计数
  */
 static inline uint32_t vmm_cpumask_first(const vmm_cpumask_t *srcp)
 {
+/**
+ * @brief 查找位图中第一个置位的位
+ * @param vmm_cpumask_bits(srcp 参数
+ * @return 掩码值
+ */
     return find_first_bit(vmm_cpumask_bits(srcp), vmm_cpu_count);
 }
 
 /**
- * vmm_cpumask_next - get the next cpu in a cpumask
- * @n: the cpu prior to the place to search (ie. return will be > @n)
- * @srcp: the cpumask pointer
- *
- * Returns >= vmm_cpu_count if no further cpus set.
+ * @brief 获取CPU掩码中指定CPU之后的下一个置位CPU编号
  */
 static inline uint32_t vmm_cpumask_next(int n, const vmm_cpumask_t *srcp)
 {
@@ -296,15 +306,16 @@ static inline uint32_t vmm_cpumask_next(int n, const vmm_cpumask_t *srcp)
     if (n != -1)
         vmm_cpumask_check(n);
 
+/**
+ * @brief 查找位图中指定位置之后的下一个置位位
+ * @param vmm_cpumask_bits(srcp 参数
+ * @return 掩码值
+ */
     return find_next_bit(vmm_cpumask_bits(srcp), vmm_cpu_count, n + 1);
 }
 
 /**
- * vmm_cpumask_next_zero - get the next unset cpu in a cpumask
- * @n: the cpu prior to the place to search (ie. return will be > @n)
- * @srcp: the cpumask pointer
- *
- * Returns >= vmm_cpu_count if no further cpus unset.
+ * @brief 获取CPU掩码中指定CPU之后的下一个未置位CPU编号
  */
 static inline uint32_t vmm_cpumask_next_zero(int n, const vmm_cpumask_t *srcp)
 {
@@ -316,23 +327,13 @@ static inline uint32_t vmm_cpumask_next_zero(int n, const vmm_cpumask_t *srcp)
 }
 
 /**
- * vmm_cpumask_next_and - get the next cpu in *src1p & *src2p
- * @n: the cpu prior to the place to search (ie. return will be > @n)
- * @src1p: the first cpumask pointer
- * @src2p: the second cpumask pointer
- *
- * Returns >= vmm_cpu_count if no further cpus set in both.
+ * @brief 获取两个CPU掩码交集中指定CPU之后的下一个CPU编号
  */
 uint32_t vmm_cpumask_next_and(int n, const vmm_cpumask_t *,
                               const vmm_cpumask_t *);
 
 /**
- * vmm_cpumask_any_but - return a "random" in a cpumask, but not this one.
- * @mask: the cpumask to search
- * @cpu: the cpu to ignore.
- *
- * Often used to find any cpu but vmm_smp_processor_id() in a mask.
- * Returns >= vmm_cpu_count if no cpus set.
+ * @brief 从CPU掩码中返回除指定CPU外的任意CPU编号
  */
 uint32_t vmm_cpumask_any_but(const vmm_cpumask_t *mask,
                              uint32_t cpu);
@@ -382,9 +383,7 @@ uint32_t vmm_cpumask_any_but(const vmm_cpumask_t *mask,
 #endif /* SMP */
 
 /**
- * vmm_cpumask_set_cpu - set a cpu in a cpumask
- * @cpu: cpu number (< vmm_cpu_count)
- * @dstp: the cpumask pointer
+ * @brief 在CPU掩码中设置指定CPU位
  */
 static inline void vmm_cpumask_set_cpu(uint32_t cpu, vmm_cpumask_t *dstp)
 {
@@ -392,9 +391,7 @@ static inline void vmm_cpumask_set_cpu(uint32_t cpu, vmm_cpumask_t *dstp)
 }
 
 /**
- * vmm_cpumask_clear_cpu - clear a cpu in a cpumask
- * @cpu: cpu number (< vmm_cpu_count)
- * @dstp: the cpumask pointer
+ * @brief 在CPU掩码中清除指定CPU位
  */
 static inline void vmm_cpumask_clear_cpu(int cpu, vmm_cpumask_t *dstp)
 {
@@ -412,32 +409,33 @@ static inline void vmm_cpumask_clear_cpu(int cpu, vmm_cpumask_t *dstp)
     test_bit(vmm_cpumask_check(cpu), vmm_cpumask_bits((cpumask)))
 
 /**
- * vmm_cpumask_test_and_set_cpu - atomically test and set a cpu in a cpumask
- * @cpu: cpu number (< vmm_cpu_count)
- * @cpumask: the cpumask pointer
- *
- * test_and_set_bit wrapper for cpumasks.
+ * @brief 原子地测试并设置CPU掩码中的指定CPU位
  */
 static inline int vmm_cpumask_test_and_set_cpu(int cpu, vmm_cpumask_t *cpumask)
 {
+/**
+ * @brief 原子地测试并设置位图中的指定位
+ * @param vmm_cpumask_check(cpu 参数
+ * @return 掩码值
+ */
     return test_and_set_bit(vmm_cpumask_check(cpu), vmm_cpumask_bits(cpumask));
 }
 
 /**
- * vmm_cpumask_test_and_clear_cpu - atomically test and clear a cpu in a cpumask
- * @cpu: cpu number (< vmm_cpu_count)
- * @cpumask: the cpumask pointer
- *
- * test_and_clear_bit wrapper for cpumasks.
+ * @brief 原子地测试并清除cpumask中的CPU位
  */
 static inline int vmm_cpumask_test_and_clear_cpu(int cpu, vmm_cpumask_t *cpumask)
 {
+/**
+ * @brief 原子地测试并清除位图中的指定位
+ * @param vmm_cpumask_check(cpu 参数
+ * @return 掩码值
+ */
     return test_and_clear_bit(vmm_cpumask_check(cpu), vmm_cpumask_bits(cpumask));
 }
 
 /**
- * vmm_cpumask_setall - set all cpus (< vmm_cpu_count) in a cpumask
- * @dstp: the cpumask pointer
+ * @brief 设置CPU掩码中所有CPU位
  */
 static inline void vmm_cpumask_setall(vmm_cpumask_t *dstp)
 {
@@ -445,8 +443,7 @@ static inline void vmm_cpumask_setall(vmm_cpumask_t *dstp)
 }
 
 /**
- * vmm_cpumask_clear - clear all cpus (< vmm_cpu_count) in a cpumask
- * @dstp: the cpumask pointer
+ * @brief 清除CPU掩码中所有CPU位
  */
 static inline void vmm_cpumask_clear(vmm_cpumask_t *dstp)
 {
@@ -454,10 +451,7 @@ static inline void vmm_cpumask_clear(vmm_cpumask_t *dstp)
 }
 
 /**
- * vmm_cpumask_and - *dstp = *src1p & *src2p
- * @dstp: the cpumask result
- * @src1p: the first input
- * @src2p: the second input
+ * @brief *dstp = *src1p & *src2p
  */
 static inline int vmm_cpumask_and(vmm_cpumask_t *dstp,
                                   const vmm_cpumask_t *src1p,
@@ -468,10 +462,7 @@ static inline int vmm_cpumask_and(vmm_cpumask_t *dstp,
 }
 
 /**
- * cpumask_or - *dstp = *src1p | *src2p
- * @dstp: the cpumask result
- * @src1p: the first input
- * @src2p: the second input
+ * @brief *dstp = *src1p | *src2p
  */
 static inline void vmm_cpumask_or(vmm_cpumask_t *dstp, const vmm_cpumask_t *src1p,
                                   const vmm_cpumask_t *src2p)
@@ -481,10 +472,7 @@ static inline void vmm_cpumask_or(vmm_cpumask_t *dstp, const vmm_cpumask_t *src1
 }
 
 /**
- * vmm_cpumask_xor - *dstp = *src1p ^ *src2p
- * @dstp: the cpumask result
- * @src1p: the first input
- * @src2p: the second input
+ * @brief *dstp = *src1p ^ *src2p
  */
 static inline void vmm_cpumask_xor(vmm_cpumask_t *dstp,
                                    const vmm_cpumask_t *src1p,
@@ -495,10 +483,7 @@ static inline void vmm_cpumask_xor(vmm_cpumask_t *dstp,
 }
 
 /**
- * vmm_cpumask_andnot - *dstp = *src1p & ~*src2p
- * @dstp: the cpumask result
- * @src1p: the first input
- * @src2p: the second input
+ * @brief *dstp = *src1p & ~*src2p
  */
 static inline int vmm_cpumask_andnot(vmm_cpumask_t *dstp,
                                      const vmm_cpumask_t *src1p,
@@ -509,9 +494,7 @@ static inline int vmm_cpumask_andnot(vmm_cpumask_t *dstp,
 }
 
 /**
- * vmm_cpumask_complement - *dstp = ~*srcp
- * @dstp: the cpumask result
- * @srcp: the input to invert
+ * @brief 位取反操作
  */
 static inline void vmm_cpumask_complement(vmm_cpumask_t *dstp,
         const vmm_cpumask_t *srcp)
@@ -521,9 +504,7 @@ static inline void vmm_cpumask_complement(vmm_cpumask_t *dstp,
 }
 
 /**
- * vmm_cpumask_equal - *src1p == *src2p
- * @src1p: the first input
- * @src2p: the second input
+ * @brief *src1p == *src2p
  */
 static inline bool vmm_cpumask_equal(const vmm_cpumask_t *src1p,
                                      const vmm_cpumask_t *src2p)
@@ -533,9 +514,7 @@ static inline bool vmm_cpumask_equal(const vmm_cpumask_t *src1p,
 }
 
 /**
- * vmm_cpumask_intersects - (*src1p & *src2p) != 0
- * @src1p: the first input
- * @src2p: the second input
+ * @brief (*src1p & *src2p) != 0
  */
 static inline bool vmm_cpumask_intersects(const vmm_cpumask_t *src1p,
         const vmm_cpumask_t *src2p)
@@ -545,9 +524,7 @@ static inline bool vmm_cpumask_intersects(const vmm_cpumask_t *src1p,
 }
 
 /**
- * vmm_cpumask_subset - (*src1p & ~*src2p) == 0
- * @src1p: the first input
- * @src2p: the second input
+ * @brief (*src1p & ~*src2p) == 0
  */
 static inline int vmm_cpumask_subset(const vmm_cpumask_t *src1p,
                                      const vmm_cpumask_t *src2p)
@@ -557,37 +534,46 @@ static inline int vmm_cpumask_subset(const vmm_cpumask_t *src1p,
 }
 
 /**
- * vmm_cpumask_empty - *srcp == 0
- * @srcp: the cpumask to that all cpus < vmm_cpu_count are clear.
+ * @brief 检查CPU掩码是否为空（无CPU位置位）
  */
 static inline bool vmm_cpumask_empty(const vmm_cpumask_t *srcp)
 {
+/**
+ * @brief 位图判空操作
+ * @param vmm_cpumask_bits(srcp 参数
+ * @return 掩码值
+ */
     return bitmap_empty(vmm_cpumask_bits(srcp), vmm_cpu_count);
 }
 
 /**
- * vmm_cpumask_full - *srcp == 0xFFFFFFFF...
- * @srcp: the cpumask to that all cpus < vmm_cpu_count are set.
+ * @brief *srcp == 0xFFFFFFFF
  */
 static inline bool vmm_cpumask_full(const vmm_cpumask_t *srcp)
 {
+/**
+ * @brief 位图判满操作
+ * @param vmm_cpumask_bits(srcp 参数
+ * @return 掩码值
+ */
     return bitmap_full(vmm_cpumask_bits(srcp), vmm_cpu_count);
 }
 
 /**
- * vmm_cpumask_weight - Count of bits in *srcp
- * @srcp: the cpumask to count bits (< vmm_cpu_count) in.
+ * @brief 统计置位数量
  */
 static inline uint32_t vmm_cpumask_weight(const vmm_cpumask_t *srcp)
 {
+/**
+ * @brief 位图统计置位数量
+ * @param vmm_cpumask_bits(srcp 参数
+ * @return 掩码值
+ */
     return bitmap_weight(vmm_cpumask_bits(srcp), vmm_cpu_count);
 }
 
 /**
- * vmm_cpumask_shift_right - *dstp = *srcp >> n
- * @dstp: the cpumask result
- * @srcp: the input to shift
- * @n: the number of bits to shift by
+ * @brief 位图右移操作
  */
 static inline void vmm_cpumask_shift_right(vmm_cpumask_t *dstp,
         const vmm_cpumask_t *srcp, int n)
@@ -597,10 +583,7 @@ static inline void vmm_cpumask_shift_right(vmm_cpumask_t *dstp,
 }
 
 /**
- * vmm_cpumask_shift_left - *dstp = *srcp << n
- * @dstp: the cpumask result
- * @srcp: the input to shift
- * @n: the number of bits to shift by
+ * @brief 位图左移操作
  */
 static inline void vmm_cpumask_shift_left(vmm_cpumask_t *dstp,
         const vmm_cpumask_t *srcp, int n)
@@ -610,9 +593,7 @@ static inline void vmm_cpumask_shift_left(vmm_cpumask_t *dstp,
 }
 
 /**
- * vmm_cpumask_copy - *dstp = *srcp
- * @dstp: the result
- * @srcp: the input cpumask
+ * @brief 位图复制操作
  */
 static inline void vmm_cpumask_copy(vmm_cpumask_t *dstp,
                                     const vmm_cpumask_t *srcp)
@@ -659,12 +640,44 @@ extern const DECLARE_BITMAP(cpu_all_bits, CONFIG_CPU_COUNT);
 #define for_each_present_cpu(cpu) for_each_cpu((cpu), cpu_present_mask)
 
 /* Wrappers for arch boot code to manipulate normally-constant masks */
+/**
+ * @brief 设置指定CPU在possible掩码中的状态
+ * @param cpu CPU编号
+ * @param possible 是否可能出现
+ */
 void vmm_set_cpu_possible(uint32_t cpu, bool possible);
+/**
+ * @brief 设置指定CPU在present掩码中的状态
+ * @param cpu CPU编号
+ * @param present 是否在线（已安装）
+ */
 void vmm_set_cpu_present(uint32_t cpu, bool present);
+/**
+ * @brief 设置指定CPU在online掩码中的状态
+ * @param cpu CPU编号
+ * @param online 是否在线
+ */
 void vmm_set_cpu_online(uint32_t cpu, bool online);
+/**
+ * @brief 设置指定CPU在active掩码中的状态
+ * @param cpu CPU编号
+ * @param active 是否处于活动状态
+ */
 void vmm_set_cpu_active(uint32_t cpu, bool active);
+/**
+ * @brief 用指定掩码初始化CPU present掩码
+ * @param src CPU亲和性掩码
+ */
 void vmm_init_cpu_present(const vmm_cpumask_t *src);
+/**
+ * @brief 用指定掩码初始化CPU possible掩码
+ * @param src CPU亲和性掩码
+ */
 void vmm_init_cpu_possible(const vmm_cpumask_t *src);
+/**
+ * @brief 用指定掩码初始化CPU online掩码
+ * @param src CPU亲和性掩码
+ */
 void vmm_init_cpu_online(const vmm_cpumask_t *src);
 
 #endif /* __VMM_CPUMASK_H__ */

@@ -171,7 +171,7 @@ static int platform_pt_guest_address_space_notification(vmm_notifier_block_t *nb
     struct vmm_guest_address_space_event *edata = data;
     struct platform_pt_state             *s     = container_of(nb, struct platform_pt_state, nb);
 
-    /* We are only interested in guest aspace init events so,
+    /* We are only interested in guest addr_space init events so,
      * ignore other events.
      */
     if (evt != VMM_GUEST_ADDRESS_SPACE_EVENT_INIT) {
@@ -219,7 +219,7 @@ static int platform_pt_probe(struct vmm_guest *guest, vmm_emulate_device_t *edev
     s = vmm_zalloc(sizeof(struct platform_pt_state));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto platform_pt_probe_fail;
     }
 
@@ -227,7 +227,7 @@ static int platform_pt_probe(struct vmm_guest *guest, vmm_emulate_device_t *edev
     strlcat(s->name, "/", sizeof(s->name));
 
     if (strlcat(s->name, edev->node->name, sizeof(s->name)) >= sizeof(s->name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto platform_pt_probe_freestate_fail;
     }
 
@@ -242,28 +242,28 @@ static int platform_pt_probe(struct vmm_guest *guest, vmm_emulate_device_t *edev
         s->host_irqs = vmm_zalloc(sizeof(uint32_t) * s->irq_count);
 
         if (!s->host_irqs) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto platform_pt_probe_freestate_fail;
         }
 
         s->host_irqs_type = vmm_zalloc(sizeof(uint32_t) * s->irq_count);
 
         if (!s->host_irqs_type) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto platform_pt_probe_freehirqs_fail;
         }
 
         s->host_irqs_cpu = vmm_zalloc(sizeof(uint32_t) * s->irq_count);
 
         if (!s->host_irqs_cpu) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto platform_pt_probe_freehirqst_fail;
         }
 
         s->guest_irqs = vmm_zalloc(sizeof(uint32_t) * s->irq_count);
 
         if (!s->guest_irqs) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto platform_pt_probe_freehirqsc_fail;
         }
     }
@@ -307,7 +307,7 @@ static int platform_pt_probe(struct vmm_guest *guest, vmm_emulate_device_t *edev
             }
         } else if ((s->host_irqs_cpu[i] != U32_MAX) && (s->host_irqs_cpu[i] >= vmm_num_online_cpus())) {
             vmm_printf("%s: %s invalid cpu=%d\n", __func__, s->name, s->host_irqs_cpu[i]);
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             goto platform_pt_probe_cleanupirqs_fail;
         }
 
@@ -344,12 +344,12 @@ static int platform_pt_probe(struct vmm_guest *guest, vmm_emulate_device_t *edev
         s->dev = vmm_device_driver_bus_find_device_by_name(&platform_bus, NULL, iommu_device);
 
         if (!s->dev) {
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             goto platform_pt_probe_cleanupirqs_fail;
         }
 
         if (!s->dev->iommu_group) {
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             goto platform_pt_probe_cleanupirqs_fail;
         }
 
@@ -362,7 +362,7 @@ static int platform_pt_probe(struct vmm_guest *guest, vmm_emulate_device_t *edev
         }
 
         if (!s->dom) {
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             goto platform_pt_probe_dref_dev_fail;
         }
 
@@ -447,7 +447,7 @@ static int platform_pt_remove(vmm_emulate_device_t *edev)
     struct platform_pt_state *s = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_guest_address_space_unregister_client(&s->nb);

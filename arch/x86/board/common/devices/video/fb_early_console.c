@@ -202,7 +202,7 @@ int init_early_fb_console(void)
 
     while (nr_pages) {
         if (__create_bootstrap_page_table_entry((uint64_t)video_base, (uint64_t)video_base, PAGE_SIZE_2M, 0, 1) != VMM_OK) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         video_base += PAGE_SIZE_2M;

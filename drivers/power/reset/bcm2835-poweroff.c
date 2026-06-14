@@ -109,7 +109,7 @@ static int __init bcm2835_poweroff_driver_probe(vmm_device_t *dev)
     /* Check if we already probed this driver */
     if (pm_base_va) {
         vmm_printf("%s: already probed\n", __func__);
-        return VMM_EEXIST;
+        return VMM_ERR_EXIST;
     }
 
     /* Map registers */

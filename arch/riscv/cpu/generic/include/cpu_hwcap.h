@@ -71,7 +71,7 @@ typedef struct vmm_device_tree_node vmm_device_tree_node_t;
  *
  * @node HART device tree node
  * @hart_id output hart id
- * @returns VMM_OK upon success and VMM_Exxx upon failure
+ * @returns VMM_OK upon success and VMM_ERR_xxx upon failure
  */
 int riscv_node_to_hartid(vmm_device_tree_node_t *node, uint32_t *hart_id);
 

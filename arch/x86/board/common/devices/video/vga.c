@@ -354,13 +354,13 @@ int arch_std_default_terminal_getc(uint8_t *ch)
 
         /* Try to dequeue from default_terminal fifo */
         if (!fifo_dequeue(default_terminal_fifo, ch)) {
-            return VMM_ENOTAVAIL;
+            return VMM_ERR_NOTAVAIL;
         }
 
         return VMM_OK;
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 int __init arch_std_default_terminal_init(void)
@@ -371,7 +371,7 @@ int __init arch_std_default_terminal_init(void)
     default_terminal_fifo = fifo_alloc(sizeof(uint8_t), 128);
 
     if (!default_terminal_fifo) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     INIT_COMPLETION(&default_terminal_fifo_cmpl);

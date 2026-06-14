@@ -72,7 +72,7 @@ static void *dma_alloc_attrs(
 
     vma                 = vmm_dma_zalloc(size);
 
-    if (VMM_OK != vmm_host_va2pa((virtual_addr_t)vma, dma_handle)) {
+    if (VMM_OK != vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)vma, dma_handle)) {
         *dma_handle = 0;
     }
 
@@ -551,7 +551,7 @@ static int mxcfb_set_par(struct frame_buffer_info *fbi)
         }
 
         if (mxcfb_map_video_memory(fbi) < 0) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
     }
 
@@ -596,7 +596,7 @@ static int mxcfb_set_par(struct frame_buffer_info *fbi)
                     dma_free_coherent(&fbi->dev, mxc_fbi->alpha_mem_len, mxc_fbi->alpha_virt_addr1, mxc_fbi->alpha_phy_addr1);
                 }
 
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             mxc_fbi->alpha_mem_len = alpha_mem_len;
@@ -612,7 +612,7 @@ static int mxcfb_set_par(struct frame_buffer_info *fbi)
 
         if (retval < 0) {
             dev_err(&fbi->dev, "setup error, dispdrv:%s.\n", mxc_fbi->dispdrv->drv->name);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 
@@ -672,7 +672,7 @@ static int mxcfb_set_par(struct frame_buffer_info *fbi)
                 fbi->var.left_margin, fbi->var.hsync_len, fbi->var.right_margin, fbi->var.upper_margin, fbi->var.vsync_len, fbi->var.lower_margin, 0,
                 sig_cfg) != 0) {
             dev_err(&fbi->dev, "mxcfb: Error initializing panel.\n");
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         fbi->mode = (struct fb_videomode *)fb_match_mode(&fbi->var, &fbi->modelist);
@@ -712,7 +712,7 @@ static int mxcfb_set_par(struct frame_buffer_info *fbi)
 
         if (retval < 0) {
             dev_err(&fbi->dev, "enable error, dispdrv:%s.\n", mxc_fbi->dispdrv->drv->name);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 
@@ -817,7 +817,7 @@ static int mxcfb_set_smem(struct frame_buffer_info *fbi, uint64_t start, uint32_
                     dma_free_coherent(&fbi->dev, mxc_fbi->alpha_mem_len, mxc_fbi->alpha_virt_addr1, mxc_fbi->alpha_phy_addr1);
                 }
 
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             mxc_fbi->alpha_mem_len = alpha_mem_len;
@@ -832,7 +832,7 @@ static int mxcfb_set_smem(struct frame_buffer_info *fbi, uint64_t start, uint32_
 
         if (retval < 0) {
             dev_err(&fbi->dev, "setup error, dispdrv:%s.\n", mxc_fbi->dispdrv->drv->name);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 
@@ -892,7 +892,7 @@ static int mxcfb_set_smem(struct frame_buffer_info *fbi, uint64_t start, uint32_
                 fbi->var.left_margin, fbi->var.hsync_len, fbi->var.right_margin, fbi->var.upper_margin, fbi->var.vsync_len, fbi->var.lower_margin, 0,
                 sig_cfg) != 0) {
             dev_err(&fbi->dev, "mxcfb: Error initializing panel.\n");
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         fbi->mode = (struct fb_videomode *)fb_match_mode(&fbi->var, &fbi->modelist);
@@ -932,7 +932,7 @@ static int mxcfb_set_smem(struct frame_buffer_info *fbi, uint64_t start, uint32_
 
         if (retval < 0) {
             dev_err(&fbi->dev, "enable error, dispdrv:%s.\n", mxc_fbi->dispdrv->drv->name);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 
@@ -1076,28 +1076,28 @@ int swap_channels(struct frame_buffer_info *fbi_from)
 
     if (ipu_request_irq(mxc_fbi_from->ipu, mxc_fbi_from->ipu_ch_irq, mxcfb_irq_handler, IPU_IRQF_ONESHOT, MXCFB_NAME, fbi_from) != 0) {
         dev_err(&fbi_from->dev, "Error registering irq %d\n", mxc_fbi_from->ipu_ch_irq);
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     ipu_disable_irq(mxc_fbi_from->ipu, mxc_fbi_from->ipu_ch_irq);
 
     if (ipu_request_irq(mxc_fbi_to->ipu, mxc_fbi_to->ipu_ch_irq, mxcfb_irq_handler, IPU_IRQF_ONESHOT, MXCFB_NAME, fbi_to) != 0) {
         dev_err(&fbi_to->dev, "Error registering irq %d\n", mxc_fbi_to->ipu_ch_irq);
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     ipu_disable_irq(mxc_fbi_to->ipu, mxc_fbi_to->ipu_ch_irq);
 
     if (ipu_request_irq(mxc_fbi_from->ipu, mxc_fbi_from->ipu_ch_nf_irq, mxcfb_nf_irq_handler, IPU_IRQF_ONESHOT, MXCFB_NAME, fbi_from) != 0) {
         dev_err(&fbi_from->dev, "Error registering irq %d\n", mxc_fbi_from->ipu_ch_nf_irq);
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     ipu_disable_irq(mxc_fbi_from->ipu, mxc_fbi_from->ipu_ch_nf_irq);
 
     if (ipu_request_irq(mxc_fbi_to->ipu, mxc_fbi_to->ipu_ch_nf_irq, mxcfb_nf_irq_handler, IPU_IRQF_ONESHOT, MXCFB_NAME, fbi_to) != 0) {
         dev_err(&fbi_to->dev, "Error registering irq %d\n", mxc_fbi_to->ipu_ch_nf_irq);
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     ipu_disable_irq(mxc_fbi_to->ipu, mxc_fbi_to->ipu_ch_nf_irq);
@@ -1259,12 +1259,12 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             struct mxcfb_gbl_alpha ga;
 
             if (copy_from_user(&ga, (void *)arg, sizeof(ga))) {
-                retval = VMM_EFAULT;
+                retval = VMM_ERR_FAULT;
                 break;
             }
 
             if (ipu_disp_set_global_alpha(mxc_fbi->ipu, mxc_fbi->ipu_ch, (bool)ga.enable, ga.alpha)) {
-                retval = VMM_EINVALID;
+                retval = VMM_ERR_INVALID;
                 break;
             }
 
@@ -1284,12 +1284,12 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             struct mxcfb_loc_alpha la;
 
             if (copy_from_user(&la, (void *)arg, sizeof(la))) {
-                retval = VMM_EFAULT;
+                retval = VMM_ERR_FAULT;
                 break;
             }
 
             if (ipu_disp_set_global_alpha(mxc_fbi->ipu, mxc_fbi->ipu_ch, !(bool)la.enable, 0)) {
-                retval = VMM_EINVALID;
+                retval = VMM_ERR_INVALID;
                 break;
             }
 
@@ -1304,7 +1304,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
                 } else if (mxc_fbi->ipu_ch == MEM_BG_SYNC) {
                     ipu_ch = MEM_FG_SYNC;
                 } else {
-                    retval = VMM_EINVALID;
+                    retval = VMM_ERR_INVALID;
                     break;
                 }
 
@@ -1324,7 +1324,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             la.alpha_phy_addr1 = mxc_fbi->alpha_phy_addr1;
 
             if (copy_to_user((void *)arg, &la, sizeof(la))) {
-                retval = VMM_EFAULT;
+                retval = VMM_ERR_FAULT;
                 break;
             }
 
@@ -1346,11 +1346,11 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
                     &fbi->dev, "Should use background or overlay "
                                "framebuffer to set the alpha buffer "
                                "number\n");
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
             }
 
             if (get_user(base, argp)) {
-                return VMM_EFAULT;
+                return VMM_ERR_FAULT;
             }
 
             if (base != mxc_fbi->alpha_phy_addr0 && base != mxc_fbi->alpha_phy_addr1) {
@@ -1359,7 +1359,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
                     "Wrong alpha buffer physical address "
                     "%lu\n",
                     base);
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
             }
 
             if (mxc_fbi->ipu_ch == MEM_FG_SYNC) {
@@ -1372,7 +1372,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
 
             if (retval == 0) {
                 dev_err(&fbi->dev, "timeout when waiting for alpha flip irq\n");
-                retval = VMM_ETIMEDOUT;
+                retval = VMM_ERR_TIMEDOUT;
                 break;
             }
 
@@ -1398,7 +1398,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             struct mxcfb_color_key key;
 
             if (copy_from_user(&key, (void *)arg, sizeof(key))) {
-                retval = VMM_EFAULT;
+                retval = VMM_ERR_FAULT;
                 break;
             }
 
@@ -1412,7 +1412,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             struct mxcfb_gamma gamma;
 
             if (copy_from_user(&gamma, (void *)arg, sizeof(gamma))) {
-                retval = VMM_EFAULT;
+                retval = VMM_ERR_FAULT;
                 break;
             }
 
@@ -1436,18 +1436,18 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
                 }
 
                 if (!bg_mxcfbi) {
-                    retval = VMM_EINVALID;
+                    retval = VMM_ERR_INVALID;
                     break;
                 }
 
                 if (bg_mxcfbi->cur_blank != FB_BLANK_UNBLANK) {
-                    retval = VMM_EINVALID;
+                    retval = VMM_ERR_INVALID;
                     break;
                 }
             }
 
             if (mxc_fbi->cur_blank != FB_BLANK_UNBLANK) {
-                retval = VMM_EINVALID;
+                retval = VMM_ERR_INVALID;
                 break;
             }
 
@@ -1458,7 +1458,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
 
             if (retval == 0) {
                 dev_err(&fbi->dev, "MXCFB_WAIT_FOR_VSYNC: timeout %d\n", retval);
-                retval = VMM_ETIME;
+                retval = VMM_ERR_TIME;
             } else if (retval > 0) {
                 retval = 0;
             }
@@ -1474,11 +1474,11 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             mem = vmm_zalloc(sizeof(*mem));
 
             if (mem == NULL) {
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             if (get_user(size, argp)) {
-                return VMM_EFAULT;
+                return VMM_ERR_FAULT;
             }
 
             mem->size     = VMM_PAGE_ALIGN(size);
@@ -1487,7 +1487,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
 
             if (mem->cpu_addr == NULL) {
                 vmm_free(mem);
-                return VMM_ENOMEM;
+                return VMM_ERR_NOMEM;
             }
 
             list_add(&mem->list, &fb_alloc_list);
@@ -1495,7 +1495,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             dev_dbg(&fbi->dev, "allocated %d bytes @ 0x%08X\n", mem->size, mem->phy_addr);
 
             if (put_user(mem->phy_addr, argp)) {
-                return VMM_EFAULT;
+                return VMM_ERR_FAULT;
             }
 
             break;
@@ -1507,10 +1507,10 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             struct mxcfb_alloc_list *mem;
 
             if (get_user(offset, argp)) {
-                return VMM_EFAULT;
+                return VMM_ERR_FAULT;
             }
 
-            retval = VMM_EINVALID;
+            retval = VMM_ERR_INVALID;
             list_for_each_entry(mem, &fb_alloc_list, list)
             {
                 if (mem->phy_addr == offset) {
@@ -1535,12 +1535,12 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
                     &fbi->dev, "Should use the overlay "
                                "framebuffer to set the position of "
                                "the overlay window\n");
-                retval = VMM_EINVALID;
+                retval = VMM_ERR_INVALID;
                 break;
             }
 
             if (copy_from_user(&pos, (void *)arg, sizeof(pos))) {
-                retval = VMM_EFAULT;
+                retval = VMM_ERR_FAULT;
                 break;
             }
 
@@ -1550,7 +1550,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
                 dev_err(
                     &fbi->dev, "Cannot find the "
                                "background framebuffer\n");
-                retval = VMM_ENOENT;
+                retval = VMM_ERR_NOENT;
                 break;
             }
 
@@ -1576,7 +1576,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             retval = ipu_disp_set_window_pos(mxc_fbi->ipu, mxc_fbi->ipu_ch, pos.x, pos.y);
 
             if (copy_to_user((void *)arg, &pos, sizeof(pos))) {
-                retval = VMM_EFAULT;
+                retval = VMM_ERR_FAULT;
                 break;
             }
 
@@ -1588,7 +1588,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             struct mxcframe_buffer_info *mxc_fbi = (struct mxcframe_buffer_info *)fbi->par;
 
             if (put_user(mxc_fbi->ipu_ch, argp)) {
-                return VMM_EFAULT;
+                return VMM_ERR_FAULT;
             }
 
             break;
@@ -1599,7 +1599,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             struct mxcframe_buffer_info *mxc_fbi = (struct mxcframe_buffer_info *)fbi->par;
 
             if (put_user(mxc_fbi->ipu_di_pix_fmt, argp)) {
-                return VMM_EFAULT;
+                return VMM_ERR_FAULT;
             }
 
             break;
@@ -1610,7 +1610,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             struct mxcframe_buffer_info *mxc_fbi = (struct mxcframe_buffer_info *)fbi->par;
 
             if (put_user(mxc_fbi->ipu_di, argp)) {
-                return VMM_EFAULT;
+                return VMM_ERR_FAULT;
             }
 
             break;
@@ -1621,7 +1621,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             struct mxcframe_buffer_info *mxc_fbi = (struct mxcframe_buffer_info *)fbi->par;
 
             if (put_user(mxc_fbi->cur_blank, argp)) {
-                return VMM_EFAULT;
+                return VMM_ERR_FAULT;
             }
 
             break;
@@ -1632,7 +1632,7 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             struct mxcframe_buffer_info *mxc_fbi = (struct mxcframe_buffer_info *)fbi->par;
 
             if (get_user(mxc_fbi->ipu_di_pix_fmt, argp)) {
-                return VMM_EFAULT;
+                return VMM_ERR_FAULT;
             }
 
             break;
@@ -1643,18 +1643,18 @@ static int mxcfb_ioctl(struct frame_buffer_info *fbi, uint32_t cmd, uint64_t arg
             struct mxcfb_csc_matrix csc;
 
             if (copy_from_user(&csc, (void *)arg, sizeof(csc))) {
-                return VMM_EFAULT;
+                return VMM_ERR_FAULT;
             }
 
             if ((mxc_fbi->ipu_ch != MEM_FG_SYNC) && (mxc_fbi->ipu_ch != MEM_BG_SYNC) && (mxc_fbi->ipu_ch != MEM_BG_ASYNC0)) {
-                return VMM_EFAULT;
+                return VMM_ERR_FAULT;
             }
 
             ipu_set_csc_coefficients(mxc_fbi->ipu, mxc_fbi->ipu_ch, csc.param);
         }
 
         default:
-            retval = VMM_EINVALID;
+            retval = VMM_ERR_INVALID;
     }
 
     return retval;
@@ -1740,22 +1740,22 @@ static int mxcfb_pan_display(struct frame_buffer_var_screeninfo *var, struct fra
         }
 
         if (!bg_mxcfbi) {
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         if (bg_mxcfbi->cur_blank != FB_BLANK_UNBLANK) {
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 
     if (mxc_fbi->cur_blank != FB_BLANK_UNBLANK) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     y_bottom = var->yoffset;
 
     if (y_bottom > info->var.yres_virtual) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     switch (fbi_to_pixfmt(info)) {
@@ -1817,7 +1817,7 @@ static int mxcfb_pan_display(struct frame_buffer_var_screeninfo *var, struct fra
 
     if (ret == 0) {
         dev_err(&info->dev, "timeout when waiting for flip irq\n");
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     ++mxc_fbi->cur_ipu_buf;
@@ -1857,7 +1857,7 @@ static int mxcfb_pan_display(struct frame_buffer_var_screeninfo *var, struct fra
         mxc_fbi->cur_ipu_alpha_buf = !mxc_fbi->cur_ipu_alpha_buf;
         ipu_clear_irq(mxc_fbi->ipu, mxc_fbi->ipu_ch_irq);
         ipu_enable_irq(mxc_fbi->ipu, mxc_fbi->ipu_ch_irq);
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     dev_dbg(&info->dev, "Update complete\n");
@@ -1902,13 +1902,13 @@ static int mxcfb_mmap(struct frame_buffer_info *fbi, struct vm_area_struct *vma)
         }
 
         if (!found)
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     }
 
     len = PAGE_ALIGN(len);
 
     if (vma->vm_end - vma->vm_start > len)
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
 
     /* make buffers bufferable */
     vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
@@ -1918,7 +1918,7 @@ static int mxcfb_mmap(struct frame_buffer_info *fbi, struct vm_area_struct *vma)
     if (remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff,
                         vma->vm_end - vma->vm_start, vma->vm_page_prot)) {
         dev_dbg(&fbi->dev, "mmap remap_pfn_range failed\n");
-        return VMM_ENOBUFS;
+        return VMM_ERR_NOBUFS;
     }
 
     return 0;
@@ -2060,7 +2060,7 @@ static int mxcfb_map_video_memory(struct frame_buffer_info *fbi)
         dev_err(&fbi->dev, "Unable to allocate framebuffer memory\n");
         fbi->fix.smem_len   = 0;
         fbi->fix.smem_start = 0;
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     dev_dbg(&fbi->dev, "allocated fb @ paddr=0x%08X, size=%d.\n", (uint32_t)fbi->fix.smem_start, fbi->fix.smem_len);
@@ -2271,7 +2271,7 @@ static int mxcfb_option_setup(vmm_device_t *dev, struct frame_buffer_info *fbi)
     if (VMM_OK != vmm_device_tree_read_string(dev->of_node, "options", &of_options)) {
         dev_err(dev, "Can't get fb option for %s!\n",
                 dev->of_node->name);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     options_save = vmm_zalloc(strlen(of_options));
@@ -2391,7 +2391,7 @@ static int mxcfb_register(struct frame_buffer_info *fbi)
 
     if (ipu_request_irq(mxcfbi->ipu, mxcfbi->ipu_ch_irq, mxcfb_irq_handler, IPU_IRQF_ONESHOT, MXCFB_NAME, fbi) != 0) {
         dev_err(&fbi->dev, "Error registering EOF irq handler.\n");
-        ret = VMM_EBUSY;
+        ret = VMM_ERR_BUSY;
         goto err0;
     }
 
@@ -2399,7 +2399,7 @@ static int mxcfb_register(struct frame_buffer_info *fbi)
 
     if (ipu_request_irq(mxcfbi->ipu, mxcfbi->ipu_ch_nf_irq, mxcfb_nf_irq_handler, IPU_IRQF_ONESHOT, MXCFB_NAME, fbi) != 0) {
         dev_err(&fbi->dev, "Error registering NFACK irq handler.\n");
-        ret = VMM_EBUSY;
+        ret = VMM_ERR_BUSY;
         goto err1;
     }
 
@@ -2410,7 +2410,7 @@ static int mxcfb_register(struct frame_buffer_info *fbi)
             dev_err(
                 &fbi->dev, "Error registering alpha irq "
                            "handler.\n");
-            ret = VMM_EBUSY;
+            ret = VMM_ERR_BUSY;
             goto err2;
         }
     }
@@ -2518,7 +2518,7 @@ static int mxcfb_setup_overlay(vmm_device_t *dev, struct frame_buffer_info *fbi_
     ovfbi                            = mxcfb_init_fbinfo(dev, &mxcfb_ops);
 
     if (!ovfbi) {
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto init_ovfbinfo_failed;
     }
 
@@ -2527,7 +2527,7 @@ static int mxcfb_setup_overlay(vmm_device_t *dev, struct frame_buffer_info *fbi_
     mxcfbi_fg->ipu = ipu_get_soc(mxcfbi_bg->ipu_id);
 
     if (VMM_IS_ERR_OR_NULL(mxcfbi_fg->ipu)) {
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
         goto get_ipu_failed;
     }
 
@@ -2588,7 +2588,7 @@ static bool ipu_usage[2][2];
 static int ipu_test_set_usage(int ipu, int di)
 {
     if (ipu_usage[ipu][di]) {
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     } else {
         ipu_usage[ipu][di] = true;
     }
@@ -2678,7 +2678,7 @@ static int mxcfb_get_of_property(vmm_device_t *dev, struct ipuv3_fb_platform_dat
         plat_data->interface_pix_fmt = IPU_PIX_FMT_VYUY;
     } else {
         dev_err(dev, "err interface_pix_fmt!\n");
-        return VMM_ENOENT;
+        return VMM_ERR_NOENT;
     }
 
     len = min(sizeof(plat_data->disp_dev) - 1, strlen(disp_dev));
@@ -2722,7 +2722,7 @@ static int mxcfb_probe(vmm_device_t *dev)
     plat_data = vmm_devm_zalloc(dev, sizeof(struct ipuv3_fb_platform_data));
 
     if (!plat_data) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     ret = mxcfb_get_of_property(dev, plat_data);
@@ -2736,7 +2736,7 @@ static int mxcfb_probe(vmm_device_t *dev)
     fbi = mxcfb_init_fbinfo(dev, &mxcfb_ops);
 
     if (!fbi) {
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto init_fbinfo_failed;
     }
 
@@ -2797,7 +2797,7 @@ static int mxcfb_probe(vmm_device_t *dev)
     mxcfbi->ipu = ipu_get_soc(mxcfbi->ipu_id);
 
     if (VMM_IS_ERR_OR_NULL(mxcfbi->ipu)) {
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
         goto get_ipu_failed;
     }
 

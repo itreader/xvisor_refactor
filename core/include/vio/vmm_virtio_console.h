@@ -18,7 +18,7 @@
  *
  * @file vmm_virtio_console.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief VirtIO Console Device Interface.
+ * @brief VirtIO控制台设备接口
  *
  * This header has been derived from linux kernel source:
  * <linux_source>/include/uapi/linux/virtio_console.h
@@ -70,15 +70,18 @@
 
 #define VMM_VIRTIO_CONSOLE_BAD_ID        (~(uint32_t)0)
 
+/**
+ * @brief VirtIO控制台配置，保存列数和行数
+ */
 struct vmm_virtio_console_config {
     /* colums of the screens */
-    uint16_t cols;
+    uint16_t cols; /**< 列数 */
     /* rows of the screens */
-    uint16_t rows;
+    uint16_t rows; /**< 行数 */
     /* max. number of ports this device can hold */
-    uint32_t max_nr_ports;
+    uint32_t max_nr_ports; /**< max_nr_ports成员 */
     /* emergency write register */
-    uint32_t emerg_wr;
+    uint32_t emerg_wr; /**< emerg_wr成员 */
 } __attribute__((packed));
 
 /*

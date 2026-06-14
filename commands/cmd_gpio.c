@@ -56,7 +56,7 @@ static int cmd_gpio_list(vmm_char_device_t *cdev, int argc, char **argv)
 {
     if (argc != 1) {
         vmm_cdev_printf(cdev, "*** Invalid use of command\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     gpiolib_dump(cdev);
@@ -99,7 +99,7 @@ static int cmd_gpio_set(vmm_char_device_t *cdev, int argc, char **argv)
 
         if (rc) {
             vmm_cdev_printf(cdev, "*** Error: %i\n", rc);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         rc = __gpio_get_value(gpio);
@@ -115,14 +115,14 @@ static int cmd_gpio_set(vmm_char_device_t *cdev, int argc, char **argv)
 
         if (rc) {
             vmm_cdev_printf(cdev, "*** Error: %i\n", rc);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     }
 
     return VMM_OK;
 fail:
     vmm_cdev_printf(cdev, "*** Invalid use of command\n");
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int cmd_gpio_exec(vmm_char_device_t *cdev, int argc, char **argv)
@@ -153,7 +153,7 @@ static int cmd_gpio_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 done:
     cmd_gpio_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_gpio = {

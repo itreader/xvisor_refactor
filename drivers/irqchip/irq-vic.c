@@ -73,7 +73,7 @@ struct vic_chip_data {
 
 static struct vic_chip_data vic_data[VIC_MAX_NR];
 
-static inline void *vic_base(struct vmm_host_irq *d)
+static inline void *vic_base(vmm_host_irq_t *d)
 {
     struct vic_chip_data *v = vmm_host_irq_get_chip_data(d);
 
@@ -82,7 +82,7 @@ static inline void *vic_base(struct vmm_host_irq *d)
 
 static uint32_t vic_active_irq(uint32_t cpu_nr, uint32_t prev_irq)
 {
-    uint32_t              hwirq, int_status, ret = UINT_MAX;
+    uint32_t              hw_irq_num, int_status, ret = UINT_MAX;
     struct vic_chip_data *v = &vic_data[0];
 
     int_status              = vmm_readl((void *)v->base + VIC_IRQ_STATUS);
@@ -91,12 +91,12 @@ static uint32_t vic_active_irq(uint32_t cpu_nr, uint32_t prev_irq)
         goto done;
     }
 
-    for (hwirq = 0; hwirq < VIC_NR_IRQS; hwirq++) {
-        if (!((int_status >> hwirq) & 0x1)) {
+    for (hw_irq_num = 0; hw_irq_num < VIC_NR_IRQS; hw_irq_num++) {
+        if (!((int_status >> hw_irq_num) & 0x1)) {
             continue;
         }
 
-        ret = vmm_host_irq_domain_find_mapping(v->domain, hwirq);
+        ret = vmm_host_irq_domain_find_mapping(v->domain, hw_irq_num);
         goto done;
     }
 
@@ -104,26 +104,26 @@ done:
     return ret;
 }
 
-static void vic_mask_irq(struct vmm_host_irq *d)
+static void vic_mask_irq(vmm_host_irq_t *d)
 {
-    vmm_writel(1 << d->hwirq, vic_base(d) + VIC_INT_ENABLE_CLEAR);
+    vmm_writel(1 << d->hw_irq_num, vic_base(d) + VIC_INT_ENABLE_CLEAR);
 }
 
-static void vic_unmask_irq(struct vmm_host_irq *d)
+static void vic_unmask_irq(vmm_host_irq_t *d)
 {
-    vmm_writel(1 << d->hwirq, vic_base(d) + VIC_INT_ENABLE);
+    vmm_writel(1 << d->hw_irq_num, vic_base(d) + VIC_INT_ENABLE);
 }
 
-static void vic_ack_irq(struct vmm_host_irq *d)
+static void vic_ack_irq(vmm_host_irq_t *d)
 {
-    vmm_writel(1 << d->hwirq, vic_base(d) + VIC_INT_ENABLE_CLEAR);
+    vmm_writel(1 << d->hw_irq_num, vic_base(d) + VIC_INT_ENABLE_CLEAR);
     /* moreover, clear the soft-triggered, in case it was the reason */
-    vmm_writel(1 << d->hwirq, vic_base(d) + VIC_INT_SOFT_CLEAR);
+    vmm_writel(1 << d->hw_irq_num, vic_base(d) + VIC_INT_SOFT_CLEAR);
 
-    vmm_writel(1 << d->hwirq, vic_base(d) + VIC_INT_ENABLE);
+    vmm_writel(1 << d->hw_irq_num, vic_base(d) + VIC_INT_ENABLE);
 }
 
-static struct vmm_host_irq_chip vic_chip = {
+static vmm_host_irq_chip_t vic_chip = {
     .name       = "VIC",
     .irq_ack    = vic_ack_irq,
     .irq_mask   = vic_mask_irq,
@@ -172,7 +172,7 @@ static struct vmm_host_irq_domain_ops vic_ops = {
 static int __init vic_device_tree_init(vmm_device_tree_node_t *node, vmm_device_tree_node_t *parent)
 {
     int                   hirq, rc;
-    uint32_t              hwirq, irq_start = 0;
+    uint32_t              hw_irq_num, irq_start = 0;
     struct vic_chip_data *v = &vic_data[0];
 
     v->node                 = node;
@@ -184,7 +184,7 @@ static int __init vic_device_tree_init(vmm_device_tree_node_t *node, vmm_device_
     v->domain = vmm_host_irq_domain_add(node, (int)irq_start, VIC_NR_IRQS, &vic_ops, NULL);
 
     if (!v->domain) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = vmm_device_tree_request_regmap(node, &v->base, 0, "Versatile VIC");
@@ -194,8 +194,8 @@ static int __init vic_device_tree_init(vmm_device_tree_node_t *node, vmm_device_
         return rc;
     }
 
-    for (hwirq = 0; hwirq < VIC_NR_IRQS; hwirq++) {
-        hirq = vmm_host_irq_domain_create_mapping(v->domain, hwirq);
+    for (hw_irq_num = 0; hw_irq_num < VIC_NR_IRQS; hw_irq_num++) {
+        hirq = vmm_host_irq_domain_create_mapping(v->domain, hw_irq_num);
         BUG_ON(hirq < 0);
         vmm_host_irq_set_chip(hirq, &vic_chip);
         vmm_host_irq_set_chip_data(hirq, v);

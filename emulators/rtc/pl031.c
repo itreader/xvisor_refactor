@@ -152,7 +152,7 @@ static int pl031_reg_read(struct pl031_state *s, uint32_t offset, uint32_t *dst)
 
             case RTC_ICR:
             default:
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
                 break;
         };
     }
@@ -205,7 +205,7 @@ static int pl031_reg_write(struct pl031_state *s, uint32_t offset, uint32_t src_
         case RTC_MIS:
         case RTC_RIS:
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -297,7 +297,7 @@ static int pl031_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(struct pl031_state));
 
     if (!s) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto pl031_emulator_probe_done;
     }
 

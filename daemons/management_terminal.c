@@ -164,7 +164,7 @@ static int __init daemon_management_terminal_init(void)
     node = vmm_device_tree_getnode(VMM_DEVICE_TREE_PATH_SEPARATOR_STRING VMM_DEVICE_TREE_VMMINFO_NODE_NAME);
 
     if (!node) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (vmm_device_tree_read_u32(node, "management_terminal_priority", &management_terminal_priority)) {

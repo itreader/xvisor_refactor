@@ -16,7 +16,7 @@
 
 #define IS_ERR_VALUE(x)      VMM_IS_ERR_VALUE(x)
 
-#define ERR_PTR(error)       VMM_ERR_PTR(error)
+#define ERR_PTR(error)       VMM_ERR_RR_PTR(error)
 
 #define PTR_ERR(ptr)         VMM_PTR_ERR(ptr)
 
@@ -24,7 +24,7 @@
 
 #define IS_ERR_OR_NULL(ptr)  VMM_IS_ERR_OR_NULL(ptr)
 
-#define ERR_CAST(ptr)        VMM_ERR_CAST(ptr)
+#define ERR_CAST(ptr)        VMM_ERR_RR_CAST(ptr)
 
 #define PTR_RET(ptr)         VMM_PTR_ERR(ptr)
 

@@ -215,7 +215,7 @@ struct share_params {
      * 0: never wait flag1
      */
     uint32_t wait_flag0;
-    uint32_t complt_hwirq;
+    uint32_t complt_hw_irq;
     /* if need, add parameter after */
 };
 

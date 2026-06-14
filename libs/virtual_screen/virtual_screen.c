@@ -920,7 +920,7 @@ static int virtual_screen_soft_refresh(struct virtual_screen_context *cntx)
      * and update it over here using vmm_virtual_display_one_update() API.
      */
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static void virtual_screen_hard_switch_back(struct virtual_screen_context *cntx)
@@ -987,7 +987,7 @@ static int virtual_screen_hard_refresh(struct virtual_screen_context *cntx)
     cntx->hard_mode     = fb_find_best_mode(&cntx->hard_var, &cntx->info->modelist);
 
     if (!cntx->hard_mode || (cntx->hard_mode->xres != cols) || (cntx->hard_mode->yres != rows)) {
-        rc = VMM_ENOTAVAIL;
+        rc = VMM_ERR_NOTAVAIL;
         vmm_printf("%s: fb_find_best_mode() failed\n", __func__);
         goto hard_bind_error;
     }
@@ -1155,7 +1155,7 @@ static void virtual_screen_process(struct virtual_screen_context *cntx)
         rc      = vmm_completion_wait_timeout(&cntx->work_avail, &timeout);
 
         /* If we timedout then refresh virtual screen */
-        if (rc == VMM_ETIMEDOUT) {
+        if (rc == VMM_ERR_TIMEDOUT) {
             if (cntx->is_hard) {
                 rc = virtual_screen_hard_refresh(cntx);
             } else {
@@ -1258,7 +1258,7 @@ static int virtual_screen_setup(struct virtual_screen_context *cntx)
     cntx->mode = fb_find_best_mode(&cntx->info->var, &cntx->info->modelist);
 
     if (!cntx->mode) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto release_fb;
     }
 
@@ -1478,7 +1478,7 @@ int virtual_screen_bind(
     bool is_hard, uint32_t refresh_rate, uint32_t esc_key_code0, uint32_t esc_key_code1, uint32_t esc_key_code2, struct frame_buffer_info *info,
     struct vmm_virtual_display *vdis, struct vmm_vkeyboard *vkbd, struct vmm_vmouse *vmou)
 {
-    int                             rc = VMM_EFAIL;
+    int                             rc = VMM_ERR_FAIL;
     struct virtual_screen_context  *cntx;
     struct virtual_screen_list_elt *velt = NULL;
     irq_flags_t                     flags;
@@ -1489,23 +1489,23 @@ int virtual_screen_bind(
 
     /* Sanity checks */
     if (!info || !vdis) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((refresh_rate < VSCREEN_REFRESH_RATE_MIN) || (VSCREEN_REFRESH_RATE_MAX < refresh_rate) || (info->fix.visual != FB_VISUAL_TRUECOLOR)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Ensure this framebuffer is not already binded */
     if (NULL != virtual_screen_frame_buffer_info_find(info)) {
-        return VMM_EALREADY;
+        return VMM_ERR_ALREADY;
     }
 
     /* Alloc virtual_screen context */
     cntx = vmm_zalloc(sizeof(struct virtual_screen_context));
 
     if (!cntx) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto err_list;
     }
 
@@ -1531,7 +1531,7 @@ int virtual_screen_bind(
     velt = vmm_zalloc(sizeof(struct virtual_screen_list_elt));
 
     if (!velt) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto err_setup;
     }
 
@@ -1548,7 +1548,7 @@ int virtual_screen_bind(
     velt->thread = vmm_threads_create(name, virtual_screen_thread, velt, VMM_THREAD_DEF_PRIORITY, VMM_THREAD_DEF_TIME_SLICE);
 
     if (!velt->thread) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto err_thread_create;
     }
 
@@ -1576,7 +1576,7 @@ err_list:
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(virtual_screen_bind);
+VMM_ERR_XPORT_SYMBOL(virtual_screen_bind);
 
 int virtual_screen_unbind(struct frame_buffer_info *info)
 {
@@ -1585,7 +1585,7 @@ int virtual_screen_unbind(struct frame_buffer_info *info)
     velt                                 = virtual_screen_frame_buffer_info_find(info);
 
     if (NULL == velt) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     virtual_screen_enqueue_work(velt->cntx, VSCREEN_WORK_EXIT);
@@ -1593,7 +1593,7 @@ int virtual_screen_unbind(struct frame_buffer_info *info)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(virtual_screen_unbind);
+VMM_ERR_XPORT_SYMBOL(virtual_screen_unbind);
 
 static int __init virtual_screen_init(void)
 {

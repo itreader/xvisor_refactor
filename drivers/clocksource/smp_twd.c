@@ -214,7 +214,7 @@ static int __init twd_clock_chip_init(vmm_device_tree_node_t *node)
         twd_ppi_irq = vmm_device_tree_irq_parse_map(node, 0);
 
         if (!twd_ppi_irq) {
-            rc = VMM_ENODEV;
+            rc = VMM_ERR_NODEV;
             goto fail_regunmap;
         }
     }

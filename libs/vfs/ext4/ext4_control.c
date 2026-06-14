@@ -48,7 +48,7 @@ int ext4fs_devread(struct ext4fs_control *ctrl, uint32_t blkno, uint32_t blkoff,
     len = buf_len;
     len = vmm_block_device_read(ctrl->block_device, (uint8_t *)buf, off, len);
 
-    return (len == buf_len) ? VMM_OK : VMM_EIO;
+    return (len == buf_len) ? VMM_OK : VMM_ERR_IO;
 }
 
 int ext4fs_devwrite(struct ext4fs_control *ctrl, uint32_t blkno, uint32_t blkoff, uint32_t buf_len, char *buf)
@@ -60,7 +60,7 @@ int ext4fs_devwrite(struct ext4fs_control *ctrl, uint32_t blkno, uint32_t blkoff
     len = buf_len;
     len = vmm_block_device_write(ctrl->block_device, (uint8_t *)buf, off, len);
 
-    return (len == buf_len) ? VMM_OK : VMM_EIO;
+    return (len == buf_len) ? VMM_OK : VMM_ERR_IO;
 }
 
 int ext4fs_control_read_inode(struct ext4fs_control *ctrl, uint32_t inode_no, struct ext2_inode *inode)
@@ -76,7 +76,7 @@ int ext4fs_control_read_inode(struct ext4fs_control *ctrl, uint32_t inode_no, st
     g = udiv32(inode_no, __le32(ctrl->sblock.inodes_per_group));
 
     if (g >= ctrl->group_count) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     group = &ctrl->groups[g];
@@ -109,7 +109,7 @@ int ext4fs_control_write_inode(struct ext4fs_control *ctrl, uint32_t inode_no, s
     g = udiv32(inode_no, __le32(ctrl->sblock.inodes_per_group));
 
     if (g >= ctrl->group_count) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     group = &ctrl->groups[g];
@@ -143,7 +143,7 @@ int ext4fs_control_alloc_block(struct ext4fs_control *ctrl, uint32_t inode_no, u
     g                = udiv32(inode_no, __le32(ctrl->sblock.inodes_per_group));
 
     if (g >= ctrl->group_count) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     found       = FALSE;
@@ -193,7 +193,7 @@ int ext4fs_control_alloc_block(struct ext4fs_control *ctrl, uint32_t inode_no, u
     }
 
     if (!found) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     /* update superblock */
@@ -219,7 +219,7 @@ int ext4fs_control_free_block(struct ext4fs_control *ctrl, uint32_t blkno)
     g     = udiv32(blkno, __le32(ctrl->sblock.blocks_per_group));
 
     if (g >= ctrl->group_count) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     group = &ctrl->groups[g];
@@ -255,7 +255,7 @@ int ext4fs_control_alloc_inode(struct ext4fs_control *ctrl, uint32_t parent_inod
     g                = udiv32(parent_inode_no, inodes_per_group);
 
     if (g >= ctrl->group_count) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     found       = FALSE;
@@ -305,7 +305,7 @@ int ext4fs_control_alloc_inode(struct ext4fs_control *ctrl, uint32_t parent_inod
     }
 
     if (!found) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     /* update superblock */
@@ -329,7 +329,7 @@ int ext4fs_control_free_inode(struct ext4fs_control *ctrl, uint32_t inode_no)
     g = udiv32(inode_no, __le32(ctrl->sblock.inodes_per_group));
 
     if (g >= ctrl->group_count) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     group = &ctrl->groups[g];
@@ -366,7 +366,7 @@ int ext4fs_control_sync(struct ext4fs_control *ctrl)
 
         if (wr != sizeof(struct ext2_sblock)) {
             vmm_mutex_unlock(&ctrl->sblock_lock);
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         /* Clear sblock_dirty flag */
@@ -451,7 +451,7 @@ int ext4fs_control_init(struct ext4fs_control *ctrl, vmm_block_device_t *block_d
     sb_read = vmm_block_device_read(block_device, (uint8_t *)&ctrl->sblock, 1024, sizeof(struct ext2_sblock));
 
     if (sb_read != sizeof(struct ext2_sblock)) {
-        rc = VMM_EIO;
+        rc = VMM_ERR_IO;
         goto fail;
     }
 
@@ -460,7 +460,7 @@ int ext4fs_control_init(struct ext4fs_control *ctrl, vmm_block_device_t *block_d
 
     /* Make sure this is an ext2 filesystem.  */
     if (__le16(ctrl->sblock.magic) != EXT2_MAGIC) {
-        rc = VMM_ENOSYS;
+        rc = VMM_ERR_NOSYS;
         goto fail;
     }
 
@@ -495,7 +495,7 @@ int ext4fs_control_init(struct ext4fs_control *ctrl, vmm_block_device_t *block_d
     ctrl->groups              = vmm_zalloc(ctrl->group_count * sizeof(struct ext4fs_group));
 
     if (!ctrl->groups) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail;
     }
 
@@ -518,7 +518,7 @@ int ext4fs_control_init(struct ext4fs_control *ctrl, vmm_block_device_t *block_d
         ctrl->groups[g].block_bmap = vmm_zalloc(ctrl->block_size);
 
         if (!ctrl->groups[g].block_bmap) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto fail1;
         }
 
@@ -534,7 +534,7 @@ int ext4fs_control_init(struct ext4fs_control *ctrl, vmm_block_device_t *block_d
         ctrl->groups[g].inode_bmap = vmm_zalloc(ctrl->block_size);
 
         if (!ctrl->groups[g].inode_bmap) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto fail1;
         }
 

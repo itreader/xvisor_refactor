@@ -151,7 +151,7 @@ static int __init smp_read_ops(vmm_device_tree_node_t *dn, int cpu)
 
     if (!smp_cpu_ops[cpu]) {
         vmm_printf("%s: unsupported enable-method property: %s\n", dn->name, enable_method);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     return 0;
@@ -199,7 +199,7 @@ int __init arch_smp_init_cpus(void)
 
     if (!cpus) {
         vmm_printf("%s: Failed to find cpus node\n", __func__);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     dn = NULL;
@@ -244,7 +244,7 @@ int __init arch_smp_init_cpus(void)
     if (!dn) {
         vmm_printf("%s: Failed to find node for boot cpu\n", __func__);
         vmm_device_tree_dref_node(cpus);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     smp_read_ops(dn, 0);
@@ -361,7 +361,7 @@ int __init arch_smp_init_cpus(void)
             "%s: DT missing boot CPU MPIDR, not enabling"
             " secondaries\n",
             __func__);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /*
@@ -433,7 +433,7 @@ int __init arch_smp_start_cpu(uint32_t cpu)
     if (smp_cpu_ops[cpu]->cpu_boot) {
         rc = smp_cpu_ops[cpu]->cpu_boot(cpu);
     } else {
-        rc = VMM_ENOSYS;
+        rc = VMM_ERR_NOSYS;
     }
 
     /* Wait 10ms before setting logical ID invalid */

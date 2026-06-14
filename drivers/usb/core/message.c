@@ -112,7 +112,7 @@ int usb_control_msg(
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(usb_control_msg);
+VMM_ERR_XPORT_SYMBOL(usb_control_msg);
 
 int usb_interrupt_msg(struct usb_device *dev, uint32_t pipe, void *data, int len, int interval)
 {
@@ -149,7 +149,7 @@ int usb_interrupt_msg(struct usb_device *dev, uint32_t pipe, void *data, int len
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(usb_interrupt_msg);
+VMM_ERR_XPORT_SYMBOL(usb_interrupt_msg);
 
 int usb_bulk_msg(struct usb_device *dev, uint32_t pipe, void *data, int len, int *actual_length, int timeout)
 {
@@ -202,7 +202,7 @@ int usb_bulk_msg(struct usb_device *dev, uint32_t pipe, void *data, int len, int
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(usb_bulk_msg);
+VMM_ERR_XPORT_SYMBOL(usb_bulk_msg);
 
 /*
  * returns the max packet size, depending on the pipe direction and
@@ -218,7 +218,7 @@ int usb_maxpacket(struct usb_device *dev, uint32_t pipe)
     }
 }
 
-VMM_EXPORT_SYMBOL(usb_maxpacket);
+VMM_ERR_XPORT_SYMBOL(usb_maxpacket);
 
 int usb_get_descriptor(struct usb_device *dev, uint8_t desctype, uint8_t descindex, void *buf, int size)
 {
@@ -226,7 +226,7 @@ int usb_get_descriptor(struct usb_device *dev, uint8_t desctype, uint8_t descind
         dev, usb_rcvctrlpipe(dev, 0), USB_REQ_GET_DESCRIPTOR, USB_DIR_IN, (desctype << 8) + descindex, 0, buf, size, NULL, USB_CNTL_TIMEOUT);
 }
 
-VMM_EXPORT_SYMBOL(usb_get_descriptor);
+VMM_ERR_XPORT_SYMBOL(usb_get_descriptor);
 
 static int usb_get_string(struct usb_device *dev, unsigned short langid, unsigned char index, void *buf, int size)
 {
@@ -308,13 +308,13 @@ int usb_string(struct usb_device *dev, int index, char *buf, size_t size)
     unsigned char *tbuf, *mybuf;
 
     if (size <= 0 || !buf || !index) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     mybuf = vmm_malloc(USB_BUFSIZ);
 
     if (!mybuf) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     buf[0] = 0;
@@ -332,7 +332,7 @@ int usb_string(struct usb_device *dev, int index, char *buf, size_t size)
             goto done;
         } else if (tbuf[0] < 4) {
             DPRINTF("%s: string descriptor 0 too short\n", __func__);
-            err = VMM_EINVALID;
+            err = VMM_ERR_INVALID;
             goto done;
         } else {
             dev->have_langid   = -1;
@@ -374,7 +374,7 @@ done:
     return err;
 }
 
-VMM_EXPORT_SYMBOL(usb_string);
+VMM_ERR_XPORT_SYMBOL(usb_string);
 
 int usb_set_interface(struct usb_device *dev, int ifnum, int alternate)
 {
@@ -390,7 +390,7 @@ int usb_set_interface(struct usb_device *dev, int ifnum, int alternate)
 
     if (!intf) {
         vmm_printf("%s: selecting invalid interface %d", __func__, ifnum);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* We should return now for devices with only one alternate setting.
@@ -413,7 +413,7 @@ int usb_set_interface(struct usb_device *dev, int ifnum, int alternate)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(usb_set_interface);
+VMM_ERR_XPORT_SYMBOL(usb_set_interface);
 
 int usb_get_configuration_no(struct usb_device *dev, uint8_t *buffer, int cfgno)
 {
@@ -433,7 +433,7 @@ int usb_get_configuration_no(struct usb_device *dev, uint8_t *buffer, int cfgno)
 
     if (tmp > USB_BUFSIZ) {
         vmm_printf("%s: failed to get descriptor - too long: %d\n", __func__, tmp);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     result = usb_get_descriptor(dev, USB_DT_CONFIG, cfgno, buffer, tmp);
@@ -442,7 +442,7 @@ int usb_get_configuration_no(struct usb_device *dev, uint8_t *buffer, int cfgno)
     return result;
 }
 
-VMM_EXPORT_SYMBOL(usb_get_configuration_no);
+VMM_ERR_XPORT_SYMBOL(usb_get_configuration_no);
 
 int usb_get_class_descriptor(struct usb_device *dev, int ifnum, uint8_t type, uint8_t id, void *buf, uint32_t size)
 {
@@ -451,7 +451,7 @@ int usb_get_class_descriptor(struct usb_device *dev, int ifnum, uint8_t type, ui
         USB_CNTL_TIMEOUT);
 }
 
-VMM_EXPORT_SYMBOL(usb_get_class_descriptor);
+VMM_ERR_XPORT_SYMBOL(usb_get_class_descriptor);
 
 int usb_clear_halt(struct usb_device *dev, uint32_t pipe)
 {
@@ -477,4 +477,4 @@ int usb_clear_halt(struct usb_device *dev, uint32_t pipe)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(usb_clear_halt);
+VMM_ERR_XPORT_SYMBOL(usb_clear_halt);

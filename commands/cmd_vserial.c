@@ -248,7 +248,7 @@ static int cmd_vserial_bind(vmm_char_device_t *cdev, const char *name)
 
     if (!vser) {
         vmm_cdev_printf(cdev, "Failed to find virtual serial port\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_cdev_printf(cdev, "[%s] ", name);
@@ -400,7 +400,7 @@ static int cmd_vserial_dump(vmm_char_device_t *cdev, const char *name, int bcoun
 
     if (!vser) {
         vmm_cdev_printf(cdev, "Failed to find virtual serial port\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_cdev_printf(cdev, "[%s] ", name);
@@ -464,7 +464,7 @@ static int cmd_vserial_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc < 3) {
         cmd_vserial_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (strcmp(argv[1], "bind") == 0) {
@@ -477,7 +477,7 @@ static int cmd_vserial_exec(vmm_char_device_t *cdev, int argc, char **argv)
         return cmd_vserial_dump(cdev, argv[2], bcount);
     } else {
         cmd_vserial_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;

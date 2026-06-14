@@ -132,7 +132,7 @@ static int __init sp804_clocksource_init(vmm_device_tree_node_t *node)
 
     if (!clk) {
         vmm_device_tree_regunmap_release(node, base, 0);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     hz = sp804_get_clock_rate(clk);
@@ -149,7 +149,7 @@ static int __init sp804_clocksource_init(vmm_device_tree_node_t *node)
     cs = vmm_zalloc(sizeof(struct sp804_clocksource));
 
     if (!cs) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cs->base             = base;
@@ -238,7 +238,7 @@ static int __init sp804_clock_chip_init(vmm_device_tree_node_t *node)
     hirq = vmm_device_tree_irq_parse_map(node, 0);
 
     if (!hirq) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     rc = vmm_device_tree_regmap(node, &base, 0);
@@ -279,7 +279,7 @@ static int __init sp804_clock_chip_init(vmm_device_tree_node_t *node)
 
     if (!cc) {
         vmm_device_tree_regunmap(node, base, 0);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cc->base                = base;

@@ -18,7 +18,7 @@
  *
  * @file vmm_modules.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief source file of module management code
+ * @brief 模块管理代码实现
  */
 
 #include <arch_sections.h>
@@ -52,49 +52,64 @@
 #define debug_align(X) (X)
 #endif
 
+/**
+ * @brief 负载信息结构，信息结构
+ */
 struct load_info {
-    Elf_Ehdr *hdr;
-    uint64_t  len;
-    Elf_Shdr *sechdrs;
-    char     *secstrings, *strtab;
-    uint64_t *strmap;
-    uint64_t  symoffs, stroffs;
+    Elf_Ehdr *hdr; /**< 头部 */
+    uint64_t  len; /**< 长度 */
+    Elf_Shdr *sechdrs; /**< sechdrs成员 */
+    char     *secstrings, *strtab; /**< strtab成员 */
+    uint64_t *strmap; /**< strmap成员 */
+    uint64_t  symoffs, stroffs; /**< stroffs成员 */
 
     struct {
-        uint32_t sym, str;
-    } index;
+        uint32_t sym, str; /**< 字符串 */
+    } index; /**< 索引 */
 };
 
 /* FIXME: Implement reference counting for loadable modules */
 
+/**
+ * @brief 模块包装结构，封装已加载模块的元数据和状态
+ */
 struct module_wrap {
-    double_list_t head;
+    double_list_t head; /**< 链表头 */
 
     /* vmm_module_t and additional info */
-    vmm_module_t mod;
-    int          mod_ret;
-    bool         built_in;
+    vmm_module_t mod; /**< 模块 */
+    int          mod_ret; /**< mod_ret成员 */
+    bool         built_in; /**< built_in成员 */
 
     /* Pages allocated for module */
-    virtual_addr_t pg_start;
-    uint32_t       pg_count;
-    uint32_t       core_size;
-    uint32_t       core_text_size;
-    uint32_t       core_ro_size;
+    virtual_addr_t pg_start; /**< pg_start成员 */
+    uint32_t       pg_count; /**< pg_count成员 */
+    uint32_t       core_size; /**< core_size成员 */
+    uint32_t       core_text_size; /**< core_text_size成员 */
+    uint32_t       core_ro_size; /**< core_ro_size成员 */
 
     /* Exported symbols */
-    struct vmm_symbol *syms;
-    uint32_t           num_syms;
+    struct vmm_symbol *syms; /**< 符号数组 */
+    uint32_t           num_syms; /**< num_syms成员 */
 };
 
+/**
+ * @brief 模块管理控制结构，维护已加载模块列表
+ */
 struct vmm_modules_ctrl {
-    vmm_spinlock_t lock;
-    double_list_t  mod_list;
-    uint32_t       mod_count;
+    vmm_spinlock_t lock; /**< 自旋锁 */
+    double_list_t  mod_list; /**< mod_list成员 */
+    uint32_t       mod_count; /**< mod_count成员 */
 };
 
 static struct vmm_modules_ctrl modctrl;
 
+/**
+ * @brief 根据符号名称查找符号
+ * @param symname 符号名称
+ * @param sym 输出符号结构体
+ * @return VMM_OK 表示成功，其他值表示失败
+ */
 int vmm_modules_find_symbol(const char *symname, struct vmm_symbol *sym)
 {
     uint32_t            s;
@@ -103,14 +118,14 @@ int vmm_modules_find_symbol(const char *symname, struct vmm_symbol *sym)
     struct module_wrap *mwrap = NULL;
 
     if (!symname || !sym) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     sym->addr = kallsyms_lookup_name(symname);
 
     if (sym->addr) {
         if (strlcpy(sym->name, symname, sizeof(sym->name)) >= sizeof(sym->name)) {
-            return VMM_EOVERFLOW;
+            return VMM_ERR_OVERFLOW;
         }
 
         sym->type = VMM_SYMBOL_GPL;
@@ -138,18 +153,23 @@ int vmm_modules_find_symbol(const char *symname, struct vmm_symbol *sym)
     vmm_spin_unlock_irq_restore(&modctrl.lock, flags);
 
     if (!found) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
 }
 
+/**
+ * @brief 检查模块是否为内置模块
+ * @param mod 模块指针
+ * @return TRUE 表示是内置模块，FALSE 表示不是
+ */
 bool vmm_modules_isbuiltin(vmm_module_t *mod)
 {
     struct module_wrap *mwrap;
 
     if (!mod) {
-        return FALSE;
+        return FALSE; /**< FALSE成员 */
     }
 
     mwrap = container_of(mod, struct module_wrap, mod);
@@ -164,6 +184,12 @@ bool vmm_modules_isbuiltin(vmm_module_t *mod)
 #ifdef CONFIG_MODULES
 
 /* Find a module section: 0 means not found. */
+/**
+ * @brief 查找模块中的指定节
+ * @param info 加载信息结构体
+ * @param name 节名称
+ * @return 节索引，如果未找到则返回0
+ */
 static uint32_t find_sec(const struct load_info *info, const char *name)
 {
     uint32_t i;
@@ -181,28 +207,35 @@ static uint32_t find_sec(const struct load_info *info, const char *name)
 }
 
 /* Sets info->hdr and info->len. */
+/**
+ * @brief 设置头部信息并检查有效性
+ * @param info 加载信息结构体
+ * @param mod 模块数据指针
+ * @param len 数据长度
+ * @return 错误码
+ */
 static int sethdr_and_check(struct load_info *info, void *mod, uint64_t len)
 {
     Elf_Ehdr *hdr = mod;
 
     if (len < sizeof(*hdr)) {
-        return VMM_ENOEXEC;
+        return VMM_ERR_NOEXEC;
     }
 
     /* Suck in entire file: we'll want most of it. */
     /* vmalloc barfs on "unusual" numbers.  Check here */
     if (len > 1 * 1024 * 1024) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Sanity checks against loading binaries or wrong arch,
        weird elf version */
     if (memcmp(hdr->e_ident, ELFMAG, SELFMAG) != 0 || hdr->e_type != ET_REL || !arch_elf_check_hdr(hdr) || hdr->e_shentsize != sizeof(Elf_Shdr)) {
-        return VMM_ENOEXEC;
+        return VMM_ERR_NOEXEC;
     }
 
     if (len < hdr->e_shoff + hdr->e_shnum * sizeof(Elf_Shdr)) {
-        return VMM_ENOEXEC;
+        return VMM_ERR_NOEXEC;
     }
 
     info->hdr = hdr;
@@ -211,6 +244,11 @@ static int sethdr_and_check(struct load_info *info, void *mod, uint64_t len)
     return 0;
 }
 
+/**
+ * @brief 重写节头部信息
+ * @param info 加载信息结构体
+ * @return 错误码
+ */
 static int rewrite_section_headers(struct load_info *info)
 {
     uint32_t i;
@@ -223,7 +261,7 @@ static int rewrite_section_headers(struct load_info *info)
 
         if (shdr->sh_type != SHT_NOBITS && info->len < shdr->sh_offset + shdr->sh_size) {
             vmm_printf("Module len %lu truncated\n", info->len);
-            return VMM_ENOEXEC;
+            return VMM_ERR_NOEXEC;
         }
 
         /* Mark all sections sh_addr with their address in the
@@ -238,6 +276,11 @@ static int rewrite_section_headers(struct load_info *info)
  * Set up our basic convenience variables (pointers to section headers,
  * search for module section index etc), and do some basic section
  * verification.
+ */
+/**
+ * @brief 设置加载信息
+ * @param info 加载信息结构体
+ * @return 错误码
  */
 static int setup_load_info(struct load_info *info)
 {
@@ -264,12 +307,18 @@ static int setup_load_info(struct load_info *info)
 
     /* If symbol table not found then return failure */
     if (!info->strtab) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     return VMM_OK;
 }
 
+/**
+ * @brief 分配并加载模块表
+ * @param mwrap 模块包装结构体
+ * @param info 加载信息结构体
+ * @return 错误码
+ */
 static int alloc_and_load_modtbl(struct module_wrap *mwrap, struct load_info *info)
 {
     uint32_t i;
@@ -277,13 +326,13 @@ static int alloc_and_load_modtbl(struct module_wrap *mwrap, struct load_info *in
     i = find_sec(info, ".modtbl");
 
     if (!i) {
-        return VMM_ENOEXEC;
+        return VMM_ERR_NOEXEC;
     }
 
     memcpy(&mwrap->mod, (void *)info->sechdrs[i].sh_addr, sizeof(mwrap->mod));
 
     if (mwrap->mod.signature != VMM_MODULE_SIGNATURE) {
-        return VMM_ENOEXEC;
+        return VMM_ERR_NOEXEC;
     }
 
     mwrap->mod_ret = 0;
@@ -294,6 +343,12 @@ static int alloc_and_load_modtbl(struct module_wrap *mwrap, struct load_info *in
     return VMM_OK;
 }
 
+/**
+ * @brief 分配并加载符号表
+ * @param mwrap 模块包装结构体
+ * @param info 加载信息结构体
+ * @return 错误码
+ */
 static int alloc_and_load_symtbl(struct module_wrap *mwrap, struct load_info *info)
 {
     uint32_t i;
@@ -309,7 +364,7 @@ static int alloc_and_load_symtbl(struct module_wrap *mwrap, struct load_info *in
     mwrap->syms = vmm_malloc(info->sechdrs[i].sh_size);
 
     if (!mwrap->syms) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     memcpy(&mwrap->syms, (void *)info->sechdrs[i].sh_addr, sizeof(mwrap->mod));
@@ -322,6 +377,14 @@ static int alloc_and_load_symtbl(struct module_wrap *mwrap, struct load_info *in
 }
 
 /* Update size with this section: return offset. */
+/**
+ * @brief 获取偏移量
+ * @param mwrap 模块包装结构体
+ * @param size 大小指针
+ * @param sechdr 节头部
+ * @param section 节索引
+ * @return 偏移量
+ */
 static long get_offset(struct module_wrap *mwrap, uint32_t *size, Elf_Shdr *sechdr, uint32_t section)
 {
     long ret;
@@ -337,6 +400,11 @@ static long get_offset(struct module_wrap *mwrap, uint32_t *size, Elf_Shdr *sech
    might -- code, read-only data, read-write data, small data.  Tally
    sizes, and place the offsets into sh_entsize fields: high bit means it
    belongs in init. */
+/**
+ * @brief 布局节
+ * @param mwrap 模块包装结构体
+ * @param info 加载信息结构体
+ */
 static void layout_sections(struct module_wrap *mwrap, struct load_info *info)
 {
     static uint64_t const masks[][2] = {
@@ -348,7 +416,8 @@ static void layout_sections(struct module_wrap *mwrap, struct load_info *info)
         {SHF_WRITE | SHF_ALLOC,      ARCH_SHF_SMALL            },
         {ARCH_SHF_SMALL | SHF_ALLOC, 0                         }
     };
-    uint32_t m, i;
+    uint32_t m;
+    uint32_t i;
 
     for (i = 0; i < info->hdr->e_shnum; i++) {
         info->sechdrs[i].sh_entsize = ~0UL;
@@ -383,6 +452,13 @@ static void layout_sections(struct module_wrap *mwrap, struct load_info *info)
     }
 }
 
+/**
+ * @brief 检查是否为核心符号
+ * @param src ELF符号
+ * @param sechdrs 节头部数组
+ * @param shnum 节数量
+ * @return true 如果是核心符号，否则 false
+ */
 static bool is_core_symbol(const Elf_Sym *src, const Elf_Shdr *sechdrs, uint32_t shnum)
 {
     const Elf_Shdr *sec;
@@ -405,12 +481,19 @@ static bool is_core_symbol(const Elf_Sym *src, const Elf_Shdr *sechdrs, uint32_t
     return true;
 }
 
+/**
+ * @brief 布局符号表
+ * @param mwrap 模块包装结构体
+ * @param info 加载信息结构体
+ */
 static void layout_symtab(struct module_wrap *mwrap, struct load_info *info)
 {
     Elf_Shdr      *symsect = info->sechdrs + info->index.sym;
     Elf_Shdr      *strsect = info->sechdrs + info->index.str;
     const Elf_Sym *src;
-    uint32_t       i, nsrc, ndst;
+    uint32_t i;
+    uint32_t nsrc;
+    uint32_t ndst;
 
     /* Put symbol section at end of module. */
     symsect->sh_flags |= SHF_ALLOC;
@@ -445,13 +528,19 @@ static void layout_symtab(struct module_wrap *mwrap, struct load_info *info)
     mwrap->core_size += bitmap_weight(info->strmap, strsect->sh_size);
 }
 
+/**
+ * @brief 移动模块到最终位置
+ * @param mwrap 模块包装结构体
+ * @param info 加载信息结构体
+ * @return 错误码
+ */
 static int move_module(struct module_wrap *mwrap, struct load_info *info)
 {
     uint32_t       i;
     virtual_addr_t addr = vmm_page_pool_alloc(VMM_PAGE_POOL_NORMAL, VMM_SIZE_TO_PAGE(mwrap->core_size));
 
     if (!addr) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     mwrap->pg_count = VMM_SIZE_TO_PAGE(mwrap->core_size);
@@ -481,6 +570,12 @@ static int move_module(struct module_wrap *mwrap, struct load_info *info)
     return VMM_OK;
 }
 
+/**
+ * @brief 分配并加载节
+ * @param mwrap 模块包装结构体
+ * @param info 加载信息结构体
+ * @return 错误码
+ */
 static int alloc_and_load_sections(struct module_wrap *mwrap, struct load_info *info)
 {
     int err;
@@ -490,7 +585,7 @@ static int alloc_and_load_sections(struct module_wrap *mwrap, struct load_info *
     info->strmap = vmm_malloc(BITS_TO_LONGS(info->sechdrs[info->index.str].sh_size) * sizeof(long));
 
     if (!info->strmap) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     layout_symtab(mwrap, info);
@@ -510,6 +605,12 @@ free_strmap:
 }
 
 /* Change all symbols so that st_value encodes the pointer directly. */
+/**
+ * @brief 简化符号
+ * @param mwrap 模块包装结构体
+ * @param info 加载信息结构体
+ * @return 错误码
+ */
 static int simplify_symbols(struct module_wrap *mwrap, struct load_info *info)
 {
     Elf_Shdr         *symsec = &info->sechdrs[info->index.sym];
@@ -520,39 +621,39 @@ static int simplify_symbols(struct module_wrap *mwrap, struct load_info *info)
     struct vmm_symbol vsym;
 
     for (i = 1; i < symsec->sh_size / sizeof(Elf_Sym); i++) {
-        const char *name = info->strtab + sym[i].st_name;
+        const char *name = info->strtab + sym[i].st_name; /**< sym成员 */
 
         if (strcmp(name, "test_func") == 0) {
-            vmm_printf("%s: sym %s\n", __func__, name);
+            vmm_printf("%s: sym %s\n", __func__, name); /**< name)成员 */
         }
 
-        ret = VMM_OK;
+        ret = VMM_OK; /**< VMM_OK成员 */
 
         switch (sym[i].st_shndx) {
             case SHN_COMMON:
                 /* We compiled with -fno-common.  These are not
                    supposed to happen.  */
-                vmm_printf("%s: please compile with -fno-common\n", mwrap->mod.name);
-                ret = VMM_ENOEXEC;
+                vmm_printf("%s: please compile with -fno-common\n", mwrap->mod.name); /**< mwrap->mod.name)成员 */
+                ret = VMM_ERR_NOEXEC; /**< VMM_ERR_NOEXEC成员 */
                 break;
 
             case SHN_ABS:
                 break;
 
             case SHN_UNDEF:
-                ret = vmm_modules_find_symbol(name, &vsym);
+                ret = vmm_modules_find_symbol(name, &vsym); /**< &vsym)成员 */
 
                 if (ret) {
                     break;
                 }
 
                 /* Ok if resolved.  */
-                sym[i].st_value = vsym.addr;
+                sym[i].st_value = vsym.addr; /**< sym成员 */
                 break;
 
             default:
-                secbase = info->sechdrs[sym[i].st_shndx].sh_addr;
-                sym[i].st_value += secbase;
+                secbase = info->sechdrs[sym[i].st_shndx].sh_addr; /**< sechdrs成员 */
+                sym[i].st_value += secbase; /**< sym成员 */
                 break;
         }
 
@@ -564,6 +665,12 @@ static int simplify_symbols(struct module_wrap *mwrap, struct load_info *info)
     return ret;
 }
 
+/**
+ * @brief 应用重定位
+ * @param mwrap 模块包装结构体
+ * @param info 加载信息结构体
+ * @return 错误码
+ */
 static int apply_relocations(struct module_wrap *mwrap, struct load_info *info)
 {
     uint32_t i;
@@ -597,9 +704,16 @@ static int apply_relocations(struct module_wrap *mwrap, struct load_info *info)
     return err;
 }
 
+/**
+ * @brief 加载模块
+ * @param load_addr 加载地址
+ * @param load_size 加载大小
+ * @return 错误码
+ */
 int vmm_modules_load(virtual_addr_t load_addr, virtual_size_t load_size)
 {
-    int              i, rc;
+    int i;
+    int rc;
     irq_flags_t      flags;
     struct load_info info = {
         NULL,
@@ -607,7 +721,7 @@ int vmm_modules_load(virtual_addr_t load_addr, virtual_size_t load_size)
     struct module_wrap *mwrap;
 
     if ((rc = sethdr_and_check(&info, (void *)load_addr, load_size))) {
-        return rc;
+        return rc; /**< rc */
     }
 
     if ((rc = setup_load_info(&info))) {
@@ -617,7 +731,7 @@ int vmm_modules_load(virtual_addr_t load_addr, virtual_size_t load_size)
     mwrap = vmm_zalloc(sizeof(*mwrap));
 
     if (!mwrap) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     INIT_LIST_HEAD(&mwrap->head);
@@ -695,23 +809,28 @@ free_mwrap:
     return rc;
 }
 
+/**
+ * @brief 卸载模块
+ * @param mod 模块结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_modules_unload(vmm_module_t *mod)
 {
     irq_flags_t         flags;
     struct module_wrap *mwrap;
 
     if (!mod) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     mwrap = container_of(mod, struct module_wrap, mod);
 
     if (mwrap->mod.signature != VMM_MODULE_SIGNATURE) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (mwrap->built_in) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save(&modctrl.lock, flags);
@@ -732,18 +851,34 @@ int vmm_modules_unload(vmm_module_t *mod)
 
 #else
 
+/**
+ * @brief 模块 加载
+ * @param load_addr 加载地址
+ * @param load_size 加载大小（字节）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_modules_load(virtual_addr_t load_addr, virtual_size_t load_size)
 {
-    return VMM_ENOTAVAIL;
+    return VMM_ERR_NOTAVAIL;
 }
 
+/**
+ * @brief 卸载模块
+ * @param mod 模块结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_modules_unload(vmm_module_t *mod)
 {
-    return VMM_ENOTAVAIL;
+    return VMM_ERR_NOTAVAIL;
 }
 
 #endif
 
+/**
+ * @brief 获取模块实例
+ * @param index 索引
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_module_t *vmm_modules_getmodule(uint32_t index)
 {
     bool                found = FALSE;
@@ -753,8 +888,8 @@ vmm_module_t *vmm_modules_getmodule(uint32_t index)
     vmm_spin_lock_irq_save(&modctrl.lock, flags);
 
     if (modctrl.mod_count <= index) {
-        vmm_spin_unlock_irq_restore(&modctrl.lock, flags);
-        return NULL;
+        vmm_spin_unlock_irq_restore(&modctrl.lock, flags); /**< flags)成员 */
+        return NULL; /**< NULL成员 */
     }
 
     list_for_each_entry(mwrap, &modctrl.mod_list, head)
@@ -772,6 +907,10 @@ vmm_module_t *vmm_modules_getmodule(uint32_t index)
     return (found) ? &mwrap->mod : NULL;
 }
 
+/**
+ * @brief 获取模块的数量
+ * @return 数量值
+ */
 uint32_t vmm_modules_count(void)
 {
     uint32_t    ret;
@@ -784,15 +923,25 @@ uint32_t vmm_modules_count(void)
     return ret;
 }
 
+/**
+ * @brief 模块列表遍历上下文，用于枚举已注册模块
+ */
 struct modules_list {
-    int           nr_modules;
-    double_list_t mod_list;
+    int           nr_modules; /**< nr_modules成员 */
+    double_list_t mod_list; /**< mod_list成员 */
 };
 
+/**
+ * @brief 聚合所有已注册模块
+ * @param mod_start 模块起始地址
+ * @param size 大小
+ * @return 成功返回目标指针，失败返回NULL
+ */
 static struct modules_list *__init aggregate_modules(uint32_t mod_start, uint32_t size)
 {
     virtual_addr_t       ca;
-    uint32_t            *cp, mod_end = mod_start + size;
+    uint32_t *cp = NULL;
+    uint32_t mod_end = mod_start + size;
     vmm_module_t        *modinfo       = NULL;
     struct modules_list *cong_mod_list = (struct modules_list *)vmm_malloc(sizeof(struct modules_list));
 
@@ -821,9 +970,17 @@ static struct modules_list *__init aggregate_modules(uint32_t mod_start, uint32_
     return cong_mod_list;
 }
 
+/**
+ * @brief 比较列表元素用于排序
+ * @param p 数据指针
+ * @param a 参数值
+ * @param b 字节值或缓冲区
+ * @return 比较结果（0表示相等）
+ */
 static int __init cmp_list_element(void *p, double_list_t *a, double_list_t *b)
 {
-    vmm_module_t *moda, *modb;
+    vmm_module_t *moda = NULL;
+    vmm_module_t *modb = NULL;
 
     moda = list_entry(a, vmm_module_t, head);
     modb = list_entry(b, vmm_module_t, head);
@@ -831,6 +988,10 @@ static int __init cmp_list_element(void *p, double_list_t *a, double_list_t *b)
     return moda->ipriority - modb->ipriority;
 }
 
+/**
+ * @brief 初始化模块
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_modules_init(void)
 {
     int                  ret;

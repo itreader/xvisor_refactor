@@ -19,7 +19,7 @@
  * @file vmm_load_balancer.h
  * @author Jean-Christophe Dubois (jcd@tribudubois.net)
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for hypervisor load balancer
+ * @brief Hypervisor负载均衡器头文件
  */
 
 #ifndef __VMM_LOAD_BALANCER_H__
@@ -31,16 +31,25 @@
 #include <vmm_types.h>
 
 /** Load balancing algo instance */
+/**
+ * @brief 负载均衡算法接口，定义均衡回调和启动/停止操作
+ */
 struct vmm_load_balancer_algo {
-    double_list_t head;
-    uint32_t      rating;
-    char          name[VMM_FIELD_NAME_SIZE];
-    int (*start)(struct vmm_load_balancer_algo *);
-    void (*balance)(struct vmm_load_balancer_algo *);
-    void (*stop)(struct vmm_load_balancer_algo *);
-    void *private;
+    double_list_t head; /**< 链表头 */
+    uint32_t      rating; /**< rating成员 */
+    char          name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
+    int (*start)(struct vmm_load_balancer_algo *); /**< 起始 */
+    void (*balance)(struct vmm_load_balancer_algo *); /**< 平衡 */
+    void (*stop)(struct vmm_load_balancer_algo *); /**< 停止 */
+    void *private; /**< 私有数据 */
 };
 
+/**
+ * @brief 设置算法私有数据
+ * @param algo 算法结构体指针
+ * @param priv 私有数据
+ * @return 无返回值
+ */
 static inline void vmm_load_balancer_set_algo_private(struct vmm_load_balancer_algo *lbalgo, void *private)
 {
     if (lbalgo) {
@@ -58,17 +67,24 @@ static inline void *vmm_load_balancer_get_algo_private(struct vmm_load_balancer_
  */
 struct vmm_load_balancer_algo *vmm_load_balancer_current_algo(void);
 
-/** Register load balancing algo instance
- *  Note: This function must be called from Orphan (or Thread) Context
+/**
+ * @brief 注册负载均衡算法
+ * @param lbalgo 负载均衡算法指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_load_balancer_register_algo(struct vmm_load_balancer_algo *lbalgo);
 
-/** Unregister load balancing algo instance
- *  Note: This function must be called from Orphan (or Thread) Context
+/**
+ * @brief 注销负载均衡算法
+ * @param lbalgo 负载均衡算法指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_load_balancer_unregister_algo(struct vmm_load_balancer_algo *lbalgo);
 
-/** Initialize load balancer on each host CPU */
+/**
+ * @brief 初始化负载均衡器
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_load_balancer_init(void);
 
 #endif /* __VMM_LOADBAL_H__ */

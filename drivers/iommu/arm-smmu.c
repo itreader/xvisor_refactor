@@ -387,7 +387,7 @@ static int arm_smmu_find_sme(struct arm_smmu_device *smmu, uint16_t id, uint16_t
          * which would cause a conflict, and we can't allow that risk.
          */
         if (!((id ^ smrs[i].id) & ~(smrs[i].mask | mask))) {
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
     }
 
@@ -434,7 +434,7 @@ static int __arm_smmu_alloc_bitmap(uint64_t *map, int start, int end)
         idx = find_next_zero_bit(map, end, start);
 
         if (idx == end) {
-            return VMM_ENOSPC;
+            return VMM_ERR_NOSPC;
         }
     } while (test_and_set_bit(idx, map));
 
@@ -860,7 +860,7 @@ static int arm_smmu_init_domain_context(vmm_iommu_domain_t *domain, struct arm_s
     }
 
     if (cfg->fmt == ARM_SMMU_CTX_FMT_NONE) {
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto out_unlock;
     }
 
@@ -915,7 +915,7 @@ static int arm_smmu_init_domain_context(vmm_iommu_domain_t *domain, struct arm_s
             break;
 
         default:
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             goto out_unlock;
     }
 
@@ -955,7 +955,7 @@ static int arm_smmu_init_domain_context(vmm_iommu_domain_t *domain, struct arm_s
     page_table_ops    = alloc_io_page_table_ops(fmt, &page_table_cfg, smmu_domain);
 
     if (!page_table_ops) {
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto out_clear_smmu;
     }
 
@@ -1036,7 +1036,7 @@ static int arm_smmu_find_sids(struct arm_smmu_device *mmu, vmm_device_t *dev, st
         vmm_device_tree_dref_node(args.np);
 
         if (args.np != mmu->node || args.args_count != 1) {
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         sids[i].sid = args.args[0];
@@ -1132,7 +1132,7 @@ static int arm_smmu_map(vmm_iommu_domain_t *domain, physical_addr_t iova, physic
     struct io_page_table_ops *ops         = smmu_domain->page_table_ops;
 
     if (!ops) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     ret = ops->map(ops, iova, paddr, size, prot);
@@ -1205,7 +1205,7 @@ static int arm_smmu_attach_device(vmm_iommu_domain_t *domain, vmm_device_t *dev)
 
     if (!smmu) {
         vmm_lerror(dev->name, "Cannot attach to SMMU\n");
-        return VMM_ENXIO;
+        return VMM_ERR_NXIO;
     }
 
     /* Allocate and update stream matching entries */
@@ -1272,29 +1272,29 @@ static int arm_smmu_add_device(vmm_device_t *dev)
     struct arm_smmu_sid      *sids  = NULL;
     uint32_t                  i;
     int                       num_sid;
-    int                       ret = VMM_ENODEV;
+    int                       ret = VMM_ERR_NODEV;
 
     num_sid                       = vmm_device_tree_count_phandle_with_args(dev->of_node, "iommus", "#iommu-cells");
 
     if (num_sid <= 0) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (dev->iommu_private) {
         vmm_lerror(dev->name, "%s: IOMMU driver already assigned to device\n", __func__);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     archdata = vmm_zalloc(sizeof(*archdata));
 
     if (!archdata) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     sids = vmm_zalloc(num_sid * sizeof(*sids));
 
     if (!sids) {
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail_free_archdata;
     }
 
@@ -1329,12 +1329,12 @@ static int arm_smmu_add_device(vmm_device_t *dev)
     /* Sanity check number of bits in stream ID */
     for (i = 0; i < num_sid; ++i) {
         if (sids[i].sid & ~smmu->streamid_mask) {
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             goto fail_free_archdata_sids;
         }
 
         if (sids[i].mask & ~smmu->smr_mask_mask) {
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             goto fail_free_archdata_sids;
         }
 
@@ -1463,7 +1463,7 @@ static int arm_smmu_device_cfg_probe(struct arm_smmu_device *smmu)
 
     if (!(smmu->features & (ARM_SMMU_FEAT_TRANS_S1 | ARM_SMMU_FEAT_TRANS_S2))) {
         vmm_lerror(node->name, "%s: no translation support!\n", __func__);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if ((id & ID0_S1TS) && ((smmu->version < ARM_SMMU_V2) || !(id & ID0_ATOSNS))) {
@@ -1509,10 +1509,10 @@ static int arm_smmu_device_cfg_probe(struct arm_smmu_device *smmu)
                 "%s: stream-matching supported, "
                 "but no SMRs present!\n",
                 __func__);
-            return VMM_ENODEV;
+            return VMM_ERR_NODEV;
         }
     } else {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_linfo(node->name, "arm-smmu: num_groups=%d streamid_mask=0x%x\n", smmu->num_mapping_groups, smmu->streamid_mask);
@@ -1550,7 +1550,7 @@ static int arm_smmu_device_cfg_probe(struct arm_smmu_device *smmu)
             "%s: impossible number of S2 "
             "context banks!\n",
             __func__);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     vmm_linfo(node->name, "arm-smmu: %u context banks (%u stage-2 only)\n", smmu->num_context_banks, smmu->num_s2_context_banks);
@@ -1740,7 +1740,7 @@ static int arm_smmu_init(vmm_device_tree_node_t *node, enum arm_smmu_arch_versio
 
     if (!smmu) {
         vmm_lerror(node->name, "%s: can't allocate device data\n", __func__);
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail;
     }
 
@@ -1794,7 +1794,7 @@ static int arm_smmu_init(vmm_device_tree_node_t *node, enum arm_smmu_arch_versio
             "%s: can't find #global-intretupts "
             "DT prop\n",
             __func__);
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
         goto fail_unmap_regs;
     }
 
@@ -1806,7 +1806,7 @@ static int arm_smmu_init(vmm_device_tree_node_t *node, enum arm_smmu_arch_versio
             "%s: number of global-intretupts "
             "cannot be larger than total interrupts\n",
             __func__);
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
         goto fail_unmap_regs;
     }
 
@@ -1817,7 +1817,7 @@ static int arm_smmu_init(vmm_device_tree_node_t *node, enum arm_smmu_arch_versio
 
     if (!smmu->num_context_irqs) {
         vmm_lerror(node->name, "%s: need atleast one context irqs\n", __func__);
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
         goto fail_unmap_regs;
     }
 
@@ -1825,7 +1825,7 @@ static int arm_smmu_init(vmm_device_tree_node_t *node, enum arm_smmu_arch_versio
 
     if (!smmu->irqs) {
         vmm_lerror(node->name, "%s: failed to allocate irqs\n", __func__);
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail_unmap_regs;
     }
 
@@ -1834,7 +1834,7 @@ static int arm_smmu_init(vmm_device_tree_node_t *node, enum arm_smmu_arch_versio
 
         if (irq < 0) {
             vmm_lerror(node->name, "%s: failed to parse irq%d\n", __func__, i);
-            ret = VMM_ENODEV;
+            ret = VMM_ERR_NODEV;
             goto fail_free_irqs;
         }
 
@@ -1854,7 +1854,7 @@ static int arm_smmu_init(vmm_device_tree_node_t *node, enum arm_smmu_arch_versio
             "%s: found only %d context "
             "interrupt(s) but %d required\n",
             __func__, smmu->num_context_irqs, smmu->num_context_banks);
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
         goto fail_free_irqs;
     }
 
@@ -1862,7 +1862,7 @@ static int arm_smmu_init(vmm_device_tree_node_t *node, enum arm_smmu_arch_versio
 
     if (!smmu->smrs) {
         vmm_lerror(node->name, "%s: failed to alloc SMRs\n", __func__);
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail_free_irqs;
     }
 
@@ -1870,7 +1870,7 @@ static int arm_smmu_init(vmm_device_tree_node_t *node, enum arm_smmu_arch_versio
 
     if (!smmu->s2crs) {
         vmm_lerror(node->name, "%s: failed to alloc S2CRs\n", __func__);
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail_free_smrs;
     }
 
@@ -1884,7 +1884,7 @@ static int arm_smmu_init(vmm_device_tree_node_t *node, enum arm_smmu_arch_versio
 
     if (!smmu->cbs) {
         vmm_lerror(node->name, "%s: failed to alloc CBs\n", __func__);
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail_free_s2crs;
     }
 
@@ -1915,7 +1915,7 @@ static int arm_smmu_init(vmm_device_tree_node_t *node, enum arm_smmu_arch_versio
     /* Register IOMMU controller */
     if (strlcpy(smmu->controller.name, smmu->node->name, sizeof(smmu->controller.name)) >= sizeof(smmu->controller.name)) {
         vmm_lerror(node->name, "%s: failed to copy controller name\n", __func__);
-        ret = VMM_EOVERFLOW;
+        ret = VMM_ERR_OVERFLOW;
         goto fail_free_cbs;
     }
 

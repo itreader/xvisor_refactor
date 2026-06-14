@@ -117,7 +117,7 @@ static int fatfs_node_sync_cached_cluster(struct fatfs_node *node)
         wlen = vmm_block_device_write(ctrl->block_device, node->cached_data, woff, ctrl->bytes_per_cluster);
 
         if (wlen != ctrl->bytes_per_cluster) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         node->cached_dirty = FALSE;
@@ -137,7 +137,7 @@ static int fatfs_node_sync_parent_dent(struct fatfs_node *node)
     woff = node->parent_dent_off + node->parent_dent_len - sizeof(node->parent_dent);
 
     if (woff < node->parent_dent_off) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* FIXME: Someone else may be accessing the parent node.
@@ -147,7 +147,7 @@ static int fatfs_node_sync_parent_dent(struct fatfs_node *node)
     wlen = fatfs_node_write(node->parent, woff, sizeof(node->parent_dent), (uint8_t *)&node->parent_dent);
 
     if (wlen != sizeof(node->parent_dent)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     node->parent_dent_dirty = FALSE;
@@ -564,7 +564,7 @@ int fatfs_node_read_dirent(struct fatfs_node *dnode, loff_t off, struct dirent *
     uint32_t                   fileoff = (uint32_t)off;
 
     if (umod32(fileoff, sizeof(struct fat_directory_entry))) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     memset(lname, 0, sizeof(lname));
@@ -575,11 +575,11 @@ int fatfs_node_read_dirent(struct fatfs_node *dnode, loff_t off, struct dirent *
         rlen = fatfs_node_read(dnode, fileoff, sizeof(struct fat_directory_entry), (uint8_t *)&dent);
 
         if (rlen != sizeof(struct fat_directory_entry)) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         if (dent.dos_file_name[0] == 0x0) {
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
         }
 
         d->d_reclen += sizeof(struct fat_directory_entry);
@@ -665,7 +665,7 @@ int fatfs_node_read_dirent(struct fatfs_node *dnode, loff_t off, struct dirent *
         }
 
         if (strlcpy(d->d_name, lname, sizeof(d->d_name)) >= sizeof(d->d_name)) {
-            return VMM_EOVERFLOW;
+            return VMM_ERR_OVERFLOW;
         }
 
         break;
@@ -705,11 +705,11 @@ int fatfs_node_find_dirent(struct fatfs_node *dnode, const char *name, struct fa
         rlen = fatfs_node_read(dnode, off, sizeof(struct fat_directory_entry), (uint8_t *)dent);
 
         if (rlen != sizeof(struct fat_directory_entry)) {
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
         }
 
         if (dent->dos_file_name[0] == 0x0) {
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
         }
 
         off += sizeof(struct fat_directory_entry);
@@ -808,7 +808,7 @@ int fatfs_node_find_dirent(struct fatfs_node *dnode, const char *name, struct fa
         memset(lname, 0, sizeof(lname));
     }
 
-    return VMM_ENOENT;
+    return VMM_ERR_NOENT;
 }
 
 int fatfs_node_add_dirent(struct fatfs_node *dnode, const char *name, struct fat_directory_entry *ndent)
@@ -866,7 +866,7 @@ int fatfs_node_add_dirent(struct fatfs_node *dnode, const char *name, struct fat
     }
 
     if (!found) {
-        return VMM_EEXIST;
+        return VMM_ERR_EXIST;
     }
 
     /* Prepare final directory entry */
@@ -924,7 +924,7 @@ int fatfs_node_add_dirent(struct fatfs_node *dnode, const char *name, struct fat
         len = fatfs_node_write(dnode, off, sizeof(lfn), (uint8_t *)&lfn);
 
         if (len != sizeof(lfn)) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
     }
 
@@ -933,7 +933,7 @@ int fatfs_node_add_dirent(struct fatfs_node *dnode, const char *name, struct fat
     len = fatfs_node_write(dnode, off, sizeof(dent), (uint8_t *)&dent);
 
     if (len != sizeof(dent)) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;
@@ -957,7 +957,7 @@ int fatfs_node_del_dirent(struct fatfs_node *dnode, const char *name, uint32_t d
         len = fatfs_node_write(dnode, dent_off + off, sizeof(dent), (uint8_t *)&dent);
 
         if (len != sizeof(dent)) {
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
     };
 

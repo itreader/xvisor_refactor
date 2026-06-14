@@ -147,7 +147,7 @@ static int cmd_virtual_screen_device_list(vmm_char_device_t *cdev, const char *g
 
     if (!guest) {
         vmm_cdev_printf(cdev, "Failed to find guest %s\n", guest_name);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     vmm_cdev_printf(cdev, "Virtual Display List\n");
@@ -203,7 +203,7 @@ static int cmd_virtual_screen_bind(
 
     if (!guest) {
         vmm_cdev_printf(cdev, "Failed to find guest %s\n", guest_name);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if (refresh_rate) {
@@ -219,7 +219,7 @@ static int cmd_virtual_screen_bind(
             "Refresh rate should be "
             "between %d and %d\n",
             VSCREEN_REFRESH_RATE_MIN, VSCREEN_REFRESH_RATE_MAX);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (fb_name) {
@@ -230,7 +230,7 @@ static int cmd_virtual_screen_bind(
 
     if (!info) {
         vmm_cdev_printf(cdev, "Failed to find frame_buffer_info %s\n", fb_name);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if (virtual_display_name) {
@@ -251,7 +251,7 @@ static int cmd_virtual_screen_bind(
         vmm_cdev_printf(
             cdev, "Failed to find virtual display%s %s\n", (virtual_display_name) ? "" : " for guest",
             (virtual_display_name) ? virtual_display_name : guest->name);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if (vkeyboard_name) {
@@ -270,7 +270,7 @@ static int cmd_virtual_screen_bind(
 
     if (!vkbd && vkeyboard_name) {
         vmm_cdev_printf(cdev, "Failed to find virtual keyboard %s\n", vkeyboard_name);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if (vmouse_name) {
@@ -289,7 +289,7 @@ static int cmd_virtual_screen_bind(
 
     if (!vmou && vmouse_name) {
         vmm_cdev_printf(cdev, "Failed to find virtual mouse %s\n", vmouse_name);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     ekey[0] = KEY_ESC;
@@ -329,7 +329,7 @@ static int cmd_virtual_screen_unbind(vmm_char_device_t *cdev, const char *fb_nam
 
     if (!info) {
         vmm_cdev_printf(cdev, "Failed to find frame_buffer_info\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     return virtual_screen_unbind(info);
@@ -360,7 +360,7 @@ static int cmd_virtual_screen_exec(vmm_char_device_t *cdev, int argc, char **arg
 
 cmd_virtual_screen_fail:
     cmd_virtual_screen_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_virtual_screen = {

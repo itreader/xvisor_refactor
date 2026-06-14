@@ -98,7 +98,7 @@ static int cmd_block_device_dump8(vmm_char_device_t *cdev, vmm_block_device_t *b
 
     if (!count) {
         vmm_cdev_printf(cdev, "Error, 0 data to read\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (argc >= 2) {
@@ -163,7 +163,7 @@ static int cmd_block_device_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
         if (!block_device) {
             vmm_cdev_printf(cdev, "Error: cannot find block_device %s\n", argv[2]);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         if (strcmp(argv[1], "info") == 0) {
@@ -174,7 +174,7 @@ static int cmd_block_device_exec(vmm_char_device_t *cdev, int argc, char **argv)
     }
 
     cmd_block_device_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_block_device = {

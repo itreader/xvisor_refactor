@@ -95,7 +95,7 @@ static int parse_early_serial_options(char *options, physical_addr_t *addr, uint
 static int uart8250_default_terminal_putc(uint8_t ch)
 {
     if (!uart_8250_lowlevel_can_putc(&uart8250_port)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     uart_8250_lowlevel_putc(&uart8250_port, ch);
@@ -139,7 +139,7 @@ int init_early_serial_console(char *setup_string)
         } else {
             if (found) {
                 if (parse_early_serial_options(port_token, &addr, &baud, &clock) != VMM_OK) {
-                    return VMM_EFAIL;
+                    return VMM_ERR_FAIL;
                 }
 
                 setup_early_serial_console(addr, baud, clock);
@@ -151,13 +151,13 @@ int init_early_serial_console(char *setup_string)
         centry++;
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int uart8250_default_terminal_getc(uint8_t *ch)
 {
     if (!uart_8250_lowlevel_can_getc(&uart8250_port)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *ch = uart_8250_lowlevel_getc(&uart8250_port);

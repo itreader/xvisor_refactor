@@ -20,7 +20,7 @@
  *
  * @file vmm_device_emulate_debug.h
  * @author Jean Guyomarc'h (jean.guyomarch@openwide.fr)
- * @brief header file for device emulation debug framework
+ * @brief 设备模拟调试框架头文件
  */
 #ifndef _VMM_DEVICE_EMULATE_DEBUG_H__
 #define _VMM_DEVICE_EMULATE_DEBUG_H__
@@ -29,14 +29,14 @@
 
 /**
  * Debugging flags that can be set in the Device Tree describing the
- * interface hypervisor-guest.
+ * 接口 hypervisor-guest.
  * All flags but @c VMM_DEVICE_EMULATE_DEBUG_IRQ are automatically handled
- * by Xvisor. @c VMM_DEVICE_EMULATE_DEBUG_IRQ is implementation defined: it
- * can be used within the implementation of an emulator to provide
- * a better debugging interface, but there is no guarantee all emulators
+ * by Xvisor. @c VMM_DEVICE_EMULATE_DEBUG_IRQ is 实现 defined: it
+ * can be used within the 实现 of an emulator to provide
+ * a better debugging 接口, but there is no guarantee all emulators
  * do implement it.
  *
- * Emulators can use bits in range [31;16] as specific debug information.
+ * Emulators can use bits in range [31;16] as 特定的 debug information.
  * Bits [15;0] are reserved for Xvisor (currently only 5 are used).
  *
  *
@@ -48,14 +48,14 @@
  * @endcode
  */
 enum vmm_device_emulate_debug {
-    VMM_DEVICE_EMULATE_DEBUG_NONE   = 0,        /**< No debug */
-    VMM_DEVICE_EMULATE_DEBUG_PROBE  = (1 << 0), /**< Debug when probed */
-    VMM_DEVICE_EMULATE_DEBUG_RESET  = (1 << 1), /**< Debug when reset */
-    VMM_DEVICE_EMULATE_DEBUG_SYNC   = (1 << 2), /**< Debug when sync */
-    VMM_DEVICE_EMULATE_DEBUG_REMOVE = (1 << 3), /**< Debug when removed */
-    VMM_DEVICE_EMULATE_DEBUG_READ   = (1 << 4), /**< Debug when read */
-    VMM_DEVICE_EMULATE_DEBUG_WRITE  = (1 << 5), /**< Debug when wrote to */
-    VMM_DEVICE_EMULATE_DEBUG_IRQ    = (1 << 6), /**< Debug when an IRQ is emulated */
+    VMM_DEVICE_EMULATE_DEBUG_NONE   = 0,        /**< 无调试 */
+    VMM_DEVICE_EMULATE_DEBUG_PROBE  = (1 << 0), /**< 探测时调试 */
+    VMM_DEVICE_EMULATE_DEBUG_RESET  = (1 << 1), /**< 复位时调试 */
+    VMM_DEVICE_EMULATE_DEBUG_SYNC   = (1 << 2), /**< 同步时调试 */
+    VMM_DEVICE_EMULATE_DEBUG_REMOVE = (1 << 3), /**< 移除时调试 */
+    VMM_DEVICE_EMULATE_DEBUG_READ   = (1 << 4), /**< 读操作 */
+    VMM_DEVICE_EMULATE_DEBUG_WRITE  = (1 << 5), /**< 写操作时调试 */
+    VMM_DEVICE_EMULATE_DEBUG_IRQ    = (1 << 6), /**< IRQ模拟时调试 */
     /* (1 << 7)  is available */
     /* (1 << 8)  is available */
     /* (1 << 9)  is available */
@@ -80,14 +80,9 @@ enum vmm_device_emulate_debug {
  */
 
 /**
- * Gets the debug information flags about a device emulator
- * @param[in] edev Device emulator to query
- * @return Debug information flags
- *
- * @note Use this function only to query debug flags, since direct memory
- * access is configuration-dependant.
- * The last 16bits can be used freely by any emulator to provide its own
- * debug through the device tree.
+ * @brief 获取设备模拟的调试信息
+ * @param edev 模拟设备实例指针
+ * @return 设备模拟调试标志位
  */
 static inline uint32_t vmm_device_emulate_get_debug_info(const vmm_emulate_device_t *edev);
 
@@ -103,46 +98,56 @@ static inline uint32_t vmm_device_emulate_get_debug_info(const vmm_emulate_devic
 }
 #endif /* CONFIG_DEVICE_EMULATE_DEBUG */
 
-/** @return TRUE if debug is enabled on probing, FALSE otherwise */
+/**
+ * @brief 函数接口
+ */
 static inline bool vmm_device_emulate_debug_probe(const vmm_emulate_device_t *edev)
 {
     return (vmm_device_emulate_get_debug_info(edev) & VMM_DEVICE_EMULATE_DEBUG_PROBE);
 }
 
-/** @return TRUE if debug is enabled on reset, FALSE otherwise */
+/**
+ * @brief 函数接口
+ */
 static inline bool vmm_device_emulate_debug_reset(const vmm_emulate_device_t *edev)
 {
     return (vmm_device_emulate_get_debug_info(edev) & VMM_DEVICE_EMULATE_DEBUG_RESET);
 }
 
-/** @return TRUE if debug is enabled on reset, FALSE otherwise */
+/**
+ * @brief 函数接口
+ */
 static inline bool vmm_device_emulate_debug_sync(const vmm_emulate_device_t *edev)
 {
     return (vmm_device_emulate_get_debug_info(edev) & VMM_DEVICE_EMULATE_DEBUG_SYNC);
 }
 
-/** @return TRUE if debug is enabled on removal, FALSE otherwise */
+/**
+ * @brief 函数接口
+ */
 static inline bool vmm_device_emulate_debug_remove(const vmm_emulate_device_t *edev)
 {
     return (vmm_device_emulate_get_debug_info(edev) & VMM_DEVICE_EMULATE_DEBUG_REMOVE);
 }
 
-/** @return TRUE if debug is enabled on read, FALSE otherwise */
+/**
+ * @brief 函数接口
+ */
 static inline bool vmm_device_emulate_debug_read(const vmm_emulate_device_t *edev)
 {
     return (vmm_device_emulate_get_debug_info(edev) & VMM_DEVICE_EMULATE_DEBUG_READ);
 }
 
-/** @return TRUE if debug is enabled on write, FALSE otherwise */
+/**
+ * @brief 函数接口
+ */
 static inline bool vmm_device_emulate_debug_write(const vmm_emulate_device_t *edev)
 {
     return (vmm_device_emulate_get_debug_info(edev) & VMM_DEVICE_EMULATE_DEBUG_WRITE);
 }
 
 /**
- * @return TRUE if debug is enabled when an IRQ is emulated, FALSE otherwise
- * @note This function must be explicitely used in emulators implementation
- * to provide debug information.
+ * @brief 提供设备模拟调试信息
  */
 static inline bool vmm_device_emulate_debug_irq(const vmm_emulate_device_t *edev)
 {

@@ -93,7 +93,7 @@ static int virtio_host_block_read(vmm_block_request_queue_t *brq, vmm_request_t 
 
     if (!fifo_dequeue(vblk->reqs_fifo, &req)) {
         vmm_lerror(vblk->vdev->dev.name, "Failed to dequeue free request\n");
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     req->r                = r;
@@ -129,7 +129,7 @@ static int virtio_host_block_write(vmm_block_request_queue_t *brq, vmm_request_t
 
     if (!fifo_dequeue(vblk->reqs_fifo, &req)) {
         vmm_lerror(vblk->vdev->dev.name, "Failed to dequeue free request\n");
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     req->r                = r;
@@ -240,19 +240,19 @@ static void virtio_host_block_done_work(vmm_block_request_queue_t *brq, void *pr
                         break;
 
                     case VMM_VIRTIO_BLK_S_IOERR:
-                        err = VMM_EIO;
+                        err = VMM_ERR_IO;
                         break;
 
                     case VMM_VIRTIO_BLK_S_UNSUPP:
-                        err = VMM_ENOTSUPP;
+                        err = VMM_ERR_NOTSUPP;
                         break;
 
                     default:
-                        err = VMM_EFAIL;
+                        err = VMM_ERR_FAIL;
                         break;
                 };
             } else {
-                err = VMM_EINVALID;
+                err = VMM_ERR_INVALID;
             }
 
             vmm_block_request_queue_async_done(vblk->brq, req->r, err);
@@ -340,14 +340,14 @@ static int virtio_host_block_init_pool(struct virtio_host_block *vblk)
     vblk->reqs     = vmm_zalloc(vblk->max_reqs * sizeof(*vblk->reqs));
 
     if (!vblk->reqs) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     vblk->reqs_fifo = fifo_alloc(sizeof(void *), vblk->max_reqs);
 
     if (!vblk->reqs_fifo) {
         vmm_free(vblk->reqs);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     for (i = 0; i < vblk->max_reqs; i++) {
@@ -391,21 +391,21 @@ static int virtio_host_block_init_vqs(struct virtio_host_block *vblk)
     vblk->vqs = vmm_zalloc(vblk->num_vqs * sizeof(*vblk->vqs));
 
     if (!vblk->vqs) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail;
     }
 
     callbacks = vmm_zalloc(vblk->num_vqs * sizeof(*callbacks));
 
     if (!callbacks) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail_free_vqs;
     }
 
     names = vmm_zalloc(vblk->num_vqs * sizeof(*names));
 
     if (!names) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail_free_callbacks;
     }
 
@@ -415,7 +415,7 @@ static int virtio_host_block_init_vqs(struct virtio_host_block *vblk)
         names[i]     = vmm_zalloc(VMM_FIELD_NAME_SIZE);
 
         if (!names[i]) {
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto fail_free_names;
         }
 
@@ -482,7 +482,7 @@ static int virtio_host_block_name_format(char *prefix, int index, char *buf, int
 
     do {
         if (p == begin) {
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         *--p  = 'a' + umod32(index, unit);
@@ -508,7 +508,7 @@ static int virtio_host_block_probe(struct virtio_host_device *vdev)
 
     if (!vblk) {
         vmm_lerror(vdev->dev.name, "failed to alloc virtio_host_block\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Assign an unique index and hence name. */
@@ -534,7 +534,7 @@ static int virtio_host_block_probe(struct virtio_host_device *vdev)
 
     if (!vblk->num_blocks) {
         vmm_linfo(vdev->dev.name, "zero capacity hence no block device\n");
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto fail_free_index;
     }
 
@@ -578,7 +578,7 @@ static int virtio_host_block_probe(struct virtio_host_device *vdev)
 
     if (!vblk->block_device) {
         vmm_lerror(vdev->dev.name, "failed to alloc block device\n");
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail_free_pool;
     }
 

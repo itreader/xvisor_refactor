@@ -231,7 +231,7 @@ static inline physical_addr_t sg_phys(struct scatterlist *sg)
 {
     physical_addr_t pa;
 
-    if (vmm_host_va2pa(sg_page(sg), &pa)) {
+    if (vmm_host_virtualAddr_to_physicalAddr(sg_page(sg), &pa)) {
         BUG();
     }
 

@@ -23,7 +23,7 @@
 
 #include <arch_board.h>
 #include <arch_cpu.h>
-#include <arch_cpu_aspace.h>
+#include <arch_cpu_addr_space.h>
 #include <libs/mathlib.h>
 #include <libs/stringlib.h>
 #include <vmm_command_manager.h>
@@ -64,7 +64,7 @@ static void cmd_host_usage(vmm_char_device_t *cdev)
     vmm_cdev_printf(cdev, "   host irq stats\n");
     vmm_cdev_printf(cdev, "   host irq set_affinity <hirq> <host_cpu>\n");
     vmm_cdev_printf(cdev, "   host extirq stats\n");
-    vmm_cdev_printf(cdev, "   host aspace info\n");
+    vmm_cdev_printf(cdev, "   host addr_space info\n");
     vmm_cdev_printf(cdev, "   host ram info\n");
     vmm_cdev_printf(cdev, "   host ram bitmap [<column count>]\n");
     vmm_cdev_printf(cdev, "   host ram reserve <physaddr> <size>\n");
@@ -110,7 +110,7 @@ static int cmd_host_info(vmm_char_device_t *cdev)
 
     vmm_cdev_printf(cdev, "%-25s: 0x%lx\n", "Boot CPU Hardware ID", hwid);
     vmm_cdev_printf(cdev, "%-25s: %u\n", "Total Online CPUs", vmm_num_online_cpus());
-    vmm_cdev_printf(cdev, "%-25s: %lu MB\n", "Total VAPOOL", vmm_host_virtual_address_pool_size() / (1024UL * 1024UL));
+    vmm_cdev_printf(cdev, "%-25s: %lu MB\n", "Total VIRTUAL_ADDR_POOL", vmm_host_virtual_address_pool_size() / (1024UL * 1024UL));
     vmm_cdev_printf(cdev, "%-25s: %lu MB\n", "Total RAM", ((total * VMM_PAGE_SIZE) >> 20));
 
     arch_board_print_info(cdev);
@@ -170,7 +170,7 @@ static int cmd_host_cpu_poke(vmm_char_device_t *cdev, const vmm_cpumask_t *cmask
     poke               = vmm_zalloc(sizeof(*poke));
 
     if (!poke) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     for_each_cpu(c, cmask)
@@ -260,8 +260,8 @@ static int cmd_host_cpu_stats(vmm_char_device_t *cdev)
 
 static void irq_stats_print(vmm_char_device_t *cdev, uint32_t irqno)
 {
-    struct vmm_host_irq      *irq;
-    struct vmm_host_irq_chip *chip;
+    vmm_host_irq_t      *irq;
+    vmm_host_irq_chip_t *chip;
     const char               *irq_name;
     uint32_t                  cpu, stats;
 
@@ -278,7 +278,7 @@ static void irq_stats_print(vmm_char_device_t *cdev, uint32_t irqno)
         return;
     }
 
-    vmm_cdev_printf(cdev, " %-7d %-7d %-20s %-16s", irqno, irq->hwirq, irq_name, chip->name);
+    vmm_cdev_printf(cdev, " %-7d %-7d %-20s %-16s", irqno, irq->hw_irq_num, irq_name, chip->name);
     for_each_online_cpu(cpu)
     {
         stats = vmm_host_irq_get_count(irq, cpu);
@@ -334,12 +334,12 @@ static int cmd_host_irq_set_affinity(vmm_char_device_t *cdev, uint32_t hirq, uin
 {
     if (CONFIG_CPU_COUNT <= host_cpu) {
         vmm_cdev_printf(cdev, "%s: invalid host CPU%d\n", __func__, host_cpu);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!vmm_cpu_online(host_cpu)) {
         vmm_cdev_printf(cdev, "%s: host CPU%d not online\n", __func__, host_cpu);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return vmm_host_irq_set_affinity(hirq, vmm_cpumask_of(host_cpu), TRUE);
@@ -352,8 +352,8 @@ static void cmd_host_extirq_stats(vmm_char_device_t *cdev)
 
 static void cmd_host_addr_space_info(vmm_char_device_t *cdev)
 {
-    uint32_t free  = vmm_host_memmap_hash_free_count();
-    uint32_t total = vmm_host_memmap_hash_total_count();
+    uint32_t free  = vmm_host_memory_map_hash_free_count();
+    uint32_t total = vmm_host_memory_map_hash_total_count();
 
     vmm_cdev_printf(cdev, "Memmap Free Entry   : %u (0x%08x)\n", free, free);
     vmm_cdev_printf(cdev, "Memmap Total Entry  : %u (0x%08x)\n", total, total);
@@ -472,7 +472,7 @@ static int cmd_host_page_pool_info(vmm_char_device_t *cdev)
 {
     int            i;
     uint32_t       entry_count      = 0;
-    uint32_t       hugepage_count   = 0;
+    uint32_t       huge_page_count   = 0;
     uint32_t       page_count       = 0;
     uint32_t       page_avail_count = 0;
     virtual_size_t space            = 0;
@@ -481,13 +481,13 @@ static int cmd_host_page_pool_info(vmm_char_device_t *cdev)
     for (i = 0; i < VMM_PAGE_POOL_MAX; i++) {
         space += vmm_page_pool_space(i);
         entry_count += vmm_page_pool_entry_count(i);
-        hugepage_count += vmm_page_pool_hugepage_count(i);
+        huge_page_count += vmm_page_pool_huge_page_count(i);
         page_count += vmm_page_pool_page_count(i);
         page_avail_count += vmm_page_pool_page_avail_count(i);
     }
 
     vmm_cdev_printf(cdev, "Entry Count      : %d (0x%08x)\n", entry_count, entry_count);
-    vmm_cdev_printf(cdev, "Hugepage Count   : %d (0x%08x)\n", hugepage_count, hugepage_count);
+    vmm_cdev_printf(cdev, "huge_page Count   : %d (0x%08x)\n", huge_page_count, huge_page_count);
     vmm_cdev_printf(cdev, "Avail Page Count : %d (0x%08x)\n", page_avail_count, page_avail_count);
     vmm_cdev_printf(cdev, "Total Page Count : %d (0x%08x)\n", page_count, page_count);
     size = space;
@@ -502,7 +502,7 @@ static int cmd_host_page_pool_state(vmm_char_device_t *cdev)
 {
     int            i;
     uint32_t       _entry_count, entry_count           = 0;
-    uint32_t       _hugepage_count, hugepage_count     = 0;
+    uint32_t       _huge_page_count, huge_page_count     = 0;
     uint32_t       _page_count, page_count             = 0;
     uint32_t       _page_avail_count, page_avail_count = 0;
     virtual_size_t _space, space                       = 0;
@@ -511,7 +511,7 @@ static int cmd_host_page_pool_state(vmm_char_device_t *cdev)
         cdev, "----------------------------------------"
               "---------------------------------------\n");
 
-    vmm_cdev_printf(cdev, " %-20s %-11s %-10s %-10s %-11s %-11s\n", "Name", "Space (KB)", "Entries", "Hugepages", "AvailPages", "TotalPages");
+    vmm_cdev_printf(cdev, " %-20s %-11s %-10s %-10s %-11s %-11s\n", "Name", "Space (KB)", "Entries", "huge_pages", "AvailPages", "TotalPages");
 
     vmm_cdev_printf(
         cdev, "----------------------------------------"
@@ -520,17 +520,17 @@ static int cmd_host_page_pool_state(vmm_char_device_t *cdev)
     for (i = 0; i < VMM_PAGE_POOL_MAX; i++) {
         _space            = vmm_page_pool_space(i);
         _entry_count      = vmm_page_pool_entry_count(i);
-        _hugepage_count   = vmm_page_pool_hugepage_count(i);
+        _huge_page_count   = vmm_page_pool_huge_page_count(i);
         _page_count       = vmm_page_pool_page_count(i);
         _page_avail_count = vmm_page_pool_page_avail_count(i);
 
         vmm_cdev_printf(
-            cdev, " %-20s %-11d %-10d %-10d %-11d %-11d\n", vmm_page_pool_name(i), (uint32_t)(_space >> 10), _entry_count, _hugepage_count,
+            cdev, " %-20s %-11d %-10d %-10d %-11d %-11d\n", vmm_page_pool_name(i), (uint32_t)(_space >> 10), _entry_count, _huge_page_count,
             _page_avail_count, _page_count);
 
         space += _space;
         entry_count += _entry_count;
-        hugepage_count += _hugepage_count;
+        huge_page_count += _huge_page_count;
         page_count += _page_count;
         page_avail_count += _page_avail_count;
     }
@@ -540,7 +540,7 @@ static int cmd_host_page_pool_state(vmm_char_device_t *cdev)
               "---------------------------------------\n");
 
     vmm_cdev_printf(
-        cdev, " %-20s %-11d %-10d %-10d %-11d %-11d\n", "TOTAL", (uint32_t)(space >> 10), entry_count, hugepage_count, page_avail_count, page_count);
+        cdev, " %-20s %-11d %-10d %-10d %-11d %-11d\n", "TOTAL", (uint32_t)(space >> 10), entry_count, huge_page_count, page_avail_count, page_count);
 
     vmm_cdev_printf(
         cdev, "----------------------------------------"
@@ -615,7 +615,7 @@ static int cmd_host_bus_device_list(vmm_char_device_t *cdev, const char *bus_nam
 
     if (!b) {
         vmm_cdev_printf(cdev, "Failed to find %s bus\n", bus_name);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     vmm_cdev_printf(cdev, "----------------------------------------");
@@ -670,7 +670,7 @@ static int cmd_host_class_device_list(vmm_char_device_t *cdev, const char *class
 
     if (!c) {
         vmm_cdev_printf(cdev, "Failed to find %s class\n", class_name);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     vmm_cdev_printf(cdev, "----------------------------------------");
@@ -730,7 +730,7 @@ static int cmd_host_exec(vmm_char_device_t *cdev, int argc, char **argv)
             cmd_host_extirq_stats(cdev);
             return VMM_OK;
         }
-    } else if ((strcmp(argv[1], "aspace") == 0) && (2 < argc)) {
+    } else if ((strcmp(argv[1], "addr_space") == 0) && (2 < argc)) {
         if (strcmp(argv[2], "info") == 0) {
             cmd_host_addr_space_info(cdev);
             return VMM_OK;
@@ -795,7 +795,7 @@ static int cmd_host_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 fail:
     cmd_host_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_host = {

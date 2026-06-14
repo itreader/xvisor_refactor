@@ -223,21 +223,21 @@ int mptimer_reg_read(struct mptimer_state *s, uint32_t offset, uint32_t *dst)
     vcpu                    = vmm_scheduler_current_vcpu();
 
     if (!vcpu || !vcpu->guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (s->guest->id != vcpu->guest->id) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cpu = vcpu->subid;
 
     if (cpu >= s->num_cpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (offset >= 0x38) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     } else if (offset < 0x20) {
         /* Private Timer */
         timer = &(s->timers[(2 * cpu)]);
@@ -284,7 +284,7 @@ int mptimer_reg_read(struct mptimer_state *s, uint32_t offset, uint32_t *dst)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(mptimer_reg_read);
+VMM_ERR_XPORT_SYMBOL(mptimer_reg_read);
 
 int mptimer_reg_write(struct mptimer_state *s, uint32_t offset, uint32_t src_mask, uint32_t src)
 {
@@ -297,21 +297,21 @@ int mptimer_reg_write(struct mptimer_state *s, uint32_t offset, uint32_t src_mas
     vcpu                    = vmm_scheduler_current_vcpu();
 
     if (!vcpu || !vcpu->guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (s->guest->id != vcpu->guest->id) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cpu = vcpu->subid;
 
     if (cpu >= s->num_cpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (offset >= 0x38) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     } else if (offset < 0x20) {
         /* Private Timer */
         timer = &(s->timers[(cpu << 1)]);
@@ -406,7 +406,7 @@ int mptimer_reg_write(struct mptimer_state *s, uint32_t offset, uint32_t src_mas
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(mptimer_reg_write);
+VMM_ERR_XPORT_SYMBOL(mptimer_reg_write);
 
 int mptimer_state_reset(struct mptimer_state *mpt)
 {
@@ -433,7 +433,7 @@ int mptimer_state_reset(struct mptimer_state *mpt)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(mptimer_state_reset);
+VMM_ERR_XPORT_SYMBOL(mptimer_state_reset);
 
 int mptimer_state_free(struct mptimer_state *s)
 {
@@ -450,7 +450,7 @@ int mptimer_state_free(struct mptimer_state *s)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(mptimer_state_free);
+VMM_ERR_XPORT_SYMBOL(mptimer_state_free);
 
 struct mptimer_state *mptimer_state_alloc(
     struct vmm_guest *guest, vmm_emulate_device_t *edev, uint32_t num_cpu, uint32_t periphclk, uint32_t timer_irq, uint32_t wdt_irq)
@@ -494,6 +494,6 @@ mptimer_state_alloc_done:
     return s;
 }
 
-VMM_EXPORT_SYMBOL(mptimer_state_alloc);
+VMM_ERR_XPORT_SYMBOL(mptimer_state_alloc);
 
 VMM_DECLARE_MODULE(MODULE_DESC, MODULE_AUTHOR, MODULE_LICENSE, MODULE_IPRIORITY, MODULE_INIT, MODULE_EXIT);

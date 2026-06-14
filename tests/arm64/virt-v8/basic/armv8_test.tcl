@@ -75,18 +75,18 @@ send -- "host virtual_address_pool stats\r"
 expect $xvisor_prompt
 set host_virtual_address_pool_stats_out $expect_out(buffer)
 if { [string first "Total Pages" $host_virtual_address_pool_stats_out] > -1 } {
-        puts "\n :: HOST VAPOOL STATS TESTCASE PASS :: \n\n"
+        puts "\n :: HOST VIRTUAL_ADDR_POOL STATS TESTCASE PASS :: \n\n"
 } else {
-        puts "\n :: HOST VAPOOL STATS TESTCASE FAIL :: \n\n"
+        puts "\n :: HOST VIRTUAL_ADDR_POOL STATS TESTCASE FAIL :: \n\n"
 }
 
 send -- "host virtual_address_pool bitmap\r"
 expect $xvisor_prompt
 set host_virtual_address_pool_bitmap_out $expect_out(buffer)
 if { [string first "1 : used" $host_virtual_address_pool_bitmap_out] > -1 } {
-        puts "\n :: HOST VAPOOL BITMAP TESTCASE PASS :: \n\n"
+        puts "\n :: HOST VIRTUAL_ADDR_POOL BITMAP TESTCASE PASS :: \n\n"
 } else {
-        puts "\n :: HOST VAPOOL BITMAP TESTCASE FAIL :: \n\n"
+        puts "\n :: HOST VIRTUAL_ADDR_POOL BITMAP TESTCASE FAIL :: \n\n"
 }
 
 send -- "host ram stats\r"

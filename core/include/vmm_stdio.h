@@ -18,7 +18,7 @@
  *
  * @file vmm_stdio.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for standerd input/output
+ * @brief 标准输入输出头文件
  */
 #ifndef _VMM_STDIO_H__
 #define _VMM_STDIO_H__
@@ -94,69 +94,144 @@ struct vmm_history {
 struct vmm_char_device;
 typedef struct vmm_char_device vmm_char_device_t;
 
-/** Check if a character is a control character */
+/**
+ * @brief 检查字符是否为控制字符
+ * @param c 字符设备指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_is_control(char c);
 
-/** Check if a character is printable */
+/**
+ * @brief 检查字符是否为可打印字符
+ * @param c 字符设备指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_is_printable(char c);
 
-/** Low-level print characters function */
+/**
+ * @brief printchars
+ * @param cdev 字符设备指针
+ * @param ch 字符值
+ * @param num_ch 数量
+ * @param block 块设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_printchars(vmm_char_device_t *cdev, char *ch, uint32_t num_ch, bool block);
 
-/** Put character to character device */
+/**
+ * @brief 字符设备输出单个字符
+ * @param cdev 字符设备指针
+ * @param ch 字符值
+ */
 void vmm_cdev_putc(vmm_char_device_t *cdev, char ch);
 
-/** Put character to default device */
+/**
+ * @brief putc
+ * @param ch 字符值
+ */
 void vmm_putc(char ch);
 
-/** Put string to character device */
+/**
+ * @brief 字符设备输出字符串
+ * @param cdev 字符设备指针
+ * @param str 待处理的字符串
+ */
 void vmm_cdev_puts(vmm_char_device_t *cdev, char *str);
 
-/** Put string to default device */
+/**
+ * @brief puts
+ * @param str 待处理的字符串
+ */
 void vmm_puts(char *str);
 
-/** Print formatted string to another string with pre-parsed variable args
- *  Note: Don't use this API directly unless you are familiar with variable
- *  args parsing.
+/**
+ * @brief   snprintf
+ * @param out 用于返回读取结果的输出指针
+ * @param out_sz 用于返回输出数据大小
+ * @param format 格式化字符串
+ * @param args 参数数组指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int __vmm_snprintf(char *out, uint32_t out_sz, const char *format, va_list args);
 
-/** Print formatted string to another string */
+/**
+ * @brief   printf
+ * @param 2 参数2
+ * @param 3 参数3
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __printf(2, 3) vmm_sprintf(char *out, const char *format, ...);
 
-/** Print formatted string to another string */
+/**
+ * @brief   printf
+ * @param 3 参数3
+ * @param 4 参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __printf(3, 4) vmm_snprintf(char *out, uint32_t out_sz, const char *format, ...);
 
-/** Print formatted string to character device */
+/**
+ * @brief   printf
+ * @param 2 参数2
+ * @param 3 参数3
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __printf(2, 3) vmm_cdev_printf(vmm_char_device_t *cdev, const char *format, ...);
 
-/** Print formatted string to default device */
+/**
+ * @brief   printf
+ * @param 1 参数1
+ * @param 2 参数2
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __printf(1, 2) vmm_printf(const char *format, ...);
 
-/** Print formatted string to default device at boot-time */
+/**
+ * @brief   printf
+ * @param 1 参数1
+ * @param 2 参数2
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __printf(1, 2) vmm_init_printf(const char *format, ...);
 
-/** Print contents of some data in hex format */
+/**
+ * @brief 字符设备十六进制转储输出
+ * @param cdev 字符设备指针
+ * @param print_base_addr 是否打印基地址标志
+ * @param data 用户自定义数据指针
+ * @param len 数据长度
+ */
 void vmm_cdev_hexdump(vmm_char_device_t *cdev, uint64_t print_base_addr, void *data, uint64_t len);
 
-/** Print version string to character device */
+/**
+ * @brief 将版本信息输出到字符设备
+ * @param cdev 字符设备指针
+ */
 void vmm_cdev_print_version(vmm_char_device_t *cdev);
 
 /** Print version string to default device */
 #define vmm_printver() vmm_cdev_print_version(NULL)
 
 /** Predefined log levels */
+/**
+ * @brief 打印级别枚举，定义从紧急到调试的各日志输出等级
+ */
 enum vmm_print_level {
-    VMM_LOGLEVEL_EMERGENCY = 0,
-    VMM_LOGLEVEL_ALERT     = 1,
-    VMM_LOGLEVEL_CRITICAL  = 2,
-    VMM_LOGLEVEL_ERROR     = 3,
-    VMM_LOGLEVEL_WARNING   = 4,
-    VMM_LOGLEVEL_NOTICE    = 5,
-    VMM_LOGLEVEL_INFO      = 6,
+    VMM_LOGLEVEL_EMERGENCY = 0, /**< 0 */
+    VMM_LOGLEVEL_ALERT     = 1, /**< 1 */
+    VMM_LOGLEVEL_CRITICAL  = 2, /**< 2 */
+    VMM_LOGLEVEL_ERROR     = 3, /**< 3 */
+    VMM_LOGLEVEL_WARNING   = 4, /**< 4 */
+    VMM_LOGLEVEL_NOTICE    = 5, /**< 5 */
+    VMM_LOGLEVEL_INFO      = 6, /**< 6 */
 };
 
-/** Print formatted string to character device */
+/**
+ * @brief   printf
+ * @param 3 参数3
+ * @param 4 参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __printf(3, 4) vmm_lprintf(enum vmm_print_level level, const char *prefix, const char *format, ...);
 
 #define vmm_lprintf_once(level, prefix, msg...)                                                                                                      \
@@ -182,8 +257,11 @@ int __printf(3, 4) vmm_lprintf(enum vmm_print_level level, const char *prefix, c
 #define vmm_linfo(prefix, msg...)       vmm_lprintf(VMM_LOGLEVEL_INFO, prefix, msg)
 #define vmm_lerror_once(prefix, msg...) vmm_lprintf_once(VMM_LOGLEVEL_ERROR, prefix, msg)
 
-/** Panic & Print formatted message
- * Note: This function is less verbose so perfer vmm_panic().
+/**
+ * @brief   恐慌
+ * @param format 格式化字符串
+ * @param ... 参数
+ * @return 打印的字符数
  */
 void __noreturn __vmm_panic(const char *format, ...);
 
@@ -194,36 +272,83 @@ void __noreturn __vmm_panic(const char *format, ...);
         __vmm_panic("Please reset the system ...\n");                                                                                                \
     } while (0)
 
-/** Low-level scan characters function */
+/**
+ * @brief scanchars
+ * @param cdev 字符设备指针
+ * @param ch 字符值
+ * @param num_ch 数量
+ * @param block 块设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_scanchars(vmm_char_device_t *cdev, char *ch, uint32_t num_ch, bool block);
 
-/** Get character from character device */
+/**
+ * @brief cgetc
+ * @param cdev 字符设备指针
+ * @param lecho 是否本地回显标志
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 char vmm_cgetc(vmm_char_device_t *cdev, bool lecho);
 
-/** Get character from default device */
+/**
+ * @brief getc
+ * @param lecho 是否本地回显标志
+ * @return 获取到的值，失败返回错误码
+ */
 char vmm_getc(bool lecho);
 
-/** Get string from character device
- *  If history is NULL does not support UP/DN keys */
+/**
+ * @brief cgets
+ * @param cdev 字符设备指针
+ * @param s 字符串或数据指针
+ * @param maxwidth 最大宽度值
+ * @param endchar 结束字符
+ * @param history 历史记录缓冲区指针
+ * @param lecho 是否本地回显标志
+ * @return 目标对象指针，不存在返回NULL
+ */
 char *vmm_cgets(vmm_char_device_t *cdev, char *s, int maxwidth, char endchar, struct vmm_history *history, bool lecho);
 
-/** Get string from default device
- *  If history is NULL does not support UP/DN keys */
+/**
+ * @brief gets
+ * @param s 字符串或数据指针
+ * @param maxwidth 最大宽度值
+ * @param endchar 结束字符
+ * @param history 历史记录缓冲区指针
+ * @param lecho 是否本地回显标志
+ * @return 目标对象指针，不存在返回NULL
+ */
 char *vmm_gets(char *s, int maxwidth, char endchar, struct vmm_history *history, bool lecho);
 
-/** Get default character device used by stdio */
+/**
+ * @brief 标准IO 设备
+ * @return 目标对象指针，不存在返回NULL
+ */
 vmm_char_device_t *vmm_stdio_device(void);
 
-/** Change default character device used by stdio */
+/**
+ * @brief 切换标准输入输出设备
+ * @param cdev 字符设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_stdio_change_device(vmm_char_device_t *cdev);
 
-/** Get log level used by stdio */
+/**
+ * @brief 获取或设置标准IO日志级别
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 long vmm_stdio_loglevel(void);
 
-/** Change log level used by stdio */
+/**
+ * @brief 修改标准IO日志级别
+ * @param loglevel 日志级别
+ */
 void vmm_stdio_change_loglevel(long loglevel);
 
-/** Initialize standerd IO library */
+/**
+ * @brief 初始化标准IO
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_stdio_init(void);
 
 #endif

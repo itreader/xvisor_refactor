@@ -18,7 +18,7 @@
  *
  * @file vmm_vspi.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief source code for virtual spi framework
+ * @brief 虚拟SPI框架源代码
  */
 
 #include <libs/stringlib.h>
@@ -37,34 +37,56 @@
 #define MODULE_INIT      vmm_vspi_init
 #define MODULE_EXIT      vmm_vspi_exit
 
+/**
+ * @brief 虚拟SPI控制结构（内部），管理SPI总线的运行时状态
+ */
 struct vmm_vspi_ctrl {
-    vmm_mutex_t   vsh_list_lock;
-    double_list_t vsh_list;
+    vmm_mutex_t   vsh_list_lock; /**< vsh_list_lock成员 */
+    double_list_t vsh_list; /**< vsh_list成员 */
 };
 
 static struct vmm_vspi_ctrl vsctrl;
 
+/**
+ * @brief 获取SPI从设备的主机
+ * @param vss 虚拟屏幕表面指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 vmm_virtual_spi_host_t *vmm_vspislave_get_host(vmm_virtual_spi_slave_t *vss)
 {
     return (vss) ? vss->vsh : NULL;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspislave_get_host);
+VMM_ERR_XPORT_SYMBOL(vmm_vspislave_get_host);
 
+/**
+ * @brief 获取SPI从设备的名称
+ * @param vss 虚拟屏幕表面指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 const char *vmm_vspislave_get_name(vmm_virtual_spi_slave_t *vss)
 {
     return (vss) ? vss->name : NULL;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspislave_get_name);
+VMM_ERR_XPORT_SYMBOL(vmm_vspislave_get_name);
 
+/**
+ * @brief 获取SPI从设备的片选信号
+ * @param vss 虚拟屏幕表面指针
+ * @return SPI片选编号，失败返回U32_MAX
+ */
 uint32_t vmm_vspislave_get_chip_select(vmm_virtual_spi_slave_t *vss)
 {
     return (vss) ? vss->chip_select : U32_MAX;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspislave_get_chip_select);
+VMM_ERR_XPORT_SYMBOL(vmm_vspislave_get_chip_select);
 
+/**
+ * @brief 创建vspislave
+ * @return 成功返回新创建的节点指针，失败返回NULL
+ */
 vmm_virtual_spi_slave_t *vmm_vspislave_create(
     vmm_emulate_device_t *edev, uint32_t chip_select, uint32_t (*xfer)(vmm_virtual_spi_slave_t *, uint32_t, void *), void *private)
 {
@@ -122,14 +144,19 @@ vmm_virtual_spi_slave_t *vmm_vspislave_create(
     return vss;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspislave_create);
+VMM_ERR_XPORT_SYMBOL(vmm_vspislave_create);
 
+/**
+ * @brief 销毁vspislave
+ * @param vss 虚拟屏幕表面指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vspislave_destroy(vmm_virtual_spi_slave_t *vss)
 {
     vmm_virtual_spi_host_t *vsh;
 
     if (!vss || !vss->vsh) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vsh = vss->vsh;
@@ -144,8 +171,15 @@ int vmm_vspislave_destroy(vmm_virtual_spi_slave_t *vss)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspislave_destroy);
+VMM_ERR_XPORT_SYMBOL(vmm_vspislave_destroy);
 
+/**
+ * @brief 执行虚拟SPI主机的数据传输
+ * @param vsh 虚拟串口句柄
+ * @param chip_select 片选信号值
+ * @param data 用户自定义数据指针
+ * @return 成功返回传输的字节数，失败返回错误码
+ */
 uint32_t vmm_vspihost_xfer_data(vmm_virtual_spi_host_t *vsh, uint32_t chip_select, uint32_t data)
 {
     uint32_t                 ret = 0;
@@ -165,8 +199,12 @@ uint32_t vmm_vspihost_xfer_data(vmm_virtual_spi_host_t *vsh, uint32_t chip_selec
 
     return ret;
 }
-VMM_EXPORT_SYMBOL(vmm_vspihost_xfer_data)
+VMM_ERR_XPORT_SYMBOL(vmm_vspihost_xfer_data)
 
+/**
+ * @brief 调度虚拟SPI主机的传输请求
+ * @param vsh 虚拟串口句柄
+ */
 void vmm_vspihost_schedule_xfer(vmm_virtual_spi_host_t *vsh)
 {
     if (vsh) {
@@ -174,28 +212,45 @@ void vmm_vspihost_schedule_xfer(vmm_virtual_spi_host_t *vsh)
     }
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspihost_schedule_xfer);
+VMM_ERR_XPORT_SYMBOL(vmm_vspihost_schedule_xfer);
 
+/**
+ * @brief 获取SPI主控制器的名称
+ * @param vsh 虚拟串口句柄
+ * @return 目标对象指针，不存在返回NULL
+ */
 const char *vmm_vspihost_get_name(vmm_virtual_spi_host_t *vsh)
 {
     return (vsh) ? vsh->name : NULL;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspihost_get_name);
+VMM_ERR_XPORT_SYMBOL(vmm_vspihost_get_name);
 
+/**
+ * @brief 获取SPI主控制器片选获取的数量
+ * @param vsh 虚拟串口句柄
+ * @return 数量值
+ */
 uint32_t vmm_vspihost_get_chip_select_count(vmm_virtual_spi_host_t *vsh)
 {
     return (vsh) ? vsh->chip_select_count : 0;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspihost_get_chip_select_count);
+VMM_ERR_XPORT_SYMBOL(vmm_vspihost_get_chip_select_count);
 
+/**
+ * @brief 遍历虚拟SPI主机从设备
+ * @param vsh 虚拟串口句柄
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vspihost_iterate_slaves(vmm_virtual_spi_host_t *vsh, void *data, int (*fn)(vmm_virtual_spi_host_t *, vmm_virtual_spi_slave_t *, void *))
 {
     uint32_t i;
 
     if (!vsh || !fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&vsh->slaves_lock);
@@ -209,14 +264,19 @@ int vmm_vspihost_iterate_slaves(vmm_virtual_spi_host_t *vsh, void *data, int (*f
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspihost_iterate_slaves);
+VMM_ERR_XPORT_SYMBOL(vmm_vspihost_iterate_slaves);
 
+/**
+ * @brief 虚拟SPI主机传输工作线程
+ * @param udata 用户数据指针
+ * @return 遍历结果
+ */
 static int vspihost_xfer_worker(void *udata)
 {
     vmm_virtual_spi_host_t *vsh = udata;
 
     if (!vsh) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     while (1) {
@@ -230,6 +290,10 @@ static int vspihost_xfer_worker(void *udata)
     return VMM_OK;
 }
 
+/**
+ * @brief 创建vspihost
+ * @return 成功返回新创建的节点指针，失败返回NULL
+ */
 vmm_virtual_spi_host_t *vmm_vspihost_create(
     const char *name_prefix, vmm_emulate_device_t *edev, void (*xfer)(vmm_virtual_spi_host_t *, void *), uint32_t chip_select_count, void *private)
 {
@@ -317,8 +381,13 @@ vmm_virtual_spi_host_t *vmm_vspihost_create(
     return vsh;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspihost_create);
+VMM_ERR_XPORT_SYMBOL(vmm_vspihost_create);
 
+/**
+ * @brief 销毁vspihost
+ * @param vsh 虚拟串口句柄
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vspihost_destroy(vmm_virtual_spi_host_t *vsh)
 {
     bool                    found;
@@ -327,14 +396,14 @@ int vmm_vspihost_destroy(vmm_virtual_spi_host_t *vsh)
     vmm_virtual_spi_host_t *vs;
 
     if (!vsh) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_mutex_lock(&vsctrl.vsh_list_lock);
 
     if (list_empty(&vsctrl.vsh_list)) {
         vmm_mutex_unlock(&vsctrl.vsh_list_lock);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vs    = NULL;
@@ -350,7 +419,7 @@ int vmm_vspihost_destroy(vmm_virtual_spi_host_t *vsh)
 
     if (!found) {
         vmm_mutex_unlock(&vsctrl.vsh_list_lock);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     list_del(&vs->head);
@@ -365,8 +434,13 @@ int vmm_vspihost_destroy(vmm_virtual_spi_host_t *vsh)
     return (rc) ? rc : rc1;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspihost_destroy);
+VMM_ERR_XPORT_SYMBOL(vmm_vspihost_destroy);
 
+/**
+ * @brief 查找vspihost
+ * @param edev 模拟设备实例指针
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_virtual_spi_host_t *vmm_vspihost_find(vmm_emulate_device_t *edev)
 {
     bool                    found;
@@ -398,8 +472,15 @@ vmm_virtual_spi_host_t *vmm_vspihost_find(vmm_emulate_device_t *edev)
     return vsh;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspihost_find);
+VMM_ERR_XPORT_SYMBOL(vmm_vspihost_find);
 
+/**
+ * @brief 遍历虚拟SPI主机实例
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vspihost_iterate(vmm_virtual_spi_host_t *start, void *data, int (*fn)(vmm_virtual_spi_host_t *vsh, void *data))
 {
     int                     rc          = VMM_OK;
@@ -407,7 +488,7 @@ int vmm_vspihost_iterate(vmm_virtual_spi_host_t *start, void *data, int (*fn)(vm
     vmm_virtual_spi_host_t *vsh         = NULL;
 
     if (!fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_mutex_lock(&vsctrl.vsh_list_lock);
@@ -434,8 +515,12 @@ int vmm_vspihost_iterate(vmm_virtual_spi_host_t *start, void *data, int (*fn)(vm
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspihost_iterate);
+VMM_ERR_XPORT_SYMBOL(vmm_vspihost_iterate);
 
+/**
+ * @brief 获取SPI主控制器的数量
+ * @return 数量值
+ */
 uint32_t vmm_vspihost_count(void)
 {
     uint32_t                retval = 0;
@@ -453,8 +538,12 @@ uint32_t vmm_vspihost_count(void)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(vmm_vspihost_count);
+VMM_ERR_XPORT_SYMBOL(vmm_vspihost_count);
 
+/**
+ * @brief 初始化虚拟SPI
+ * @return 数量值
+ */
 static int __init vmm_vspi_init(void)
 {
     memset(&vsctrl, 0, sizeof(vsctrl));
@@ -465,6 +554,10 @@ static int __init vmm_vspi_init(void)
     return VMM_OK;
 }
 
+/**
+ * @brief 虚拟SPI子系统退出
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __exit vmm_vspi_exit(void)
 {
     /* Nothing to do here. */

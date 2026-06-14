@@ -539,19 +539,19 @@ static int armada38x_rtc_probe(vmm_device_t *dev)
     match = vmm_platform_match_nodeid(dev);
 
     if (!match) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     rtc = vmm_devm_zalloc(dev, sizeof(struct armada38x_rtc));
 
     if (!rtc) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     rtc->val_to_freq = vmm_devm_calloc(dev, SAMPLE_NR, sizeof(struct value_to_freq));
 
     if (!rtc->val_to_freq) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     INIT_SPIN_LOCK(&rtc->lock);

@@ -145,7 +145,7 @@ static bool     plic_cpu_hotplug_setup_done;
 static uint32_t plic_parent_irq;
 static DEFINE_PER_CPU(struct plic_context *, handlers);
 
-static void plic_context_disable_irq(struct plic_context *cntx, int hwirq)
+static void plic_context_disable_irq(struct plic_context *cntx, int hw_irq_num)
 {
     uint32_t    mask, *reg;
     irq_flags_t flags;
@@ -154,15 +154,15 @@ static void plic_context_disable_irq(struct plic_context *cntx, int hwirq)
         return;
     }
 
-    reg  = cntx->reg_enable_base + (hwirq / 32) * sizeof(uint32_t);
-    mask = ~(1 << (hwirq % 32));
+    reg  = cntx->reg_enable_base + (hw_irq_num / 32) * sizeof(uint32_t);
+    mask = ~(1 << (hw_irq_num % 32));
 
     vmm_spin_lock_irq_save_lite(&cntx->reg_enable_lock, flags);
     vmm_writel(vmm_readl(reg) & mask, reg);
     vmm_spin_unlock_irq_restore_lite(&cntx->reg_enable_lock, flags);
 }
 
-static void plic_context_enable_irq(struct plic_context *cntx, int hwirq)
+static void plic_context_enable_irq(struct plic_context *cntx, int hw_irq_num)
 {
     uint32_t    bit, *reg;
     irq_flags_t flags;
@@ -171,15 +171,15 @@ static void plic_context_enable_irq(struct plic_context *cntx, int hwirq)
         return;
     }
 
-    reg = cntx->reg_enable_base + (hwirq / 32) * sizeof(uint32_t);
-    bit = 1 << (hwirq % 32);
+    reg = cntx->reg_enable_base + (hw_irq_num / 32) * sizeof(uint32_t);
+    bit = 1 << (hw_irq_num % 32);
 
     vmm_spin_lock_irq_save_lite(&cntx->reg_enable_lock, flags);
     vmm_writel(vmm_readl(reg) | bit, reg);
     vmm_spin_unlock_irq_restore_lite(&cntx->reg_enable_lock, flags);
 }
 
-static int plic_irq_enable_with_mask(struct vmm_host_irq *d, const vmm_cpumask_t *mask)
+static int plic_irq_enable_with_mask(vmm_host_irq_t *d, const vmm_cpumask_t *mask)
 {
     int                  cpu;
     vmm_cpumask_t        amask;
@@ -190,30 +190,30 @@ static int plic_irq_enable_with_mask(struct vmm_host_irq *d, const vmm_cpumask_t
     cpu  = vmm_cpumask_any_and(mask, &amask);
     cntx = per_cpu(handlers, cpu);
 
-    vmm_writel(1, cntx->hw->reg_priority_base + d->hwirq * PRIORITY_PER_ID);
-    plic_context_enable_irq(cntx, d->hwirq);
+    vmm_writel(1, cntx->hw->reg_priority_base + d->hw_irq_num * PRIORITY_PER_ID);
+    plic_context_enable_irq(cntx, d->hw_irq_num);
 
     return VMM_OK;
 }
 
-static void plic_irq_enable(struct vmm_host_irq *d)
+static void plic_irq_enable(vmm_host_irq_t *d)
 {
     plic_irq_enable_with_mask(d, vmm_host_irq_get_affinity(d));
 }
 
-static void plic_irq_disable(struct vmm_host_irq *d)
+static void plic_irq_disable(vmm_host_irq_t *d)
 {
     int             i;
     struct plic_hw *hw = vmm_host_irq_get_chip_data(d);
 
-    vmm_writel(0, hw->reg_priority_base + d->hwirq * PRIORITY_PER_ID);
+    vmm_writel(0, hw->reg_priority_base + d->hw_irq_num * PRIORITY_PER_ID);
 
     for (i = 0; i < hw->ncontexts; ++i) {
-        plic_context_disable_irq(&hw->contexts[i], d->hwirq);
+        plic_context_disable_irq(&hw->contexts[i], d->hw_irq_num);
     }
 }
 
-static int plic_irq_set_affinity(struct vmm_host_irq *d, const vmm_cpumask_t *mask, bool force)
+static int plic_irq_set_affinity(vmm_host_irq_t *d, const vmm_cpumask_t *mask, bool force)
 {
     /* Disable IRQ for all HARTs */
     plic_irq_disable(d);
@@ -222,7 +222,7 @@ static int plic_irq_set_affinity(struct vmm_host_irq *d, const vmm_cpumask_t *ma
     return plic_irq_enable_with_mask(d, mask);
 }
 
-static struct vmm_host_irq_chip plic_chip = {
+static vmm_host_irq_chip_t plic_chip = {
     .name             = "riscv-plic",
     .irq_enable       = plic_irq_enable,
     .irq_disable      = plic_irq_disable,
@@ -231,7 +231,7 @@ static struct vmm_host_irq_chip plic_chip = {
 
 static vmm_irq_return_t plic_chained_handle_irq(int irq, void *dev)
 {
-    int                  hwirq, hirq;
+    int                  hw_irq_num, hirq;
     bool                 have_irq = FALSE;
     struct plic_context *cntx     = dev;
 
@@ -242,17 +242,17 @@ static vmm_irq_return_t plic_chained_handle_irq(int irq, void *dev)
      * register.  This automatically enables and disables the interrupt,
      * so there's nothing else to do.
      */
-    while ((hwirq = vmm_readl(cntx->reg_base + CONTEXT_CLAIM))) {
-        hirq = vmm_host_irq_domain_find_mapping(cntx->hw->domain, hwirq);
+    while ((hw_irq_num = vmm_readl(cntx->reg_base + CONTEXT_CLAIM))) {
+        hirq = vmm_host_irq_domain_find_mapping(cntx->hw->domain, hw_irq_num);
         vmm_host_generic_irq_exec(hirq);
-        vmm_writel(hwirq, cntx->reg_base + CONTEXT_CLAIM);
+        vmm_writel(hw_irq_num, cntx->reg_base + CONTEXT_CLAIM);
         have_irq = TRUE;
     }
 
     return (have_irq) ? VMM_IRQ_HANDLED : VMM_IRQ_NONE;
 }
 
-static int plic_irq_domain_map(struct vmm_host_irq_domain *dom, uint32_t hirq, uint32_t hwirq)
+static int plic_irq_domain_map(struct vmm_host_irq_domain *dom, uint32_t hirq, uint32_t hw_irq_num)
 {
     struct plic_hw *hw = dom->host_data;
 
@@ -290,7 +290,7 @@ static int plic_cpu_init(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t cpu)
 
     if (!cntx || !cntx->hw) {
         vmm_lerror("plic", "No context for CPU%d\n", cpu);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     plic_context_init(cntx);
@@ -306,7 +306,7 @@ static vmm_cpu_hotplug_notify_t plic_cpu_hotplug = {
 static int __init plic_init(vmm_device_tree_node_t *node)
 {
     uint32_t                            cpu;
-    int                                 i, rc, hwirq;
+    int                                 i, rc, hw_irq_num;
     struct plic_hw                     *hw = NULL;
     struct plic_context                *cntx;
     physical_addr_t                     hart_id;
@@ -317,7 +317,7 @@ static int __init plic_init(vmm_device_tree_node_t *node)
 
     if (!hw) {
         vmm_lerror("plic", "%s: failed to HW instance memory\n", node->name);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Find number of devices */
@@ -337,7 +337,7 @@ static int __init plic_init(vmm_device_tree_node_t *node)
     if (!hw->contexts) {
         vmm_lerror("plic", "%s: failed to allocate contexts memory\n", node->name);
         vmm_free(hw);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Find register base and size */
@@ -360,7 +360,7 @@ static int __init plic_init(vmm_device_tree_node_t *node)
         vmm_lerror("plic", "%s: failed to map registers\n", node->name);
         vmm_free(hw->contexts);
         vmm_free(hw);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     hw->reg_base          = (void *)hw->reg_virt;
@@ -427,8 +427,8 @@ static int __init plic_init(vmm_device_tree_node_t *node)
         vmm_cpumask_set_cpu(cpu, &hw->lmask);
 
         /* Disable all interrupts */
-        for (hwirq = 1; hwirq <= cntx->hw->ndev; ++hwirq) {
-            plic_context_disable_irq(cntx, hwirq);
+        for (hw_irq_num = 1; hw_irq_num <= cntx->hw->ndev; ++hw_irq_num) {
+            plic_context_disable_irq(cntx, hw_irq_num);
         }
 
         hw->ncontexts_avail++;
@@ -442,7 +442,7 @@ static int __init plic_init(vmm_device_tree_node_t *node)
         vmm_host_iounmap(hw->reg_virt);
         vmm_free(hw->contexts);
         vmm_free(hw);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Setup CPU hotplug notifier */

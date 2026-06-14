@@ -18,7 +18,7 @@
  *
  * @file vmm_bridge.c
  * @author Sukanto Ghosh <sukantoghosh@gmail.com>
- * @brief software bridge as netswitch.
+ * @brief 软件网桥网络交换机实现
  */
 
 #include <libs/stringlib.h>
@@ -50,20 +50,31 @@
 /* We maintain a table of learned mac addresses
  * (please note that the mac of the immediate netports are not
  * kept in this table) */
+/**
+ * @brief 网桥MAC条目结构，条目结构
+ */
 struct bridge_mac_entry {
-    struct vmm_netport *port;
-    uint8_t             macaddr[6];
-    uint64_t            timestamp;
+    struct vmm_netport *port; /**< 端口 */
+    uint8_t             macaddr[6]; /**< MAC地址 */
+    uint64_t            timestamp; /**< 时间戳 */
 };
 
+/**
+ * @brief 网桥控制结构，控制结构
+ */
 struct bridge_ctrl {
-    struct vmm_netswitch    *nsw;
-    vmm_timer_event_t        ev;
-    vmm_rwlock_t             mac_table_lock;
-    uint32_t                 mac_table_sz;
-    struct bridge_mac_entry *mac_table;
+    struct vmm_netswitch    *nsw; /**< 网络交换 */
+    vmm_timer_event_t        ev; /**< 事件 */
+    vmm_rwlock_t             mac_table_lock; /**< mac_table_lock成员 */
+    uint32_t                 mac_table_sz; /**< mac_table_sz成员 */
+    struct bridge_mac_entry *mac_table; /**< mac_table成员 */
 };
 
+/**
+ * @brief 清理网桥MAC地址表中指定端口的条目
+ * @param br 块请求结构体指针
+ * @param port 端口编号或端口结构体指针
+ */
 static void bridge_mactable_cleanup_port(struct bridge_ctrl *br, struct vmm_netport *port)
 {
     uint32_t    m;
@@ -80,12 +91,22 @@ static void bridge_mactable_cleanup_port(struct bridge_ctrl *br, struct vmm_netp
     vmm_write_unlock_irq_restore_lite(&br->mac_table_lock, f);
 }
 
+/**
+ * @brief 查找桥接MAC地址表学习回调
+ * @param br 块请求结构体指针
+ * @param dstmac 目标MAC地址
+ * @param srcmac 源MAC地址
+ * @param src 源设备树节点
+ * @return 成功返回目标指针，失败返回NULL
+ */
 static struct vmm_netport *bridge_mactable_learn_find(struct bridge_ctrl *br, const uint8_t *dstmac, const uint8_t *srcmac, struct vmm_netport *src)
 {
     uint32_t                 i;
     uint64_t                 tstamp;
     irq_flags_t              f;
-    bool                     learn, update, found;
+    bool learn;
+    bool update;
+    bool found;
     struct vmm_netport      *dst;
     struct bridge_mac_entry *m;
 
@@ -181,6 +202,10 @@ static struct vmm_netport *bridge_mactable_learn_find(struct bridge_ctrl *br, co
     return dst;
 }
 
+/**
+ * @brief 桥接 定时器 事件
+ * @param ev 定时器事件
+ */
 static void bridge_timer_event(vmm_timer_event_t *ev)
 {
     uint32_t                 i;
@@ -223,10 +248,12 @@ static void bridge_timer_event(vmm_timer_event_t *ev)
 static int bridge_rx_handler(struct vmm_netswitch *nsw, struct vmm_netport *src, struct vmm_mbuf *mbuf)
 {
     irq_flags_t         f;
-    const uint8_t      *srcmac, *dstmac;
+    const uint8_t *srcmac = NULL;
+    const uint8_t *dstmac = NULL;
     bool                broadcast = TRUE;
     double_list_t      *l, *l1;
-    struct vmm_netport *dst, *port;
+    struct vmm_netport *dst = NULL;
+    struct vmm_netport *port = NULL;
     struct bridge_ctrl *br = nsw->private;
 
     /* Get source and destination mac addresses */
@@ -273,12 +300,24 @@ static int bridge_rx_handler(struct vmm_netswitch *nsw, struct vmm_netport *src,
     return VMM_OK;
 }
 
+/**
+ * @brief 桥接 端口 添加
+ * @param nsw 网络交换机结构体指针
+ * @param port 端口编号或端口结构体指针
+ * @return 编号值
+ */
 static int bridge_port_add(struct vmm_netswitch *nsw, struct vmm_netport *port)
 {
     /* For now nothing to do here. */
     return VMM_OK;
 }
 
+/**
+ * @brief 桥接 端口 移除
+ * @param nsw 网络交换机结构体指针
+ * @param port 端口编号或端口结构体指针
+ * @return 编号值
+ */
 static int bridge_port_remove(struct vmm_netswitch *nsw, struct vmm_netport *port)
 {
     struct bridge_ctrl *br = nsw->private;
@@ -289,6 +328,14 @@ static int bridge_port_remove(struct vmm_netswitch *nsw, struct vmm_netport *por
     return VMM_OK;
 }
 
+/**
+ * @brief 创建网桥实例
+ * @param policy 策略标识
+ * @param name 目标对象的名称
+ * @param argc 参数个数
+ * @param argv 参数数组
+ * @return 成功返回目标指针，失败返回NULL
+ */
 static struct vmm_netswitch *bridge_create(struct vmm_netswitch_policy *policy, const char *name, int argc, char **argv)
 {
     int                   rc;
@@ -298,7 +345,7 @@ static struct vmm_netswitch *bridge_create(struct vmm_netswitch_policy *policy, 
     nsw                       = vmm_netswitch_alloc(policy, name);
 
     if (!nsw) {
-        goto bridge_netswitch_alloc_failed;
+        goto bridge_netswitch_alloc_failed; /**< bridge_netswitch_alloc_failed成员 */
     }
 
     nsw->port2switch_xfer = bridge_rx_handler;
@@ -341,6 +388,11 @@ bridge_netswitch_alloc_failed:
     return NULL;
 }
 
+/**
+ * @brief 销毁网桥实例
+ * @param policy 策略标识
+ * @param nsw 网络交换机结构体指针
+ */
 static void bridge_destroy(struct vmm_netswitch_policy *policy, struct vmm_netswitch *nsw)
 {
     struct bridge_ctrl *br;
@@ -367,11 +419,19 @@ static struct vmm_netswitch_policy bridge = {
     .destroy = bridge_destroy,
 };
 
+/**
+ * @brief 初始化桥接
+ * @return 编号值
+ */
 int __init vmm_bridge_init(void)
 {
     return vmm_netswitch_policy_register(&bridge);
 }
 
+/**
+ * @brief 网桥子系统退出
+ * @return 编号值
+ */
 void __exit vmm_bridge_exit(void)
 {
     vmm_netswitch_policy_unregister(&bridge);

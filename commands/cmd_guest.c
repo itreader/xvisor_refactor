@@ -107,7 +107,7 @@ static int cmd_guest_create(vmm_char_device_t *cdev, const char *name)
     if (!node) {
         vmm_cdev_printf(
             cdev, "Error: failed to find %s node under %s\n", name, VMM_DEVICE_TREE_PATH_SEPARATOR_STRING VMM_DEVICE_TREE_GUESTINFO_NODE_NAME);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     guest = vmm_manager_guest_create(node);
@@ -115,7 +115,7 @@ static int cmd_guest_create(vmm_char_device_t *cdev, const char *name)
 
     if (!guest) {
         vmm_cdev_printf(cdev, "%s: Failed to create\n", name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_cdev_printf(cdev, "%s: Created\n", name);
@@ -130,7 +130,7 @@ static int cmd_guest_destroy(vmm_char_device_t *cdev, const char *name)
 
     if (!guest) {
         vmm_cdev_printf(cdev, "Failed to find guest\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if ((ret = vmm_manager_guest_destroy(guest))) {
@@ -149,7 +149,7 @@ static int cmd_guest_reset(vmm_char_device_t *cdev, const char *name)
 
     if (!guest) {
         vmm_cdev_printf(cdev, "Failed to find guest\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if ((ret = vmm_manager_guest_reset(guest))) {
@@ -168,7 +168,7 @@ static int cmd_guest_kick(vmm_char_device_t *cdev, const char *name)
 
     if (!guest) {
         vmm_cdev_printf(cdev, "Failed to find guest\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if ((ret = vmm_manager_guest_kick(guest))) {
@@ -187,7 +187,7 @@ static int cmd_guest_pause(vmm_char_device_t *cdev, const char *name)
 
     if (!guest) {
         vmm_cdev_printf(cdev, "Failed to find guest\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if ((ret = vmm_manager_guest_pause(guest))) {
@@ -206,7 +206,7 @@ static int cmd_guest_resume(vmm_char_device_t *cdev, const char *name)
 
     if (!guest) {
         vmm_cdev_printf(cdev, "Failed to find guest\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if ((ret = vmm_manager_guest_resume(guest))) {
@@ -225,7 +225,7 @@ static int cmd_guest_halt(vmm_char_device_t *cdev, const char *name)
 
     if (!guest) {
         vmm_cdev_printf(cdev, "Failed to find guest\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if ((ret = vmm_manager_guest_halt(guest))) {
@@ -246,7 +246,7 @@ static int cmd_guest_dumpmem(vmm_char_device_t *cdev, const char *name, physical
 
     if (!guest) {
         vmm_cdev_printf(cdev, "Failed to find guest\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     len = (len + (BYTES_PER_LINE - 1)) & ~(BYTES_PER_LINE - 1);
@@ -274,7 +274,7 @@ static int cmd_guest_dumpmem(vmm_char_device_t *cdev, const char *name, physical
         return VMM_OK;
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static void cmd_guest_print_region_mapping(
@@ -332,7 +332,7 @@ static int cmd_guest_region_list(vmm_char_device_t *cdev, const char *name)
 
     if (!guest) {
         vmm_cdev_printf(cdev, "Failed to find guest\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     vmm_guest_iterate_region(guest, 0x0, cmd_guest_print_region, cdev);
@@ -347,7 +347,7 @@ static int cmd_guest_region(vmm_char_device_t *cdev, const char *name, physical_
 
     if (!guest) {
         vmm_cdev_printf(cdev, "Failed to find guest\n");
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     reg = vmm_guest_find_region(guest, guest_physical_addr, VMM_REGION_MEMORY, FALSE);
@@ -358,7 +358,7 @@ static int cmd_guest_region(vmm_char_device_t *cdev, const char *name, physical_
 
     if (!reg) {
         vmm_cdev_printf(cdev, "Memory region not found\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cmd_guest_print_region(guest, reg, cdev);
@@ -373,7 +373,7 @@ static int cmd_guest_param(vmm_char_device_t *cdev, int argc, char **argv, physi
             cdev, "Error: Insufficient argument for "
                   "command dumpmem.\n");
         cmd_guest_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     *src_addr = (physical_addr_t)strtoull(argv[3], NULL, 0);
@@ -405,7 +405,7 @@ static int cmd_guest_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc < 3) {
         cmd_guest_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (strcmp(argv[1], "create") == 0) {
@@ -442,7 +442,7 @@ static int cmd_guest_exec(vmm_char_device_t *cdev, int argc, char **argv)
         return cmd_guest_region(cdev, argv[2], src_addr);
     } else {
         cmd_guest_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;

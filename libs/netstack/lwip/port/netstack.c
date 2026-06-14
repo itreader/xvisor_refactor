@@ -94,18 +94,18 @@ char *netstack_get_name(void)
     return "lwIP";
 }
 
-VMM_EXPORT_SYMBOL(netstack_get_name);
+VMM_ERR_XPORT_SYMBOL(netstack_get_name);
 
 int netstack_dhcp_request(void)
 {
     if (dhcp_start(&lns.nif)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_dhcp_request);
+VMM_ERR_XPORT_SYMBOL(netstack_dhcp_request);
 
 int netstack_set_ipaddr(uint8_t *addr)
 {
@@ -115,7 +115,7 @@ int netstack_set_ipaddr(uint8_t *addr)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_set_ipaddr);
+VMM_ERR_XPORT_SYMBOL(netstack_set_ipaddr);
 
 int netstack_get_ipaddr(uint8_t *addr)
 {
@@ -126,7 +126,7 @@ int netstack_get_ipaddr(uint8_t *addr)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_get_ipaddr);
+VMM_ERR_XPORT_SYMBOL(netstack_get_ipaddr);
 
 int netstack_set_ipmask(uint8_t *addr)
 {
@@ -136,7 +136,7 @@ int netstack_set_ipmask(uint8_t *addr)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_set_ipmask);
+VMM_ERR_XPORT_SYMBOL(netstack_set_ipmask);
 
 int netstack_get_ipmask(uint8_t *addr)
 {
@@ -147,7 +147,7 @@ int netstack_get_ipmask(uint8_t *addr)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_get_ipmask);
+VMM_ERR_XPORT_SYMBOL(netstack_get_ipmask);
 
 int netstack_set_gatewayip(uint8_t *addr)
 {
@@ -157,7 +157,7 @@ int netstack_set_gatewayip(uint8_t *addr)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_set_gatewayip);
+VMM_ERR_XPORT_SYMBOL(netstack_set_gatewayip);
 
 int netstack_get_gatewayip(uint8_t *addr)
 {
@@ -168,7 +168,7 @@ int netstack_get_gatewayip(uint8_t *addr)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_get_gatewayip);
+VMM_ERR_XPORT_SYMBOL(netstack_get_gatewayip);
 
 int netstack_get_hwaddr(uint8_t *addr)
 {
@@ -176,7 +176,7 @@ int netstack_get_hwaddr(uint8_t *addr)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_get_hwaddr);
+VMM_ERR_XPORT_SYMBOL(netstack_get_hwaddr);
 
 #if defined(PING_USE_SOCKETS)
 
@@ -199,7 +199,7 @@ int netstack_send_echo(uint8_t *ripaddr, uint16_t size, uint16_t seqno, struct n
     /* Open RAW socket */
     if ((s = lwip_socket(AF_INET, SOCK_RAW, IP_PROTO_ICMP)) < 0) {
         vmm_printf("%s: failed to open ICMP socket\n", __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Set socket option */
@@ -215,7 +215,7 @@ int netstack_send_echo(uint8_t *ripaddr, uint16_t size, uint16_t seqno, struct n
     iecho = (struct icmp_echo_hdr *)vmm_zalloc(len);
 
     if (!iecho) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     ICMPH_TYPE_SET(iecho, ICMP_ECHO);
@@ -235,14 +235,14 @@ int netstack_send_echo(uint8_t *ripaddr, uint16_t size, uint16_t seqno, struct n
     vmm_free(iecho);
 
     if (!err) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Get reference timestamp */
     ts  = vmm_timer_timestamp();
 
     /* Wait for ECHO reply */
-    err = VMM_EFAIL;
+    err = VMM_ERR_FAIL;
     off = lwip_recvfrom(s, buf, sizeof(buf), 0, (struct sockaddr *)&sock, (socklen_t *)&fromlen);
 
     if (off >= (sizeof(struct ip_hdr) + sizeof(struct icmp_echo_hdr))) {
@@ -273,7 +273,7 @@ int netstack_send_echo(uint8_t *ripaddr, uint16_t size, uint16_t seqno, struct n
     return err;
 }
 
-VMM_EXPORT_SYMBOL(netstack_send_echo);
+VMM_ERR_XPORT_SYMBOL(netstack_send_echo);
 
 #else
 
@@ -352,13 +352,13 @@ int netstack_send_echo(uint8_t *ripaddr, uint16_t size, uint16_t seqno, struct n
 
     if (!p) {
         vmm_mutex_unlock(&lns.ping_lock);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     if ((p->len != p->tot_len) || (p->next != NULL)) {
         pbuf_free(p);
         vmm_mutex_unlock(&lns.ping_lock);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Prepare ECHO request */
@@ -406,7 +406,7 @@ int netstack_send_echo(uint8_t *ripaddr, uint16_t size, uint16_t seqno, struct n
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(netstack_send_echo);
+VMM_ERR_XPORT_SYMBOL(netstack_send_echo);
 
 #endif
 
@@ -416,7 +416,7 @@ void netstack_prefetch_arp_mapping(uint8_t *ipaddr)
     /* lwIP does this automatically */
 }
 
-VMM_EXPORT_SYMBOL(netstack_prefetch_arp_mapping);
+VMM_ERR_XPORT_SYMBOL(netstack_prefetch_arp_mapping);
 
 struct netstack_socket *netstack_socket_alloc(enum netstack_socket_type type)
 {
@@ -453,7 +453,7 @@ struct netstack_socket *netstack_socket_alloc(enum netstack_socket_type type)
     return sk;
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_alloc);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_alloc);
 
 int netstack_socket_connect(struct netstack_socket *sk, uint8_t *ipaddr, uint16_t port)
 {
@@ -461,14 +461,14 @@ int netstack_socket_connect(struct netstack_socket *sk, uint8_t *ipaddr, uint16_
     ip_addr_t addr;
 
     if (!sk || !sk->private || !ipaddr) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     IP4_ADDR(&addr, ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3]);
     err = netconn_connect(sk->private, &addr, port);
 
     if (err != ERR_OK) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     sk->ipaddr[0] = ipaddr[0];
@@ -480,20 +480,20 @@ int netstack_socket_connect(struct netstack_socket *sk, uint8_t *ipaddr, uint16_
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_connect);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_connect);
 
 int netstack_socket_disconnect(struct netstack_socket *sk)
 {
     err_t err;
 
     if (!sk || !sk->private) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     err = netconn_disconnect(sk->private);
 
     if (err != ERR_OK) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     sk->ipaddr[0] = 0;
@@ -505,7 +505,7 @@ int netstack_socket_disconnect(struct netstack_socket *sk)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_disconnect);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_disconnect);
 
 int netstack_socket_bind(struct netstack_socket *sk, uint8_t *ipaddr, uint16_t port)
 {
@@ -513,7 +513,7 @@ int netstack_socket_bind(struct netstack_socket *sk, uint8_t *ipaddr, uint16_t p
     ip_addr_t addr;
 
     if (!sk || !sk->private) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!ipaddr) {
@@ -524,7 +524,7 @@ int netstack_socket_bind(struct netstack_socket *sk, uint8_t *ipaddr, uint16_t p
     }
 
     if (err != ERR_OK) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!ipaddr) {
@@ -544,26 +544,26 @@ int netstack_socket_bind(struct netstack_socket *sk, uint8_t *ipaddr, uint16_t p
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_bind);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_bind);
 
 int netstack_socket_listen(struct netstack_socket *sk)
 {
     err_t err;
 
     if (!sk || !sk->private) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     err = netconn_listen(sk->private);
 
     if (err != ERR_OK) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_listen);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_listen);
 
 int netstack_socket_accept(struct netstack_socket *sk, struct netstack_socket **new_sk)
 {
@@ -572,13 +572,13 @@ int netstack_socket_accept(struct netstack_socket *sk, struct netstack_socket **
     struct netstack_socket *tsk;
 
     if (!sk || !sk->private || !new_sk) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     tsk = vmm_zalloc(sizeof(struct netstack_socket));
 
     if (!tsk) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     memcpy(tsk, sk, sizeof(struct netstack_socket));
@@ -589,7 +589,7 @@ int netstack_socket_accept(struct netstack_socket *sk, struct netstack_socket **
 
     if (err != ERR_OK) {
         vmm_free(tsk);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     tsk->private = newconn;
@@ -599,26 +599,26 @@ int netstack_socket_accept(struct netstack_socket *sk, struct netstack_socket **
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_accept);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_accept);
 
 int netstack_socket_close(struct netstack_socket *sk)
 {
     err_t err;
 
     if (!sk || !sk->private) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     err = netconn_close(sk->private);
 
     if (err != ERR_OK) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_close);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_close);
 
 void netstack_socket_free(struct netstack_socket *sk)
 {
@@ -630,7 +630,7 @@ void netstack_socket_free(struct netstack_socket *sk)
     vmm_free(sk);
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_free);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_free);
 
 int netstack_socket_recv(struct netstack_socket *sk, struct netstack_socket_buf *buf, int timeout)
 {
@@ -639,7 +639,7 @@ int netstack_socket_recv(struct netstack_socket *sk, struct netstack_socket_buf 
     struct netconn *conn;
 
     if (!sk || !sk->private || !buf) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     conn = sk->private;
@@ -656,9 +656,9 @@ int netstack_socket_recv(struct netstack_socket *sk, struct netstack_socket_buf 
     err       = netconn_recv(conn, &nb);
 
     if (err == ERR_TIMEOUT) {
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     } else if (err != ERR_OK) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     netbuf_data(nb, &buf->data, &buf->len);
@@ -667,7 +667,7 @@ int netstack_socket_recv(struct netstack_socket *sk, struct netstack_socket_buf 
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_recv);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_recv);
 
 int netstack_socket_nextbuf(struct netstack_socket_buf *buf)
 {
@@ -675,7 +675,7 @@ int netstack_socket_nextbuf(struct netstack_socket_buf *buf)
     struct netbuf *nb;
 
     if (!buf || !buf->private) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     nb  = buf->private;
@@ -683,7 +683,7 @@ int netstack_socket_nextbuf(struct netstack_socket_buf *buf)
     err = netbuf_next(nb);
 
     if (err != 0 && err != 1) {
-        return VMM_ENOENT;
+        return VMM_ERR_NOENT;
     }
 
     netbuf_data(nb, &buf->data, &buf->len);
@@ -692,7 +692,7 @@ int netstack_socket_nextbuf(struct netstack_socket_buf *buf)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_nextbuf);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_nextbuf);
 
 void netstack_socket_freebuf(struct netstack_socket_buf *buf)
 {
@@ -705,26 +705,26 @@ void netstack_socket_freebuf(struct netstack_socket_buf *buf)
     netbuf_delete(buf->private);
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_freebuf);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_freebuf);
 
 int netstack_socket_write(struct netstack_socket *sk, void *data, uint16_t len)
 {
     err_t err;
 
     if (!sk || !sk->private || !data) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     err = netconn_write(sk->private, data, len, NETCONN_COPY);
 
     if (err != ERR_OK) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(netstack_socket_write);
+VMM_ERR_XPORT_SYMBOL(netstack_socket_write);
 
 static void lwip_set_link(struct vmm_netport *port)
 {
@@ -759,7 +759,7 @@ static int lwip_switch2port_xfer(struct vmm_netport *port, struct vmm_mbuf *mbuf
     p                             = pbuf_alloc(PBUF_LINK, pbuf_len, PBUF_POOL);
 
     if (!p) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     for (q = p; q != NULL; q = q->next) {
@@ -915,7 +915,7 @@ static int __init lwip_netstack_init(void)
 
     if (!lns.port) {
         vmm_printf("%s: vmm_netport_alloc() failed\n", __func__);
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail;
     }
 

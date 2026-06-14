@@ -202,7 +202,7 @@ int cpu_vcpu_emulate_mcr_mrc_cp15(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t 
     if (iss & ISS_MCR_MRC_DIR_MASK) {
         /* MRC CP15 */
         if (!cpu_vcpu_cp15_read(vcpu, regs, opc1, opc2, CRn, CRm, &t)) {
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
         }
 
         if (!rc) {
@@ -213,7 +213,7 @@ int cpu_vcpu_emulate_mcr_mrc_cp15(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t 
         t = cpu_vcpu_reg_read(vcpu, regs, Rt);
 
         if (!cpu_vcpu_cp15_write(vcpu, regs, opc1, opc2, CRn, CRm, t)) {
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
         }
     }
 
@@ -235,7 +235,7 @@ done:
 /* TODO: To be implemeted later */
 int cpu_vcpu_emulate_mcrr_mrrc_cp15(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
 {
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 int cpu_vcpu_emulate_mcr_mrc_cp14(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
@@ -259,7 +259,7 @@ int cpu_vcpu_emulate_mcr_mrc_cp14(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t 
     if (iss & ISS_MCR_MRC_DIR_MASK) {
         /* MRC CP14 */
         if (!cpu_vcpu_cp14_read(vcpu, regs, opc1, opc2, CRn, CRm, &t)) {
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
         }
 
         if (!rc) {
@@ -270,7 +270,7 @@ int cpu_vcpu_emulate_mcr_mrc_cp14(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t 
         t = cpu_vcpu_reg_read(vcpu, regs, Rt);
 
         if (!cpu_vcpu_cp14_write(vcpu, regs, opc1, opc2, CRn, CRm, t)) {
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
         }
     }
 
@@ -292,13 +292,13 @@ done:
 /* TODO: To be implemeted later */
 int cpu_vcpu_emulate_mrrc_cp14(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
 {
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 /* TODO: To be implemeted later */
 int cpu_vcpu_emulate_ldc_stc_cp14(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
 {
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 int cpu_vcpu_emulate_cp0_cp13(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
@@ -331,7 +331,7 @@ int cpu_vcpu_emulate_cp0_cp13(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, 
                 break;
 
             default:
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
         };
     }
 
@@ -372,13 +372,13 @@ int cpu_vcpu_emulate_vmrs(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint
 /* TODO: To be implemeted later */
 int cpu_vcpu_emulate_jazelle(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
 {
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 /* TODO: To be implemeted later */
 int cpu_vcpu_emulate_bxj(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss)
 {
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int do_psci_call(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss, bool is_smc)
@@ -478,7 +478,7 @@ int cpu_vcpu_emulate_load(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -529,7 +529,7 @@ int cpu_vcpu_emulate_store(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uin
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 

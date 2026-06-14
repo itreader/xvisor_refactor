@@ -602,7 +602,7 @@ static int smc91c111_emulator_read8(vmm_emulate_device_t *edev, physical_addr_t 
                     break;
 
                 default:
-                    rc = VMM_EINVALID;
+                    rc = VMM_ERR_INVALID;
                     break;
             };
 
@@ -650,7 +650,7 @@ static int smc91c111_emulator_read8(vmm_emulate_device_t *edev, physical_addr_t 
                     break;
 
                 default:
-                    rc = VMM_EINVALID;
+                    rc = VMM_ERR_INVALID;
                     break;
             };
 
@@ -731,7 +731,7 @@ static int smc91c111_emulator_read8(vmm_emulate_device_t *edev, physical_addr_t 
                     break;
 
                 default:
-                    rc = VMM_EINVALID;
+                    rc = VMM_ERR_INVALID;
                     break;
             };
 
@@ -778,18 +778,18 @@ static int smc91c111_emulator_read8(vmm_emulate_device_t *edev, physical_addr_t 
                     break;
 
                 default:
-                    rc = VMM_EINVALID;
+                    rc = VMM_ERR_INVALID;
                     break;
             }
 
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
-    if (rc == VMM_EINVALID) {
+    if (rc == VMM_ERR_INVALID) {
         vmm_printf("%s: Bad reg %d:%x\n", __func__, s->bank, (int)offset);
     }
 
@@ -898,7 +898,7 @@ static int smc91c111_emulator_write8(vmm_emulate_device_t *edev, physical_addr_t
                     break;
 
                 default:
-                    rc = VMM_EINVALID;
+                    rc = VMM_ERR_INVALID;
                     break;
             };
 
@@ -953,7 +953,7 @@ static int smc91c111_emulator_write8(vmm_emulate_device_t *edev, physical_addr_t
                     break;
 
                 default:
-                    rc = VMM_EINVALID;
+                    rc = VMM_ERR_INVALID;
                     break;
             };
 
@@ -1007,7 +1007,7 @@ static int smc91c111_emulator_write8(vmm_emulate_device_t *edev, physical_addr_t
                             break;
 
                         default:
-                            rc = VMM_EINVALID;
+                            rc = VMM_ERR_INVALID;
                             break;
                     }
 
@@ -1077,7 +1077,7 @@ static int smc91c111_emulator_write8(vmm_emulate_device_t *edev, physical_addr_t
                     break;
 
                 default:
-                    rc = VMM_EINVALID;
+                    rc = VMM_ERR_INVALID;
                     break;
             };
 
@@ -1110,18 +1110,18 @@ static int smc91c111_emulator_write8(vmm_emulate_device_t *edev, physical_addr_t
                     break;
 
                 default:
-                    rc = VMM_EINVALID;
+                    rc = VMM_ERR_INVALID;
                     break;
             };
 
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
-    if (rc == VMM_EINVALID) {
+    if (rc == VMM_ERR_INVALID) {
         vmm_printf("%s: Bad reg %d:%x\n", __func__, s->bank, (int)offset);
     }
 
@@ -1190,7 +1190,7 @@ static int smc91c111_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_
 
     if (!s) {
         vmm_printf("%s: state alloc failed\n", __func__);
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto smc91c111_probe_done;
     }
 
@@ -1210,7 +1210,7 @@ static int smc91c111_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_
 
     if (!s->port) {
         vmm_printf("%s: netport alloc failed\n", __func__);
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto smc91c111_probe_failed;
     }
 

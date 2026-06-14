@@ -17,7 +17,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * @author Himanshu Chauhan (hschauhan@nulltrace.org)
- * @brief source for boot time or early parameters.
+ * @brief 启动时或早期参数源文件
  */
 
 #include <libs/stringlib.h>
@@ -29,6 +29,11 @@
 
 extern const vmm_setup_param_t __setup_start[], __setup_end[];
 
+/**
+ * @brief 将参数名中的短横线转换为下划线
+ * @param c 字符设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static char dash2underscore(char c)
 {
     if (c == '-') {
@@ -38,6 +43,13 @@ static char dash2underscore(char c)
     return c;
 }
 
+/**
+ * @brief 检查参数等式是否匹配
+ * @param a 参数值
+ * @param b 字节值或缓冲区
+ * @param n 起始位置编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static bool parameqn(const char *a, const char *b, size_t n)
 {
     size_t i;
@@ -52,6 +64,13 @@ static bool parameqn(const char *a, const char *b, size_t n)
 }
 
 /* Check for early params. */
+/**
+ * @brief 解析并执行早期启动参数
+ * @param param 参数结构体指针
+ * @param val 待写入的值
+ * @param unused 未使用的字符串参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __init do_early_param(char *param, char *val, const char *unused)
 {
     const vmm_setup_param_t *p;
@@ -68,10 +87,19 @@ static int __init do_early_param(char *param, char *val, const char *unused)
 
 /* You can use " around spaces, but can't escape ". */
 /* Hyphens and underscores equivalent in parameter names. */
+/**
+ * @brief 下一个 参数
+ * @param args 参数数组指针
+ * @param param 参数结构体指针
+ * @param val 待写入的值
+ * @return 成功返回目标指针，失败返回NULL
+ */
 static char *next_arg(char *args, char **param, char **val)
 {
-    uint32_t i, equals = 0;
-    int      in_quote = 0, quoted = 0;
+    uint32_t i;
+    uint32_t equals = 0;
+    int in_quote = 0;
+    int quoted = 0;
     char    *next;
 
     if (*args == '"') {
@@ -130,10 +158,15 @@ static char *next_arg(char *args, char **param, char **val)
 }
 
 /* Args looks like "foo=bar,bar2 baz=fuz wiz". */
+/**
+ * @brief 解析 参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int parse_args(
     const char *doing, char *args, unsigned num, int16_t min_level, int16_t max_level, int (*unknown)(char *param, char *val, const char *doing))
 {
-    char *param, *val;
+    char *param = NULL;
+    char *val = NULL;
 
     /* Chew leading spaces */
     args = skip_spaces(args);
@@ -156,6 +189,12 @@ static int parse_args(
     return 0;
 }
 
+/**
+ * @brief 获取启动参数选项
+ * @param str 待处理的字符串
+ * @param pint 输出整数指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_get_option(char **str, int *pint)
 {
     char *cur = *str;
@@ -182,6 +221,11 @@ int vmm_get_option(char **str, int *pint)
     return 1;
 }
 
+/**
+ * @brief 解析早期启动选项
+ * @param cmdline 命令行字符串
+ * @return 获取到的值，失败返回错误码
+ */
 void __init vmm_parse_early_options(const char *cmdline)
 {
     vmm_init_printf("early_params: %s\n", cmdline);

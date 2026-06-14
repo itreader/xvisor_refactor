@@ -18,7 +18,7 @@
  *
  * @file vmm_completion.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief Header file of completion events for Orphan VCPU (or Thread).
+ * @brief 孤儿VCPU（或线程）完成量事件头文件
  */
 
 #ifndef __VMM_COMPLETION_H__
@@ -27,9 +27,12 @@
 #include <vmm_waitqueue.h>
 
 /** Completion event structure */
+/**
+ * @brief 完成量结构，用于线程间同步等待操作完成
+ */
 struct vmm_completion {
-    uint32_t         done;
-    vmm_wait_queue_t wait_queue;
+    uint32_t         done; /**< 完成标志 */
+    vmm_wait_queue_t wait_queue; /**< 等待队列 */
 };
 
 typedef struct vmm_completion vmm_completion_t;
@@ -58,28 +61,47 @@ typedef struct vmm_completion vmm_completion_t;
 
 #define DECLARE_COMPLETION(cmpl) vmm_completion_t cmpl = __COMPLETION_INITIALIZER(cmpl)
 
-/** Check if completion is done */
+/**
+ * @brief 检查完成量是否已完成
+ * @param cmpl 完成量结构体指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_completion_done(vmm_completion_t *cmpl);
 
-/** Wait for completion */
+/**
+ * @brief 完成量 等待
+ * @param cmpl 完成量结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_completion_wait(vmm_completion_t *cmpl);
 
-/** Wait for completion for given timeout */
+/**
+ * @brief 带超时的等待完成量被触发
+ * @param cmpl 完成量结构体指针
+ * @param timeout 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_completion_wait_timeout(vmm_completion_t *cmpl, uint64_t *timeout);
 
-/** Signal completion and wake first sleeping Orphan VCPU */
+/**
+ * @brief 标记完成量已完成
+ * @param cmpl 完成量结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_completion_complete(vmm_completion_t *cmpl);
 
-/** Signal completion once and wake first sleeping Orphan VCPU
- *  Note: Signal completion once will only consider first complete
- *  call. If complete signal was already done then subsequent
- *  complete calls are ignored. This function can help avoid
- *  unwanted wake calls by clubing multiple complete calls into
- *  one signal completion.
+/**
+ * @brief 触发完成量，仅唤醒第一个等待者
+ * @param cmpl 完成量结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_completion_complete_once(vmm_completion_t *cmpl);
 
-/** Signal completion and wake all sleeping Orphan VCPUs */
+/**
+ * @brief 触发完成量，唤醒所有等待者
+ * @param cmpl 完成量结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_completion_complete_all(vmm_completion_t *cmpl);
 
 #endif /* __VMM_COMPLETION_H__ */

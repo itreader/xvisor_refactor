@@ -246,7 +246,7 @@ static int pl061_reg_read(struct pl061_state *s, uint32_t offset, uint32_t *dst)
                 break;
 
             default:
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
                 break;
         };
     }
@@ -376,7 +376,7 @@ static int pl061_reg_write(struct pl061_state *s, uint32_t offset, uint32_t regm
                 break;
 
             default:
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
                 break;
         }
     }
@@ -525,7 +525,7 @@ static int pl061_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(struct pl061_state));
 
     if (!s) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto pl061_emulator_probe_done;
     }
 
@@ -596,7 +596,7 @@ static int pl061_emulator_remove(vmm_emulate_device_t *edev)
     struct pl061_state *s = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_device_emulate_unregister_irqchip(s->guest, s->in_irq[0], &pl061_irqchip, s);

@@ -18,7 +18,7 @@
  *
  * @file vmm_completion.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief Implementation of completion events for Orphan VCPU (or Thread).
+ * @brief 孤儿VCPU（或线程）完成量事件实现
  */
 
 #include <arch_cpu_irq.h>
@@ -26,6 +26,11 @@
 #include <vmm_error.h>
 #include <vmm_stdio.h>
 
+/**
+ * @brief 检查完成量是否已完成
+ * @param cmpl 完成量结构体指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_completion_done(vmm_completion_t *cmpl)
 {
     bool        ret = TRUE;
@@ -44,6 +49,12 @@ bool vmm_completion_done(vmm_completion_t *cmpl)
     return ret;
 }
 
+/**
+ * @brief 等待完成量被触发的通用实现
+ * @param cmpl 完成量结构体指针
+ * @param timeout 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int completion_wait_common(vmm_completion_t *cmpl, uint64_t *timeout)
 {
     int         rc = VMM_OK;
@@ -67,16 +78,32 @@ static int completion_wait_common(vmm_completion_t *cmpl, uint64_t *timeout)
     return rc;
 }
 
+/**
+ * @brief 完成量 等待
+ * @param cmpl 完成量结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_completion_wait(vmm_completion_t *cmpl)
 {
     return completion_wait_common(cmpl, NULL);
 }
 
+/**
+ * @brief 带超时的等待完成量被触发
+ * @param cmpl 完成量结构体指针
+ * @param timeout 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_completion_wait_timeout(vmm_completion_t *cmpl, uint64_t *timeout)
 {
     return completion_wait_common(cmpl, timeout);
 }
 
+/**
+ * @brief 标记完成量已完成
+ * @param cmpl 完成量结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_completion_complete(vmm_completion_t *cmpl)
 {
     int         rc = VMM_OK;
@@ -94,6 +121,11 @@ int vmm_completion_complete(vmm_completion_t *cmpl)
     return rc;
 }
 
+/**
+ * @brief 触发完成量，仅唤醒第一个等待者
+ * @param cmpl 完成量结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_completion_complete_once(vmm_completion_t *cmpl)
 {
     int         rc = VMM_OK;
@@ -113,6 +145,11 @@ int vmm_completion_complete_once(vmm_completion_t *cmpl)
     return rc;
 }
 
+/**
+ * @brief 触发完成量，唤醒所有等待者
+ * @param cmpl 完成量结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_completion_complete_all(vmm_completion_t *cmpl)
 {
     int         rc = VMM_OK;

@@ -506,7 +506,7 @@ static int s3c_rtc_driver_probe(vmm_device_t *pdev, const struct vmm_device_tree
     alarmno                = vmm_device_tree_irq_parse_map(pdev->of_node, 0);
 
     if (!alarmno) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         return rc;
     }
 
@@ -514,7 +514,7 @@ static int s3c_rtc_driver_probe(vmm_device_t *pdev, const struct vmm_device_tree
     tickno          = vmm_device_tree_irq_parse_map(pdev->of_node, 1);
 
     if (!tickno) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         return rc;
     }
 

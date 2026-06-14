@@ -60,7 +60,7 @@ void arch_cpu_print_summary(vmm_char_device_t *cdev)
 
 int __init arch_cpu_nascent_init(void)
 {
-    /* Host aspace, Heap, and Device tree available. */
+    /* Host addr_space, Heap, and Device tree available. */
 
     /* Do PSCI init */
     psci_init();
@@ -82,7 +82,7 @@ int __init arch_cpu_early_init(void)
     node = vmm_device_tree_getnode(VMM_DEVICE_TREE_PATH_SEPARATOR_STRING VMM_DEVICE_TREE_CHOSEN_NODE_NAME);
 
     if (!node) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (vmm_device_tree_read_string(node, VMM_DEVICE_TREE_BOOTARGS_ATTR_NAME, &options) == VMM_OK) {

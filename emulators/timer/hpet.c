@@ -330,7 +330,7 @@ static int hpet_ram_read(struct hpet_state *s, physical_addr_t addr, uint64_t *d
 
         if (timer_id > s->num_timers) {
             DPRINTF("qemu: timer id out of range\n");
-            return VMM_ERANGE;
+            return VMM_ERR_RANGE;
         }
 
         switch ((addr - 0x100) % 0x20) {
@@ -360,7 +360,7 @@ static int hpet_ram_read(struct hpet_state *s, physical_addr_t addr, uint64_t *d
 
             default:
                 DPRINTF("qemu: invalid hpet_ram_readl\n");
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
         }
     } else {
         switch (index) {
@@ -378,7 +378,7 @@ static int hpet_ram_read(struct hpet_state *s, physical_addr_t addr, uint64_t *d
 
             case HPET_CFG + 4:
                 DPRINTF("qemu: invalid HPET_CFG + 4 hpet_ram_readl\n");
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
 
             case HPET_COUNTER:
                 if (hpet_enabled(s)) {
@@ -408,7 +408,7 @@ static int hpet_ram_read(struct hpet_state *s, physical_addr_t addr, uint64_t *d
 
             default:
                 DPRINTF("qemu: invalid hpet_ram_readl\n");
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
         }
     }
 
@@ -438,7 +438,7 @@ static int hpet_ram_write(struct hpet_state *s, physical_addr_t addr, uint64_t m
 
         if (timer_id > s->num_timers) {
             DPRINTF("qemu: timer id out of range\n");
-            return VMM_ERANGE;
+            return VMM_ERR_RANGE;
         }
 
         switch ((addr - 0x100) % 0x20) {
@@ -529,7 +529,7 @@ static int hpet_ram_write(struct hpet_state *s, physical_addr_t addr, uint64_t m
 
             default:
                 DPRINTF("qemu: invalid hpet_ram_writel\n");
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
         }
 
         return VMM_OK;
@@ -610,7 +610,7 @@ static int hpet_ram_write(struct hpet_state *s, physical_addr_t addr, uint64_t m
 
             default:
                 DPRINTF("qemu: invalid hpet_ram_writel\n");
-                return VMM_EINVALID;
+                return VMM_ERR_INVALID;
         }
     }
 
@@ -741,7 +741,7 @@ static int hpet_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ed
     s                        = vmm_zalloc(sizeof(struct hpet_state));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto hpet_emulator_probe_done;
     }
 

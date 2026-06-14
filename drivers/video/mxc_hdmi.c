@@ -2603,7 +2603,7 @@ static int mxc_hdmi_probe(vmm_device_t *dev)
 
     if (ret) {
         dev_err(dev, "failed to ioremap\n");
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail;
     }
 
@@ -2611,7 +2611,7 @@ static int mxc_hdmi_probe(vmm_device_t *dev)
 
     if (!hdmi->irq) {
         dev_err(dev, "Failed to parse IRQ");
-        ret = VMM_EFAIL;
+        ret = VMM_ERR_FAIL;
         goto fail;
     }
 

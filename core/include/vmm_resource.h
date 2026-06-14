@@ -19,7 +19,7 @@
  * @file vmm_resource.h
  * @author Himanshu Chauhan (hschauhan@nulltrace.org)
  * @author Anup Patel (anup@brainfault.org)
- * @brief Resource management for arbitrary resources (including
+ * @brief 任意资源（含I/O内存和I/O端口）管理
  * host IO space and host memory space.
  *
  * This header has been largely adapted from Linux sources:
@@ -49,14 +49,17 @@ typedef struct vmm_resource vmm_resource_t;
  * Resources are tree-like, allowing
  * nesting etc..
  */
+/**
+ * @brief 资源结构，描述I/O内存或I/O端口资源的地址范围和标志
+ */
 struct vmm_resource {
-    resource_size_t      start;
-    resource_size_t      end;
-    const char          *name;
-    uint64_t             flags;
-    struct vmm_resource *parent;
-    struct vmm_resource *sibling;
-    struct vmm_resource *child;
+    resource_size_t      start; /**< 起始 */
+    resource_size_t      end; /**< 结束 */
+    const char          *name; /**< 名称 */
+    uint64_t             flags; /**< 标志位 */
+    struct vmm_resource *parent; /**< 父节点 */
+    struct vmm_resource *sibling; /**< 兄弟节点 */
+    struct vmm_resource *child; /**< 子节点 */
 };
 
 /*
@@ -166,146 +169,123 @@ extern vmm_resource_t vmm_hostio_resource;
 extern vmm_resource_t vmm_hostmem_resource;
 
 /**
- * Request and reserve an I/O or memory resource
- * @root: root resource descriptor
- * @new: resource descriptor desired by caller
- *
- * Returns NULL for success, conflict resource on error.
+ * @brief 检查请求的资源是否与已有资源冲突
+ * @param root 根节点指针
+ * @param new 新值
+ * @return 成功返回目标指针，失败返回NULL
  */
 vmm_resource_t *vmm_request_resource_conflict(vmm_resource_t *root, vmm_resource_t *new);
 
 /**
- * Request and reserve an I/O or memory resource
- * @root: root resource descriptor
- * @new: resource descriptor desired by caller
- *
- * Returns 0 for success, negative error code on error.
+ * @brief 请求 资源
+ * @param root 根节点指针
+ * @param new 新值
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_request_resource(vmm_resource_t *root, vmm_resource_t *new);
 
 /**
- * Release a previously reserved resource
- * @old: resource pointer
+ * @brief 释放资源
+ * @param new 新值
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_release_resource(vmm_resource_t *new);
 
+/**
+ * @brief 释放子资源
+ * @param new 新值
+ */
 void vmm_release_child_resources(vmm_resource_t *new);
 
 /**
- * This function calls callback against all memory range of "System RAM"
- * which are marked as VMM_IORESOURCE_MEM and IORESOUCE_BUSY.
- * Now, this function is only for "System RAM".
+ * @brief 遍历系统内存区域
+ * @param start_pfn 起始页帧号
+ * @param nr_pages 页数量
+ * @param arg 参数值
+ * @param (*func 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_walk_system_ram_range(uint64_t start_pfn, uint64_t nr_pages, void *arg, int (*func)(uint64_t, uint64_t, void *));
 
 /**
- * This function calls callback against all memory range of "System RAM"
- * which are marked as VMM_IORESOURCE_MEM and IORESOUCE_BUSY.
- * Now, this function is only for "System RAM". This function deals with
- * full ranges and not pfn. If resources are not pfn aligned, dealing
- * with pfn can truncate ranges.
+ * @brief 遍历系统内存资源
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param end 结束位置或结束地址
+ * @param arg 参数值
+ * @param (*func 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_walk_system_ram_res(uint64_t start, uint64_t end, void *arg, int (*func)(uint64_t, uint64_t, void *));
 
 /**
- * Walk through hostmem resources and call func() with matching resource
- * ranges. This walks through whole tree and not just first level children.
- * All the memory ranges which overlap start,end and also match flags and
- * name are valid candidates.
- *
- * @name: name of resource
- * @flags: resource flags
- * @start: start addr
- * @end: end addr
+ * @brief 遍历主机内存资源树
+ * @param name 目标对象的名称
+ * @param flags 标志位
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param end 结束位置或结束地址
+ * @param arg 参数值
+ * @param (*func 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_walk_hostmem_res(char *name, uint64_t flags, uint64_t start, uint64_t end, void *arg, int (*func)(uint64_t, uint64_t, void *));
 
 /**
- * Walk through each resources under given resource tree and
- * call func() on each resource tree node.
- *
- * @root: root of resource tree
+ * @brief 遍历资源树下的每个资源节点并调用回调函数
  */
 int vmm_walk_tree_res(
     vmm_resource_t *root, void *arg, int (*func)(const char *name, uint64_t start, uint64_t end, uint64_t flags, int level, void *arg));
 
 /**
- * Inserts resource in the resource tree
- * @parent: parent of the new resource
- * @new: new resource to insert
- *
- * Returns NULL on success, conflict resource if the resource can't be inserted.
- *
- * This function is equivalent to request_resource_conflict when no conflict
- * happens. If a conflict happens, and the conflicting resources
- * entirely fit within the range of the new resource, then the new
- * resource is inserted and the conflicting resources become children of
- * the new resource.
+ * @brief 检查资源插入是否与已有资源冲突
+ * @param parent 父设备树节点
+ * @param new 新值
+ * @return 成功返回目标指针，失败返回NULL
  */
 vmm_resource_t *vmm_insert_resource_conflict(vmm_resource_t *parent, vmm_resource_t *new);
 
 /**
- * Inserts a resource in the resource tree
- * @parent: parent of the new resource
- * @new: new resource to insert
- *
- * Returns 0 on success, VMM_EBUSY if the resource can't be inserted.
+ * @brief 插入 资源
+ * @param parent 父设备树节点
+ * @param new 新值
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_insert_resource(vmm_resource_t *parent, vmm_resource_t *new);
 
 /**
- * Insert a resource into the resource tree
- * @root: root resource descriptor
- * @new: new resource to insert
- *
- * Insert a resource into the resource tree, possibly expanding it in order
- * to make it encompass any conflicting resources.
+ * @brief 扩展资源以容纳新插入的子资源
+ * @param root 根节点指针
+ * @param new 新值
  */
 void vmm_insert_resource_expand_to_fit(vmm_resource_t *root, vmm_resource_t *new);
 
 /**
- * Allocate empty slot in the resource tree given range & alignment.
- * The resource will be reallocated with a new size if it was already allocated
- *
- * @root: root resource descriptor
- * @new: resource descriptor desired by caller
- * @size: requested resource region size
- * @min: minimum boundary to allocate
- * @max: maximum boundary to allocate
- * @align: alignment requested, in bytes
- * @alignf: alignment function, optional, called if not NULL
- * @alignf_data: arbitrary data to pass to the @alignf function
+ * @brief 在资源树中分配指定范围和对齐的空闲槽位，若已分配则重新分配新大小
  */
 int vmm_allocate_resource(
     vmm_resource_t *root, vmm_resource_t *new, resource_size_t size, resource_size_t min, resource_size_t max, resource_size_t align,
     resource_size_t (*alignf)(void *, const vmm_resource_t *, resource_size_t, resource_size_t), void *alignf_data);
 
 /**
- * Find an existing resource by a resource start address
- * @root: root resource descriptor
- * @start: resource start address
- *
- * Returns a pointer to the resource if found, NULL otherwise
+ * @brief 查找 资源
+ * @param root 根节点指针
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @return 成功返回匹配的对象指针，未找到返回NULL
  */
 vmm_resource_t *vmm_lookup_resource(vmm_resource_t *root, resource_size_t start);
 
 /**
- * Modify a resource's start and size
- * @res: resource to modify
- * @start: new start value
- * @size: new size
- *
- * Given an existing resource, change its start and size to match the
- * arguments.  Returns 0 on success, VMM_EBUSY if it can't fit.
- * Existing children of the resource are assumed to be immutable.
+ * @brief 调整资源范围
+ * @param res 资源结构体指针
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_adjust_resource(vmm_resource_t *res, resource_size_t start, resource_size_t size);
 
 /**
- * Calculate resource's alignment
- * @res: resource pointer
- *
- * Returns alignment on success, 0 (invalid alignment) on failure.
+ * @brief 获取资源对齐值
+ * @param res 资源结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 resource_size_t vmm_resource_alignment(vmm_resource_t *res);
 
@@ -333,15 +313,23 @@ static inline bool vmm_resource_contains(vmm_resource_t *r1, vmm_resource_t *r2)
     return r1->start <= r2->start && r1->end >= r2->end;
 }
 
+/**
+ * @brief 预留并拆分资源区域
+ * @param root 根节点指针
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param end 结束位置或结束地址
+ * @param name 目标对象的名称
+ */
 void vmm_reserve_region_with_split(vmm_resource_t *root, resource_size_t start, resource_size_t end, const char *name);
 
 /**
- * Create a new busy resource region
- * @parent: parent resource descriptor
- * @start: resource start address
- * @n: resource region size
- * @name: reserving caller's ID string
- * @flags: IO resource flags
+ * @brief   请求 区域
+ * @param parent 父设备树节点
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param n 起始位置编号
+ * @param name 目标对象的名称
+ * @param flags 标志位
+ * @return 成功返回目标指针，失败返回NULL
  */
 vmm_resource_t *__vmm_request_region(vmm_resource_t *parent, resource_size_t start, resource_size_t n, const char *name, int flags);
 
@@ -357,29 +345,17 @@ vmm_resource_t *__vmm_request_region(vmm_resource_t *parent, resource_size_t sta
     } while (0)
 
 /**
- * Check if a resource region is busy or free
- * @parent: parent resource descriptor
- * @start: resource start address
- * @n: resource region size
- *
- * Returns 0 if the region is free at the moment it is checked,
- * returns VMM_EBUSY if the region is busy.
- *
- * NOTE:
- * This function is deprecated because its use is racy.
- * Even if it returns 0, a subsequent call to request_region()
- * may fail because another driver etc. just allocated the region.
- * Do NOT use it.  It will be removed from the kernel.
+ * @brief   检查 区域
+ * @param resource_size_t 资源大小值
+ * @param resource_size_t 资源大小值
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int __vmm_check_region(vmm_resource_t *, resource_size_t, resource_size_t);
 
 /**
- * Release a previously reserved resource region
- * @parent: parent resource descriptor
- * @start: resource start address
- * @n: resource region size
- *
- * The described resource region must match a currently busy region.
+ * @brief   释放IO内存区域
+ * @param resource_size_t 资源大小值
+ * @param resource_size_t 资源大小值
  */
 void __vmm_release_region(vmm_resource_t *, resource_size_t, resource_size_t);
 
@@ -390,24 +366,10 @@ void __vmm_release_region(vmm_resource_t *, resource_size_t, resource_size_t);
 
 #ifdef CONFIG_MEMORY_HOTREMOVE
 /**
- * Release a previously reserved memory region
- * @parent: parent resource descriptor
- * @start: resource start address
- * @size: resource region size
- *
- * This interface is intended for memory hot-delete.  The requested region
- * is released from a currently busy memory resource.  The requested region
- * must either match exactly or fit into a single busy resource entry.  In
- * the latter case, the remaining resource is adjusted accordingly.
- * Existing children of the busy memory resource must be immutable in the
- * request.
- *
- * Note:
- * - Additional release conditions, such as overlapping region, can be
- *   supported after they are confirmed as valid cases.
- * - When a busy memory resource gets split into two entries, the code
- *   assumes that all children remain in the lower address entry for
- *   simplicity.  Enhance this logic when necessary.
+ * @brief 释放可调整内存区域
+ * @param resource_size_t 资源大小值
+ * @param resource_size_t 资源大小值
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_release_mem_region_adjustable(vmm_resource_t *, resource_size_t, resource_size_t);
 #endif
@@ -417,53 +379,58 @@ int vmm_release_mem_region_adjustable(vmm_resource_t *, resource_size_t, resourc
  */
 
 /**
- * Request and reserve an I/O or memory resource
- * @dev: device for which to request the resource
- * @root: root of the resource tree from which to request the resource
- * @new: descriptor of the resource to request
- *
- * This is a device-managed version of request_resource(). There is usually
- * no need to release resources requested by this function explicitly since
- * that will be taken care of when the device is unbound from its driver.
- * If for some reason the resource needs to be released explicitly, because
- * of ordering issues for example, drivers must call devm_release_resource()
- * rather than the regular release_resource().
- *
- * When a conflict is detected between any existing resources and the newly
- * requested resource, an error message will be printed.
- *
- * Returns 0 on success or a negative error code on failure.
+ * @brief 使用托管方式请求设备资源
+ * @param dev 设备结构体指针
+ * @param root 根节点指针
+ * @param new 新值
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_devm_request_resource(vmm_device_t *dev, vmm_resource_t *root, vmm_resource_t *new);
 
 /**
- * Release a previously requested resource
- * @dev: device for which to release the resource
- * @new: descriptor of the resource to release
- *
- * Releases a resource previously requested using devm_request_resource().
+ * @brief 释放托管设备资源
+ * @param dev 设备结构体指针
+ * @param new 新值
  */
 void vmm_devm_release_resource(vmm_device_t *dev, vmm_resource_t *new);
 
 #define vmm_devm_request_region(dev, start, n, name)     __vmm_devm_request_region(dev, &vmm_hostio_resource, (start), (n), (name))
 #define vmm_devm_request_mem_region(dev, start, n, name) __vmm_devm_request_region(dev, &vmm_hostmem_resource, (start), (n), (name))
 
+/**
+ * @brief 使用托管方式请求I/O或内存区域
+ * @param dev 设备结构体指针
+ * @param parent 父设备树节点
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param n 起始位置编号
+ * @param name 目标对象的名称
+ */
 vmm_resource_t *__vmm_devm_request_region(vmm_device_t *dev, vmm_resource_t *parent, resource_size_t start, resource_size_t n, const char *name);
 
 #define vmm_devm_release_region(dev, start, n)     __vmm_devm_release_region(dev, &vmm_hostio_resource, (start), (n))
 #define vmm_devm_release_mem_region(dev, start, n) __vmm_devm_release_region(dev, &vmm_hostmem_resource, (start), (n))
 
+/**
+ * @brief 释放托管的I/O或内存区域
+ * @param dev 设备结构体指针
+ * @param parent 父设备树节点
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param n 起始位置编号
+ */
 void __vmm_devm_release_region(vmm_device_t *dev, vmm_resource_t *parent, resource_size_t start, resource_size_t n);
 
 /**
- * Check if the requested addr and size spans more than any slot in the
- * hostmem resource tree.
+ * @brief 主机内存映射完整性检查
+ * @param addr 地址值
+ * @param size 数据大小（字节数）
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_hostmem_map_sanity_check(resource_size_t addr, uint64_t size);
 
 /**
- * check if an address is reserved in the hostmem resource tree
- * returns 1 if reserved, 0 if not reserved.
+ * @brief 检查主机内存资源是否为独占类型
+ * @param addr 地址值
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_hostmem_is_exclusive(uint64_t addr);
 

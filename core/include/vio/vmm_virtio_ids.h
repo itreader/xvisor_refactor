@@ -18,7 +18,7 @@
  *
  * @file vmm_virtio_ids.h
  * @author Pranav Sawargaonkar (pranav.sawargaonkar@gmail.com)
- * @brief VirtIO Device IDs
+ * @brief VirtIO设备ID定义
  */
 #ifndef __VMM_VIRTIO_IDS_H__
 #define __VMM_VIRTIO_IDS_H__

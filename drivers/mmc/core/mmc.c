@@ -466,7 +466,7 @@ static int __sd_select_bus_width(struct mmc_host *host, struct mmc_card *card, i
     struct mmc_cmd cmd;
 
     if ((w != 4) && (w != 1)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     cmd.cmdidx    = MMC_CMD_APP_CMD;
@@ -532,7 +532,7 @@ static int __sd_set_card_speed(struct mmc_host *host, struct mmc_card *card, enu
             break;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     }
 
     err = __sd_switch(host, SD_SWITCH_SWITCH, 0, speed, (uint8_t *)switch_status);
@@ -542,7 +542,7 @@ static int __sd_set_card_speed(struct mmc_host *host, struct mmc_card *card, enu
     }
 
     if (((vmm_be32_to_cpu(switch_status[4]) >> 24) & 0xF) != speed) {
-        return VMM_ENOTSUPP;
+        return VMM_ERR_NOTSUPP;
     }
 
     return 0;
@@ -726,7 +726,7 @@ static int __sd_select_mode_and_width(struct mmc_host *host, struct mmc_card *ca
     }
 
     DPRINTF("unable to select a mode\n");
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 static int __mmc_switch(struct mmc_host *host, struct mmc_card *card, uint8_t set, uint8_t index, uint8_t value)
@@ -785,7 +785,7 @@ static int __mmc_get_capabilities(struct mmc_host *host, struct mmc_card *card)
 
     if (!ext_csd) {
         DPRINTF("No ext_csd found!\n"); /* this should enver happen */
-        return VMM_ENOTSUPP;
+        return VMM_ERR_NOTSUPP;
     }
 
     card->caps |= MMC_CAP_MODE_4BIT | MMC_CAP_MODE_8BIT;
@@ -844,7 +844,7 @@ static int __mmc_set_card_speed(struct mmc_host *host, struct mmc_card *card, en
             break;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     }
 
     err = __mmc_switch(host, card, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_HS_TIMING, speed_bits);
@@ -863,7 +863,7 @@ static int __mmc_set_card_speed(struct mmc_host *host, struct mmc_card *card, en
 
         /* No high-speed support */
         if (!test_csd[EXT_CSD_HS_TIMING]) {
-            return VMM_ENOTSUPP;
+            return VMM_ERR_NOTSUPP;
         }
     }
 
@@ -901,7 +901,7 @@ static int __mmc_read_and_compare_ext_csd(struct mmc_host *host, struct mmc_card
         return 0;
     }
 
-    return VMM_EIO;
+    return VMM_ERR_IO;
 }
 
 static int __mmc_set_lowest_voltage(struct mmc_host *host, uint8_t ext_csd_cardtype, enum mmc_bus_mode mode, uint32_t allowed_mask)
@@ -949,7 +949,7 @@ static int __mmc_set_lowest_voltage(struct mmc_host *host, uint8_t ext_csd_cardt
         allowed_mask &= ~best_match;
     }
 
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 static const struct mode_width_tuning mmc_modes_by_pref[] = {
@@ -1063,7 +1063,7 @@ static int __mmc_select_mode_and_width(struct mmc_host *host, struct mmc_card *c
 
     if (!ext_csd) {
         DPRINTF("No ext_csd found!\n"); /* this should enver happen */
-        return VMM_ENOTSUPP;
+        return VMM_ERR_NOTSUPP;
     }
 
     mmc_set_clock(host, card->legacy_speed, FALSE);
@@ -1154,7 +1154,7 @@ static int __mmc_select_mode_and_width(struct mmc_host *host, struct mmc_card *c
 
     DPRINTF("unable to select a mode\n");
 
-    return VMM_ENOTSUPP;
+    return VMM_ERR_NOTSUPP;
 }
 
 static int __mmc_set_capacity(struct mmc_card *card, int part_num)
@@ -1181,7 +1181,7 @@ static int __mmc_set_capacity(struct mmc_card *card, int part_num)
             break;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     }
 
     return VMM_OK;
@@ -1211,7 +1211,7 @@ static int __mmc_startup_v4(struct mmc_host *host, struct mmc_card *card)
     }
 
     if (ext_csd[EXT_CSD_REV] >= array_size(mmc_versions)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     card->version = mmc_versions[ext_csd[EXT_CSD_REV]];
@@ -1348,7 +1348,7 @@ static int __mmc_startup(struct mmc_host *host, struct mmc_card *card)
     int            timeout = 1000;
 
     if (!host || !card) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
 #ifdef CONFIG_MMC_SPI_CRC_ON
@@ -1609,14 +1609,14 @@ static int __sd_send_op_cond(struct mmc_host *host, struct mmc_card *card)
          */
         if (!mmc_host_is_spi(host) && (cmd.response[0] & OCR_BUSY) && !(cmd.response[0] & OCR_VOLTAGE_MASK)) {
             /* No valid voltages hence this is not a SD card */
-            return VMM_ENODEV;
+            return VMM_ERR_NODEV;
         }
 
         vmm_udelay(10000);
     } while ((!(cmd.response[0] & OCR_BUSY)) && timeout--);
 
     if (timeout <= 0) {
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     if (card->version != SD_VERSION_2) {
@@ -1686,7 +1686,7 @@ int mmc_send_op_cond(struct mmc_host *host, struct mmc_card *card)
     } while (!(cmd.response[0] & OCR_BUSY) && timeout--);
 
     if (timeout <= 0) {
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     if (mmc_host_is_spi(host)) { /* read OCR for spi */
@@ -1726,7 +1726,7 @@ int mmc_send_if_cond(struct mmc_host *host, struct mmc_card *card)
     }
 
     if ((cmd.response[0] & 0xff) != 0xaa) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     } else {
         card->version = SD_VERSION_2;
     }
@@ -1742,7 +1742,7 @@ int __mmc_sd_attach(struct mmc_host *host)
     vmm_block_device_t *block_device;
 
     if (!host) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* If mmc card instance available then do nothing */
@@ -1755,7 +1755,7 @@ int __mmc_sd_attach(struct mmc_host *host)
     host->card = vmm_zalloc(sizeof(struct mmc_card));
 
     if (!host->card) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto detect_done;
     }
 
@@ -1765,7 +1765,7 @@ int __mmc_sd_attach(struct mmc_host *host)
 
     /* Attempt to detect mmc card */
     if (!mmc_getcd(host)) {
-        rc = VMM_ENOTAVAIL;
+        rc = VMM_ERR_NOTAVAIL;
         goto detect_freecard_fail;
     }
 
@@ -1797,7 +1797,7 @@ int __mmc_sd_attach(struct mmc_host *host)
     rc                   = __sd_send_op_cond(host, host->card);
 
     /* If the command timed out, we check for MMC card */
-    if ((rc == VMM_ETIMEDOUT) || (rc == VMM_ENODEV)) {
+    if ((rc == VMM_ERR_TIMEDOUT) || (rc == VMM_ERR_NODEV)) {
         rc = mmc_send_op_cond(host, host->card);
 
         if (rc) {
@@ -1818,7 +1818,7 @@ int __mmc_sd_attach(struct mmc_host *host)
     card->block_device = vmm_block_device_alloc();
 
     if (!card->block_device) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto detect_freecard_fail;
     }
 

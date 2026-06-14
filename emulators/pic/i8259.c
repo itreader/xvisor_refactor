@@ -599,7 +599,7 @@ static int i8259_emulator_remove(vmm_emulate_device_t *edev)
     i8259_state_t *s = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     for (i = s->base_irq; i < (s->base_irq + s->num_irq); i++) {
@@ -626,7 +626,7 @@ static int i8259_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
         plist = vmm_zalloc(sizeof(struct guest_pic_list));
 
         if (!plist) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         INIT_SPIN_LOCK(&plist->lock);
@@ -636,7 +636,7 @@ static int i8259_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(i8259_state_t));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto i8259_emulator_probe_done;
     }
 

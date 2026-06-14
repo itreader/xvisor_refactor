@@ -112,7 +112,7 @@ static int rtc_cmos_write_memory(struct cmos_rtc_state *state, uint32_t offset, 
         return VMM_OK;
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static void cmos_irq_raise(struct cmos_rtc_state *s)
@@ -850,7 +850,7 @@ _error:
     }
 
     s = NULL;
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int mc146818_emulator_remove(vmm_emulate_device_t *edev)

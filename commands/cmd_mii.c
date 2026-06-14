@@ -428,14 +428,14 @@ static int cmd_mii_match_if(vmm_device_t *dev, void *data)
 
 static int cmd_mii_exec(vmm_char_device_t *cdev, int argc, char **argv)
 {
-    int ret  = VMM_EFAIL;
+    int ret  = VMM_ERR_FAIL;
     int args = 0;
     struct cmd_mii_list_priv private;
     cmd_fct fct;
 
     if (argc < 2) {
         cmd_mii_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (strcmp(argv[1], "help") == 0) {
@@ -458,7 +458,7 @@ static int cmd_mii_exec(vmm_char_device_t *cdev, int argc, char **argv)
         args = 2;
     } else {
         cmd_mii_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (argc == args + 1) {

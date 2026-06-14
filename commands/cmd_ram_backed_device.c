@@ -82,7 +82,7 @@ static int cmd_ram_backed_device_create(vmm_char_device_t *cdev, const char *nam
 
     if (!d) {
         vmm_cdev_printf(cdev, "Failed to create %s RBD instance\n", name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_cdev_printf(cdev, "Created %s RBD instance\n", name);
@@ -96,7 +96,7 @@ static int cmd_ram_backed_device_destroy(vmm_char_device_t *cdev, const char *na
 
     if (!d) {
         vmm_cdev_printf(cdev, "Failed to find %s RBD instance\n", name);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     ram_backed_device_destroy(d);
@@ -130,7 +130,7 @@ static int cmd_ram_backed_device_exec(vmm_char_device_t *cdev, int argc, char **
 
 fail:
     cmd_ram_backed_device_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_ram_backed_device = {

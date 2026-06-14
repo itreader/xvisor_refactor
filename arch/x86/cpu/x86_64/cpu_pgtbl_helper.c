@@ -73,15 +73,15 @@ static int mmu_page_table_attach(struct page_table *parent, physical_addr_t map_
     irq_flags_t flags;
 
     if (!parent || !child) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (mmu_page_table_isattached(child)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((parent->level == PAGE_TABLE_LAST_LEVEL) || (child->stage != parent->stage)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index = mmu_level_index(map_ia, parent->level);
@@ -91,7 +91,7 @@ static int mmu_page_table_attach(struct page_table *parent, physical_addr_t map_
 
     if (pg->bits.present) {
         vmm_spin_unlock_irq_restore(&parent->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     pg->bits.paddr   = (child->table_pa & PAGE_MASK) >> PAGE_SHIFT;
@@ -120,7 +120,7 @@ static int mmu_page_table_deattach(struct page_table *child)
     struct page_table *parent;
 
     if (!child || !mmu_page_table_isattached(child)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     parent = child->parent;
@@ -131,7 +131,7 @@ static int mmu_page_table_deattach(struct page_table *child)
 
     if (!pg->bits.present) {
         vmm_spin_unlock_irq_restore(&parent->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     pg->_val      = 0x0;
@@ -187,7 +187,7 @@ int mmu_page_table_free(struct page_table_ctrl *ctrl, struct page_table *page_ta
     struct page_table *child;
 
     if (!page_table) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (mmu_page_table_isattached(page_table)) {
@@ -281,7 +281,7 @@ int mmu_get_page(struct page_table_ctrl *ctrl, struct page_table *page_table, ph
     virtual_addr_t     pgt_va;
 
     if (!page_table || !pg) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index = mmu_level_index(ia, page_table->level);
@@ -299,7 +299,7 @@ int mmu_get_page(struct page_table_ctrl *ctrl, struct page_table *page_table, ph
 
     if (!pgt->bits.present) {
         vmm_spin_unlock_irq_restore(&page_table->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (page_table->level < PAGE_TABLE_LAST_LEVEL) {
@@ -307,7 +307,7 @@ int mmu_get_page(struct page_table_ctrl *ctrl, struct page_table *page_table, ph
         child = mmu_page_table_get_child(ctrl, page_table, ia, FALSE);
 
         if (!child) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         return mmu_get_page(ctrl, child, ia, pg);
@@ -330,14 +330,14 @@ int mmu_unmap_page(struct page_table_ctrl *ctrl, struct page_table *page_table, 
     virtual_addr_t     pgt_va;
 
     if (!page_table) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (page_table->level < PAGE_TABLE_LAST_LEVEL) {
         child = mmu_page_table_get_child(ctrl, page_table, ia, FALSE);
 
         if (!child) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         rc = mmu_unmap_page(ctrl, child, ia);
@@ -358,7 +358,7 @@ int mmu_unmap_page(struct page_table_ctrl *ctrl, struct page_table *page_table, 
 
     if (!pgt->bits.present) {
         vmm_spin_unlock_irq_restore(&page_table->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     pgt->_val = 0x0;
@@ -390,14 +390,14 @@ int mmu_map_page(struct page_table_ctrl *ctrl, struct page_table *page_table, ph
     virtual_addr_t     pgt_va;
 
     if (!page_table || !pg) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (page_table->level < PAGE_TABLE_LAST_LEVEL) {
         child = mmu_page_table_get_child(ctrl, page_table, ia, TRUE);
 
         if (!child) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         return mmu_map_page(ctrl, child, ia, pg);
@@ -412,7 +412,7 @@ int mmu_map_page(struct page_table_ctrl *ctrl, struct page_table *page_table, ph
 
     if (pgt->bits.present) {
         vmm_spin_unlock_irq_restore(&page_table->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     pgt->_val = 0x0;

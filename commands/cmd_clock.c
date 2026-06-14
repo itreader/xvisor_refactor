@@ -69,7 +69,7 @@ static int cmd_clock_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 err:
     cmd_clock_usage(cdev);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static vmm_command_t cmd_clock = {

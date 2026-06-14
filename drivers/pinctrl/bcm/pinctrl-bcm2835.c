@@ -138,7 +138,7 @@ struct bcm2835_pinctrl {
     spinlock_t                  irq_lock[BCM2835_NUM_BANKS];
 };
 
-static inline irq_hw_number_t irqd_to_hwirq(struct irq_data *d)
+static inline irq_hw_number_t irqd_to_hw_irq(struct irq_data *d)
 {
     struct gpio_chip *gc = irq_data_get_irq_chip_data(d);
     return gc->to_irq(gc, 0);
@@ -428,7 +428,7 @@ static void bcm2835_gpio_irq_config(struct bcm2835_pinctrl *pc, unsigned offset,
 static void bcm2835_gpio_irq_enable(struct irq_data *data)
 {
     struct bcm2835_pinctrl *pc     = irq_data_get_irq_chip_data(data);
-    unsigned                gpio   = irqd_to_hwirq(data);
+    unsigned                gpio   = irqd_to_hw_irq(data);
     unsigned                offset = GPIO_REG_SHIFT(gpio);
     unsigned                bank   = GPIO_REG_OFFSET(gpio);
     uint64_t                flags;
@@ -442,7 +442,7 @@ static void bcm2835_gpio_irq_enable(struct irq_data *data)
 static void bcm2835_gpio_irq_disable(struct irq_data *data)
 {
     struct bcm2835_pinctrl *pc     = irq_data_get_irq_chip_data(data);
-    unsigned                gpio   = irqd_to_hwirq(data);
+    unsigned                gpio   = irqd_to_hw_irq(data);
     unsigned                offset = GPIO_REG_SHIFT(gpio);
     unsigned                bank   = GPIO_REG_OFFSET(gpio);
     uint64_t                flags;
@@ -556,7 +556,7 @@ static int __bcm2835_gpio_irq_set_type_enabled(struct bcm2835_pinctrl *pc, unsig
 static int bcm2835_gpio_irq_set_type(struct irq_data *data, uint32_t type)
 {
     struct bcm2835_pinctrl *pc     = irq_data_get_irq_chip_data(data);
-    unsigned                gpio   = irqd_to_hwirq(data);
+    unsigned                gpio   = irqd_to_hw_irq(data);
     unsigned                offset = GPIO_REG_SHIFT(gpio);
     unsigned                bank   = GPIO_REG_OFFSET(gpio);
     uint64_t                flags;
@@ -585,7 +585,7 @@ static int bcm2835_gpio_irq_set_type(struct irq_data *data, uint32_t type)
 static void bcm2835_gpio_irq_ack(struct irq_data *data)
 {
     struct bcm2835_pinctrl *pc   = irq_data_get_irq_chip_data(data);
-    unsigned                gpio = irqd_to_hwirq(data);
+    unsigned                gpio = irqd_to_hw_irq(data);
 
     bcm2835_gpio_set_bit(pc, GPEDS0, gpio);
 }

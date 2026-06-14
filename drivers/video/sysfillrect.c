@@ -377,4 +377,4 @@ void sys_fillrect(struct frame_buffer_info *p, const struct frame_buffer_fillrec
     }
 }
 
-VMM_EXPORT_SYMBOL(sys_fillrect);
+VMM_ERR_XPORT_SYMBOL(sys_fillrect);

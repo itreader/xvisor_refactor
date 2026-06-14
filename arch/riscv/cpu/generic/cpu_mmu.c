@@ -536,7 +536,7 @@ int arch_mmu_test_nested_page_table(
                          : [tmp] "r"(tmp), [addr] "r"(addr)
                          : "t0", "t1", "t2", "memory");
         } else {
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
         }
     } else {
         if (flags & MMU_TEST_WIDTH_8BIT) {
@@ -611,7 +611,7 @@ int arch_mmu_test_nested_page_table(
                          : [addr] "r"(addr)
                          : "t0", "t1", "t2", "memory");
         } else {
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
         }
     }
 
@@ -663,7 +663,7 @@ int arch_mmu_test_nested_page_table(
 
         if (!(*out_fault_flags & MMU_TEST_FAULT_UNKNOWN)) {
             if (!(hstatus & HSTATUS_GVA)) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
         }
 
@@ -673,13 +673,13 @@ int arch_mmu_test_nested_page_table(
 
         if (*out_fault_flags & MMU_TEST_FAULT_S1) {
             if (!s1_avail) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             s1_page_table = mmu_page_table_find(MMU_STAGE1, s1_table_pa);
 
             if (!s1_page_table) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             if (mmu_get_page(s1_page_table, trap_gva, &pg)) {
@@ -691,7 +691,7 @@ int arch_mmu_test_nested_page_table(
             s2_page_table = mmu_page_table_find(MMU_STAGE2, s2_table_pa);
 
             if (!s2_page_table) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             if (mmu_get_page(s2_page_table, trap_gpa, &pg)) {
@@ -705,7 +705,7 @@ int arch_mmu_test_nested_page_table(
             s1_page_table = mmu_page_table_find(MMU_STAGE1, s1_table_pa);
 
             if (!s1_page_table) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             rc = mmu_get_page(s1_page_table, addr, &pg);
@@ -722,7 +722,7 @@ int arch_mmu_test_nested_page_table(
         s2_page_table = mmu_page_table_find(MMU_STAGE2, s2_table_pa);
 
         if (!s2_page_table) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         rc = mmu_get_page(s2_page_table, *out_addr, &pg);

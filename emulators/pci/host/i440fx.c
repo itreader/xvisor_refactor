@@ -287,7 +287,7 @@ static int i440fx_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *
 
     if (!s) {
         I440FX_LOG(LVL_ERR, "Failed to allocate i440fx's state.\n");
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto _failed;
     }
 
@@ -341,7 +341,7 @@ static int i440fx_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *
     strlcat(name, "/", sizeof(name));
 
     if (strlcat(name, edev->node->name, sizeof(name)) >= sizeof(name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto _failed;
     }
 

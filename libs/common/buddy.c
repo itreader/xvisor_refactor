@@ -45,7 +45,7 @@
 /** House-keeping structure for contiguous blocks belonging to a bin */
 struct buddy_area {
     double_list_t         hk_head;
-    struct red_black_node hk_rb;
+    red_black_node_t hk_rb;
     uint64_t              map;
     uint64_t              block_count;
     uint64_t              bin_num;
@@ -149,7 +149,7 @@ uint64_t buddy_hk_area_total(struct buddy_allocator *ba)
 static struct buddy_area *__buddy_alloc_find(
     struct buddy_allocator *ba, uint64_t addr, uint64_t *alloc_map, uint64_t *alloc_bin, uint64_t *alloc_block_count)
 {
-    struct red_black_node *n;
+    red_black_node_t *n;
 
     if (!ba) {
         return NULL;
@@ -213,7 +213,7 @@ static struct buddy_area *buddy_alloc_find(
 static void __buddy_alloc_add(struct buddy_allocator *ba, struct buddy_area *a)
 {
     uint64_t depth;
-    struct red_black_node **new = NULL, *parent = NULL;
+    red_black_node_t **new = NULL, *parent = NULL;
     struct buddy_area *parent_area = NULL;
 
     if (!ba || !a) {
@@ -659,7 +659,7 @@ int buddy_mem_alloc(struct buddy_allocator *ba, uint64_t size, uint64_t *addr)
 
     /* Sanity checks */
     if (!ba || !size || !addr) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     DPRINTF("%s: ba=%p size=%lu\n", __func__, ba, size);
@@ -676,7 +676,7 @@ int buddy_mem_alloc(struct buddy_allocator *ba, uint64_t size, uint64_t *addr)
     a = buddy_bins_get(ba, bin_num, block_count);
 
     if (!a) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Downgrade to smallest bin */
@@ -719,7 +719,7 @@ int buddy_mem_aligned_alloc(struct buddy_allocator *ba, uint64_t order, uint64_t
 
     /* Sanity checks */
     if (!ba || !size || !addr || (ba->max_bin < order)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     DPRINTF("%s: ba=%p order=%lu size=%lu\n", __func__, ba, order, size);
@@ -745,14 +745,14 @@ int buddy_mem_aligned_alloc(struct buddy_allocator *ba, uint64_t order, uint64_t
         a = buddy_bins_get(ba, bin_num, block_count);
 
         if (!a) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
     } else {
         /* Get buddy area from desired bin */
         a = buddy_bins_get(ba, order_bin_num, order_block_count);
 
         if (!a) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         /* Downgrade bin number to estimated bin */
@@ -811,7 +811,7 @@ int buddy_mem_reserve(struct buddy_allocator *ba, uint64_t addr, uint64_t size)
 
     /* Sanity checks */
     if (!ba || !size || (addr < ba->mem_start) || ((ba->mem_start + ba->mem_size) <= addr)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     DPRINTF("%s: ba=%p addr=0x%lx size=%lu\n", __func__, ba, addr, size);
@@ -826,7 +826,7 @@ int buddy_mem_reserve(struct buddy_allocator *ba, uint64_t addr, uint64_t size)
     }
 
     if (!a) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     /* Downgrade to smallest bin */
@@ -880,7 +880,7 @@ int buddy_mem_find(struct buddy_allocator *ba, uint64_t addr, uint64_t *alloc_ad
 
     /* Sanity checks */
     if (!ba || (addr < ba->mem_start) || ((ba->mem_start + ba->mem_size) <= addr)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     DPRINTF("%s: ba=%p addr=0x%lx\n", __func__, ba, addr);
@@ -889,7 +889,7 @@ int buddy_mem_find(struct buddy_allocator *ba, uint64_t addr, uint64_t *alloc_ad
     a = buddy_alloc_find(ba, addr, &a_addr, &a_bin, &a_block_count);
 
     if (!a) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     /* Fill-up return values */
@@ -915,7 +915,7 @@ int buddy_mem_free(struct buddy_allocator *ba, uint64_t addr)
 
     /* Sanity checks */
     if (!ba || (addr < ba->mem_start) || ((ba->mem_start + ba->mem_size) <= addr)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     DPRINTF("%s: ba=%p addr=0x%lx\n", __func__, ba, addr);
@@ -928,7 +928,7 @@ int buddy_mem_free(struct buddy_allocator *ba, uint64_t addr)
 
     if (!a) {
         vmm_spin_unlock_irq_restore_lite(&ba->alloc_lock, f);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     /* Delete buddy area from alloc tree */
@@ -951,7 +951,7 @@ int buddy_mem_partial_free(struct buddy_allocator *ba, uint64_t addr, uint64_t s
 
     /* Sanity checks */
     if (!ba || (addr < ba->mem_start) || ((ba->mem_start + ba->mem_size) <= addr)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     DPRINTF("%s: ba=%p addr=0x%lx size=%lu\n", __func__, ba, addr, size);
@@ -964,7 +964,7 @@ int buddy_mem_partial_free(struct buddy_allocator *ba, uint64_t addr, uint64_t s
 
     if (!a) {
         vmm_spin_unlock_irq_restore_lite(&ba->alloc_lock, f);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     /* Downgrade to smallest bin */
@@ -978,14 +978,14 @@ int buddy_mem_partial_free(struct buddy_allocator *ba, uint64_t addr, uint64_t s
         a->block_count = old_block_count;
         a->bin_num     = old_bin_num;
         vmm_spin_unlock_irq_restore_lite(&ba->alloc_lock, f);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (BLOCK_COUNT(AREA_END(a) - (addr + size), a->bin_num) && ((addr + size) & BLOCK_MASK(a->bin_num))) {
         a->block_count = old_block_count;
         a->bin_num     = old_bin_num;
         vmm_spin_unlock_irq_restore_lite(&ba->alloc_lock, f);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Delete buddy area from alloc tree */
@@ -1034,12 +1034,12 @@ int buddy_allocator_init(
 
     /* Sanity checks */
     if (!ba || !hk_area) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((min_bin > max_bin) || (BUDDY_MAX_SUPPORTED_BIN <= min_bin) || (BUDDY_MAX_SUPPORTED_BIN <= max_bin) || (mem_size < (1 << min_bin)) ||
         (mem_start & BLOCK_MASK(min_bin)) || ((mem_start + mem_size) <= mem_start) || (hk_area_size < sizeof(struct buddy_area))) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Initialize house-keeping */
@@ -1088,7 +1088,7 @@ int buddy_allocator_init(
         a     = buddy_hk_alloc(ba, mem_start, bin, count);
 
         if (!a) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         mem_size -= count * BLOCK_SIZE(bin);

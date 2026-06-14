@@ -18,7 +18,7 @@
  *
  * @file vmm_virtual_input.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for virtual input subsystem
+ * @brief 虚拟输入子系统头文件
  */
 
 #ifndef __VMM_VINPUT_H_
@@ -42,14 +42,25 @@
 #define VMM_VINPUT_EVENT_DESTROY_MOUSE    0x04
 
 /** Representation of virtual input notifier event */
+/**
+ * @brief 虚拟输入事件结构，封装键码或坐标等输入事件数据
+ */
 struct vmm_virtual_input_event {
-    void *data;
+    void *data; /**< 数据 */
 };
 
-/** Register a notifier client to receive virtual input events */
+/**
+ * @brief 注册虚拟输入客户端
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtual_input_register_client(vmm_notifier_block_t *nb);
 
-/** Unregister a notifier client to not receive virtual input events */
+/**
+ * @brief 注销虚拟输入客户端
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtual_input_unregister_client(vmm_notifier_block_t *nb);
 
 /* Keyboard LED bits */
@@ -60,27 +71,37 @@ int vmm_virtual_input_unregister_client(vmm_notifier_block_t *nb);
 struct vmm_vkeyboard;
 
 /** Representation of a virtual keyboard */
+/**
+ * @brief 虚拟键盘LED回调，处理键盘指示灯状态变更
+ */
 struct vmm_vkeyboard_led_handler {
-    double_list_t head;
-    void (*led_change)(struct vmm_vkeyboard *vkbd, int ledstate, void *private);
-    void *private;
+    double_list_t head; /**< 链表头 */
+    void (*led_change)(struct vmm_vkeyboard *vkbd, int ledstate, void *private); /**< led_change成员 */
+    void *private; /**< 私有数据 */
 };
 
 /** Representation of a virtual keyboard */
+/**
+ * @brief 虚拟键盘设备，维护按键事件发送和LED状态回调
+ */
 struct vmm_vkeyboard {
-    double_list_t  head;
-    char           name[VMM_FIELD_NAME_SIZE];
-    vmm_spinlock_t ledstate_lock;
-    int            ledstate;
-    double_list_t  led_handler_list;
-    void (*kbd_event)(struct vmm_vkeyboard *vkbd, int vkeycode, int vkey);
-    void *private;
+    double_list_t  head; /**< 链表头 */
+    char           name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
+    vmm_spinlock_t ledstate_lock; /**< ledstate_lock成员 */
+    int            ledstate; /**< ledstate成员 */
+    double_list_t  led_handler_list; /**< led_handler_list成员 */
+    void (*kbd_event)(struct vmm_vkeyboard *vkbd, int vkeycode, int vkey); /**< kbd_event成员 */
+    void *private; /**< 私有数据 */
 };
 
 /** Create a virtual keyboard */
 struct vmm_vkeyboard *vmm_vkeyboard_create(const char *name, void (*kbd_event)(struct vmm_vkeyboard *, int, int), void *private);
 
-/** Destroy a virtual keyboard */
+/**
+ * @brief 销毁vkeyboard
+ * @param vkbd 虚拟键盘设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vkeyboard_destroy(struct vmm_vkeyboard *vkbd);
 
 /** Retrive private context of virtual keyboard */
@@ -90,33 +111,60 @@ static inline void *vmm_vkeyboard_private(struct vmm_vkeyboard *vkbd)
 }
 
 /**
- * Trigger virtual keyboard event
- * @param vkbd virtual keyboad instance
- * @param vkeycode virtual keycode (Linux-style key code with additional bits)
- * @param vkey virtual key number (Sequenial Xvisor specific key number)
- * @return VMM_OK (on success) and VMM_Exxx (on failure)
+ * @brief 虚拟键盘事件处理
+ * @param vkbd 虚拟键盘设备指针
+ * @param vkeycode 虚拟键码值
+ * @param vkey 虚拟键值
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_vkeyboard_event(struct vmm_vkeyboard *vkbd, int vkeycode, int vkey);
 
-/** Add led handler to a virtual keyboard */
+/**
+ * @brief 为虚拟键盘添加LED状态处理器
+ * @param vkbd 虚拟键盘设备指针
+ * @param (*led_change 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vkeyboard_add_led_handler(struct vmm_vkeyboard *vkbd, void (*led_change)(struct vmm_vkeyboard *, int, void *), void *private);
 
-/** Delete led handler from a virtual keyboard */
+/**
+ * @brief 从虚拟键盘删除LED状态处理器
+ * @param vkbd 虚拟键盘设备指针
+ * @param (*led_change 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vkeyboard_del_led_handler(struct vmm_vkeyboard *vkbd, void (*led_change)(struct vmm_vkeyboard *, int, void *), void *private);
 
-/** Set ledstate of virtual keyboard */
+/**
+ * @brief 设置虚拟键盘的LED状态
+ * @param vkbd 虚拟键盘设备指针
+ * @param ledstate LED状态值
+ */
 void vmm_vkeyboard_set_ledstate(struct vmm_vkeyboard *vkbd, int ledstate);
 
-/** Get ledstate of virtual keyboard */
+/**
+ * @brief 获取虚拟键盘的LED状态
+ * @param vkbd 虚拟键盘设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vkeyboard_get_ledstate(struct vmm_vkeyboard *vkbd);
 
 /** Find a virtual keyboard with given name */
 struct vmm_vkeyboard *vmm_vkeyboard_find(const char *name);
 
-/** Iterate over each virtual keyboard */
+/**
+ * @brief 遍历虚拟键盘实例
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vkeyboard_iterate(struct vmm_vkeyboard *start, void *data, int (*fn)(struct vmm_vkeyboard *vkbd, void *data));
 
-/** Count of available virtual keyboards */
+/**
+ * @brief 获取虚拟键盘的数量
+ * @return 数量值
+ */
 uint32_t vmm_vkeyboard_count(void);
 
 /* Mouse buttons */
@@ -125,25 +173,32 @@ uint32_t vmm_vkeyboard_count(void);
 #define VMM_MOUSE_MBUTTON 0x04
 
 /** Representation of a virtual mouse */
+/**
+ * @brief 虚拟鼠标设备，维护鼠标坐标和按键事件的发送
+ */
 struct vmm_vmouse {
-    double_list_t head;
-    char          name[VMM_FIELD_NAME_SIZE];
-    bool          absolute;
-    uint32_t      graphics_width;
-    uint32_t      graphics_height;
-    uint32_t      graphics_rotation;
-    int           abs_x;
-    int           abs_y;
-    int           abs_z;
-    void (*mouse_event)(struct vmm_vmouse *vmou, int dx, int dy, int dz, int buttons_state);
-    void *private;
+    double_list_t head; /**< 链表头 */
+    char          name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
+    bool          absolute; /**< absolute成员 */
+    uint32_t      graphics_width; /**< graphics_width成员 */
+    uint32_t      graphics_height; /**< graphics_height成员 */
+    uint32_t      graphics_rotation; /**< graphics_rotation成员 */
+    int           abs_x; /**< abs_x成员 */
+    int           abs_y; /**< abs_y成员 */
+    int           abs_z; /**< abs_z成员 */
+    void (*mouse_event)(struct vmm_vmouse *vmou, int dx, int dy, int dz, int buttons_state); /**< mouse_event成员 */
+    void *private; /**< 私有数据 */
 };
 
 /** Create a virtual mouse */
 struct vmm_vmouse *vmm_vmouse_create(
     const char *name, bool absolute, void (*mouse_event)(struct vmm_vmouse *vmou, int dx, int dy, int dz, int buttons_state), void *private);
 
-/** Destroy a virtual mouse */
+/**
+ * @brief 销毁vmouse
+ * @param vmou 虚拟鼠标设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmouse_destroy(struct vmm_vmouse *vmou);
 
 /** Retrive private context of virtual mouse */
@@ -152,57 +207,109 @@ static inline void *vmm_vmouse_private(struct vmm_vmouse *vmou)
     return (vmou) ? vmou->private : NULL;
 }
 
-/** Trigger virtual mouse event */
+/**
+ * @brief 虚拟鼠标事件处理
+ * @param vmou 虚拟鼠标设备指针
+ * @param dx X方向位移增量
+ * @param dy Y方向位移增量
+ * @param dz Z方向位移增量
+ * @param buttons_state 按键状态值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmouse_event(struct vmm_vmouse *vmou, int dx, int dy, int dz, int buttons_state);
 
-/** Reset virtual mouse */
+/**
+ * @brief 复位vmouse
+ * @param vmou 虚拟鼠标设备指针
+ */
 void vmm_vmouse_reset(struct vmm_vmouse *vmou);
 
-/** Get absolute X position of virtual mouse */
+/**
+ * @brief 获取虚拟鼠标绝对X坐标
+ * @param vmou 虚拟鼠标设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmouse_absolute_x(struct vmm_vmouse *vmou);
 
-/** Get absolute Y position of virtual mouse */
+/**
+ * @brief 获取虚拟鼠标绝对Y坐标
+ * @param vmou 虚拟鼠标设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmouse_absolute_y(struct vmm_vmouse *vmou);
 
-/** Get absolute Z position of virtual mouse */
+/**
+ * @brief 获取虚拟鼠标绝对Z坐标
+ * @param vmou 虚拟鼠标设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmouse_absolute_z(struct vmm_vmouse *vmou);
 
-/** Check whether virtual mouse uses absolute positioning */
+/**
+ * @brief 检查虚拟鼠标是否为绝对坐标模式
+ * @param vmou 虚拟鼠标设备指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_vmouse_is_absolute(struct vmm_vmouse *vmou);
 
-/** Set graphics width for virtual mouse
- *  Note: This is required for relative virtual mouse
+/**
+ * @brief 设置虚拟鼠标的图形宽度
+ * @param vmou 虚拟鼠标设备指针
+ * @param width 标识符
  */
 void vmm_vmouse_set_graphics_width(struct vmm_vmouse *vmou, uint32_t width);
 
-/** Get graphics width for virtual mouse
- *  Note: This is required for relative virtual mouse
+/**
+ * @brief 获取虚拟鼠标的图形宽度
+ * @param vmou 虚拟鼠标设备指针
+ * @return 编号值，失败返回负数错误码
  */
 uint32_t vmm_vmouse_get_graphics_width(struct vmm_vmouse *vmou);
 
-/** Set graphics height for virtual mouse
- *  Note: This is required for relative virtual mouse
+/**
+ * @brief 设置虚拟鼠标的图形高度
+ * @param vmou 虚拟鼠标设备指针
+ * @param height 高度值
  */
 void vmm_vmouse_set_graphics_height(struct vmm_vmouse *vmou, uint32_t height);
 
-/** Get graphics height for virtual mouse
- *  Note: This is required for relative virtual mouse
+/**
+ * @brief 获取虚拟鼠标的图形高度
+ * @param vmou 虚拟鼠标设备指针
+ * @return 图形显示高度（像素），失败返回0
  */
 uint32_t vmm_vmouse_get_graphics_height(struct vmm_vmouse *vmou);
 
-/** Set graphics rotation angle for virtual mouse  */
+/**
+ * @brief 设置虚拟鼠标的图形旋转角度
+ * @param vmou 虚拟鼠标设备指针
+ * @param rotation 旋转角度值
+ */
 void vmm_vmouse_set_graphics_rotation(struct vmm_vmouse *vmou, uint32_t rotation);
 
-/** Get graphics rotation angle for virtual mouse */
+/**
+ * @brief 获取虚拟鼠标的图形旋转角度
+ * @param vmou 虚拟鼠标设备指针
+ * @return 图形显示旋转角度，失败返回0
+ */
 uint32_t vmm_vmouse_get_graphics_rotation(struct vmm_vmouse *vmou);
 
 /** Find a virtual mouse with given name */
 struct vmm_vmouse *vmm_vmouse_find(const char *name);
 
-/** Iterate over each virtual mouse */
+/**
+ * @brief 遍历虚拟鼠标实例
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vmouse_iterate(struct vmm_vmouse *start, void *data, int (*fn)(struct vmm_vmouse *vmou, void *data));
 
-/** Count of available virtual mouses */
+/**
+ * @brief 获取虚拟鼠标的数量
+ * @return 数量值
+ */
 uint32_t vmm_vmouse_count(void);
 
 #endif /* __VMM_VINPUT_H_ */

@@ -235,7 +235,7 @@ static int uart_8250_driver_probe(vmm_device_t *dev)
     port = vmm_zalloc(sizeof(struct uart_8250_port));
 
     if (!port) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_nothing;
     }
 
@@ -301,7 +301,7 @@ static int uart_8250_driver_probe(vmm_device_t *dev)
     port->irq = vmm_device_tree_irq_parse_map(dev->of_node, 0);
 
     if (!port->irq) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto free_reg;
     }
 

@@ -181,7 +181,7 @@ static int pl011_reg_read(struct pl011_state *s, uint32_t offset, uint32_t *dst)
             if (offset >= 0xfe0 && offset < 0x1000) {
                 *dst = s->id[(offset - 0xfe0) >> 2];
             } else {
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
             }
 
             break;
@@ -273,7 +273,7 @@ static int pl011_reg_write(struct pl011_state *s, uint32_t offset, uint32_t src_
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -413,7 +413,7 @@ static int pl011_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(struct pl011_state));
 
     if (!s) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto pl011_emulator_probe_done;
     }
 
@@ -446,7 +446,7 @@ static int pl011_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s->rd_fifo = fifo_alloc(1, s->fifo_sz);
 
     if (!s->rd_fifo) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto pl011_emulator_probe_freestate_fail;
     }
 
@@ -454,7 +454,7 @@ static int pl011_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     strlcat(name, "/", sizeof(name));
 
     if (strlcat(name, edev->node->name, sizeof(name)) >= sizeof(name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto pl011_emulator_probe_freerbuf_fail;
     }
 

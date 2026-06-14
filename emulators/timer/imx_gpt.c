@@ -355,7 +355,7 @@ static int imx_gpt_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t 
     gpt                = vmm_zalloc(sizeof(struct gpt_t));
 
     if (NULL == gpt) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     gpt->guest = guest;

@@ -137,7 +137,7 @@ static void memory_dump_func(void *arg0, void *arg1, void *arg2)
     if (io) {
         page_va = vmm_host_iomap(page_pa, VMM_PAGE_SIZE);
     } else {
-        page_va = vmm_host_memmap(page_pa, VMM_PAGE_SIZE, VMM_MEMORY_FLAGS_NORMAL);
+        page_va = vmm_host_memory_map(page_pa, VMM_PAGE_SIZE, VMM_MEMORY_FLAGS_NORMAL);
     }
 
     page_mapped = TRUE;
@@ -148,7 +148,7 @@ static void memory_dump_func(void *arg0, void *arg1, void *arg2)
                 if (io) {
                     rc = vmm_host_iounmap(page_va);
                 } else {
-                    rc = vmm_host_memunmap(page_va);
+                    rc = vmm_host_memory_unmap(page_va);
                 }
 
                 page_mapped = FALSE;
@@ -210,7 +210,7 @@ done:
         if (io) {
             rc = vmm_host_iounmap(page_va);
         } else {
-            rc = vmm_host_memunmap(page_va);
+            rc = vmm_host_memory_unmap(page_va);
         }
 
         page_mapped = FALSE;
@@ -242,7 +242,7 @@ static int cmd_memory_dump(vmm_char_device_t *cdev, physical_addr_t addr, uint32
     dreq = vmm_zalloc(sizeof(*dreq));
 
     if (!dreq) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     dreq->cdev = cdev;
@@ -266,7 +266,7 @@ static int cmd_memory_dump(vmm_char_device_t *cdev, physical_addr_t addr, uint32
     if (dreq->done) {
         vmm_free(dreq);
     } else {
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     return VMM_OK;
@@ -345,7 +345,7 @@ static int cmd_memory_md5(vmm_char_device_t *cdev, physical_addr_t addr, uint32_
 
     if (!page_va) {
         vmm_cdev_printf(cdev, "Error: Failed to map memory.\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     md5_init(&md5c);
@@ -385,7 +385,7 @@ static int cmd_memory_sha256(vmm_char_device_t *cdev, physical_addr_t addr, uint
 
     if (!page_va) {
         vmm_cdev_printf(cdev, "Error: Failed to map memory.\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     sha256_init(&sha256c);
@@ -577,7 +577,7 @@ static int cmd_memory_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc < 2) {
         cmd_memory_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     } else {
         if (argc == 2) {
             if (strcmp(argv[1], "help") == 0) {
@@ -585,11 +585,11 @@ static int cmd_memory_exec(vmm_char_device_t *cdev, int argc, char **argv)
                 return VMM_OK;
             } else {
                 cmd_memory_usage(cdev);
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
         } else if (argc < 4) {
             cmd_memory_usage(cdev);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     }
 
@@ -645,7 +645,7 @@ static int cmd_memory_exec(vmm_char_device_t *cdev, int argc, char **argv)
     }
 
     cmd_memory_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_memory = {

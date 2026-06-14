@@ -130,7 +130,7 @@ int netstack_get_hwaddr(uint8_t *hwaddr);
  *
  *  returns
  *    VMM_OK - success
- *    VMM_Exxxx - failure
+ *    VMM_ERR_xxxx - failure
  */
 int netstack_send_echo(uint8_t *ipaddr, uint16_t size, uint16_t seqno, struct netstack_echo_reply *reply);
 
@@ -166,7 +166,7 @@ struct netstack_socket *netstack_socket_alloc(enum netstack_socket_type type);
  *
  *  returns
  *    VMM_OK - success
- *    VMM_Exxxx - failure
+ *    VMM_ERR_xxxx - failure
  */
 int netstack_socket_bind(struct netstack_socket *sk, uint8_t *ipaddr, uint16_t port);
 
@@ -179,7 +179,7 @@ int netstack_socket_bind(struct netstack_socket *sk, uint8_t *ipaddr, uint16_t p
  *
  *  returns
  *    VMM_OK - success
- *    VMM_Exxxx - failure
+ *    VMM_ERR_xxxx - failure
  */
 int netstack_socket_connect(struct netstack_socket *sk, uint8_t *ipaddr, uint16_t port);
 
@@ -190,7 +190,7 @@ int netstack_socket_connect(struct netstack_socket *sk, uint8_t *ipaddr, uint16_
  *
  *  returns
  *    VMM_OK - success
- *    VMM_Exxxx - failure
+ *    VMM_ERR_xxxx - failure
  */
 int netstack_socket_disconnect(struct netstack_socket *sk);
 
@@ -201,7 +201,7 @@ int netstack_socket_disconnect(struct netstack_socket *sk);
  *
  *  returns
  *    VMM_OK - success
- *    VMM_Exxxx - failure
+ *    VMM_ERR_xxxx - failure
  */
 int netstack_socket_listen(struct netstack_socket *sk);
 
@@ -213,7 +213,7 @@ int netstack_socket_listen(struct netstack_socket *sk);
  *
  *  returns
  *    VMM_OK - success
- *    VMM_Exxxx - failure
+ *    VMM_ERR_xxxx - failure
  */
 int netstack_socket_accept(struct netstack_socket *sk, struct netstack_socket **new_sk);
 
@@ -226,7 +226,7 @@ int netstack_socket_accept(struct netstack_socket *sk, struct netstack_socket **
  *
  *  returns
  *    VMM_OK - success
- *    VMM_Exxxx - failure
+ *    VMM_ERR_xxxx - failure
  */
 int netstack_socket_close(struct netstack_socket *sk);
 
@@ -248,7 +248,7 @@ void netstack_socket_free(struct netstack_socket *sk);
  *
  *  returns
  *    VMM_OK - success
- *    VMM_Exxxx - failure
+ *    VMM_ERR_xxxx - failure
  */
 int netstack_socket_recv(struct netstack_socket *sk, struct netstack_socket_buf *buf, int timeout);
 
@@ -259,8 +259,8 @@ int netstack_socket_recv(struct netstack_socket *sk, struct netstack_socket_buf 
  *
  *  returns
  *    VMM_OK - success
- *    VMM_ETIMEDOUT - upon receive timeout
- *    VMM_Exxxx - failure (this is no futher buffers)
+ *    VMM_ERR_TIMEDOUT - upon receive timeout
+ *    VMM_ERR_xxxx - failure (this is no futher buffers)
  */
 int netstack_socket_nextbuf(struct netstack_socket_buf *buf);
 
@@ -271,7 +271,7 @@ int netstack_socket_nextbuf(struct netstack_socket_buf *buf);
  *
  *  returns
  *    VMM_OK - success
- *    VMM_Exxxx - failure (this is no futher buffers)
+ *    VMM_ERR_xxxx - failure (this is no futher buffers)
  */
 void netstack_socket_freebuf(struct netstack_socket_buf *buf);
 
@@ -284,7 +284,7 @@ void netstack_socket_freebuf(struct netstack_socket_buf *buf);
  *
  *  returns
  *    VMM_OK - success
- *    VMM_Exxxx - failure
+ *    VMM_ERR_xxxx - failure
  */
 int netstack_socket_write(struct netstack_socket *sk, void *data, uint16_t len);
 

@@ -18,7 +18,7 @@
  *
  * @file vmm_modules.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file module management code
+ * @brief 模块管理代码头文件
  */
 #ifndef _VMM_MODULES_H__
 #define _VMM_MODULES_H__
@@ -64,32 +64,41 @@ typedef void (*vmm_module_exit_t)(void);
 
 #include <vmm_limits.h>
 
+/**
+ * @brief 可加载模块结构，封装模块的初始化/退出回调和元信息
+ */
 struct vmm_module {
-    uint32_t          signature;
-    char              name[VMM_FIELD_NAME_SIZE];
-    char              desc[VMM_FIELD_DESC_SIZE];
-    char              author[VMM_FIELD_AUTHOR_SIZE];
-    char              license[VMM_FIELD_LICENSE_SIZE];
-    uint32_t          ipriority;
-    vmm_module_init_t init;
-    vmm_module_exit_t exit;
-    double_list_t     head;
+    uint32_t          signature; /**< 签名标识 */
+    char              name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
+    char              desc[VMM_FIELD_DESC_SIZE]; /**< 描述 */
+    char              author[VMM_FIELD_AUTHOR_SIZE]; /**< 作者 */
+    char              license[VMM_FIELD_LICENSE_SIZE]; /**< 许可证 */
+    uint32_t          ipriority; /**< 初始化优先级 */
+    vmm_module_init_t init; /**< 初始化回调 */
+    vmm_module_exit_t exit; /**< 退出回调 */
+    double_list_t     head; /**< 链表头 */
 };
 
 typedef struct vmm_module vmm_module_t;
 
+/**
+ * @brief 符号类型枚举，区分模块导出的函数和数据符号
+ */
 enum vmm_symbol_types {
-    VMM_SYMBOL_ANY        = 0,
-    VMM_SYMBOL_GPL        = 1,
-    VMM_SYMBOL_GPL_FUTURE = 2,
-    VMM_SYMBOL_UNUSED     = 3,
-    VMM_SYMBOL_UNUSED_GPL = 4,
+    VMM_SYMBOL_ANY        = 0, /**< 0 */
+    VMM_SYMBOL_GPL        = 1, /**< 1 */
+    VMM_SYMBOL_GPL_FUTURE = 2, /**< 2 */
+    VMM_SYMBOL_UNUSED     = 3, /**< 3 */
+    VMM_SYMBOL_UNUSED_GPL = 4, /**< 4 */
 };
 
+/**
+ * @brief 导出符号结构，保存符号名称和地址
+ */
 struct vmm_symbol {
-    char           name[KSYM_NAME_LEN];
-    virtual_addr_t addr;
-    uint32_t       type;
+    char           name[KSYM_NAME_LEN]; /**< 名称 */
+    virtual_addr_t addr; /**< 地址 */
+    uint32_t       type; /**< 类型 */
 };
 
 #define EXPAND(VAR)         #VAR
@@ -111,7 +120,7 @@ struct vmm_symbol {
         .head      = LIST_HEAD_INIT(_var.head),                                                                                                      \
     }
 
-#define __VMM_EXPORT_SYMBOL(sym, _type)                                                                                                              \
+#define __VMM_ERR_XPORT_SYMBOL(sym, _type)                                                                                                              \
     __symtbl struct vmm_symbol __exported_##sym = {                                                                                                  \
         .name = #sym,                                                                                                                                \
         .addr = (virtual_addr_t) & sym,                                                                                                              \
@@ -133,7 +142,7 @@ struct vmm_symbol {
         .head      = LIST_HEAD_INIT(_var.head),                                                                                                      \
     }
 
-#define __VMM_EXPORT_SYMBOL(sym, _type)
+#define __VMM_ERR_XPORT_SYMBOL(sym, _type)
 
 #endif
 
@@ -145,35 +154,63 @@ struct vmm_symbol {
 #define VMM_DECLARE_MODULE2(_name, _desc, _author, _license, _ipriority, _init, _exit)                                                               \
     __VMM_DECLARE_MODULE(MODTBL_VAR(_name), _name, _desc, _author, _license, _ipriority, _init, _exit)
 
-#define VMM_EXPORT_SYMBOL(sym)            __VMM_EXPORT_SYMBOL(sym, VMM_SYMBOL_ANY)
+#define VMM_ERR_XPORT_SYMBOL(sym)            __VMM_ERR_XPORT_SYMBOL(sym, VMM_SYMBOL_ANY)
 
-#define VMM_EXPORT_SYMBOL_GPL(sym)        __VMM_EXPORT_SYMBOL(sym, VMM_SYMBOL_GPL)
+#define VMM_ERR_XPORT_SYMBOL_GPL(sym)        __VMM_ERR_XPORT_SYMBOL(sym, VMM_SYMBOL_GPL)
 
-#define VMM_EXPORT_SYMBOL_GPL_FUTURE(sym) __VMM_EXPORT_SYMBOL(sym, VMM_SYMBOL_GPL_FUTURE)
+#define VMM_ERR_XPORT_SYMBOL_GPL_FUTURE(sym) __VMM_ERR_XPORT_SYMBOL(sym, VMM_SYMBOL_GPL_FUTURE)
 
-#define VMM_EXPORT_SYMBOL_UNUSED(sym)     __VMM_EXPORT_SYMBOL(sym, VMM_SYMBOL_UNUSED)
+#define VMM_ERR_XPORT_SYMBOL_UNUSED(sym)     __VMM_ERR_XPORT_SYMBOL(sym, VMM_SYMBOL_UNUSED)
 
-#define VMM_EXPORT_SYMBOL_UNUSED_GPL(sym) __VMM_EXPORT_SYMBOL(sym, VMM_SYMBOL_UNUSED_GPL)
+#define VMM_ERR_XPORT_SYMBOL_UNUSED_GPL(sym) __VMM_ERR_XPORT_SYMBOL(sym, VMM_SYMBOL_UNUSED_GPL)
 
-/** Find a symbol from exported symbols & kallsyms */
+/**
+ * @brief 在已加载模块中查找符号地址
+ * @param symname 符号名称
+ * @param sym 符号结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_modules_find_symbol(const char *symname, struct vmm_symbol *sym);
 
-/** Check if module is built-in */
+/**
+ * @brief 检查模块是否为内建模块
+ * @param mod 模块结构体指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_modules_isbuiltin(vmm_module_t *mod);
 
-/** Load a loadable module */
+/**
+ * @brief 模块 加载
+ * @param load_addr 加载地址
+ * @param load_size 加载大小（字节）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_modules_load(virtual_addr_t load_addr, virtual_size_t load_size);
 
-/** Unload a loadable module */
+/**
+ * @brief 卸载模块
+ * @param mod 模块结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_modules_unload(vmm_module_t *mod);
 
-/** Retrive a module at with given index */
+/**
+ * @brief 获取模块实例
+ * @param index 索引
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_module_t *vmm_modules_getmodule(uint32_t index);
 
-/** Count number of valid modules */
+/**
+ * @brief 获取模块的数量
+ * @return 数量值
+ */
 uint32_t vmm_modules_count(void);
 
-/** Initialize all modules based on type */
+/**
+ * @brief 初始化模块
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_modules_init(void);
 
 #endif

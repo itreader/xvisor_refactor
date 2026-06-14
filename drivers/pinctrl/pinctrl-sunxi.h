@@ -405,7 +405,7 @@ struct sunxi_pinctrl {
     struct irq_domain       *domain;
 #else
     uint32_t                  irq_start;
-    struct vmm_host_irq_chip *irq_chip;
+    vmm_host_irq_chip_t *irq_chip;
 #endif
     struct sunxi_pinctrl_function *functions;
     unsigned                       nfunctions;

@@ -60,7 +60,7 @@ static int heap_info(vmm_char_device_t *cdev, bool is_normal, virtual_addr_t hea
         heap_usesz = heap_sz - heap_freesz;
     }
 
-    if ((rc = vmm_host_va2pa(heap_va, &heap_pa))) {
+    if ((rc = vmm_host_virtualAddr_to_physicalAddr(heap_va, &heap_pa))) {
         vmm_cdev_printf(cdev, "Error: Failed to get heap base PA\n");
         return rc;
     }
@@ -130,7 +130,7 @@ static int cmd_heap_exec(vmm_char_device_t *cdev, int argc, char **argv)
     }
 
     cmd_heap_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_heap = {

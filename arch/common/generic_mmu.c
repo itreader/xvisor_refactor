@@ -47,11 +47,11 @@
 #define STAGE1_NONROOT_ALIGN        (1UL << STAGE1_NONROOT_ALIGN_ORDER)
 
 /*
- * NOTE: we use 1/64th or 1.5625% of VAPOOL memory as translation table pool.
- * For example if VAPOOL is 8 MB and page table size is 4KB then page table
+ * NOTE: we use 1/64th or 1.5625% of VIRTUAL_ADDR_POOL memory as translation table pool.
+ * For example if VIRTUAL_ADDR_POOL is 8 MB and page table size is 4KB then page table
  * pool will be 128 KB or 32 (= 128 KB / 4 KB) page tables.
  */
-#define PAGE_TABLE_POOL_COUNT       (CONFIG_VAPOOL_SIZE_MB << (20 - 6 - ARCH_MMU_STAGE1_NONROOT_SIZE_ORDER))
+#define PAGE_TABLE_POOL_COUNT       (CONFIG_VIRTUAL_ADDR_POOL_SIZE_MB << (20 - 6 - ARCH_MMU_STAGE1_NONROOT_SIZE_ORDER))
 #define PAGE_TABLE_POOL_SIZE        (PAGE_TABLE_POOL_COUNT * STAGE1_NONROOT_SIZE)
 
 #define INIT_PAGE_TABLE_COUNT       ARCH_MMU_STAGE1_NONROOT_INITIAL_COUNT
@@ -201,7 +201,7 @@ static struct mmu_page_table *mmu_page_table_nonpool_alloc(int stage, int level)
     page_table->table_va   = vmm_host_alloc_aligned_pages(
         VMM_SIZE_TO_PAGE(page_table->table_size), arch_mmu_page_table_align_order(stage, level), VMM_MEMORY_FLAGS_NORMAL);
 
-    if (vmm_host_va2pa(page_table->table_va, &page_table->table_phy_addr)) {
+    if (vmm_host_virtualAddr_to_physicalAddr(page_table->table_va, &page_table->table_phy_addr)) {
         vmm_host_free_pages(page_table->table_va, VMM_SIZE_TO_PAGE(page_table->table_size));
         vmm_free(npage_table);
         return NULL;
@@ -310,15 +310,15 @@ static int mmu_page_table_attach(struct mmu_page_table *parent, physical_addr_t 
     irq_flags_t flags;
 
     if (!parent || !child) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (mmu_page_table_isattached(child)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((parent->level == 0) || (child->stage != parent->stage)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index = arch_mmu_level_index(map_ia, parent->stage, parent->level);
@@ -328,7 +328,7 @@ static int mmu_page_table_attach(struct mmu_page_table *parent, physical_addr_t 
 
     if (arch_mmu_pte_is_valid(&pte[index], parent->stage, parent->level)) {
         vmm_spin_unlock_irq_restore_lite(&parent->table_lock, flags);
-        return VMM_EEXIST;
+        return VMM_ERR_EXIST;
     }
 
     arch_mmu_pte_set_table(&pte[index], parent->stage, parent->level, child->table_phy_addr);
@@ -354,7 +354,7 @@ static int mmu_page_table_deattach(struct mmu_page_table *child)
     struct mmu_page_table *parent;
 
     if (!child || !mmu_page_table_isattached(child)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     parent = child->parent;
@@ -365,7 +365,7 @@ static int mmu_page_table_deattach(struct mmu_page_table *child)
 
     if (!arch_mmu_pte_is_valid(&pte[index], parent->stage, parent->level)) {
         vmm_spin_unlock_irq_restore_lite(&parent->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     arch_mmu_pte_clear(&pte[index], parent->stage, parent->level);
@@ -426,7 +426,7 @@ int mmu_page_table_free(struct mmu_page_table *page_table)
     struct mmu_page_table *child;
 
     if (!page_table) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (mmu_page_table_isattached(page_table)) {
@@ -523,7 +523,7 @@ struct mmu_page_table *mmu_page_table_get_child(struct mmu_page_table *parent, p
     }
 
     if ((rc = mmu_page_table_attach(parent, map_ia, child))) {
-        if (rc != VMM_EEXIST) {
+        if (rc != VMM_ERR_EXIST) {
             vmm_printf(
                 "%s: failed to attach child for address "
                 "0x%" PRIPADDR " in page table at "
@@ -546,7 +546,7 @@ int mmu_get_page(struct mmu_page_table *page_table, physical_addr_t ia, struct m
     struct mmu_page_table *child;
 
     if (!page_table || !pg) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index = arch_mmu_level_index(ia, page_table->stage, page_table->level);
@@ -556,12 +556,12 @@ int mmu_get_page(struct mmu_page_table *page_table, physical_addr_t ia, struct m
 
     if (!arch_mmu_pte_is_valid(&pte[index], page_table->stage, page_table->level)) {
         vmm_spin_unlock_irq_restore_lite(&page_table->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((page_table->level == 0) && arch_mmu_pte_is_table(&pte[index], page_table->stage, page_table->level)) {
         vmm_spin_unlock_irq_restore_lite(&page_table->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((page_table->level > 0) && arch_mmu_pte_is_table(&pte[index], page_table->stage, page_table->level)) {
@@ -569,7 +569,7 @@ int mmu_get_page(struct mmu_page_table *page_table, physical_addr_t ia, struct m
         child = mmu_page_table_get_child(page_table, ia, FALSE);
 
         if (!child) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         return mmu_get_page(child, ia, pg);
@@ -598,17 +598,17 @@ int mmu_unmap_page(struct mmu_page_table *page_table, struct mmu_page *pg)
     physical_size_t        blksz;
 
     if (!page_table || !pg) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!arch_mmu_valid_block_size(pg->size)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     blksz = arch_mmu_level_block_size(page_table->stage, page_table->level);
 
     if (pg->size > blksz) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     start_level = arch_mmu_start_level(page_table->stage);
@@ -617,7 +617,7 @@ int mmu_unmap_page(struct mmu_page_table *page_table, struct mmu_page *pg)
         child = mmu_page_table_get_child(page_table, pg->ia, FALSE);
 
         if (!child) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         rc = mmu_unmap_page(child, pg);
@@ -636,12 +636,12 @@ int mmu_unmap_page(struct mmu_page_table *page_table, struct mmu_page *pg)
 
     if (!arch_mmu_pte_is_valid(&pte[index], page_table->stage, page_table->level)) {
         vmm_spin_unlock_irq_restore_lite(&page_table->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((page_table->level == 0) && arch_mmu_pte_is_table(&pte[index], page_table->stage, page_table->level)) {
         vmm_spin_unlock_irq_restore_lite(&page_table->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     arch_mmu_pte_clear(&pte[index], page_table->stage, page_table->level);
@@ -680,24 +680,24 @@ int mmu_map_page(struct mmu_page_table *page_table, struct mmu_page *pg)
     physical_size_t        blksz;
 
     if (!page_table || !pg) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!arch_mmu_valid_block_size(pg->size)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     blksz = arch_mmu_level_block_size(page_table->stage, page_table->level);
 
     if (pg->size > blksz) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (pg->size < blksz) {
         child = mmu_page_table_get_child(page_table, pg->ia, TRUE);
 
         if (!child) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         return mmu_map_page(child, pg);
@@ -710,7 +710,7 @@ int mmu_map_page(struct mmu_page_table *page_table, struct mmu_page *pg)
 
     if (arch_mmu_pte_is_valid(&pte[index], page_table->stage, page_table->level)) {
         vmm_spin_unlock_irq_restore_lite(&page_table->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     arch_mmu_pte_set(&pte[index], page_table->stage, page_table->level, pg->oa, &pg->flags);
@@ -740,7 +740,7 @@ int mmu_find_pte(struct mmu_page_table *page_table, physical_addr_t ia, arch_pte
     struct mmu_page_table *child;
 
     if (!page_table || !ptep || !page_tablep) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     map_last = arch_mmu_level_block_size(page_table->stage, page_table->level);
@@ -748,7 +748,7 @@ int mmu_find_pte(struct mmu_page_table *page_table, physical_addr_t ia, arch_pte
     map_last -= 1;
 
     if ((ia < page_table->map_ia) || ((page_table->map_ia + map_last) < ia)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     index = arch_mmu_level_index(ia, page_table->stage, page_table->level);
@@ -758,12 +758,12 @@ int mmu_find_pte(struct mmu_page_table *page_table, physical_addr_t ia, arch_pte
 
     if (!arch_mmu_pte_is_valid(&pte[index], page_table->stage, page_table->level)) {
         vmm_spin_unlock_irq_restore_lite(&page_table->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((page_table->level == 0) && arch_mmu_pte_is_table(&pte[index], page_table->stage, page_table->level)) {
         vmm_spin_unlock_irq_restore_lite(&page_table->table_lock, flags);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((page_table->level > 0) && arch_mmu_pte_is_table(&pte[index], page_table->stage, page_table->level)) {
@@ -771,7 +771,7 @@ int mmu_find_pte(struct mmu_page_table *page_table, physical_addr_t ia, arch_pte
         child = mmu_page_table_get_child(page_table, ia, FALSE);
 
         if (!child) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         return mmu_find_pte(child, ia, ptep, page_tablep);
@@ -794,7 +794,7 @@ int mmu_get_guest_page(
     physical_addr_t pte_pa;
 
     if (stage <= MMU_STAGE_UNKNOWN || MMU_STAGE_MAX <= stage || arch_mmu_start_level(stage) < level || !ops || !pg) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (level < 0) {
@@ -804,7 +804,7 @@ int mmu_get_guest_page(
     idx = ops->gpa2hpa(opaque, stage, level, page_table_guest_pa, &pte_pa);
 
     if (idx) {
-        if (idx == VMM_EFAULT) {
+        if (idx == VMM_ERR_FAULT) {
             ops->setfault(opaque, stage, level, guest_ia);
         }
 
@@ -815,17 +815,17 @@ int mmu_get_guest_page(
 
     if (vmm_host_memory_read(pte_pa + idx * sizeof(pte), &pte, sizeof(pte), TRUE) != sizeof(pte)) {
         ops->setfault(opaque, stage, level, guest_ia);
-        return VMM_EFAULT;
+        return VMM_ERR_FAULT;
     }
 
     if (!arch_mmu_pte_is_valid(&pte, stage, level)) {
         ops->setfault(opaque, stage, level, guest_ia);
-        return VMM_EFAULT;
+        return VMM_ERR_FAULT;
     }
 
     if ((level == 0) && arch_mmu_pte_is_table(&pte, stage, level)) {
         ops->setfault(opaque, stage, level, guest_ia);
-        return VMM_EFAULT;
+        return VMM_ERR_FAULT;
     }
 
     if ((level > 0) && arch_mmu_pte_is_table(&pte, stage, level)) {
@@ -970,7 +970,7 @@ int mmu_find_free_address(struct mmu_page_table *page_table, physical_addr_t min
     struct free_address_walk w;
 
     if (!page_table || !addr) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     for (level = 0; level <= page_table->level; level++) {
@@ -980,7 +980,7 @@ int mmu_find_free_address(struct mmu_page_table *page_table, physical_addr_t min
     }
 
     if (page_table->level < level) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     while (level <= page_table->level) {
@@ -998,7 +998,7 @@ int mmu_find_free_address(struct mmu_page_table *page_table, physical_addr_t min
         level++;
     }
 
-    return VMM_ENOTAVAIL;
+    return VMM_ERR_NOTAVAIL;
 }
 
 struct idmap_nested_page_table_walk {
@@ -1039,7 +1039,7 @@ static void idmap_nested_page_table_walk(struct mmu_page_table *page_table, void
             }
         } else {
             if (pg.ia != tpg.ia || pg.oa != tpg.oa || pg.size != tpg.size) {
-                iw->error = VMM_EFAIL;
+                iw->error = VMM_ERR_FAIL;
                 return;
             }
         }
@@ -1053,11 +1053,11 @@ int mmu_idmap_nested_page_table(
     struct idmap_nested_page_table_walk iw;
 
     if (!s2_page_table || (s2_page_table->stage != MMU_STAGE2)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!s1_page_table || (s1_page_table->stage != MMU_STAGE1)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     for (level = 0; level <= s2_page_table->level; level++) {
@@ -1067,7 +1067,7 @@ int mmu_idmap_nested_page_table(
     }
 
     if (s2_page_table->level < level) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     iw.s2_page_table = s2_page_table;
@@ -1090,23 +1090,23 @@ int mmu_test_nested_page_table(
     uint32_t        offlags = 0;
 
     if (!s2_page_table || (s2_page_table->stage != MMU_STAGE2)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (s1_page_table && (s1_page_table->stage != MMU_STAGE1)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (flags & ~MMU_TEST_VALID_MASK) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((flags & MMU_TEST_WIDTH_16BIT) && (addr & 0x1)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((flags & MMU_TEST_WIDTH_32BIT) && (addr & 0x3)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     rc = arch_mmu_test_nested_page_table(
@@ -1119,17 +1119,17 @@ int mmu_test_nested_page_table(
 
     /* All expected fault bits should be set */
     if ((offlags & expected_fault_flags) ^ expected_fault_flags) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* No unexpected fault bit should be set */
     if (offlags & ~expected_fault_flags) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Output address should match */
     if (oaddr != expected_output_addr) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
@@ -1314,24 +1314,24 @@ void arch_cpu_addr_space_print_info(vmm_char_device_t *cdev)
     }
 }
 
-uint32_t arch_cpu_addr_space_hugepage_log2size(void)
+uint32_t arch_cpu_addr_space_huge_page_log2size(void)
 {
     return arch_mmu_level_block_shift(MMU_STAGE1, 1);
 }
 
-int arch_cpu_addr_space_map(virtual_addr_t page_va, virtual_size_t page_sz, physical_addr_t page_pa, uint32_t mem_flags)
+int arch_cpu_addr_space_map(virtual_addr_t page_va, virtual_size_t page_sz, physical_addr_t page_pa, uint32_t memory_flags)
 {
     struct mmu_page p;
 
     if (page_sz != arch_mmu_level_block_size(MMU_STAGE1, 0) && page_sz != arch_mmu_level_block_size(MMU_STAGE1, 1)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     memset(&p, 0, sizeof(p));
     p.ia   = page_va;
     p.oa   = page_pa;
     p.size = page_sz;
-    arch_mmu_pgflags_set(&p.flags, MMU_STAGE1, mem_flags);
+    arch_mmu_pgflags_set(&p.flags, MMU_STAGE1, memory_flags);
 
     return mmu_map_hypervisor_page(&p);
 }
@@ -1350,7 +1350,7 @@ int arch_cpu_addr_space_unmap(virtual_addr_t page_va)
     return mmu_unmap_hypervisor_page(&p);
 }
 
-int arch_cpu_addr_space_va2pa(virtual_addr_t va, physical_addr_t *pa)
+int arch_cpu_addr_space_virtualAddr_to_physicalAddr(virtual_addr_t va, physical_addr_t *pa)
 {
     int             rc = VMM_OK;
     struct mmu_page p;
@@ -1371,7 +1371,7 @@ virtual_addr_t __init arch_cpu_addr_space_virtual_address_pool_start(void)
 
 virtual_size_t __init arch_cpu_addr_space_virtual_address_pool_estimate_size(physical_size_t total_ram)
 {
-    return CONFIG_VAPOOL_SIZE_MB << 20;
+    return CONFIG_VIRTUAL_ADDR_POOL_SIZE_MB << 20;
 }
 
 static void __init mmu_scan_initial_page_table(struct mmu_page_table *page_table)
@@ -1452,7 +1452,7 @@ int __init arch_cpu_addr_space_primary_init(
     physical_addr_t *core_resv_pa, virtual_addr_t *core_resv_va, virtual_size_t *core_resv_sz, physical_addr_t *arch_resv_pa,
     virtual_addr_t *arch_resv_va, virtual_size_t *arch_resv_sz)
 {
-    int                    i, rc = VMM_EFAIL;
+    int                    i, rc = VMM_ERR_FAIL;
     virtual_addr_t         va, resv_va;
     virtual_size_t         size, resv_sz;
     physical_addr_t        pa, resv_pa;
@@ -1463,7 +1463,7 @@ int __init arch_cpu_addr_space_primary_init(
 
     /* Check constraints of generic MMU */
     if (STAGE1_NONROOT_SIZE != l0_size || STAGE1_NONROOT_ALIGN_ORDER > l0_shift) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Initial values of resv_va, resv_pa, and resv_sz */
@@ -1484,7 +1484,7 @@ int __init arch_cpu_addr_space_primary_init(
 
     /* Initialize MMU control and allocate arch reserved space and
      * update the *arch_resv_pa, *arch_resv_va, and *arch_resv_sz
-     * parameters to inform host aspace about the arch reserved space.
+     * parameters to inform host addr_space about the arch reserved space.
      */
     memset(&mmuctrl, 0, sizeof(mmuctrl));
 
@@ -1558,7 +1558,7 @@ int __init arch_cpu_addr_space_primary_init(
 
     /* Check & setup core reserved space and update the
      * core_resv_pa, core_resv_va, and core_resv_sz parameters
-     * to inform host aspace about correct placement of the
+     * to inform host addr_space about correct placement of the
      * core reserved space.
      */
     *core_resv_pa = resv_pa + resv_sz;

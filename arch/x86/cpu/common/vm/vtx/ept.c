@@ -217,7 +217,7 @@ int ept_create_pte_map(struct vcpu_hw_context *context, physical_addr_t gphys, p
 
         if (!virt) {
             X86_DEBUG_LOG(ept, LVL_ERR, "System is out of guest page table memory\n");
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto _done;
         }
 
@@ -225,9 +225,9 @@ int ept_create_pte_map(struct vcpu_hw_context *context, physical_addr_t gphys, p
         memset((void *)virt, 0, PAGE_SIZE);
         pml4e->bits.pdpt_base = EPT_PHYS_4KB_PFN(phys);
     } else {
-        if (vmm_host_pa2va(e_phys, &virt) != VMM_OK) {
+        if (vmm_host_physicalAddr_to_virtualAddr(e_phys, &virt) != VMM_OK) {
             X86_DEBUG_LOG(ept, LVL_ERR, "Couldn't map PDPTE physical 0x%" PRIx64 " to virtual\n", e_phys);
-            rc = VMM_ENOENT;
+            rc = VMM_ERR_NOENT;
             goto _done;
         }
 
@@ -254,7 +254,7 @@ int ept_create_pte_map(struct vcpu_hw_context *context, physical_addr_t gphys, p
          * to calling this function */
         if (pg_size != EPT_PAGE_SIZE_1G) {
             X86_DEBUG_LOG(ept, LVL_DEBUG, "New page size is not 1G (0x%" PRIx64 "). Delete existing entry first.\n", pg_size);
-            rc = VMM_EBUSY;
+            rc = VMM_ERR_BUSY;
             goto _done;
         }
 
@@ -272,7 +272,7 @@ int ept_create_pte_map(struct vcpu_hw_context *context, physical_addr_t gphys, p
         } else {
             /* existing physical is not same as new one. flag as error.
              * caller should have unmapped this mapping first */
-            rc = VMM_EBUSY;
+            rc = VMM_ERR_BUSY;
             goto _done;
         }
     }
@@ -300,7 +300,7 @@ int ept_create_pte_map(struct vcpu_hw_context *context, physical_addr_t gphys, p
             /* allocate a new PDPTE page */
             if (!virt) {
                 X86_DEBUG_LOG(ept, LVL_ERR, "System is out of guest page table memory\n");
-                rc = VMM_ENOMEM;
+                rc = VMM_ERR_NOMEM;
                 goto _done;
             }
 
@@ -311,9 +311,9 @@ int ept_create_pte_map(struct vcpu_hw_context *context, physical_addr_t gphys, p
             pdpte->val |= pg_prot;
             X86_DEBUG_LOG(ept, LVL_DEBUG, "New PD Page at 0x%" PRIx64 " (Phys: 0x%" PRIx64 ")\n", virt, phys);
         } else { /* page is already allocated, a mapping in locality exists */
-            if (vmm_host_pa2va(e_phys, &virt) != VMM_OK) {
+            if (vmm_host_physicalAddr_to_virtualAddr(e_phys, &virt) != VMM_OK) {
                 X86_DEBUG_LOG(ept, LVL_ERR, "Couldn't map PDE physical 0x%" PRIx64 " to virtual\n", e_phys);
-                rc = VMM_ENOENT;
+                rc = VMM_ERR_NOENT;
                 goto _done;
             }
 
@@ -336,7 +336,7 @@ int ept_create_pte_map(struct vcpu_hw_context *context, physical_addr_t gphys, p
          * to calling this function */
         if (pg_size != EPT_PAGE_SIZE_2M) {
             X86_DEBUG_LOG(ept, LVL_DEBUG, "New page is not 2M. Delete previous entry first.\n");
-            rc = VMM_EBUSY;
+            rc = VMM_ERR_BUSY;
             goto _done;
         }
 
@@ -360,7 +360,7 @@ int ept_create_pte_map(struct vcpu_hw_context *context, physical_addr_t gphys, p
             X86_DEBUG_LOG(ept, LVL_DEBUG, "pd index %d is busy. Val: 0x%" PRIx64 "\n", pd_index, pde->val);
             /* existing physical is not same as new one. flag as error.
              * caller should have unmapped this mapping first */
-            rc = VMM_EBUSY;
+            rc = VMM_ERR_BUSY;
             goto _done;
         }
     }
@@ -387,7 +387,7 @@ int ept_create_pte_map(struct vcpu_hw_context *context, physical_addr_t gphys, p
             /* allocate a new PTE page */
             if (!virt) {
                 X86_DEBUG_LOG(ept, LVL_ERR, "System is out of guest page table memory\n");
-                rc = VMM_ENOMEM;
+                rc = VMM_ERR_NOMEM;
                 goto _done;
             }
 
@@ -398,9 +398,9 @@ int ept_create_pte_map(struct vcpu_hw_context *context, physical_addr_t gphys, p
             pde->val |= pg_prot;
             X86_DEBUG_LOG(ept, LVL_DEBUG, "New PT page at 0x%" PRIx64 " (Phys: 0x%" PRIx64 ")\n", virt, phys);
         } else { /* page is already allocated, a mapping in locality exists */
-            if (vmm_host_pa2va(e_phys, &virt) != VMM_OK) {
+            if (vmm_host_physicalAddr_to_virtualAddr(e_phys, &virt) != VMM_OK) {
                 X86_DEBUG_LOG(ept, LVL_ERR, "Couldn't map PDE physical 0x%" PRIx64 " to virtual\n", e_phys);
-                rc = VMM_ENOENT;
+                rc = VMM_ERR_NOENT;
                 goto _done;
             }
 
@@ -434,7 +434,7 @@ int ept_create_pte_map(struct vcpu_hw_context *context, physical_addr_t gphys, p
         } else {
             X86_DEBUG_LOG(
                 ept, LVL_DEBUG, "Existing PTE entry found at index: %d but with phys: 0x%" PRIx64 " (new: 0x%" PRIx64 ")\n", pt_index, e_phys, hphys);
-            rc = VMM_EBUSY;
+            rc = VMM_ERR_BUSY;
             goto _done;
         }
     } else {
@@ -468,7 +468,7 @@ int setup_ept(struct vcpu_hw_context *context)
 
     if (!pml4) {
         X86_DEBUG_LOG(ept, LVL_ERR, "%s: Failed to allocate EPT page\n", __func__);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* initialize tracing of EPT programming */

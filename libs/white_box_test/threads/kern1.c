@@ -61,25 +61,25 @@ static int kern1_run(struct white_box_test *test, vmm_char_device_t *cdev, uint3
     ti = vmm_threads_create(NULL, dummy_thread_main, NULL, VMM_THREAD_DEF_PRIORITY, VMM_THREAD_DEF_TIME_SLICE);
 
     if (ti != NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     ti = vmm_threads_create("dummy", NULL, NULL, VMM_THREAD_DEF_PRIORITY, VMM_THREAD_DEF_TIME_SLICE);
 
     if (ti != NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     ti = vmm_threads_create("dummy", dummy_thread_main, NULL, VMM_VCPU_MAX_PRIORITY + 1, VMM_THREAD_DEF_TIME_SLICE);
 
     if (ti != NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     ti = vmm_threads_create("dummy", dummy_thread_main, NULL, VMM_THREAD_DEF_PRIORITY, VMM_THREAD_DEF_TIME_SLICE);
 
     if (ti == NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_threads_destroy(ti);

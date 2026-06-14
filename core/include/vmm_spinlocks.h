@@ -19,7 +19,7 @@
  * @file vmm_spinlocks.h
  * @author Himanshu Chauhan (hchauhan@nulltrace.org)
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for spinlock synchronization mechanisms.
+ * @brief 自旋锁同步机制头文件
  */
 
 #ifndef __VMM_SPINLOCKS_H__
@@ -36,8 +36,11 @@
  * more information like which core is holding the
  * lock.
  */
+/**
+ * @brief 自旋锁结构，提供轻量级的互斥同步机制
+ */
 struct vmm_spinlock {
-    arch_spinlock_t __tlock;
+    arch_spinlock_t __tlock; /**< __tlock成员 */
 };
 
 #define INIT_SPIN_LOCK(_lptr) ARCH_SPIN_LOCK_INIT(&((_lptr)->__tlock))
@@ -46,8 +49,11 @@ struct vmm_spinlock {
         .__tlock = ARCH_SPIN_LOCK_INITIALIZER,                                                                                                       \
     }
 
+/**
+ * @brief 读写锁结构，支持多读者单写者的并发访问控制
+ */
 struct vmm_rwlock {
-    arch_rwlock_t __tlock;
+    arch_rwlock_t __tlock; /**< __tlock成员 */
 };
 
 #define INIT_RW_LOCK(_lptr) ARCH_RW_LOCK_INIT(&((_lptr)->__tlock))
@@ -58,8 +64,11 @@ struct vmm_rwlock {
 
 #else
 
+/**
+ * @brief 自旋锁结构，提供轻量级的互斥同步机制
+ */
 struct vmm_spinlock {
-    uint32_t __tlock;
+    uint32_t __tlock; /**< __tlock成员 */
 };
 
 #define INIT_SPIN_LOCK(_lptr) ((_lptr)->__tlock = 0)
@@ -68,8 +77,11 @@ struct vmm_spinlock {
         .__tlock = 0,                                                                                                                                \
     }
 
+/**
+ * @brief 读写锁结构，支持多读者单写者的并发访问控制
+ */
 struct vmm_rwlock {
-    uint32_t __tlock;
+    uint32_t __tlock; /**< __tlock成员 */
 };
 
 #define INIT_RW_LOCK(_lptr) ((_lptr)->__tlock = 0)

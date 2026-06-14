@@ -746,7 +746,7 @@ int fb_find_mode(
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(fb_find_mode);
+VMM_ERR_XPORT_SYMBOL(fb_find_mode);
 
 /**
  * Convert frame_buffer_var_screeninfo to fb_videomode
@@ -793,7 +793,7 @@ void frame_buffer_var_to_videomode(struct fb_videomode *mode, const struct frame
     mode->refresh = udiv32(hfreq, vtotal);
 }
 
-VMM_EXPORT_SYMBOL(frame_buffer_var_to_videomode);
+VMM_ERR_XPORT_SYMBOL(frame_buffer_var_to_videomode);
 
 /**
  * Convert fb_videomode to frame_buffer_var_screeninfo
@@ -819,7 +819,7 @@ void fb_videomode_to_var(struct frame_buffer_var_screeninfo *var, const struct f
     var->vmode        = mode->vmode & FB_VMODE_MASK;
 }
 
-VMM_EXPORT_SYMBOL(fb_videomode_to_var);
+VMM_ERR_XPORT_SYMBOL(fb_videomode_to_var);
 
 /**
  * Compare 2 videomodes
@@ -838,7 +838,7 @@ int fb_mode_is_equal(const struct fb_videomode *mode1, const struct fb_videomode
         mode1->vmode == mode2->vmode);
 }
 
-VMM_EXPORT_SYMBOL(fb_mode_is_equal);
+VMM_ERR_XPORT_SYMBOL(fb_mode_is_equal);
 
 /**
  * Find best matching videomode
@@ -885,7 +885,7 @@ const struct fb_videomode *fb_find_best_mode(const struct frame_buffer_var_scree
     return best;
 }
 
-VMM_EXPORT_SYMBOL(fb_find_best_mode);
+VMM_ERR_XPORT_SYMBOL(fb_find_best_mode);
 
 /**
  * Find closest videomode
@@ -930,7 +930,7 @@ const struct fb_videomode *fb_find_nearest_mode(const struct fb_videomode *mode,
     return best;
 }
 
-VMM_EXPORT_SYMBOL(fb_find_nearest_mode);
+VMM_ERR_XPORT_SYMBOL(fb_find_nearest_mode);
 
 /**
  * Find a videomode which exactly matches the timings in var
@@ -959,7 +959,7 @@ const struct fb_videomode *fb_match_mode(const struct frame_buffer_var_screeninf
     return NULL;
 }
 
-VMM_EXPORT_SYMBOL(fb_match_mode);
+VMM_ERR_XPORT_SYMBOL(fb_match_mode);
 
 /**
  * Adds videomode entry to modelist
@@ -991,7 +991,7 @@ int fb_add_videomode(const struct fb_videomode *mode, double_list_t *head)
         modelist = vmm_malloc(sizeof(struct fb_modelist));
 
         if (!modelist) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         modelist->mode = *mode;
@@ -1001,7 +1001,7 @@ int fb_add_videomode(const struct fb_videomode *mode, double_list_t *head)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(fb_add_videomode);
+VMM_ERR_XPORT_SYMBOL(fb_add_videomode);
 
 /**
  * Removed videomode entry from modelist
@@ -1029,7 +1029,7 @@ void fb_delete_videomode(const struct fb_videomode *mode, double_list_t *head)
     }
 }
 
-VMM_EXPORT_SYMBOL(fb_delete_videomode);
+VMM_ERR_XPORT_SYMBOL(fb_delete_videomode);
 
 /**
  * Destroy modelist
@@ -1046,7 +1046,7 @@ void fb_destroy_modelist(double_list_t *head)
     }
 }
 
-VMM_EXPORT_SYMBOL(fb_destroy_modelist);
+VMM_ERR_XPORT_SYMBOL(fb_destroy_modelist);
 
 /**
  * Convert mode array to mode list
@@ -1067,7 +1067,7 @@ void fb_videomode_to_modelist(const struct fb_videomode *modedb, int num, double
     }
 }
 
-VMM_EXPORT_SYMBOL(fb_videomode_to_modelist);
+VMM_ERR_XPORT_SYMBOL(fb_videomode_to_modelist);
 
 const struct fb_videomode *fb_find_best_display(const struct fb_monspecs *specs, double_list_t *head)
 {
@@ -1130,4 +1130,4 @@ finished:
     return best;
 }
 
-VMM_EXPORT_SYMBOL(fb_find_best_display);
+VMM_ERR_XPORT_SYMBOL(fb_find_best_display);

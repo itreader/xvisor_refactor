@@ -56,7 +56,7 @@ static int sp810_reg_read(struct sp810_state *s, uint32_t offset, uint32_t *dst)
                 break;
 
             default:
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
                 break;
         }
     }
@@ -79,7 +79,7 @@ static int sp810_reg_write(struct sp810_state *s, uint32_t offset, uint32_t regm
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     }
 
@@ -157,7 +157,7 @@ static int sp810_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(struct sp810_state));
 
     if (!s) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto sp810_emulator_probe_done;
     }
 

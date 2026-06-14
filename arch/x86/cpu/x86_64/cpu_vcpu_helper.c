@@ -171,7 +171,7 @@ int arch_vcpu_init(vmm_vcpu_t *vcpu)
             vcpu->arch_private = vmm_zalloc(sizeof(struct x86_vcpu_private));
 
             if (!vcpu->arch_private) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             INIT_SPIN_LOCK(&x86_vcpu_private(vcpu)->lock);

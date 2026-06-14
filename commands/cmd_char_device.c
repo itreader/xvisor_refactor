@@ -93,7 +93,7 @@ static int cmd_char_device_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc < 3) {
         cmd_char_device_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;

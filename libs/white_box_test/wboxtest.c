@@ -97,7 +97,7 @@ int __wboxtest_group_add_test(const char *group_name, struct white_box_test *tes
     struct wboxtest_group *group;
 
     if (!group_name || !test || !test->run) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     group = __wboxtest_group_find(group_name);
@@ -106,7 +106,7 @@ int __wboxtest_group_add_test(const char *group_name, struct white_box_test *tes
         group = vmm_zalloc(sizeof(*group));
 
         if (!group) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         INIT_LIST_HEAD(&group->head);
@@ -120,7 +120,7 @@ int __wboxtest_group_add_test(const char *group_name, struct white_box_test *tes
     t = __wboxtest_find(group, test->name);
 
     if (t) {
-        return VMM_EEXIST;
+        return VMM_ERR_EXIST;
     }
 
     INIT_LIST_HEAD(&test->head);
@@ -226,7 +226,7 @@ int __wboxtest_run_test(struct white_box_test *test, uint32_t test_hcpu, vmm_cha
     vmm_cdev_printf(cdev, "white_box_test: test=%s failures %d out of %d\n", test->name, fail_count, iterations);
     vmm_cdev_printf(cdev, "white_box_test: test=%s %s\n", test->name, (fail_count) ? "failed" : "passed");
 
-    return (fail_count) ? VMM_EFAIL : VMM_OK;
+    return (fail_count) ? VMM_ERR_FAIL : VMM_OK;
 }
 
 void wboxtest_group_iterate(void (*iter)(struct wboxtest_group *group, void *data), void *data)
@@ -245,7 +245,7 @@ void wboxtest_group_iterate(void (*iter)(struct wboxtest_group *group, void *dat
     vmm_mutex_unlock(&wtc.lock);
 }
 
-VMM_EXPORT_SYMBOL(wboxtest_group_iterate);
+VMM_ERR_XPORT_SYMBOL(wboxtest_group_iterate);
 
 void wboxtest_iterate(void (*iter)(struct white_box_test *test, void *data), void *data)
 {
@@ -267,7 +267,7 @@ void wboxtest_iterate(void (*iter)(struct white_box_test *test, void *data), voi
     vmm_mutex_unlock(&wtc.lock);
 }
 
-VMM_EXPORT_SYMBOL(wboxtest_iterate);
+VMM_ERR_XPORT_SYMBOL(wboxtest_iterate);
 
 struct wboxtest_run_groups_args {
     vmm_char_device_t *cdev;
@@ -312,7 +312,7 @@ void wboxtest_run_groups(vmm_char_device_t *cdev, uint32_t iterations, int group
     }
 }
 
-VMM_EXPORT_SYMBOL(wboxtest_run_groups);
+VMM_ERR_XPORT_SYMBOL(wboxtest_run_groups);
 
 struct wboxtest_run_tests_args {
     vmm_char_device_t *cdev;
@@ -356,7 +356,7 @@ void wboxtest_run_tests(vmm_char_device_t *cdev, uint32_t iterations, int test_c
     }
 }
 
-VMM_EXPORT_SYMBOL(wboxtest_run_tests);
+VMM_ERR_XPORT_SYMBOL(wboxtest_run_tests);
 
 struct wboxtest_run_all_args {
     vmm_char_device_t *cdev;
@@ -381,7 +381,7 @@ void wboxtest_run_all(vmm_char_device_t *cdev, uint32_t iterations)
     wboxtest_iterate(wboxtest_run_all_iter, &args);
 }
 
-VMM_EXPORT_SYMBOL(wboxtest_run_all);
+VMM_ERR_XPORT_SYMBOL(wboxtest_run_all);
 
 int wboxtest_register(const char *group_name, struct white_box_test *test)
 {
@@ -394,7 +394,7 @@ int wboxtest_register(const char *group_name, struct white_box_test *test)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(wboxtest_register);
+VMM_ERR_XPORT_SYMBOL(wboxtest_register);
 
 void wboxtest_unregister(struct white_box_test *test)
 {
@@ -403,7 +403,7 @@ void wboxtest_unregister(struct white_box_test *test)
     vmm_mutex_unlock(&wtc.lock);
 }
 
-VMM_EXPORT_SYMBOL(wboxtest_unregister);
+VMM_ERR_XPORT_SYMBOL(wboxtest_unregister);
 
 static int __init wboxtest_init(void)
 {

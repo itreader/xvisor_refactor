@@ -44,7 +44,7 @@ struct clk *devm_clock_get(vmm_device_t *dev, const char *id)
     ptr = vmm_device_resource_alloc(devm_clock_release, sizeof(*ptr));
 
     if (!ptr) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     clk = clock_get(dev, id);
@@ -59,7 +59,7 @@ struct clk *devm_clock_get(vmm_device_t *dev, const char *id)
     return clk;
 }
 
-VMM_EXPORT_SYMBOL(devm_clock_get);
+VMM_ERR_XPORT_SYMBOL(devm_clock_get);
 
 struct clock_bulk_device_resource {
     struct clock_bulk_data *clks;
@@ -81,7 +81,7 @@ int devm_clock_bulk_get(vmm_device_t *dev, int num_clocks, struct clock_bulk_dat
     devres = vmm_device_resource_alloc(devm_clock_bulk_release, sizeof(*devres));
 
     if (!devres) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     ret = clock_bulk_get(dev, num_clocks, clks);
@@ -97,7 +97,7 @@ int devm_clock_bulk_get(vmm_device_t *dev, int num_clocks, struct clock_bulk_dat
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(devm_clock_bulk_get);
+VMM_ERR_XPORT_SYMBOL(devm_clock_bulk_get);
 
 static int devm_clock_match(vmm_device_t *dev, void *res, void *data)
 {
@@ -120,7 +120,7 @@ void devm_clock_put(vmm_device_t *dev, struct clk *clk)
     WARN_ON(ret);
 }
 
-VMM_EXPORT_SYMBOL(devm_clock_put);
+VMM_ERR_XPORT_SYMBOL(devm_clock_put);
 
 struct clk *devm_get_clock_from_child(vmm_device_t *dev, vmm_device_tree_node_t *np, const char *con_id)
 {
@@ -129,7 +129,7 @@ struct clk *devm_get_clock_from_child(vmm_device_t *dev, vmm_device_tree_node_t 
     ptr = vmm_device_resource_alloc(devm_clock_release, sizeof(*ptr));
 
     if (!ptr) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     clk = of_clock_get_by_name(np, con_id);
@@ -144,4 +144,4 @@ struct clk *devm_get_clock_from_child(vmm_device_t *dev, vmm_device_tree_node_t 
     return clk;
 }
 
-VMM_EXPORT_SYMBOL(devm_get_clock_from_child);
+VMM_ERR_XPORT_SYMBOL(devm_get_clock_from_child);

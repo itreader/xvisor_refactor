@@ -74,7 +74,7 @@ static int sram_probe(vmm_device_t *dev)
 
     if (NULL == virt_base) {
         vmm_printf("%s: Failed to get remap memory\n", dev->name);
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto err_out;
     }
 
@@ -82,7 +82,7 @@ static int sram_probe(vmm_device_t *dev)
 
     if (!sram) {
         vmm_printf("%s: Failed to allocate structure\n", dev->name);
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto err_out;
     }
 
@@ -98,7 +98,7 @@ static int sram_probe(vmm_device_t *dev)
 
     if (!sram->pool) {
         vmm_printf("%s: Failed to create memory pool\n", dev->name);
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
     }
 
     ret = gen_pool_add_virt(sram->pool, (uint64_t)virt_base, start, size);

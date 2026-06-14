@@ -18,7 +18,7 @@
  *
  * @file vmm_limits.h
  * @author Jean-Christophe Dubois (jcd@tribudubois.net)
- * @brief header file for common limits in xvisor.
+ * @brief Xvisor通用限制头文件
  */
 
 #ifndef __VMM_LIMITS_H__

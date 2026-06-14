@@ -152,7 +152,7 @@ struct mmu_get_guest_page_ops {
 /**
  * Get guest page table entry
  *
- * Returns VMM_OK on success, VMM_EFAULT on trap and VMM_Exxx on failure.
+ * Returns VMM_OK on success, VMM_ERR_FAULT on trap and VMM_ERR_xxx on failure.
  */
 int mmu_get_guest_page(
     physical_addr_t page_table_guest_ia, int stage, int level, const struct mmu_get_guest_page_ops *ops, void *opaque, physical_addr_t guest_ia,

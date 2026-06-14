@@ -149,7 +149,7 @@ static int cmd_net_switch_destroy(vmm_char_device_t *cdev, const char *switch_na
 
     if (!nsw) {
         vmm_cdev_printf(cdev, "Failed to find %s switch\n", switch_name);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     rc = vmm_netswitch_policy_destroy_switch(nsw);
@@ -229,7 +229,7 @@ static int cmd_net_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 fail:
     cmd_net_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_net = {

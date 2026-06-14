@@ -44,7 +44,7 @@ enum usb_device_state usb_get_device_state(struct usb_device *udev)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(usb_get_device_state);
+VMM_ERR_XPORT_SYMBOL(usb_get_device_state);
 
 static void recursively_mark_NOTATTACHED(struct usb_device *udev)
 {
@@ -95,7 +95,7 @@ void usb_set_device_state(struct usb_device *udev, enum usb_device_state new_sta
     vmm_spin_unlock_irq_restore(&device_state_lock, flags);
 }
 
-VMM_EXPORT_SYMBOL(usb_set_device_state);
+VMM_ERR_XPORT_SYMBOL(usb_set_device_state);
 
 static void usb_release_device(vmm_device_t *ddev)
 {
@@ -139,13 +139,13 @@ struct vmm_device_type usb_device_type = {
     .name    = "usb_device",
     .release = usb_release_device,
 };
-VMM_EXPORT_SYMBOL(usb_device_type);
+VMM_ERR_XPORT_SYMBOL(usb_device_type);
 
 struct vmm_device_type usb_interface_type = {
     .name    = "usb_interface",
     .release = usb_release_interface,
 };
-VMM_EXPORT_SYMBOL(usb_interface_type);
+VMM_ERR_XPORT_SYMBOL(usb_interface_type);
 
 struct usb_device *usb_alloc_device(struct usb_device *parent, struct usb_hcd *hcd, unsigned port)
 {
@@ -268,7 +268,7 @@ struct usb_device *usb_alloc_device(struct usb_device *parent, struct usb_hcd *h
     return dev;
 }
 
-VMM_EXPORT_SYMBOL(usb_alloc_device);
+VMM_ERR_XPORT_SYMBOL(usb_alloc_device);
 
 void usb_ref_device(struct usb_device *dev)
 {
@@ -277,7 +277,7 @@ void usb_ref_device(struct usb_device *dev)
     }
 }
 
-VMM_EXPORT_SYMBOL(usb_ref_device);
+VMM_ERR_XPORT_SYMBOL(usb_ref_device);
 
 void usb_dref_device(struct usb_device *dev)
 {
@@ -286,7 +286,7 @@ void usb_dref_device(struct usb_device *dev)
     }
 }
 
-VMM_EXPORT_SYMBOL(usb_dref_device);
+VMM_ERR_XPORT_SYMBOL(usb_dref_device);
 
 struct usb_device *usb_find_child(struct usb_device *hdev, int port1)
 {
@@ -304,14 +304,14 @@ struct usb_device *usb_find_child(struct usb_device *hdev, int port1)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(usb_find_child);
+VMM_ERR_XPORT_SYMBOL(usb_find_child);
 
 int usb_get_usb2_hub_address_port(struct usb_device *dev, uint8_t *hub_addr, uint8_t *hub_port)
 {
     uint8_t haddr = 0, hport = 0;
 
     if (!dev || !hub_addr || !hub_port) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     while (dev->parent != NULL) {
@@ -335,4 +335,4 @@ int usb_get_usb2_hub_address_port(struct usb_device *dev, uint8_t *hub_addr, uin
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(usb_get_parent_address_port);
+VMM_ERR_XPORT_SYMBOL(usb_get_parent_address_port);

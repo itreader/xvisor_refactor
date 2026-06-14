@@ -18,7 +18,7 @@
  *
  * @file vmm_device_emulate.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief source code for device emulation framework
+ * @brief 设备模拟框架实现
  */
 
 #include <libs/stringlib.h>
@@ -32,34 +32,52 @@
 #include <vmm_mutex.h>
 #include <vmm_stdio.h>
 
+/**
+ * @brief 设备模拟客户中断结构，管理虚拟设备触发的中断
+ */
 struct vmm_device_emulate_guest_irq {
-    double_list_t                        head;
-    struct vmm_device_emulation_irqchip *chip;
-    void                                *opaque;
+    double_list_t                        head; /**< 链表头 */
+    struct vmm_device_emulation_irqchip *chip; /**< 芯片 */
+    void                                *opaque; /**< 不透明数据 */
 };
 
+/**
+ * @brief 设备模拟客户上下文，保存VCPU和设备仿真的绑定关系
+ */
 struct vmm_device_emulate_guest_context {
-    uint32_t       g_irq_count;
-    double_list_t *g_irq;
+    uint32_t       g_irq_count; /**< 全局中断计数 */
+    double_list_t *g_irq; /**< 全局中断数组 */
 };
 
+/**
+ * @brief 设备模拟控制结构，管理虚拟设备的仿真状态
+ */
 struct vmm_device_emulate_ctrl {
-    enum vmm_device_emulate_endianness host_endian;
-    vmm_mutex_t                        emu_lock;
-    double_list_t                      emu_list;
+    enum vmm_device_emulate_endianness host_endian; /**< 主机字节序 */
+    vmm_mutex_t                        emu_lock; /**< 仿真锁 */
+    double_list_t                      emu_list; /**< 仿真设备链表 */
 };
 
 static struct vmm_device_emulate_ctrl dectrl;
 
+/**
+ * @brief 获取 客户机 名称
+ * @param edev 模拟设备实例指针
+ * @return 目标对象指针，不存在返回NULL
+ */
 static inline const char *get_guest_name(const vmm_emulate_device_t *edev)
 {
-    return edev->reg->aspace->guest->name;
+    return edev->reg->addr_space->guest->name;
 }
 
 /*
  * Debug interface
  */
 
+/**
+ * @brief 调试 探测
+ * @param edev 模拟设备实例指针
+ */
 static inline void debug_probe(const vmm_emulate_device_t *edev)
 {
     if (vmm_device_emulate_debug_probe(edev)) {
@@ -67,6 +85,10 @@ static inline void debug_probe(const vmm_emulate_device_t *edev)
     }
 }
 
+/**
+ * @brief 调试 复位
+ * @param edev 模拟设备实例指针
+ */
 static inline void debug_reset(const vmm_emulate_device_t *edev)
 {
     if (vmm_device_emulate_debug_reset(edev)) {
@@ -74,6 +96,10 @@ static inline void debug_reset(const vmm_emulate_device_t *edev)
     }
 }
 
+/**
+ * @brief 调试 同步
+ * @param edev 模拟设备实例指针
+ */
 static inline void debug_sync(const vmm_emulate_device_t *edev)
 {
     if (vmm_device_emulate_debug_sync(edev)) {
@@ -81,6 +107,10 @@ static inline void debug_sync(const vmm_emulate_device_t *edev)
     }
 }
 
+/**
+ * @brief 调试 移除
+ * @param edev 模拟设备实例指针
+ */
 static inline void debug_remove(const vmm_emulate_device_t *edev)
 {
     if (vmm_device_emulate_debug_remove(edev)) {
@@ -88,6 +118,13 @@ static inline void debug_remove(const vmm_emulate_device_t *edev)
     }
 }
 
+/**
+ * @brief 调试 读
+ * @param edev 模拟设备实例指针
+ * @param offset 偏移量（字节）
+ * @param bytes 字节数
+ * @param val 待写入的值
+ */
 static inline void debug_read(const vmm_emulate_device_t *edev, physical_addr_t offset, int bytes, uint64_t val)
 {
     if (vmm_device_emulate_debug_read(edev)) {
@@ -99,6 +136,13 @@ static inline void debug_read(const vmm_emulate_device_t *edev, physical_addr_t 
     }
 }
 
+/**
+ * @brief 调试 写
+ * @param edev 模拟设备实例指针
+ * @param offset 偏移量（字节）
+ * @param bytes 字节数
+ * @param val 待写入的值
+ */
 static inline void debug_write(const vmm_emulate_device_t *edev, physical_addr_t offset, int bytes, uint64_t val)
 {
     if (vmm_device_emulate_debug_write(edev)) {
@@ -110,6 +154,10 @@ static inline void debug_write(const vmm_emulate_device_t *edev, physical_addr_t
     }
 }
 
+/**
+ * @brief 执行设备模拟读操作
+ * @return 成功写入的字节数，失败返回错误码
+ */
 static int devemu_doread(
     vmm_emulate_device_t *edev, physical_addr_t offset, void *dst, uint32_t dst_len, enum vmm_device_emulate_endianness dst_endian)
 {
@@ -120,7 +168,7 @@ static int devemu_doread(
     enum vmm_device_emulate_endianness data_endian;
 
     if (!edev || (dst_endian <= VMM_DEVICE_EMULATE_UNKNOWN_ENDIAN) || (VMM_DEVICE_EMULATE_MAX_ENDIAN <= dst_endian)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     switch (dst_len) {
@@ -130,7 +178,7 @@ static int devemu_doread(
                 debug_read(edev, offset, sizeof(uint8_t), *((uint8_t *)dst));
             } else {
                 vmm_printf("%s: edev=%s does not have read8()\n", __func__, edev->node->name);
-                rc = VMM_ENOTAVAIL;
+                rc = VMM_ERR_NOTAVAIL;
             }
 
             break;
@@ -141,7 +189,7 @@ static int devemu_doread(
                 debug_read(edev, offset, sizeof(uint16_t), data16);
             } else {
                 vmm_printf("%s: edev=%s does not have read16()\n", __func__, edev->node->name);
-                rc = VMM_ENOTAVAIL;
+                rc = VMM_ERR_NOTAVAIL;
             }
 
             if (!rc) {
@@ -187,7 +235,7 @@ static int devemu_doread(
                 debug_read(edev, offset, sizeof(uint32_t), data32);
             } else {
                 vmm_printf("%s: edev=%s does not have read32()\n", __func__, edev->node->name);
-                rc = VMM_ENOTAVAIL;
+                rc = VMM_ERR_NOTAVAIL;
             }
 
             if (!rc) {
@@ -233,7 +281,7 @@ static int devemu_doread(
                 debug_read(edev, offset, sizeof(uint64_t), data64);
             } else {
                 vmm_printf("%s: edev=%s does not have read64()\n", __func__, edev->node->name);
-                rc = VMM_ENOTAVAIL;
+                rc = VMM_ERR_NOTAVAIL;
             }
 
             if (!rc) {
@@ -275,7 +323,7 @@ static int devemu_doread(
 
         default:
             vmm_printf("%s: edev=%s invalid len=%d\n", __func__, edev->node->name, dst_len);
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -289,6 +337,10 @@ static int devemu_doread(
     return rc;
 }
 
+/**
+ * @brief 执行设备模拟写操作
+ * @return 成功读取的字节数，失败返回错误码
+ */
 static int devemu_dowrite(
     vmm_emulate_device_t *edev, physical_addr_t offset, void *src, uint32_t src_len, enum vmm_device_emulate_endianness src_endian)
 {
@@ -298,7 +350,7 @@ static int devemu_dowrite(
     uint64_t data64;
 
     if (!edev || (src_endian <= VMM_DEVICE_EMULATE_UNKNOWN_ENDIAN) || (VMM_DEVICE_EMULATE_MAX_ENDIAN <= src_endian)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     switch (src_len) {
@@ -308,7 +360,7 @@ static int devemu_dowrite(
                 debug_write(edev, offset, sizeof(uint8_t), *((uint8_t *)src));
             } else {
                 vmm_printf("%s: edev=%s does not have write8()\n", __func__, edev->node->name);
-                rc = VMM_ENOTAVAIL;
+                rc = VMM_ERR_NOTAVAIL;
             }
 
             break;
@@ -347,7 +399,7 @@ static int devemu_dowrite(
                 debug_write(edev, offset, sizeof(uint16_t), data16);
             } else {
                 vmm_printf("%s: edev=%s does not have write16()\n", __func__, edev->node->name);
-                rc = VMM_ENOTAVAIL;
+                rc = VMM_ERR_NOTAVAIL;
             }
 
             break;
@@ -386,7 +438,7 @@ static int devemu_dowrite(
                 debug_write(edev, offset, sizeof(uint32_t), data32);
             } else {
                 vmm_printf("%s: edev=%s does not have write32()\n", __func__, edev->node->name);
-                rc = VMM_ENOTAVAIL;
+                rc = VMM_ERR_NOTAVAIL;
             }
 
             break;
@@ -425,14 +477,14 @@ static int devemu_dowrite(
                 debug_write(edev, offset, sizeof(uint64_t), data64);
             } else {
                 vmm_printf("%s: edev=%s does not have write64()\n", __func__, edev->node->name);
-                rc = VMM_ENOTAVAIL;
+                rc = VMM_ERR_NOTAVAIL;
             }
 
             break;
 
         default:
             vmm_printf("%s: edev=%s invalid len=%d\n", __func__, edev->node->name, src_len);
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -446,6 +498,10 @@ static int devemu_dowrite(
     return rc;
 }
 
+/**
+ * @brief 设备模拟读操作
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_emulate_read(
     vmm_vcpu_t *vcpu, physical_addr_t guest_physical_addr, void *dst, uint32_t dst_len, enum vmm_device_emulate_endianness dst_endian)
 {
@@ -453,13 +509,13 @@ int vmm_device_emulate_emulate_read(
     struct vmm_region *reg;
 
     if (!vcpu || !vcpu->guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     reg = vmm_guest_find_region(vcpu->guest, guest_physical_addr, VMM_REGION_VIRTUAL | VMM_REGION_MEMORY, FALSE);
 
     if (!reg) {
-        rc = VMM_ENOTAVAIL;
+        rc = VMM_ERR_NOTAVAIL;
         goto skip;
     }
 
@@ -477,6 +533,10 @@ skip:
     return rc;
 }
 
+/**
+ * @brief 设备模拟写操作
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_emulate_write(
     vmm_vcpu_t *vcpu, physical_addr_t guest_physical_addr, void *src, uint32_t src_len, enum vmm_device_emulate_endianness src_endian)
 {
@@ -484,13 +544,13 @@ int vmm_device_emulate_emulate_write(
     struct vmm_region *reg;
 
     if (!vcpu || !vcpu->guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     reg = vmm_guest_find_region(vcpu->guest, guest_physical_addr, VMM_REGION_VIRTUAL | VMM_REGION_MEMORY, FALSE);
 
     if (!reg) {
-        rc = VMM_ENOTAVAIL;
+        rc = VMM_ERR_NOTAVAIL;
         goto skip;
     }
 
@@ -508,6 +568,10 @@ skip:
     return rc;
 }
 
+/**
+ * @brief 设备模拟IO读操作
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_emulate_ioread(
     vmm_vcpu_t *vcpu, physical_addr_t guest_physical_addr, void *dst, uint32_t dst_len, enum vmm_device_emulate_endianness dst_endian)
 {
@@ -515,13 +579,13 @@ int vmm_device_emulate_emulate_ioread(
     struct vmm_region *reg;
 
     if (!vcpu || !vcpu->guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     reg = vmm_guest_find_region(vcpu->guest, guest_physical_addr, VMM_REGION_VIRTUAL | VMM_REGION_IO, FALSE);
 
     if (!reg) {
-        rc = VMM_ENOTAVAIL;
+        rc = VMM_ERR_NOTAVAIL;
         goto skip;
     }
 
@@ -539,6 +603,10 @@ skip:
     return rc;
 }
 
+/**
+ * @brief 设备模拟IO写操作
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_emulate_iowrite(
     vmm_vcpu_t *vcpu, physical_addr_t guest_physical_addr, void *src, uint32_t src_len, enum vmm_device_emulate_endianness src_endian)
 {
@@ -546,13 +614,13 @@ int vmm_device_emulate_emulate_iowrite(
     struct vmm_region *reg;
 
     if (!vcpu || !vcpu->guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     reg = vmm_guest_find_region(vcpu->guest, guest_physical_addr, VMM_REGION_VIRTUAL | VMM_REGION_IO, FALSE);
 
     if (!reg) {
-        rc = VMM_ENOTAVAIL;
+        rc = VMM_ERR_NOTAVAIL;
         goto skip;
     }
 
@@ -570,19 +638,27 @@ skip:
     return rc;
 }
 
+/**
+ * @brief 设备模拟中断注入
+ * @param guest 指向客户机结构体的指针
+ * @param irq 中断号
+ * @param cpu CPU编号
+ * @param level 中断触发级别
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __vmm_device_emulate_emulate_irq(struct vmm_guest *guest, uint32_t irq, int cpu, int level)
 {
     struct vmm_device_emulate_guest_irq     *gi;
     struct vmm_device_emulate_guest_context *eg;
 
     if (!guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
-    eg = (struct vmm_device_emulate_guest_context *)guest->aspace.device_emulate_private;
+    eg = (struct vmm_device_emulate_guest_context *)guest->addr_space.device_emulate_private;
 
     if (eg->g_irq_count <= irq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     list_for_each_entry(gi, &eg->g_irq[irq], head)
@@ -597,19 +673,28 @@ int __vmm_device_emulate_emulate_irq(struct vmm_guest *guest, uint32_t irq, int 
     return VMM_OK;
 }
 
+/**
+ * @brief 设备模拟中断注入（变体2）
+ * @param guest 指向客户机结构体的指针
+ * @param irq 中断号
+ * @param cpu CPU编号
+ * @param level0 第一级索引
+ * @param level1 第二级索引
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __vmm_device_emulate_emulate_irq2(struct vmm_guest *guest, uint32_t irq, int cpu, int level0, int level1)
 {
     struct vmm_device_emulate_guest_irq     *gi;
     struct vmm_device_emulate_guest_context *eg;
 
     if (!guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
-    eg = (struct vmm_device_emulate_guest_context *)guest->aspace.device_emulate_private;
+    eg = (struct vmm_device_emulate_guest_context *)guest->addr_space.device_emulate_private;
 
     if (eg->g_irq_count <= irq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     list_for_each_entry(gi, &eg->g_irq[irq], head)
@@ -625,19 +710,26 @@ int __vmm_device_emulate_emulate_irq2(struct vmm_guest *guest, uint32_t irq, int
     return VMM_OK;
 }
 
+/**
+ * @brief 将主机中断映射为客户机虚拟中断
+ * @param guest 指向客户机结构体的指针
+ * @param irq 中断号
+ * @param host_irq 中断号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_map_host2guest_irq(struct vmm_guest *guest, uint32_t irq, uint32_t host_irq)
 {
     struct vmm_device_emulate_guest_irq     *gi;
     struct vmm_device_emulate_guest_context *eg;
 
     if (!guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
-    eg = (struct vmm_device_emulate_guest_context *)guest->aspace.device_emulate_private;
+    eg = (struct vmm_device_emulate_guest_context *)guest->addr_space.device_emulate_private;
 
     if (eg->g_irq_count <= irq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     list_for_each_entry(gi, &eg->g_irq[irq], head)
@@ -652,19 +744,25 @@ int vmm_device_emulate_map_host2guest_irq(struct vmm_guest *guest, uint32_t irq,
     return VMM_OK;
 }
 
+/**
+ * @brief 设备模拟取消主机到客户机的中断映射
+ * @param guest 指向客户机结构体的指针
+ * @param irq 中断号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_unmap_host2guest_irq(struct vmm_guest *guest, uint32_t irq)
 {
     struct vmm_device_emulate_guest_irq     *gi;
     struct vmm_device_emulate_guest_context *eg;
 
     if (!guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
-    eg = (struct vmm_device_emulate_guest_context *)guest->aspace.device_emulate_private;
+    eg = (struct vmm_device_emulate_guest_context *)guest->addr_space.device_emulate_private;
 
     if (eg->g_irq_count <= irq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     list_for_each_entry(gi, &eg->g_irq[irq], head)
@@ -679,19 +777,26 @@ int vmm_device_emulate_unmap_host2guest_irq(struct vmm_guest *guest, uint32_t ir
     return VMM_OK;
 }
 
+/**
+ * @brief 通知模拟设备某个虚拟中断已启用
+ * @param guest 指向客户机结构体的指针
+ * @param irq 中断号
+ * @param cpu CPU编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_notify_irq_enabled(struct vmm_guest *guest, uint32_t irq, int cpu)
 {
     struct vmm_device_emulate_guest_irq     *gi;
     struct vmm_device_emulate_guest_context *eg;
 
     if (!guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
-    eg = (struct vmm_device_emulate_guest_context *)guest->aspace.device_emulate_private;
+    eg = (struct vmm_device_emulate_guest_context *)guest->addr_space.device_emulate_private;
 
     if (eg->g_irq_count <= irq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     list_for_each_entry(gi, &eg->g_irq[irq], head)
@@ -706,19 +811,26 @@ int vmm_device_emulate_notify_irq_enabled(struct vmm_guest *guest, uint32_t irq,
     return VMM_OK;
 }
 
+/**
+ * @brief 通知模拟设备某个虚拟中断已禁用
+ * @param guest 指向客户机结构体的指针
+ * @param irq 中断号
+ * @param cpu CPU编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_notify_irq_disabled(struct vmm_guest *guest, uint32_t irq, int cpu)
 {
     struct vmm_device_emulate_guest_irq     *gi;
     struct vmm_device_emulate_guest_context *eg;
 
     if (!guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
-    eg = (struct vmm_device_emulate_guest_context *)guest->aspace.device_emulate_private;
+    eg = (struct vmm_device_emulate_guest_context *)guest->addr_space.device_emulate_private;
 
     if (eg->g_irq_count <= irq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     list_for_each_entry(gi, &eg->g_irq[irq], head)
@@ -733,6 +845,14 @@ int vmm_device_emulate_notify_irq_disabled(struct vmm_guest *guest, uint32_t irq
     return VMM_OK;
 }
 
+/**
+ * @brief 注册设备模拟的中断控制器
+ * @param guest 指向客户机结构体的指针
+ * @param irq 中断号
+ * @param chip 芯片结构体指针
+ * @param opaque 不透明数据指针（用户自定义上下文）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_register_irqchip(struct vmm_guest *guest, uint32_t irq, struct vmm_device_emulation_irqchip *chip, void *opaque)
 {
     bool                                     found;
@@ -741,14 +861,14 @@ int vmm_device_emulate_register_irqchip(struct vmm_guest *guest, uint32_t irq, s
 
     /* Sanity checks */
     if (!guest || !chip) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
-    eg = (struct vmm_device_emulate_guest_context *)guest->aspace.device_emulate_private;
+    eg = (struct vmm_device_emulate_guest_context *)guest->addr_space.device_emulate_private;
 
     /* Sanity checks */
     if (eg->g_irq_count <= irq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Check if irqchip is not already registered */
@@ -763,14 +883,14 @@ int vmm_device_emulate_register_irqchip(struct vmm_guest *guest, uint32_t irq, s
     }
 
     if (found) {
-        return VMM_EEXIST;
+        return VMM_ERR_EXIST;
     }
 
     /* Alloc guest irq */
     gi = vmm_zalloc(sizeof(struct vmm_device_emulate_guest_irq));
 
     if (!gi) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Initialize guest irq */
@@ -784,6 +904,14 @@ int vmm_device_emulate_register_irqchip(struct vmm_guest *guest, uint32_t irq, s
     return VMM_OK;
 }
 
+/**
+ * @brief 注销设备模拟的中断控制器
+ * @param guest 指向客户机结构体的指针
+ * @param irq 中断号
+ * @param chip 芯片结构体指针
+ * @param opaque 不透明数据指针（用户自定义上下文）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_unregister_irqchip(struct vmm_guest *guest, uint32_t irq, struct vmm_device_emulation_irqchip *chip, void *opaque)
 {
     bool                                     found;
@@ -792,14 +920,14 @@ int vmm_device_emulate_unregister_irqchip(struct vmm_guest *guest, uint32_t irq,
 
     /* Sanity checks */
     if (!guest || !chip) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
-    eg = (struct vmm_device_emulate_guest_context *)guest->aspace.device_emulate_private;
+    eg = (struct vmm_device_emulate_guest_context *)guest->addr_space.device_emulate_private;
 
     /* Sanity checks */
     if (eg->g_irq_count <= irq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Check if irqchip is not already unregistered */
@@ -814,7 +942,7 @@ int vmm_device_emulate_unregister_irqchip(struct vmm_guest *guest, uint32_t irq,
     }
 
     if (!found) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     /* Remove from list and free guest irq */
@@ -824,19 +952,29 @@ int vmm_device_emulate_unregister_irqchip(struct vmm_guest *guest, uint32_t irq,
     return VMM_OK;
 }
 
+/**
+ * @brief 获取模拟设备支持的中断的数量
+ * @param guest 指向客户机结构体的指针
+ * @return 数量值
+ */
 uint32_t vmm_device_emulate_count_irqs(struct vmm_guest *guest)
 {
     struct vmm_device_emulate_guest_context *eg;
 
     if (!guest) {
-        return 0;
+        return 0; /**< 0 */
     }
 
-    eg = (struct vmm_device_emulate_guest_context *)guest->aspace.device_emulate_private;
+    eg = (struct vmm_device_emulate_guest_context *)guest->addr_space.device_emulate_private;
 
     return (eg) ? eg->g_irq_count : 0;
 }
 
+/**
+ * @brief 注册设备模拟器
+ * @param emu 模拟设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_register_emulator(vmm_emulator_t *emu)
 {
     bool            found;
@@ -844,7 +982,7 @@ int vmm_device_emulate_register_emulator(vmm_emulator_t *emu)
 
     if (!emu || !emu->probe || !emu->remove || !emu->reset || (emu->endian == VMM_DEVICE_EMULATE_UNKNOWN_ENDIAN) ||
         (VMM_DEVICE_EMULATE_MAX_ENDIAN <= emu->endian)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_mutex_lock(&dectrl.emu_lock);
@@ -861,7 +999,7 @@ int vmm_device_emulate_register_emulator(vmm_emulator_t *emu)
 
     if (found) {
         vmm_mutex_unlock(&dectrl.emu_lock);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     INIT_LIST_HEAD(&emu->head);
@@ -873,6 +1011,13 @@ int vmm_device_emulate_register_emulator(vmm_emulator_t *emu)
     return VMM_OK;
 }
 
+/**
+ * @brief 设备简单8位读模拟
+ * @param edev 模拟设备实例指针
+ * @param offset 偏移量（字节）
+ * @param dst 目标缓冲区指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_simple_read8(vmm_emulate_device_t *edev, physical_addr_t offset, uint8_t *dst)
 {
     int      rc;
@@ -887,6 +1032,13 @@ int vmm_device_emulate_simple_read8(vmm_emulate_device_t *edev, physical_addr_t 
     return rc;
 }
 
+/**
+ * @brief 设备简单16位读模拟
+ * @param edev 模拟设备实例指针
+ * @param offset 偏移量（字节）
+ * @param dst 目标缓冲区指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_simple_read16(vmm_emulate_device_t *edev, physical_addr_t offset, uint16_t *dst)
 {
     int      rc;
@@ -901,26 +1053,59 @@ int vmm_device_emulate_simple_read16(vmm_emulate_device_t *edev, physical_addr_t
     return rc;
 }
 
+/**
+ * @brief 设备简单32位读模拟
+ * @param edev 模拟设备实例指针
+ * @param offset 偏移量（字节）
+ * @param dst 目标缓冲区指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_simple_read32(vmm_emulate_device_t *edev, physical_addr_t offset, uint32_t *dst)
 {
     return edev->emu->read_simple(edev, offset, dst, sizeof(uint32_t));
 }
 
+/**
+ * @brief 设备简单8位写模拟
+ * @param edev 模拟设备实例指针
+ * @param offset 偏移量（字节）
+ * @param src 源设备树节点
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_simple_write8(vmm_emulate_device_t *edev, physical_addr_t offset, uint8_t src)
 {
     return edev->emu->write_simple(edev, offset, 0xFFFFFF00, src, sizeof(uint8_t));
 }
 
+/**
+ * @brief 设备简单16位写模拟
+ * @param edev 模拟设备实例指针
+ * @param offset 偏移量（字节）
+ * @param src 源设备树节点
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_simple_write16(vmm_emulate_device_t *edev, physical_addr_t offset, uint16_t src)
 {
     return edev->emu->write_simple(edev, offset, 0xFFFF0000, src, sizeof(uint16_t));
 }
 
+/**
+ * @brief 设备简单32位写模拟
+ * @param edev 模拟设备实例指针
+ * @param offset 偏移量（字节）
+ * @param src 源设备树节点
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_simple_write32(vmm_emulate_device_t *edev, physical_addr_t offset, uint32_t src)
 {
     return edev->emu->write_simple(edev, offset, 0x00000000, src, sizeof(uint32_t));
 }
 
+/**
+ * @brief 注销设备模拟器
+ * @param emu 模拟设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_unregister_emulator(vmm_emulator_t *emu)
 {
     bool            found;
@@ -930,7 +1115,7 @@ int vmm_device_emulate_unregister_emulator(vmm_emulator_t *emu)
 
     if (emu == NULL || list_empty(&dectrl.emu_list)) {
         vmm_mutex_unlock(&dectrl.emu_lock);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     e     = NULL;
@@ -945,7 +1130,7 @@ int vmm_device_emulate_unregister_emulator(vmm_emulator_t *emu)
 
     if (!found) {
         vmm_mutex_unlock(&dectrl.emu_lock);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     list_del(&e->head);
@@ -955,6 +1140,11 @@ int vmm_device_emulate_unregister_emulator(vmm_emulator_t *emu)
     return VMM_OK;
 }
 
+/**
+ * @brief 查找设备模拟器
+ * @param name 目标对象的名称
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_emulator_t *vmm_device_emulate_find_emulator(const char *name)
 {
     bool            found;
@@ -986,6 +1176,11 @@ vmm_emulator_t *vmm_device_emulate_find_emulator(const char *name)
     return emu;
 }
 
+/**
+ * @brief 设备模拟器操作
+ * @param index 数组中的索引位置
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_emulator_t *vmm_device_emulate_emulator(int index)
 {
     bool            found;
@@ -1019,6 +1214,10 @@ vmm_emulator_t *vmm_device_emulate_emulator(int index)
     return emu;
 }
 
+/**
+ * @brief 获取设备模拟器的数量
+ * @return 数量值
+ */
 uint32_t vmm_device_emulate_emulator_count(void)
 {
     uint32_t        retval;
@@ -1038,6 +1237,14 @@ uint32_t vmm_device_emulate_emulator_count(void)
     return retval;
 }
 
+/**
+ * @brief 设备模拟同步
+ * @param guest 指向客户机结构体的指针
+ * @param edev 模拟设备实例指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @return 数量值
+ */
 static int devemu_sync(struct vmm_guest *guest, vmm_emulate_device_t *edev, uint64_t val, void *v)
 {
     debug_sync(edev);
@@ -1049,14 +1256,23 @@ static int devemu_sync(struct vmm_guest *guest, vmm_emulate_device_t *edev, uint
     return VMM_OK;
 }
 
+/**
+ * @brief 同步设备模拟的子节点
+ * @param guest 指向客户机结构体的指针
+ * @param edev 模拟设备实例指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_sync_children(struct vmm_guest *guest, vmm_emulate_device_t *edev, uint64_t val, void *v)
 {
     int                   rc;
     irq_flags_t           f;
-    vmm_emulate_device_t *e, *en;
+    vmm_emulate_device_t *e = NULL;
+    vmm_emulate_device_t *en = NULL;
 
     if (!guest || !edev) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_read_lock_irq_save_lite(&edev->child_list_lock, f);
@@ -1078,23 +1294,36 @@ int vmm_device_emulate_sync_children(struct vmm_guest *guest, vmm_emulate_device
     return VMM_OK;
 }
 
+/**
+ * @brief 同步设备模拟的父节点
+ * @param guest 指向客户机结构体的指针
+ * @param edev 模拟设备实例指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_sync_parent(struct vmm_guest *guest, vmm_emulate_device_t *edev, uint64_t val, void *v)
 {
     if (!guest || !edev) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!edev->parent) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return devemu_sync(guest, edev->parent, val, v);
 }
 
+/**
+ * @brief 复位设备模拟上下文
+ * @param guest 指向客户机结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_reset_context(struct vmm_guest *guest)
 {
     if (!guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* For now nothing to do here. */
@@ -1102,11 +1331,18 @@ int vmm_device_emulate_reset_context(struct vmm_guest *guest)
     return VMM_OK;
 }
 
+/**
+ * @brief 复位指定的模拟设备实例
+ * @param guest 指向客户机结构体的指针
+ * @param edev 模拟设备实例指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int devemu_reset_edev(struct vmm_guest *guest, vmm_emulate_device_t *edev)
 {
     irq_flags_t           f;
     int                   rc = VMM_OK;
-    vmm_emulate_device_t *e, *en;
+    vmm_emulate_device_t *e = NULL;
+    vmm_emulate_device_t *en = NULL;
 
     debug_reset(edev);
 
@@ -1139,16 +1375,22 @@ static int devemu_reset_edev(struct vmm_guest *guest, vmm_emulate_device_t *edev
     return VMM_OK;
 }
 
+/**
+ * @brief 复位指定内存区域内的所有模拟设备
+ * @param guest 指向客户机结构体的指针
+ * @param reg 寄存器值或索引
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_reset_region(struct vmm_guest *guest, struct vmm_region *reg)
 {
     vmm_emulate_device_t *edev;
 
     if (!reg || !reg->device_emulate_private) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!(reg->flags & VMM_REGION_IS_DEVICE) || (reg->flags & VMM_REGION_ALIAS)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     edev = (vmm_emulate_device_t *)reg->device_emulate_private;
@@ -1156,6 +1398,12 @@ int vmm_device_emulate_reset_region(struct vmm_guest *guest, struct vmm_region *
     return devemu_reset_edev(guest, edev);
 }
 
+/**
+ * @brief 移除指定的模拟设备实例
+ * @param guest 指向客户机结构体的指针
+ * @param edev 模拟设备实例指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int devemu_remove_edev(struct vmm_guest *guest, vmm_emulate_device_t *edev)
 {
     int                   rc;
@@ -1210,17 +1458,23 @@ static int devemu_remove_edev(struct vmm_guest *guest, vmm_emulate_device_t *ede
     return VMM_OK;
 }
 
+/**
+ * @brief 移除指定内存区域内的所有模拟设备
+ * @param guest 指向客户机结构体的指针
+ * @param reg 寄存器值或索引
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_remove_region(struct vmm_guest *guest, struct vmm_region *reg)
 {
     int                   rc;
     vmm_emulate_device_t *edev;
 
     if (!reg) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!(reg->flags & VMM_REGION_IS_DEVICE) || (reg->flags & VMM_REGION_ALIAS)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (reg->device_emulate_private) {
@@ -1236,6 +1490,11 @@ int vmm_device_emulate_remove_region(struct vmm_guest *guest, struct vmm_region 
     return VMM_OK;
 }
 
+/**
+ * @brief 设置设备模拟调试信息
+ * @param edev 模拟设备实例指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int set_debug_info(vmm_emulate_device_t *edev)
 {
     int rc = VMM_OK;
@@ -1259,83 +1518,87 @@ static int set_debug_info(vmm_emulate_device_t *edev)
     return rc;
 }
 
+/**
+ * @brief 探测并初始化指定的模拟设备实例
+ * @return 成功返回目标指针，失败返回NULL
+ */
 static vmm_emulate_device_t *devemu_probe_edev(
     struct vmm_guest *guest, vmm_device_tree_node_t *node, struct vmm_region *reg, vmm_emulate_device_t *parent)
 {
-    int                                  rc;
-    bool                                 found;
-    irq_flags_t                          f;
-    vmm_emulator_t                      *emu;
-    vmm_device_tree_node_t              *child;
-    vmm_emulate_device_t                *edev = NULL, *edevc;
-    const struct vmm_device_tree_nodeid *match;
+    int                                  rc; /**< rc */
+    bool                                 found; /**< found成员 */
+    irq_flags_t                          f; /**< f */
+    vmm_emulator_t                      *emu; /**< emu成员 */
+    vmm_device_tree_node_t              *child; /**< 子节点 */
+    vmm_emulate_device_t                *edev = NULL, *edevc; /**< edevc成员 */
+    const struct vmm_device_tree_nodeid *match; /**< match成员 */
 
     vmm_mutex_lock(&dectrl.emu_lock);
 
-    found = FALSE;
+    found = FALSE; /**< FALSE成员 */
     list_for_each_entry(emu, &dectrl.emu_list, head)
     {
-        match = vmm_device_tree_match_node(emu->match_table, node);
+        match = vmm_device_tree_match_node(emu->match_table, node); /**< node)成员 */
 
         if (!match) {
             continue;
         }
 
-        found = TRUE;
+        found = TRUE; /**< TRUE成员 */
 
-        edev  = vmm_zalloc(sizeof(vmm_emulate_device_t));
+        edev  = vmm_zalloc(sizeof(vmm_emulate_device_t)); /**< vmm_zalloc(sizeof(vmm_emulate_device_t))成员 */
 
         if (!edev) {
             vmm_mutex_unlock(&dectrl.emu_lock);
-            return VMM_ERR_PTR(VMM_ENOMEM);
+            return VMM_ERR_RR_PTR(VMM_ERR_NOMEM); /**< VMM_ERR_RR_PTR(VMM_ERR_NOMEM)成员 */
         }
 
         INIT_SPIN_LOCK(&edev->lock);
         vmm_device_tree_ref_node(node);
-        edev->node   = node;
-        edev->reg    = reg;
-        edev->emu    = emu;
-        edev->parent = parent;
+        edev->node   = node; /**< 节点 */
+        edev->reg    = reg; /**< 寄存器 */
+        edev->emu    = emu; /**< emu成员 */
+        edev->parent = parent; /**< 父节点 */
         INIT_LIST_HEAD(&edev->head);
         INIT_RW_LOCK(&edev->child_list_lock);
         INIT_LIST_HEAD(&edev->child_list);
-        edev->private = NULL;
+        edev->private = NULL; /**< NULL成员 */
         set_debug_info(edev);
 
         debug_probe(edev);
 
         if ((rc = emu->probe(guest, edev, match))) {
             if (parent) {
-                vmm_printf("%s: %s/%s/%s probe error %d\n", __func__, guest->name, parent->node->name, edev->node->name, rc);
+                vmm_printf("%s: %s/%s/%s probe error %d\n", __func__, guest->name, parent->node->name, edev->node->name, rc); /**< rc)成员 */
             } else {
-                vmm_printf("%s: %s/%s probe error %d\n", __func__, guest->name, edev->node->name, rc);
+                vmm_printf("%s: %s/%s probe error %d\n", __func__, guest->name, edev->node->name, rc); /**< rc)成员 */
             }
 
             vmm_mutex_unlock(&dectrl.emu_lock);
             vmm_device_tree_dref_node(edev->node);
-            edev->node = NULL;
+            edev->node = NULL; /**< NULL成员 */
             vmm_free(edev);
-            return VMM_ERR_PTR(rc);
+            return VMM_ERR_RR_PTR(rc); /**< VMM_ERR_RR_PTR(rc)成员 */
         }
 
         debug_reset(edev);
 
         if ((rc = emu->reset(edev))) {
             if (parent) {
-                vmm_printf("%s: %s/%s/%s reset error %d\n", __func__, guest->name, parent->node->name, edev->node->name, rc);
+                vmm_printf("%s: %s/%s/%s reset error %d\n", __func__, guest->name, parent->node->name, edev->node->name, rc); /**< rc)成员 */
             } else {
-                vmm_printf("%s: %s/%s reset error %d\n", __func__, guest->name, edev->node->name, rc);
+                vmm_printf("%s: %s/%s reset error %d\n", __func__, guest->name, edev->node->name, rc); /**< rc)成员 */
             }
 
             vmm_mutex_unlock(&dectrl.emu_lock);
             vmm_device_tree_dref_node(edev->node);
-            edev->node = NULL;
+            edev->node = NULL; /**< NULL成员 */
             vmm_free(edev);
-            return VMM_ERR_PTR(rc);
+            return VMM_ERR_RR_PTR(rc); /**< VMM_ERR_RR_PTR(rc)成员 */
         }
 
         if (reg) {
-            reg->device_emulate_private = edev;
+            reg->device_emulate_private = edev; /**< edev成员 */
         }
     }
 
@@ -1343,47 +1606,53 @@ static vmm_emulate_device_t *devemu_probe_edev(
 
     if (!found) {
         if (parent) {
-            vmm_printf("%s: No emulator found for %s/%s/%s\n", __func__, guest->name, parent->node->name, node->name);
+            vmm_printf("%s: No emulator found for %s/%s/%s\n", __func__, guest->name, parent->node->name, node->name); /**< node->name)成员 */
         } else {
-            vmm_printf("%s: No emulator found for %s/%s\n", __func__, guest->name, node->name);
+            vmm_printf("%s: No emulator found for %s/%s\n", __func__, guest->name, node->name); /**< node->name)成员 */
         }
 
-        return VMM_ERR_PTR(VMM_ENOTAVAIL);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOTAVAIL); /**< VMM_ERR_RR_PTR(VMM_ERR_NOTAVAIL)成员 */
     }
 
     if (vmm_device_tree_getattr(edev->node, VMM_DEVICE_TREE_NO_CHILD_PROBE_ATTR_NAME)) {
-        goto skip_child_probe;
+        goto skip_child_probe; /**< skip_child_probe成员 */
     }
 
     vmm_device_tree_for_each_child(child, edev->node)
     {
-        edevc = devemu_probe_edev(guest, child, NULL, edev);
+        edevc = devemu_probe_edev(guest, child, NULL, edev); /**< edev)成员 */
 
         if (VMM_IS_ERR(edevc)) {
             vmm_device_tree_dref_node(child);
-            devemu_remove_edev(guest, edev);
-            return edevc;
+            devemu_remove_edev(guest, edev); /**< edev)成员 */
+            return edevc; /**< edevc成员 */
         }
 
-        vmm_write_lock_irq_save_lite(&edev->child_list_lock, f);
-        list_add_tail(&edevc->head, &edev->child_list);
-        vmm_write_unlock_irq_restore_lite(&edev->child_list_lock, f);
+        vmm_write_lock_irq_save_lite(&edev->child_list_lock, f); /**< f) */
+        list_add_tail(&edevc->head, &edev->child_list); /**< &edev->child_list)成员 */
+        vmm_write_unlock_irq_restore_lite(&edev->child_list_lock, f); /**< f) */
     }
 
 skip_child_probe:
-    return edev;
+    return edev; /**< edev成员 */
 }
 
+/**
+ * @brief 探测并初始化指定内存区域内的所有模拟设备
+ * @param guest 指向客户机结构体的指针
+ * @param reg 寄存器值或索引
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_probe_region(struct vmm_guest *guest, struct vmm_region *reg)
 {
     vmm_emulate_device_t *edev;
 
     if (!guest || !reg || reg->device_emulate_private) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!(reg->flags & VMM_REGION_IS_DEVICE) || (reg->flags & VMM_REGION_ALIAS)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     edev = devemu_probe_edev(guest, reg->node, reg, NULL);
@@ -1395,6 +1664,11 @@ int vmm_device_emulate_probe_region(struct vmm_guest *guest, struct vmm_region *
     return VMM_OK;
 }
 
+/**
+ * @brief 初始化设备模拟上下文
+ * @param guest 指向客户机结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_init_context(struct vmm_guest *guest)
 {
     uint32_t                                 ite;
@@ -1402,25 +1676,25 @@ int vmm_device_emulate_init_context(struct vmm_guest *guest)
     struct vmm_device_emulate_guest_context *eg;
 
     if (!guest) {
-        rc = VMM_EFAIL;
-        goto devemu_init_context_done;
+        rc = VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
+        goto devemu_init_context_done; /**< devemu_init_context_done成员 */
     }
 
-    if (guest->aspace.device_emulate_private) {
-        rc = VMM_EFAIL;
+    if (guest->addr_space.device_emulate_private) {
+        rc = VMM_ERR_FAIL;
         goto devemu_init_context_done;
     }
 
     eg = vmm_zalloc(sizeof(struct vmm_device_emulate_guest_context));
 
     if (!eg) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto devemu_init_context_done;
     }
 
     eg->g_irq       = NULL;
     eg->g_irq_count = 0;
-    rc              = vmm_device_tree_read_u32(guest->aspace.node, VMM_DEVICE_TREE_GUESTIRQCNT_ATTR_NAME, &eg->g_irq_count);
+    rc              = vmm_device_tree_read_u32(guest->addr_space.node, VMM_DEVICE_TREE_GUESTIRQCNT_ATTR_NAME, &eg->g_irq_count);
 
     if (rc) {
         goto devemu_init_context_free;
@@ -1429,7 +1703,7 @@ int vmm_device_emulate_init_context(struct vmm_guest *guest)
     eg->g_irq = vmm_zalloc(sizeof(struct double_list) * eg->g_irq_count);
 
     if (!eg->g_irq) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto devemu_init_context_free;
     }
 
@@ -1437,7 +1711,7 @@ int vmm_device_emulate_init_context(struct vmm_guest *guest)
         INIT_LIST_HEAD(&eg->g_irq[ite]);
     }
 
-    guest->aspace.device_emulate_private = eg;
+    guest->addr_space.device_emulate_private = eg;
 
     goto devemu_init_context_done;
 
@@ -1447,17 +1721,22 @@ devemu_init_context_done:
     return rc;
 }
 
+/**
+ * @brief 反初始化设备模拟上下文
+ * @param guest 指向客户机结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_emulate_deinit_context(struct vmm_guest *guest)
 {
     int                                      rc = VMM_OK;
     struct vmm_device_emulate_guest_context *eg;
 
     if (!guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
-    eg                                   = guest->aspace.device_emulate_private;
-    guest->aspace.device_emulate_private = NULL;
+    eg                                   = guest->addr_space.device_emulate_private;
+    guest->addr_space.device_emulate_private = NULL;
 
     if (eg) {
         if (eg->g_irq) {
@@ -1472,6 +1751,10 @@ int vmm_device_emulate_deinit_context(struct vmm_guest *guest)
     return rc;
 }
 
+/**
+ * @brief 初始化设备模拟
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_device_emulate_init(void)
 {
     memset(&dectrl, 0, sizeof(dectrl));

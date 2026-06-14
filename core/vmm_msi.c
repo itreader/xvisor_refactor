@@ -18,7 +18,7 @@
  *
  * @file vmm_msi.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief Generic Host MSI framework implementation.
+ * @brief 主机MSI框架通用实现
  */
 
 #include <libs/stringlib.h>
@@ -32,38 +32,85 @@
 static DEFINE_SPINLOCK(msi_lock);
 static LIST_HEAD(msi_domain_list);
 
-static int msi_domain_ops_init(vmm_msi_domain_t *domain, uint32_t hirq, uint32_t hwirq, vmm_msi_alloc_info_t *arg)
+/**
+ * @brief MSI域操作初始化回调
+ * @param domain 域结构体指针
+ * @param hirq 中断号
+ * @param hw_irq_num 数量
+ * @param arg 参数值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+static int msi_domain_ops_init(vmm_msi_domain_t *domain, uint32_t hirq, uint32_t hw_irq_num, vmm_msi_alloc_info_t *arg)
 {
     return 0;
 }
 
+/**
+ * @brief MSI域操作释放回调
+ * @param domain 域结构体指针
+ * @param hirq 中断号
+ */
 static void msi_domain_ops_free(vmm_msi_domain_t *domain, uint32_t hirq) {}
 
+/**
+ * @brief MSI域操作检查回调
+ * @param domain 域结构体指针
+ * @param dev 设备结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int msi_domain_ops_check(vmm_msi_domain_t *domain, vmm_device_t *dev)
 {
     return 0;
 }
 
+/**
+ * @brief MSI域操作准备回调
+ * @param domain 域结构体指针
+ * @param dev 设备结构体指针
+ * @param nvec 向量数量
+ * @param arg 参数值
+ * @return 中断处理结果
+ */
 static int msi_domain_ops_prepare(vmm_msi_domain_t *domain, vmm_device_t *dev, int nvec, vmm_msi_alloc_info_t *arg)
 {
     memset(arg, 0, sizeof(*arg));
     return 0;
 }
 
+/**
+ * @brief MSI域操作完成回调
+ * @param arg 参数值
+ * @param retval 返回值指针
+ */
 static void msi_domain_ops_finish(vmm_msi_alloc_info_t *arg, int retval) {}
 
+/**
+ * @brief MSI域设置中断描述符回调
+ * @param arg 参数值
+* @param desc MSI描述符结构体指针
+ */
 static void msi_domain_ops_set_desc(vmm_msi_alloc_info_t *arg, struct vmm_msi_descriptor *desc)
 {
     arg->desc = desc;
 }
 
+/**
+ * @brief MSI域处理错误回调
+ * @param domain 域结构体指针
+* @param desc MSI描述符结构体指针
+ * @param error 错误码值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int msi_domain_ops_handle_error(vmm_msi_domain_t *domain, struct vmm_msi_descriptor *desc, int error)
 {
     return error;
 }
 
+/**
+ * @brief MSI域写入消息回调
+ */
 static void msi_domain_ops_write_msg(
-    vmm_msi_domain_t *domain, struct vmm_msi_descriptor *desc, uint32_t hirq, uint32_t hwirq, struct vmm_msi_msg *msg)
+    vmm_msi_domain_t *domain, struct vmm_msi_descriptor *desc, uint32_t hirq, uint32_t hw_irq_num, struct vmm_msi_msg *msg)
 {
 }
 
@@ -78,12 +125,16 @@ static struct vmm_msi_domain_ops msi_domain_ops_default = {
     .msi_write_msg = msi_domain_ops_write_msg,
 };
 
+/**
+ * @brief 更新MSI域的操作回调函数集
+ * @param domain 域结构体指针
+ */
 static void vmm_msi_domain_update_dom_ops(vmm_msi_domain_t *domain)
 {
     struct vmm_msi_domain_ops *ops = domain->ops;
 
     if (ops == NULL) {
-        domain->ops = &msi_domain_ops_default;
+        domain->ops = &msi_domain_ops_default; /**< &msi_domain_ops_default成员 */
         return;
     }
 
@@ -122,82 +173,94 @@ static void vmm_msi_domain_update_dom_ops(vmm_msi_domain_t *domain)
 
 struct vmm_msi_descriptor *vmm_alloc_msi_entry(vmm_device_t *dev)
 {
-    struct vmm_msi_descriptor *desc = vmm_zalloc(sizeof(*desc));
+    struct vmm_msi_descriptor *desc = vmm_zalloc(sizeof(*desc)); /**< 描述 */
 
     if (!desc) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
     INIT_LIST_HEAD(&desc->list);
-    desc->dev = dev;
+    desc->dev = dev; /**< 设备 */
 
-    return desc;
+    return desc; /**< 描述 */
 }
 
+/**
+ * @brief 释放MSI描述符条目
+ * @param entry 条目指针
+ */
 void vmm_free_msi_entry(struct vmm_msi_descriptor *entry)
 {
     vmm_free(entry);
 }
 
+/**
+ * @brief 创建MSI中断域
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_msi_domain_t *vmm_msi_create_domain(
     enum vmm_msi_domain_types type, vmm_device_tree_node_t *fwnode, struct vmm_msi_domain_ops *ops, struct vmm_host_irq_domain *parent,
     uint64_t flags, void *data)
 {
-    irq_flags_t       f;
-    bool              found = FALSE;
-    vmm_msi_domain_t *domain, *d;
+    irq_flags_t       f; /**< f */
+    bool              found = FALSE; /**< FALSE成员 */
+    vmm_msi_domain_t *domain, *d; /**< d */
 
     if (type <= VMM_MSI_DOMAIN_UNKNOWN || VMM_MSI_DOMAIN_MAX <= type) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
     if (!fwnode || !ops || !parent) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    domain = vmm_zalloc(sizeof(*domain));
+    domain = vmm_zalloc(sizeof(*domain)); /**< 域 */
 
     if (!domain) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
     INIT_LIST_HEAD(&domain->head);
-    domain->type = type;
+    domain->type = type; /**< 类型 */
     vmm_device_tree_ref_node(fwnode);
-    domain->fwnode = fwnode;
-    domain->ops    = ops;
-    domain->parent = parent;
-    domain->flags  = flags;
-    domain->data   = data;
+    domain->fwnode = fwnode; /**< 固件设备树节点 */
+    domain->ops    = ops; /**< 操作集 */
+    domain->parent = parent; /**< 父节点 */
+    domain->flags  = flags; /**< 标志位 */
+    domain->data   = data; /**< 数据 */
 
-    vmm_spin_lock_irq_save_lite(&msi_lock, f);
+    vmm_spin_lock_irq_save_lite(&msi_lock, f); /**< f) */
 
     list_for_each_entry(d, &msi_domain_list, head)
     {
         if (d->fwnode == fwnode && d->type == type) {
-            found = TRUE;
+            found = TRUE; /**< TRUE成员 */
             break;
         }
     }
 
     if (found) {
-        vmm_spin_unlock_irq_restore_lite(&msi_lock, f);
+        vmm_spin_unlock_irq_restore_lite(&msi_lock, f); /**< f) */
         vmm_device_tree_dref_node(domain->fwnode);
         vmm_free(domain);
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    list_add_tail(&domain->head, &msi_domain_list);
+    list_add_tail(&domain->head, &msi_domain_list); /**< &msi_domain_list)成员 */
 
-    vmm_spin_unlock_irq_restore_lite(&msi_lock, f);
+    vmm_spin_unlock_irq_restore_lite(&msi_lock, f); /**< f) */
 
     if (domain->flags & VMM_MSI_FLAG_USE_DEF_DOM_OPS) {
         vmm_msi_domain_update_dom_ops(domain);
     }
 
-    return domain;
+    return domain; /**< 域 */
 }
 
+/**
+ * @brief 销毁MSI中断域
+ * @param domain 域结构体指针
+ */
 void vmm_msi_destroy_domain(vmm_msi_domain_t *domain)
 {
     irq_flags_t       f;
@@ -231,10 +294,17 @@ void vmm_msi_destroy_domain(vmm_msi_domain_t *domain)
     vmm_free(domain);
 }
 
+/**
+ * @brief 查找消息信号中断域
+ * @param fwnode 固件节点指针
+ * @param type 类型标识值
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_msi_domain_t *vmm_msi_find_domain(vmm_device_tree_node_t *fwnode, enum vmm_msi_domain_types type)
 {
     irq_flags_t       f;
-    vmm_msi_domain_t *d, *domain = NULL;
+    vmm_msi_domain_t *d = NULL;
+    vmm_msi_domain_t *domain = NULL;
 
     if (!fwnode) {
         return NULL;
@@ -255,7 +325,11 @@ vmm_msi_domain_t *vmm_msi_find_domain(vmm_device_tree_node_t *fwnode, enum vmm_m
     return domain;
 }
 
-void vmm_msi_domain_write_msg(struct vmm_host_irq *irq)
+/**
+ * @brief 向MSI域写入中断消息
+ * @param irq 指向主机中断结构体的指针
+ */
+void vmm_msi_domain_write_msg(vmm_host_irq_t *irq)
 {
     struct vmm_msi_descriptor *desc = vmm_host_irq_get_msi_data(irq);
     struct vmm_msi_domain_ops *ops;
@@ -272,20 +346,30 @@ void vmm_msi_domain_write_msg(struct vmm_host_irq *irq)
     memset(&desc->msg, 0, sizeof(desc->msg));
     ret = vmm_host_irq_compose_msi_msg(irq->num, &desc->msg);
     BUG_ON(ret < 0);
-    ops->msi_write_msg(domain, desc, irq->num, irq->hwirq, &desc->msg);
+    ops->msi_write_msg(domain, desc, irq->num, irq->hw_irq_num, &desc->msg);
 }
 
+/**
+ * @brief 在MSI域中为设备分配中断请求
+ * @param domain 域结构体指针
+ * @param dev 设备结构体指针
+ * @param nvec 向量数量
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_msi_domain_alloc_irqs(vmm_msi_domain_t *domain, vmm_device_t *dev, int nvec)
 {
     vmm_msi_alloc_info_t       arg;
     struct vmm_msi_descriptor *desc;
-    int                        i, ret = VMM_OK, hwirq, hirq = -1;
+    int i;
+    int ret = VMM_OK;
+    int hw_irq_num;
+    int hirq = -1;
     struct vmm_msi_domain_ops *ops = domain->ops;
 
     ret                            = ops->msi_check(domain, dev);
 
     if (ret) {
-        return ret;
+        return ret; /**< 返回值 */
     }
 
     ret = ops->msi_prepare(domain, dev, nvec, &arg);
@@ -301,17 +385,17 @@ int vmm_msi_domain_alloc_irqs(vmm_msi_domain_t *domain, vmm_device_t *dev, int n
         hirq = vmm_host_irq_domain_alloc(domain->parent, desc->nvec_used, &arg);
 
         if (hirq < 0) {
-            ret = VMM_ENOSPC;
+            ret = VMM_ERR_NOSPC;
             goto fail_handle_error;
         }
 
-        hwirq        = vmm_host_irq_domain_to_hwirq(domain->parent, hirq);
+        hw_irq_num        = vmm_host_irq_domain_to_hw_irq(domain->parent, hirq);
         desc->hirq   = hirq;
         desc->domain = domain;
 
         for (i = 0; i < desc->nvec_used; i++) {
             vmm_host_irq_set_msi_data(hirq + i, desc);
-            ret = ops->msi_init(domain, hirq + i, hwirq + i, &arg);
+            ret = ops->msi_init(domain, hirq + i, hw_irq_num + i, &arg);
 
             if (ret < 0) {
                 for (i--; i > 0; i--) {
@@ -342,9 +426,16 @@ fail_handle_error:
     return ret;
 }
 
+/**
+ * @brief 释放消息信号中断域中的中断
+ * @param domain 域结构体指针
+ * @param dev 设备结构体指针
+ */
 void vmm_msi_domain_free_irqs(vmm_msi_domain_t *domain, vmm_device_t *dev)
 {
-    uint32_t                   i, hirq, hwirq;
+    uint32_t i;
+    uint32_t hirq;
+    uint32_t hw_irq_num;
     struct vmm_msi_descriptor *desc;
     struct vmm_msi_domain_ops *ops;
 
@@ -366,12 +457,12 @@ void vmm_msi_domain_free_irqs(vmm_msi_domain_t *domain, vmm_device_t *dev)
         }
 
         hirq  = desc->hirq;
-        hwirq = vmm_host_irq_domain_to_hwirq(domain->parent, hirq);
+        hw_irq_num = vmm_host_irq_domain_to_hw_irq(domain->parent, hirq);
 
         memset(&desc->msg, 0, sizeof(desc->msg));
 
         for (i = 0; i < desc->nvec_used; i++) {
-            ops->msi_write_msg(domain, desc, hirq + i, hwirq + i, &desc->msg);
+            ops->msi_write_msg(domain, desc, hirq + i, hw_irq_num + i, &desc->msg);
         }
 
         for (i = 0; i < desc->nvec_used; i++) {

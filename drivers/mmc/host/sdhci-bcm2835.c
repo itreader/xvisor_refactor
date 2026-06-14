@@ -155,7 +155,7 @@ static int bcm2835_sdhci_driver_probe(vmm_device_t *dev)
     host = sdhci_alloc_host(dev, sizeof(struct bcm2835_sdhci_host));
 
     if (!host) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_nothing;
     }
 
@@ -170,7 +170,7 @@ static int bcm2835_sdhci_driver_probe(vmm_device_t *dev)
     bcm_host->irq = vmm_device_tree_irq_parse_map(dev->of_node, 0);
 
     if (!bcm_host->irq) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto free_reg;
     }
 

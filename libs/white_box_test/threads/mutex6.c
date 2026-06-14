@@ -200,7 +200,7 @@ static int mutex6_do_test(vmm_char_device_t *cdev)
     /* Stop worker thread */
     vmm_threads_stop(workers[0]);
 
-    return (failures) ? VMM_EFAIL : 0;
+    return (failures) ? VMM_ERR_FAIL : 0;
 }
 
 static int mutex6_run(struct white_box_test *test, vmm_char_device_t *cdev, uint32_t test_hcpu)
@@ -218,7 +218,7 @@ static int mutex6_run(struct white_box_test *test, vmm_char_device_t *cdev, uint
         workers[i] = vmm_threads_create(wname, mutex6_worker_thread_main, (void *)(uint64_t)i, current_priority, VMM_THREAD_DEF_TIME_SLICE);
 
         if (workers[i] == NULL) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             goto destroy_workers;
         }
     }

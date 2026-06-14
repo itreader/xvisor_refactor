@@ -123,7 +123,7 @@ static int pl110_display_pixeldata(struct vmm_virtual_display *vdis, struct vmm_
     struct pl110_state *s = vmm_virtual_display_private(vdis);
 
     if (!pl110_enabled(s)) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     switch (s->bpp) {
@@ -139,7 +139,7 @@ static int pl110_display_pixeldata(struct vmm_virtual_display *vdis, struct vmm_
             break;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     };
 
     gpa = s->upbase;
@@ -153,11 +153,11 @@ static int pl110_display_pixeldata(struct vmm_virtual_display *vdis, struct vmm_
     }
 
     if (!(flags & VMM_REGION_REAL) || !(flags & VMM_REGION_MEMORY) || !(flags & VMM_REGION_IS_RAM)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (hsz < gsz) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_pixelformat_init_default(pf, bits_per_pixel);
@@ -481,7 +481,7 @@ static int pl110_reg_read(struct pl110_state *s, uint32_t offset, uint32_t *dst)
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -573,7 +573,7 @@ static int pl110_reg_write(struct pl110_state *s, uint32_t offset, uint32_t src_
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -685,7 +685,7 @@ static int pl110_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(struct pl110_state));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto pl110_emulator_probe_fail;
     }
 
@@ -716,14 +716,14 @@ static int pl110_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     strlcat(name, "/", sizeof(name));
 
     if (strlcat(name, edev->node->name, sizeof(name)) >= sizeof(name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto pl110_emulator_probe_freestate_fail;
     }
 
     s->vdis = vmm_virtual_display_create(name, &pl110_ops, s);
 
     if (!s->vdis) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto pl110_emulator_probe_freestate_fail;
     }
 
@@ -747,7 +747,7 @@ static int pl110_emulator_remove(vmm_emulate_device_t *edev)
     struct pl110_state *s  = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (s->mux_in != UINT_MAX) {

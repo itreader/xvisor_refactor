@@ -32,39 +32,39 @@ void usb_register_notify(vmm_notifier_block_t *nb)
     vmm_blocking_notifier_register(&usb_notifier_list, nb);
 }
 
-VMM_EXPORT_SYMBOL(usb_register_notify);
+VMM_ERR_XPORT_SYMBOL(usb_register_notify);
 
 void usb_unregister_notify(vmm_notifier_block_t *nb)
 {
     vmm_blocking_notifier_unregister(&usb_notifier_list, nb);
 }
 
-VMM_EXPORT_SYMBOL(usb_unregister_notify);
+VMM_ERR_XPORT_SYMBOL(usb_unregister_notify);
 
 void usb_notify_add_device(struct usb_device *udev)
 {
     vmm_blocking_notifier_call(&usb_notifier_list, USB_DEVICE_ADD, udev);
 }
 
-VMM_EXPORT_SYMBOL(usb_notify_add_device);
+VMM_ERR_XPORT_SYMBOL(usb_notify_add_device);
 
 void usb_notify_remove_device(struct usb_device *udev)
 {
     vmm_blocking_notifier_call(&usb_notifier_list, USB_DEVICE_REMOVE, udev);
 }
 
-VMM_EXPORT_SYMBOL(usb_notify_remove_device);
+VMM_ERR_XPORT_SYMBOL(usb_notify_remove_device);
 
 void usb_notify_add_hcd(struct usb_hcd *hcd)
 {
     vmm_blocking_notifier_call(&usb_notifier_list, USB_HCD_ADD, hcd);
 }
 
-VMM_EXPORT_SYMBOL(usb_notify_add_hcd);
+VMM_ERR_XPORT_SYMBOL(usb_notify_add_hcd);
 
 void usb_notify_remove_hcd(struct usb_hcd *hcd)
 {
     vmm_blocking_notifier_call(&usb_notifier_list, USB_HCD_REMOVE, hcd);
 }
 
-VMM_EXPORT_SYMBOL(usb_notify_remove_hcd);
+VMM_ERR_XPORT_SYMBOL(usb_notify_remove_hcd);

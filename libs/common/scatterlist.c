@@ -264,7 +264,7 @@ int __sg_alloc_table(struct sg_table *table, uint32_t nents, uint32_t max_ents, 
                 table->nents = ++table->orig_nents;
             }
 
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         sg_init_table(sg, alloc_size);

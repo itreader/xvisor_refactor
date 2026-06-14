@@ -18,7 +18,7 @@
  *
  * @file vmm_main.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief main source file to start, stop and reset hypervisor
+ * @brief Hypervisor启动、停止和复位主文件
  */
 
 #include <arch_board.h>
@@ -59,6 +59,10 @@
 /* Optional includes */
 #include <drv/rtc.h>
 
+/**
+ * @brief 系统挂起（无限循环）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 void __noreturn vmm_hang(void)
 {
     while (1)
@@ -72,6 +76,10 @@ static bool       sys_init_done = FALSE;
 static char  *console_param     = NULL;
 static size_t console_param_len = 0;
 
+/**
+ * @brief 处理控制台设备参数，通过引导参数或设备树设置其为标准输入输出设备
+ * @param str 控制台设备名称字符串
+ */
 static void console_param_process(const char *str)
 {
     vmm_char_device_t      *cdev;
@@ -99,13 +107,18 @@ static void console_param_process(const char *str)
     }
 }
 
+/**
+ * @brief 保存控制台参数字符串
+ * @param cdev 控制台设备名称
+ * @return 成功返回VMM_OK，否则返回错误码
+ */
 static int console_param_save(char *cdev)
 {
     console_param_len = strlen(cdev) + 1;
     console_param     = vmm_zalloc(console_param_len);
 
     if (!console_param) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     strncpy(console_param, cdev, console_param_len);
@@ -118,6 +131,10 @@ vmm_early_param("vmm." VMM_DEVICE_TREE_CONSOLE_ATTR_NAME "=", console_param_save
 static char  *rtcdev_param     = NULL;
 static size_t rtcdev_param_len = 0;
 #if defined(CONFIG_RTC)
+/**
+ * @brief 使用RTC设备同步墙钟时间
+ * @param rdev RTC设备指针
+ */
 static void rtcdev_sync_wall_clock(struct rtc_device *rdev)
 {
     int ret;
@@ -134,6 +151,12 @@ static void rtcdev_sync_wall_clock(struct rtc_device *rdev)
     }
 }
 
+/**
+ * @brief RTC设备迭代函数，使用第一个RTC设备
+ * @param rdev RTC设备指针
+ * @param data 私有数据指针
+ * @return 返回VMM_OK
+ */
 static int rtcdev_use_first_iter(struct rtc_device *rdev, void *data)
 {
     bool *done = data;
@@ -151,6 +174,9 @@ skip:
     return VMM_OK;
 }
 
+/**
+ * @brief 使用第一个RTC设备同步时间
+ */
 static void rtcdev_use_first(void)
 {
     bool done = FALSE;
@@ -158,8 +184,15 @@ static void rtcdev_use_first(void)
     rtc_device_iterate(NULL, &done, rtcdev_use_first_iter);
 }
 #else
+/**
+ * @brief 使用第一个可用的RTC设备
+ */
 static void rtcdev_use_first(void) {}
 #endif
+/**
+ * @brief 处理RTC设备参数
+ * @param str RTC设备名称字符串
+ */
 static void rtcdev_param_process(const char *str)
 {
 #if defined(CONFIG_RTC)
@@ -169,7 +202,7 @@ static void rtcdev_param_process(const char *str)
     /* Find rtc device based on rtc_device attribute */
     if (!(rdev = rtc_device_find(str))) {
         if ((node = vmm_device_tree_getnode(str))) {
-            rdev = rtc_device_find(node->name);
+            rdev = rtc_device_find(node->name); /**< rtc_device_find(node->name)成员 */
             vmm_device_tree_dref_node(node);
         }
     }
@@ -189,13 +222,18 @@ static void rtcdev_param_process(const char *str)
     }
 }
 
+/**
+ * @brief 保存RTC参数字符串
+ * @param rdev RTC设备名称
+ * @return 成功返回VMM_OK，否则返回错误码
+ */
 static int rtcdev_param_save(char *rdev)
 {
     rtcdev_param_len = strlen(rdev) + 1;
     rtcdev_param     = vmm_zalloc(rtcdev_param_len);
 
     if (!rtcdev_param) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     strncpy(rtcdev_param, rdev, rtcdev_param_len);
@@ -208,6 +246,11 @@ vmm_early_param("vmm." VMM_DEVICE_TREE_RTCDEV_ATTR_NAME "=", rtcdev_param_save);
 static char  *bootcmd_param     = NULL;
 static size_t bootcmd_param_len = 0;
 
+/**
+ * @brief 处理引导命令参数，执行一系列引导命令
+ * @param str 引导命令字符串
+ * @param str_len 字符串长度
+ */
 static void bootcmd_param_process(const char *str, size_t str_len)
 {
 #define BOOTCMD_WIDTH 256
@@ -233,6 +276,11 @@ static void bootcmd_param_process(const char *str, size_t str_len)
     }
 }
 
+/**
+ * @brief 保存引导命令参数字符串
+ * @param cmds 引导命令字符串
+ * @return 成功返回VMM_OK，否则返回错误码
+ */
 static int bootcmd_param_save(char *cmds)
 {
     size_t i;
@@ -241,7 +289,7 @@ static int bootcmd_param_save(char *cmds)
     bootcmd_param     = vmm_zalloc(bootcmd_param_len);
 
     if (!bootcmd_param) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     strncpy(bootcmd_param, cmds, bootcmd_param_len);
@@ -258,16 +306,26 @@ static int bootcmd_param_save(char *cmds)
 
 vmm_early_param("vmm." VMM_DEVICE_TREE_BOOTCMD_ATTR_NAME "=", bootcmd_param_save);
 
+/**
+ * @brief 检查系统初始化是否完成
+ * @return 如果完成返回true，否则返回false
+ */
 bool vmm_init_done(void)
 {
     return sys_init_done;
 }
 
+/**
+ * @brief 执行系统后初始化工作，包括处理控制台、RTC和引导命令
+ * @param work 工作队列指针
+ */
 static void system_postinit_work(vmm_work_t *work)
 {
     const char             *str;
-    uint32_t                c, freed;
-    vmm_device_tree_node_t *node, *node1;
+    uint32_t c;
+    uint32_t freed;
+    vmm_device_tree_node_t *node = NULL;
+    vmm_device_tree_node_t *node1 = NULL;
 
     /* Print status of present host CPUs */
     for_each_present_cpu(c)
@@ -339,6 +397,10 @@ static void system_postinit_work(vmm_work_t *work)
     sys_init_done = TRUE;
 }
 
+/**
+ * @brief 执行系统初始化工作，初始化各种子系统
+ * @param work 工作队列指针
+ */
 static void system_init_work(vmm_work_t *work)
 {
     int ret;
@@ -492,6 +554,10 @@ fail:
     vmm_panic("%s: error %d\n", __func__, ret);
 }
 
+/**
+ * @brief 初始化引导CPU，设置系统基础组件
+ * @return 无返回值
+ */
 static void __init init_bootcpu(void)
 {
     int                     ret;
@@ -809,6 +875,10 @@ init_bootcpu_fail:
 }
 
 #if defined(CONFIG_SMP)
+/**
+ * @brief 初始化辅助CPU
+ * @return 无返回值
+ */
 static void __cpuinit init_secondary(void)
 {
     int ret;
@@ -843,6 +913,10 @@ static void __cpuinit init_secondary(void)
 }
 #endif
 
+/**
+ * @brief 主初始化函数，根据CPU类型调用相应初始化
+ * @return 无返回值
+ */
 void __cpuinit vmm_init(void)
 {
 #if defined(CONFIG_SMP)
@@ -865,6 +939,9 @@ void __cpuinit vmm_init(void)
 #endif
 }
 
+/**
+ * @brief 停止系统，停止调度器和定时器
+ */
 static void system_stop(void)
 {
     /* Stop scheduler */
@@ -876,11 +953,18 @@ static void system_stop(void)
 
 static int (*system_reset)(void) = NULL;
 
+/**
+ * @brief 注册系统复位回调函数
+ * @param callback 复位回调函数指针
+ */
 void vmm_register_system_reset(int (*callback)(void))
 {
     system_reset = callback;
 }
 
+/**
+ * @brief 执行系统复位
+ */
 void vmm_reset(void)
 {
     int rc;
@@ -906,11 +990,18 @@ void vmm_reset(void)
 
 static int (*system_shutdown)(void) = NULL;
 
+/**
+ * @brief 注册系统关机回调函数
+ * @param callback 关机回调函数指针
+ */
 void vmm_register_system_shutdown(int (*callback)(void))
 {
     system_shutdown = callback;
 }
 
+/**
+ * @brief 执行系统关机
+ */
 void vmm_shutdown(void)
 {
     int rc;

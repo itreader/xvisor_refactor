@@ -93,7 +93,7 @@ static int mutex2_do_test(vmm_char_device_t *cdev)
     timeout = SLEEP_MSECS * 1000000LL;
     rc      = vmm_mutex_lock_timeout(&m2, &timeout);
 
-    if (rc != VMM_ETIMEDOUT) {
+    if (rc != VMM_ERR_TIMEDOUT) {
         vmm_cdev_printf(cdev, "error: did not get mutex lock timeout\n");
         failures++;
     }
@@ -145,7 +145,7 @@ static int mutex2_do_test(vmm_char_device_t *cdev)
     /* Stop workers */
     vmm_threads_stop(workers[0]);
 
-    return (failures) ? VMM_EFAIL : 0;
+    return (failures) ? VMM_ERR_FAIL : 0;
 }
 
 static int mutex2_run(struct white_box_test *test, vmm_char_device_t *cdev, uint32_t test_hcpu)
@@ -164,7 +164,7 @@ static int mutex2_run(struct white_box_test *test, vmm_char_device_t *cdev, uint
         workers[i] = vmm_threads_create(wname, mutex2_worker_thread_main, (void *)(uint64_t)i, current_priority, VMM_THREAD_DEF_TIME_SLICE);
 
         if (workers[i] == NULL) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             goto destroy_workers;
         }
 

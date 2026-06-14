@@ -185,7 +185,7 @@ typedef void (*regmap_hw_free_context)(void *context);
  *       functions are used (see fields lock/unlock of
  *       struct regmap_config).
  * @write: Write operation.
- * @gather_write: Write operation with split register/value, return VMM_ENOTSUPP
+ * @gather_write: Write operation with split register/value, return VMM_ERR_NOTSUPP
  *                if not implemented  on a given device.
  * @read: Read operation.  Data is returned in the buffer used to transmit
  *         data.
@@ -242,7 +242,7 @@ struct regmap *__devm_regmap_init_mmio_clock(vmm_device_t *dev, const char *cloc
  * @bus_context: Data passed to bus-specific callbacks
  * @config: Configuration for register map
  *
- * The return value will be an VMM_ERR_PTR() on error or a valid pointer to
+ * The return value will be an VMM_ERR_RR_PTR() on error or a valid pointer to
  * a struct regmap.  This function should generally not be called
  * directly, it should be called by bus-specific init functions.
  */
@@ -257,7 +257,7 @@ int regmap_attach_dev(vmm_device_t *dev, struct regmap *map, const struct regmap
  * @regs: Pointer to memory-mapped IO region
  * @config: Configuration for register map
  *
- * The return value will be an VMM_ERR_PTR() on error or a valid pointer to
+ * The return value will be an VMM_ERR_RR_PTR() on error or a valid pointer to
  * a struct regmap.
  */
 #define regmap_init_mmio_clock(dev, clock_id, regs, config)      __regmap_init_mmio_clock(dev, clock_id, regs, config)
@@ -269,7 +269,7 @@ int regmap_attach_dev(vmm_device_t *dev, struct regmap *map, const struct regmap
  * @regs: Pointer to memory-mapped IO region
  * @config: Configuration for register map
  *
- * The return value will be an VMM_ERR_PTR() on error or a valid pointer to
+ * The return value will be an VMM_ERR_RR_PTR() on error or a valid pointer to
  * a struct regmap.
  */
 #define regmap_init_mmio(dev, regs, config)                      regmap_init_mmio_clock(dev, NULL, regs, config)
@@ -282,7 +282,7 @@ int regmap_attach_dev(vmm_device_t *dev, struct regmap *map, const struct regmap
  * @bus_context: Data passed to bus-specific callbacks
  * @config: Configuration for register map
  *
- * The return value will be an VMM_ERR_PTR() on error or a valid pointer
+ * The return value will be an VMM_ERR_RR_PTR() on error or a valid pointer
  * to a struct regmap.  This function should generally not be called
  * directly, it should be called by bus-specific init functions.  The
  * map will be automatically freed by the device management code.
@@ -297,7 +297,7 @@ int regmap_attach_dev(vmm_device_t *dev, struct regmap *map, const struct regmap
  * @regs: Pointer to memory-mapped IO region
  * @config: Configuration for register map
  *
- * The return value will be an VMM_ERR_PTR() on error or a valid pointer
+ * The return value will be an VMM_ERR_RR_PTR() on error or a valid pointer
  * to a struct regmap.  The regmap will be automatically freed by the
  * device management code.
  */
@@ -310,7 +310,7 @@ int regmap_attach_dev(vmm_device_t *dev, struct regmap *map, const struct regmap
  * @regs: Pointer to memory-mapped IO region
  * @config: Configuration for register map
  *
- * The return value will be an VMM_ERR_PTR() on error or a valid pointer
+ * The return value will be an VMM_ERR_RR_PTR() on error or a valid pointer
  * to a struct regmap.  The regmap will be automatically freed by the
  * device management code.
  */
@@ -367,67 +367,67 @@ bool regmap_reg_in_ranges(uint32_t reg, const struct regmap_range *ranges, uint3
 static inline int regmap_write(struct regmap *map, uint32_t reg, uint32_t val)
 {
     WARN_ON(1);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static inline int regmap_raw_write(struct regmap *map, uint32_t reg, const void *val, size_t val_len)
 {
     WARN_ON(1);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static inline int regmap_bulk_write(struct regmap *map, uint32_t reg, const void *val, size_t val_count)
 {
     WARN_ON(1);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static inline int regmap_read(struct regmap *map, uint32_t reg, uint32_t *val)
 {
     WARN_ON(1);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static inline int regmap_raw_read(struct regmap *map, uint32_t reg, void *val, size_t val_len)
 {
     WARN_ON(1);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static inline int regmap_bulk_read(struct regmap *map, uint32_t reg, void *val, size_t val_count)
 {
     WARN_ON(1);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static inline int regmap_update_bits_base(struct regmap *map, uint32_t reg, uint32_t mask, uint32_t val, bool *change, bool async, bool force)
 {
     WARN_ON(1);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static inline int regmap_get_val_bytes(struct regmap *map)
 {
     WARN_ON(1);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static inline int regmap_get_max_register(struct regmap *map)
 {
     WARN_ON(1);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static inline int regmap_get_reg_stride(struct regmap *map)
 {
     WARN_ON(1);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 static inline int regmap_parse_val(struct regmap *map, const void *buf, uint32_t *val)
 {
     WARN_ON(1);
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 #endif

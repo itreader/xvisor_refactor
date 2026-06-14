@@ -18,7 +18,7 @@
  *
  * @file vmm_vcpu_irq.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for vcpu interrupts
+ * @brief VCPU中断头文件
  */
 #ifndef _VMM_VCPU_IRQ_H__
 #define _VMM_VCPU_IRQ_H__
@@ -26,41 +26,72 @@
 #include <vmm_manager.h>
 #include <vmm_types.h>
 
-/** Process interrupts for current vcpu
- *  Note: Don't call this function directly it's meant to be called
- *  from vmm_scheduler only.
+/**
+ * @brief 虚拟CPU 中断 处理
+ * @param vcpu 指向VCPU结构体的指针
+ * @param regs 寄存器上下文指针
  */
 void vmm_vcpu_irq_process(vmm_vcpu_t *vcpu, arch_regs_t *regs);
 
-/** Assert an irq to given vcpu */
+/**
+ * @brief 虚拟CPU 中断 断言
+ * @param vcpu 指向VCPU结构体的指针
+ * @param irq_no 中断号
+ * @param reason 原因标识
+ */
 void vmm_vcpu_irq_assert(vmm_vcpu_t *vcpu, uint32_t irq_no, uint64_t reason);
 
-/** Force clear irq of given vcpu
- *  Note: Given vcpu has to be the curent vcpu.
+/**
+ * @brief 虚拟CPU 中断 清除
+ * @param vcpu 指向VCPU结构体的指针
+ * @param irq_no 中断号
  */
 void vmm_vcpu_irq_clear(vmm_vcpu_t *vcpu, uint32_t irq_no);
 
-/** Deassert active irq of given vcpu */
+/**
+ * @brief 虚拟CPU 中断 去断言
+ * @param vcpu 指向VCPU结构体的指针
+ * @param irq_no 中断号
+ */
 void vmm_vcpu_irq_deassert(vmm_vcpu_t *vcpu, uint32_t irq_no);
 
-/** Forcefully resume given VCPU if waiting for irq */
+/**
+ * @brief 恢复VCPU中断等待状态
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vcpu_irq_wait_resume(vmm_vcpu_t *vcpu);
 
-/** Wait for irq on given vcpu with some timeout
- *  Note: Given VCPU has to be the curent VCPU.
+/**
+ * @brief VCPU等待中断超时处理
+ * @param vcpu 指向VCPU结构体的指针
+ * @param nsecs 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_vcpu_irq_wait_timeout(vmm_vcpu_t *vcpu, uint64_t nsecs);
 
 /** Wait for irq on given vcpu indefinetly (no timeout) */
 #define vmm_vcpu_irq_wait(vcpu) vmm_vcpu_irq_wait_timeout(vcpu, 0)
 
-/** Current state of Wait for irq on given vcpu */
+/**
+ * @brief 检查虚拟CPU中断是否处于等待状态
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_vcpu_irq_wait_state(vmm_vcpu_t *vcpu);
 
-/** Initialize interrupts for given vcpu */
+/**
+ * @brief 初始化VCPU中断
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vcpu_irq_init(vmm_vcpu_t *vcpu);
 
-/** Deinitialize interrupts for given vcpu */
+/**
+ * @brief VCPU中断子系统反初始化
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vcpu_irq_deinit(vmm_vcpu_t *vcpu);
 
 #endif

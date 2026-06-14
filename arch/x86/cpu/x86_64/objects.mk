@@ -24,7 +24,7 @@
 GCCMAJ=$(shell if [ `gcc --version | grep ^gcc | sed 's/^.* //g' | cut -f1 -d '.'`  -gt 4 ]; then echo true; fi)
 
 cpu-cflags +=-finline-functions -O0 -mcmodel=large
-cpu-cppflags +=-DCPU_TEXT_LMA=${CONFIG_VAPOOL_ALIGN_MB}
+cpu-cppflags +=-DCPU_TEXT_LMA=${CONFIG_VIRTUAL_ADDR_POOL_ALIGN_MB}
 
 ifeq ($(GCCMAJ),true)
 cpu-ldflags += -no-pie

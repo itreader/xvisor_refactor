@@ -41,52 +41,49 @@
 
 #include <vmm_types.h>
 
-struct red_black_node {
-    uint64_t               __red_black_parent_color;
+typedef struct red_black_node {
+    uint64_t               red_black_parent_color;
     struct red_black_node *rb_right;
     struct red_black_node *rb_left;
-} __attribute__((aligned(sizeof(long))));
+} __attribute__((aligned(sizeof(long)))) red_black_node_t;
 
 /* The alignment might seem pointless, but allegedly CRIS needs it */
 
-struct red_black_root {
-    struct red_black_node *red_black_node;
-};
+typedef struct red_black_root {
+    red_black_node_t *red_black_node;
+} red_black_root_t;
 
-#define rb_parent(r) ((struct red_black_node *)((r)->__red_black_parent_color & ~3))
+#define rb_parent(r) ((red_black_node_t *)((r)->red_black_parent_color & ~3))
 
-#define RB_ROOT                                                                                                                                      \
-    (struct red_black_root)                                                                                                                          \
-    {                                                                                                                                                \
-        NULL,                                                                                                                                        \
-    }
+#define RB_ROOT   (red_black_root_t) { NULL}
+
 #define rb_entry(ptr, type, member) container_of(ptr, type, member)
 
 #define RB_EMPTY_ROOT(root)         ((root)->red_black_node == NULL)
 
 /* 'empty' nodes are nodes that are known not to be inserted in an rbree */
-#define RB_EMPTY_NODE(node)         ((node)->__red_black_parent_color == (uint64_t)(node))
-#define RB_CLEAR_NODE(node)         ((node)->__red_black_parent_color = (uint64_t)(node))
+#define RB_EMPTY_NODE(node)         ((node)->red_black_parent_color == (uint64_t)(node))
+#define RB_CLEAR_NODE(node)         ((node)->red_black_parent_color = (uint64_t)(node))
 
-extern void rb_insert_color(struct red_black_node *, struct red_black_root *);
-extern void rb_erase(struct red_black_node *, struct red_black_root *);
+extern void rb_insert_color(red_black_node_t *, red_black_root_t *);
+extern void rb_erase(red_black_node_t *, red_black_root_t *);
 
 /* Find logical next and previous nodes in a tree */
-extern struct red_black_node *rb_next(const struct red_black_node *);
-extern struct red_black_node *rb_prev(const struct red_black_node *);
-extern struct red_black_node *rb_first(const struct red_black_root *);
-extern struct red_black_node *rb_last(const struct red_black_root *);
+extern red_black_node_t *rb_next(const red_black_node_t *);
+extern red_black_node_t *rb_prev(const red_black_node_t *);
+extern red_black_node_t *rb_first(const red_black_root_t *);
+extern red_black_node_t *rb_last(const red_black_root_t *);
 
 /* Postorder iteration - always visit the parent after its children */
-extern struct red_black_node *rb_first_postorder(const struct red_black_root *);
-extern struct red_black_node *rb_next_postorder(const struct red_black_node *);
+extern red_black_node_t *rb_first_postorder(const red_black_root_t *);
+extern red_black_node_t *rb_next_postorder(const red_black_node_t *);
 
 /* Fast replacement of a single node without remove/rebalance/add/rebalance */
-extern void rb_replace_node(struct red_black_node *victim, struct red_black_node *new, struct red_black_root *root);
+extern void rb_replace_node(red_black_node_t *victim, red_black_node_t *new, red_black_root_t *root);
 
-static inline void rb_link_node(struct red_black_node *node, struct red_black_node *parent, struct red_black_node **rb_link)
+static inline void rb_link_node(red_black_node_t *node, red_black_node_t *parent, red_black_node_t **rb_link)
 {
-    node->__red_black_parent_color = (uint64_t)parent;
+    node->red_black_parent_color = (uint64_t)parent;
     node->rb_left = node->rb_right = NULL;
 
     *rb_link                       = node;

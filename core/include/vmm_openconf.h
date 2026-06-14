@@ -19,7 +19,7 @@
  * @file vmm_openconf.h
  * @author Anup Patel (anup@brainfault.org)
  * @author Jimmy Durand Wesolowski (jimmy.durand-wesolowski@openwide.fr)
- * @brief Useful preprocessor macros & defines for openconf
+ * @brief OpenConf预处理宏与定义
  *
  * This file is adapted from Linux kernel version 3.18 header:
  * include/linux/kconfig.h

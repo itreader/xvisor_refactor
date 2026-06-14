@@ -489,7 +489,7 @@ static int usb_parse_config(struct usb_device *dev, uint8_t *buffer, int cfgno)
 
     if (head->bDescriptorType != USB_DT_CONFIG) {
         vmm_printf("%s: Invalid USB_CONFIG_DESC type=0x%x\n", __func__, head->bDescriptorType);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     memcpy(&dev->config, buffer, buffer[0]);
@@ -644,7 +644,7 @@ static int usb_hub_port_reset(struct usb_device *dev, int port, unsigned short *
     portsts = vmm_zalloc(sizeof(struct usb_port_status));
 
     if (!portsts) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     DPRINTF("%s: resetting port %d...\n", __func__, port);
@@ -673,7 +673,7 @@ static int usb_hub_port_reset(struct usb_device *dev, int port, unsigned short *
             (portstatus & USB_PORT_STAT_ENABLE) ? 1 : 0);
 
         if ((portchange & USB_PORT_STAT_C_CONNECTION) || !(portstatus & USB_PORT_STAT_CONNECTION)) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         if (portstatus & USB_PORT_STAT_ENABLE) {
@@ -690,7 +690,7 @@ static int usb_hub_port_reset(struct usb_device *dev, int port, unsigned short *
             __func__, port + 1, MAX_TRIES);
         vmm_printf("%s: Maybe the USB cable is bad?\n", __func__);
         vmm_free(portsts);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     usb_hub_clear_port_feature(dev, port + 1, USB_PORT_FEAT_C_RESET);
@@ -790,7 +790,7 @@ static int usb_hub_configure(struct usb_device *dev, struct usb_interface *intf)
     buffer = vmm_zalloc(USB_BUFSIZ);
 
     if (!buffer) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     usb_ref_device(dev);
@@ -799,7 +799,7 @@ static int usb_hub_configure(struct usb_device *dev, struct usb_interface *intf)
     hub = usb_hub_alloc();
 
     if (hub == NULL) {
-        err = VMM_ENOMEM;
+        err = VMM_ERR_NOMEM;
         goto done;
     }
 
@@ -899,7 +899,7 @@ static int usb_hub_configure(struct usb_device *dev, struct usb_interface *intf)
     if (sizeof(struct usb_hub_status) > USB_BUFSIZ) {
         DPRINTF("%s: failed to get Status too long: %d\n", __func__, descriptor->bLength);
         usb_hub_free(hub);
-        err = VMM_EFAIL;
+        err = VMM_ERR_FAIL;
         goto done;
     }
 
@@ -951,7 +951,7 @@ static int usb_hub_detect_new_device(struct usb_device *parent, struct usb_devic
 
     if (state != USB_STATE_NOTATTACHED) {
         usb_dref_device(dev);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Alloc buffer for temporary read/writes */
@@ -959,7 +959,7 @@ static int usb_hub_detect_new_device(struct usb_device *parent, struct usb_devic
 
     if (!tmpbuf) {
         usb_dref_device(dev);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* We still haven't set the Address yet */
@@ -1024,7 +1024,7 @@ static int usb_hub_detect_new_device(struct usb_device *parent, struct usb_devic
 
         default:
             vmm_printf("%s: invalid max packet size\n", __func__);
-            err         = VMM_EIO;
+            err         = VMM_ERR_IO;
             dev->devnum = addr;
             goto done;
     }
@@ -1051,7 +1051,7 @@ static int usb_hub_detect_new_device(struct usb_device *parent, struct usb_devic
         if (port < 0) {
             vmm_printf("%s: cannot locate device's port.\n", __func__);
             dev->devnum = addr;
-            err         = VMM_EFAIL;
+            err         = VMM_ERR_FAIL;
             goto done;
         }
 
@@ -1320,7 +1320,7 @@ static int usb_hub_poll_status(struct usb_hub_device *hub)
 
     if (!hub->configured) {
         vmm_printf("%s: Hub not configured\n", __func__);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     usb_ref_device(dev);
@@ -1419,28 +1419,28 @@ static int usb_hub_driver_probe(struct usb_interface *intf, const struct usb_dev
 
     /* Is it a hub? */
     if (intf->desc.bInterfaceClass != USB_CLASS_HUB) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Some hubs have a subclass of 1, which AFAICT according to the */
     /*  specs is not defined, but it works */
     if ((intf->desc.bInterfaceSubClass != 0) && (intf->desc.bInterfaceSubClass != 1)) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Multiple endpoints? What kind of mutant ninja-hub is this? */
     if (intf->desc.bNumEndpoints != 1) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Output endpoint? Curiousier and curiousier.. */
     if (!(ep->bEndpointAddress & USB_DIR_IN)) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* If it's not an interrupt endpoint, we'd better punt! */
     if ((ep->bmAttributes & 3) != 3) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* We found a hub */
@@ -1507,7 +1507,7 @@ static int usb_disconnect_work(struct usb_hub_work *work)
 
     /* Sanity check on device state */
     if (usb_get_device_state(dev) != USB_STATE_NOTATTACHED) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* recursively disconnect this device and all child devices */
@@ -1584,7 +1584,7 @@ int __init usb_hub_init(void)
     usb_hub_worker_thread = vmm_threads_create("hubd", usb_hub_worker_main, NULL, VMM_THREAD_DEF_PRIORITY, VMM_THREAD_DEF_TIME_SLICE);
 
     if (!usb_hub_worker_thread) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_threads_start(usb_hub_worker_thread);

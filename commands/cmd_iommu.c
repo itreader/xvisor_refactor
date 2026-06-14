@@ -341,7 +341,7 @@ static int cmd_iommu_controller_info(vmm_char_device_t *cdev, char *name)
 
     if (!ctrl) {
         vmm_cdev_printf(cdev, "Failed to find IOMMU controller %s\n", name);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_cdev_printf(
@@ -384,33 +384,33 @@ static int cmd_iommu_test_iova_to_phys(
 
     if (!size) {
         vmm_cdev_printf(cdev, "Invalid size 0x%zx\n", size);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!stride) {
         vmm_cdev_printf(cdev, "Invalid stride 0x%zx\n", stride);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     bus = vmm_device_driver_find_bus(bus_name);
 
     if (!bus) {
         vmm_cdev_printf(cdev, "Failed to find bus %s\n", bus_name);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     ctrl = vmm_iommu_controller_find(ctrl_name);
 
     if (!ctrl) {
         vmm_cdev_printf(cdev, "Failed to find IOMMU controller %s\n", ctrl_name);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     domain = vmm_iommu_domain_alloc("test_iova_to_phys", bus, ctrl, VMM_IOMMU_DOMAIN_UNMANAGED);
 
     if (!domain) {
         vmm_cdev_printf(cdev, "Failed to alloc IOMMU domain\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     ret = vmm_iommu_map(domain, iova, phys, size, VMM_IOMMU_READ | VMM_IOMMU_WRITE);
@@ -474,7 +474,7 @@ static int cmd_iommu_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
 fail:
     cmd_iommu_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_iommu = {

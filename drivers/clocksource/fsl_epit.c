@@ -138,7 +138,7 @@ static int __init epit_clocksource_init(vmm_device_tree_node_t *node)
     ecs = vmm_zalloc(sizeof(struct epit_clocksource));
 
     if (!ecs) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail;
     }
 
@@ -366,7 +366,7 @@ static int __init epit_clock_chip_init(vmm_device_tree_node_t *node)
     hirq = vmm_device_tree_irq_parse_map(node, 0);
 
     if (!hirq) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto fail;
     }
 
@@ -374,7 +374,7 @@ static int __init epit_clock_chip_init(vmm_device_tree_node_t *node)
     ecc = vmm_zalloc(sizeof(struct epit_clock_chip));
 
     if (!ecc) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto fail;
     }
 

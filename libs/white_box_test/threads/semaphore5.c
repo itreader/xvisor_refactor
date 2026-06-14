@@ -120,7 +120,7 @@ static int semaphore5_do_test(vmm_char_device_t *cdev)
         timeout  = etimeout;
         rc       = vmm_semaphore_down_timeout(&s1, &timeout);
 
-        if (rc != VMM_ETIMEDOUT) {
+        if (rc != VMM_ERR_TIMEDOUT) {
             vmm_cdev_printf(cdev, "error: semaphore down did not timeout\n");
             failures++;
         }
@@ -160,7 +160,7 @@ static int semaphore5_do_test(vmm_char_device_t *cdev)
         failures++;
     }
 
-    return (failures) ? VMM_EFAIL : 0;
+    return (failures) ? VMM_ERR_FAIL : 0;
 }
 
 static int semaphore5_run(struct white_box_test *test, vmm_char_device_t *cdev, uint32_t test_hcpu)
@@ -179,7 +179,7 @@ static int semaphore5_run(struct white_box_test *test, vmm_char_device_t *cdev, 
         workers[i] = vmm_threads_create(wname, semaphore5_worker_thread_main, (void *)(uint64_t)i, current_priority, VMM_THREAD_DEF_TIME_SLICE);
 
         if (workers[i] == NULL) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             goto destroy_workers;
         }
 

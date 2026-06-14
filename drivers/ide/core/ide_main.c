@@ -68,7 +68,7 @@ static int __init_ide_drive(struct ide_drive *drive)
     uint8_t             chan, did;
 
     if (!drive) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (drive->block_device) {
@@ -79,7 +79,7 @@ static int __init_ide_drive(struct ide_drive *drive)
     drive->block_device = vmm_block_device_alloc();
 
     if (!drive->block_device) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto detect_freecard_fail;
     }
 
@@ -141,12 +141,12 @@ static int __ide_block_device_request(struct ide_drive *drive, vmm_request_queue
     uint32_t cnt;
 
     if (!r) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!drive || !rq) {
         vmm_block_device_fail_request(r);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     switch (r->type) {
@@ -158,7 +158,7 @@ static int __ide_block_device_request(struct ide_drive *drive, vmm_request_queue
                 rc = VMM_OK;
             } else {
                 vmm_block_device_fail_request(r);
-                rc = VMM_EIO;
+                rc = VMM_ERR_IO;
             }
 
             break;
@@ -171,14 +171,14 @@ static int __ide_block_device_request(struct ide_drive *drive, vmm_request_queue
                 rc = VMM_OK;
             } else {
                 vmm_block_device_fail_request(r);
-                rc = VMM_EIO;
+                rc = VMM_ERR_IO;
             }
 
             break;
 
         default:
             vmm_block_device_fail_request(r);
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -195,7 +195,7 @@ static int ide_io_thread(void *tdata)
     while (1) {
         if (vmm_completion_wait(&drive->io_avail) != VMM_OK) {
             vmm_printf("Failed to wait on completion.\n");
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         vmm_spin_lock_irq_save(&drive->io_list_lock, f);
@@ -227,7 +227,7 @@ static int ide_make_request(vmm_request_queue_t *rq, vmm_request_t *r)
     struct ide_drive    *drive;
 
     if (!r || !rq || !rq->private) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     drive = rq->private;
@@ -235,7 +235,7 @@ static int ide_make_request(vmm_request_queue_t *rq, vmm_request_t *r)
     io    = vmm_zalloc(sizeof(struct ide_drive_io));
 
     if (!io) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     INIT_LIST_HEAD(&io->head);
@@ -260,7 +260,7 @@ static int ide_abort_request(vmm_request_queue_t *rq, vmm_request_t *r)
     struct ide_drive    *drive;
 
     if (!r || !rq || !rq->private) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     drive = rq->private;
@@ -302,7 +302,7 @@ int ide_add_drive(struct ide_drive *drive)
     char name[32];
 
     if (!drive || drive->io_thread) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_mutex_lock(&ide_drive_list_mutex);
@@ -318,7 +318,7 @@ int ide_add_drive(struct ide_drive *drive)
     if (__init_ide_drive(drive) != VMM_OK) {
         vmm_mutex_unlock(&ide_drive_list_mutex);
         vmm_printf("%s: IDE Block layer int failed\n", __func__);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_snprintf(name, 32, "%s", drive_names[drive->channel->id][drive->drive]);
@@ -326,7 +326,7 @@ int ide_add_drive(struct ide_drive *drive)
 
     if (!drive->io_thread) {
         vmm_mutex_unlock(&ide_drive_list_mutex);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (drive->channel->id) {
@@ -345,7 +345,7 @@ int ide_add_drive(struct ide_drive *drive)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(ide_add_drive);
+VMM_ERR_XPORT_SYMBOL(ide_add_drive);
 
 static int __init ide_core_init(void)
 {

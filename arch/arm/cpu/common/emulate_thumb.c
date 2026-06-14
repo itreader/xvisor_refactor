@@ -34,11 +34,11 @@ int emulate_thumb_inst(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t inst)
 {
     /* Sanity check */
     if (!vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!vcpu->is_normal) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Thumb mode emulation not supported so halt the VCPU */

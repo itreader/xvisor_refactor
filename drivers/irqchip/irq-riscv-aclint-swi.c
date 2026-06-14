@@ -45,9 +45,9 @@
 static DEFINE_PER_CPU(void *, aclint_swi_reg);
 static struct vmm_host_irq_domain *aclint_swi_domain __read_mostly;
 
-static void aclint_swi_dummy(struct vmm_host_irq *d) {}
+static void aclint_swi_dummy(vmm_host_irq_t *d) {}
 
-static void aclint_swi_raise(struct vmm_host_irq *d, const vmm_cpumask_t *mask)
+static void aclint_swi_raise(vmm_host_irq_t *d, const vmm_cpumask_t *mask)
 {
     uint32_t cpu;
     void    *swi_reg;
@@ -59,7 +59,7 @@ static void aclint_swi_raise(struct vmm_host_irq *d, const vmm_cpumask_t *mask)
     }
 }
 
-static struct vmm_host_irq_chip aclint_swi_irqchip = {
+static vmm_host_irq_chip_t aclint_swi_irqchip = {
     .name = "riscv-aclint-swi", .irq_mask = aclint_swi_dummy, .irq_unmask = aclint_swi_dummy, .irq_raise = aclint_swi_raise};
 
 static vmm_irq_return_t aclint_swi_handler(int irq, void *dev)
@@ -145,7 +145,7 @@ static int __init aclint_swi_init(vmm_device_tree_node_t *node)
     if (!aclint_swi_domain) {
         vmm_lerror("aclint-swi", "%s: failed to add irq domain\n", node->name);
         vmm_device_tree_regunmap_release(node, va, 0);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Setup ACLINT SWI domain interrupts */

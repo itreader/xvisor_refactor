@@ -297,14 +297,14 @@ int cpu_vcpu_timer_init(vmm_vcpu_t *vcpu, void **timer)
     struct cpu_vcpu_timer *t;
 
     if (!vcpu || !timer) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!(*timer)) {
         *timer = vmm_zalloc(sizeof(struct cpu_vcpu_timer));
 
         if (!(*timer)) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         t = *timer;
@@ -334,7 +334,7 @@ int cpu_vcpu_timer_deinit(vmm_vcpu_t *vcpu, void **timer)
     struct cpu_vcpu_timer *t;
 
     if (!vcpu || !timer || !(*timer)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     t = *timer;

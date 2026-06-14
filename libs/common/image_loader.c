@@ -50,13 +50,13 @@ static int next_token(int fd, char *buf, size_t buf_len)
     size_t pos, rdcnt;
 
     if (!buf || !buf_len) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     rdcnt = vfs_read(fd, &ch, 1);
 
     if (!rdcnt) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     while (ch) {
@@ -64,7 +64,7 @@ static int next_token(int fd, char *buf, size_t buf_len)
             rdcnt = vfs_read(fd, &ch, 1);
 
             if (!rdcnt) {
-                return VMM_ENOTAVAIL;
+                return VMM_ERR_NOTAVAIL;
             }
         }
 
@@ -76,7 +76,7 @@ static int next_token(int fd, char *buf, size_t buf_len)
             rdcnt = vfs_read(fd, &ch, 1);
 
             if (!rdcnt) {
-                return VMM_ENOTAVAIL;
+                return VMM_ERR_NOTAVAIL;
             }
         }
     }
@@ -173,7 +173,7 @@ static int ppm_parser(int fd, struct frame_buffer_image *image, struct image_for
     }
 
     if (color_bytes != 1) {
-        return VMM_ENOTSUPP;
+        return VMM_ERR_NOTSUPP;
     }
 
     size         = image->width * image->height;
@@ -181,7 +181,7 @@ static int ppm_parser(int fd, struct frame_buffer_image *image, struct image_for
     out          = vmm_zalloc(size * (fmt->bits_per_pixel / 8));
 
     if (!out) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     image->data = out;
@@ -250,7 +250,7 @@ int image_load(const char *path, struct image_format *fmt, struct frame_buffer_i
     parser_func_t parse_func;
 
     if (!path) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((fd = vfs_open(path, O_RDONLY, 0)) < 0) {
@@ -263,13 +263,13 @@ int image_load(const char *path, struct image_format *fmt, struct frame_buffer_i
 
     if (!(st.st_mode & S_IFREG)) {
         DPRINTF("Cannot read %s\n", path);
-        err = VMM_EINVALID;
+        err = VMM_ERR_INVALID;
         goto out;
     }
 
     if (!(parse_func = parser_get(fd))) {
         DPRINTF("Unsupported format\n");
-        err = VMM_EINVALID;
+        err = VMM_ERR_INVALID;
         goto out;
     }
 
@@ -284,7 +284,7 @@ out:
     return err;
 }
 
-VMM_EXPORT_SYMBOL(image_load);
+VMM_ERR_XPORT_SYMBOL(image_load);
 
 void image_release(struct frame_buffer_image *image)
 {
@@ -299,7 +299,7 @@ void image_release(struct frame_buffer_image *image)
     image->data = NULL;
 }
 
-VMM_EXPORT_SYMBOL(image_release);
+VMM_ERR_XPORT_SYMBOL(image_release);
 
 /**
  * Display images on the framebuffer.
@@ -339,6 +339,6 @@ int image_draw(struct frame_buffer_info *info, const struct frame_buffer_image *
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(image_draw);
+VMM_ERR_XPORT_SYMBOL(image_draw);
 
 VMM_DECLARE_MODULE("Image loader library", "Jimmy Durand Wesolowski", "GPL", IMAGE_LOADER_IPRIORITY, NULL, NULL);

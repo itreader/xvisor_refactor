@@ -18,7 +18,7 @@
  *
  * @file vmm_const.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for sharing constants between assembly and C code
+ * @brief 汇编与C代码共享常量头文件
  *
  * The source has been largely adapted from Linux 4.x or higher:
  * include/uapi/linux/const.h

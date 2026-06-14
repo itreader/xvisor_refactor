@@ -46,12 +46,12 @@ static int mtd_block_device_erase_write(vmm_request_t *r, physical_addr_t off, p
 
     if (mtd_erase(mtd, &info)) {
         dev_err(&r->block_device->dev, "Erasing at 0x%08X failed\n", off);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     if (mtd_write(mtd, off, len, &retlen, r->data)) {
         dev_err(&r->block_device->dev, "Writing at 0x%08X failed\n", off);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     if (retlen < len) {
@@ -60,7 +60,7 @@ static int mtd_block_device_erase_write(vmm_request_t *r, physical_addr_t off, p
             "Only 0x%X/0x%X bytes have been "
             "written at 0x%08X\n",
             retlen, len, off);
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;
@@ -77,7 +77,7 @@ int mtd_block_device_read(vmm_block_request_queue_t *brq, vmm_request_t *r, void
     mtd_read(mtd, off, len, &retlen, r->data);
 
     if (retlen < len) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return VMM_OK;

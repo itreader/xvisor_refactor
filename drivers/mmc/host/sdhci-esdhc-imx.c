@@ -995,7 +995,7 @@ static int sdhci_esdhc_imx_probe(vmm_device_t *dev)
 
     if (!devid) {
         dev_info(dev, "nodeid not found\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     if (!vmm_device_tree_is_available(dev->of_node)) {
@@ -1006,7 +1006,7 @@ static int sdhci_esdhc_imx_probe(vmm_device_t *dev)
     host = sdhci_alloc_host(dev, sizeof(struct pltfm_imx_data));
 
     if (!host) {
-        err = VMM_ENOMEM;
+        err = VMM_ERR_NOMEM;
         dev_err(dev, "fail to allocate host SDHCI\n");
         goto free_nothing;
     }
@@ -1022,7 +1022,7 @@ static int sdhci_esdhc_imx_probe(vmm_device_t *dev)
     host->irq = irq_of_parse_and_map(dev->of_node, 0);
 
     if (!host->irq) {
-        err = VMM_ENODEV;
+        err = VMM_ERR_NODEV;
         dev_err(dev, "fail to get IRQ from the device tree\n");
         goto free_reg;
     }
@@ -1077,7 +1077,7 @@ static int sdhci_esdhc_imx_probe(vmm_device_t *dev)
     imx_data->pins_default = pinctrl_lookup_state(imx_data->pinctrl, PINCTRL_STATE_DEFAULT);
 
     if (IS_ERR(imx_data->pins_default)) {
-        err = VMM_EFAIL;
+        err = VMM_ERR_FAIL;
         dev_err(dev, "could not get default state\n");
         goto disable_clock;
     }

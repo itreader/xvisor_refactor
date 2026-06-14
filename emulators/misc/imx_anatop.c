@@ -259,7 +259,7 @@ static int imx_anatop_emulator_probe(struct vmm_guest *guest, vmm_emulate_device
 
     if (NULL == private) {
         vmm_printf("Failed to allocate %s private structure\n", edev->node->name);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     private->guest = guest;

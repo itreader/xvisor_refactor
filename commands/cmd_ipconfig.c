@@ -93,7 +93,7 @@ static int cmd_ipconfig_update(vmm_char_device_t *cdev, int argc, char **argv)
                 netstack_set_ipmask(mask);
             } else {
                 vmm_cdev_printf(cdev, "ERROR: Invalid IP address\n");
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
             }
 
             break;
@@ -107,7 +107,7 @@ static int cmd_ipconfig_update(vmm_char_device_t *cdev, int argc, char **argv)
                 netstack_set_ipmask(buf);
             } else {
                 vmm_cdev_printf(cdev, "ERROR: Invalid IP address\n");
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
             }
 
             break;
@@ -123,13 +123,13 @@ static int cmd_ipconfig_update(vmm_char_device_t *cdev, int argc, char **argv)
                 netstack_set_gatewayip(buf);
             } else {
                 vmm_cdev_printf(cdev, "ERROR: Invalid IP address\n");
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
             }
 
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -154,7 +154,7 @@ static int cmd_ipconfig_exec(vmm_char_device_t *cdev, int argc, char **argv)
     }
 
     cmd_ipconfig_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_ipconfig = {

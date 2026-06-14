@@ -268,7 +268,7 @@ static int sunxi_mmc_update_clock(struct sunxi_mmc_host *host)
         ;
 
     if (!timeout) {
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     vmm_writel(vmm_readl(&host->reg->rint), &host->reg->rint);
@@ -331,7 +331,7 @@ static int sunxi_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 
         if (sunxi_mmc_config_clock(host, clkdiv)) {
             host->fatal_err = 1;
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
     }
 
@@ -396,7 +396,7 @@ static int sunxi_mmc_trans_data_pio(struct sunxi_mmc_host *host, struct mmc_data
 out:
 
     if (timeout <= 0) {
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     }
 
     return VMM_OK;
@@ -502,7 +502,7 @@ static int sunxi_mmc_send_cmd(struct mmc_host *mmc, struct mmc_cmd *cmd, struct 
     uint32_t               bytecnt = 0;
 
     if (host->fatal_err) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     if (cmd->resp_type & MMC_RSP_BUSY) {
@@ -547,7 +547,7 @@ static int sunxi_mmc_send_cmd(struct mmc_host *mmc, struct mmc_cmd *cmd, struct 
 
     if (data) {
         if ((uint32_t)data->dest & 0x3) {
-            error = VMM_EINVALID;
+            error = VMM_ERR_INVALID;
             goto out;
         }
 
@@ -609,7 +609,7 @@ static int sunxi_mmc_send_cmd(struct mmc_host *mmc, struct mmc_cmd *cmd, struct 
         status = vmm_readl(&host->reg->rint);
 
         if (!timeout-- || (status & 0xbfc2)) {
-            error = VMM_EIO;
+            error = VMM_ERR_IO;
             MMCDBG("%s: cmd timeout %x\n", __func__, status);
             goto out;
         }
@@ -625,7 +625,7 @@ static int sunxi_mmc_send_cmd(struct mmc_host *mmc, struct mmc_cmd *cmd, struct 
             status = vmm_readl(&host->reg->rint);
 
             if (!timeout-- || (status & 0xbfc2)) {
-                error = VMM_EIO;
+                error = VMM_ERR_IO;
                 MMCDBG("%s: data timeout %x\n", __func__, status);
                 goto out;
             }
@@ -645,7 +645,7 @@ static int sunxi_mmc_send_cmd(struct mmc_host *mmc, struct mmc_cmd *cmd, struct 
             status = vmm_readl(&host->reg->status);
 
             if (!timeout--) {
-                error = VMM_EIO;
+                error = VMM_ERR_IO;
                 MMCDBG("%s: busy timeout\n", __func__);
                 goto out;
             }
@@ -713,7 +713,7 @@ static int sunxi_mmc_driver_probe(vmm_device_t *dev)
     mmc = mmc_alloc_host(sizeof(struct sunxi_mmc_host), dev);
 
     if (!mmc) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_nothing;
     }
 
@@ -778,12 +778,12 @@ static int sunxi_mmc_driver_probe(vmm_device_t *dev)
     base       = vmm_page_pool_alloc(VMM_PAGE_POOL_NORMAL, 1);
 
     if (!base) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_gpio;
     }
 
     host->pdes = (struct sunxi_mmc_des *)base;
-    rc         = vmm_host_va2pa(base, &host->pdes_pa);
+    rc         = vmm_host_virtualAddr_to_physicalAddr(base, &host->pdes_pa);
 
     if (rc) {
         goto free_pdes;
@@ -795,7 +795,7 @@ static int sunxi_mmc_driver_probe(vmm_device_t *dev)
     host->irq      = vmm_device_tree_irq_parse_map(dev->of_node, 0);
 
     if (!host->irq) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto free_pdes;
     }
 

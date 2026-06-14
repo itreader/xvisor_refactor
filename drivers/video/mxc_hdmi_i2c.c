@@ -72,7 +72,7 @@ static int hdmi_i2c_probe(struct i2c_client *client, const struct i2c_device_id 
 {
     if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE | I2C_FUNC_I2C)) {
         vmm_lerror(NULL, "Failed to get I2C client\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     hdmi_i2c = client;

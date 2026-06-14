@@ -160,7 +160,7 @@ static int vsdaemon_management_terminal_setup(struct vsdaemon *vsd, int argc, ch
     vmanagement_terminal = vmm_zalloc(sizeof(*vmanagement_terminal));
 
     if (!vmanagement_terminal) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     vmanagement_terminal->vsd = vsd;
@@ -174,7 +174,7 @@ static int vsdaemon_management_terminal_setup(struct vsdaemon *vsd, int argc, ch
 
     if (!vmanagement_terminal->rx_fifo) {
         vmm_free(vmanagement_terminal);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     INIT_COMPLETION(&vmanagement_terminal->rx_avail);

@@ -67,7 +67,7 @@ int unwind_frame(struct stackframe *frame)
 
     /* check current frame pointer is within bounds */
     if (fp < (low + 12) || fp + 4 >= high) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* restore the registers from the stack frame */

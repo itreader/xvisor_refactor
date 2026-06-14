@@ -66,7 +66,7 @@ static int __init setup_early_print(char *buf)
         return init_early_fb_console();
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 vmm_early_param("earlyprint", setup_early_print);
@@ -100,7 +100,7 @@ int arch_default_terminal_putc(uint8_t ch)
         return ops->putc(ch);
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 int arch_default_terminal_getc(uint8_t *ch)
@@ -109,7 +109,7 @@ int arch_default_terminal_getc(uint8_t *ch)
         return ops->getc(ch);
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 int __init arch_default_terminal_init(void)

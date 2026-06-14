@@ -118,7 +118,7 @@ static int set_bits_ll(uint64_t *addr, uint64_t mask_to_set)
         val = nval;
 
         if (val & mask_to_set) {
-            return VMM_EBUSY;
+            return VMM_ERR_BUSY;
         }
 
         arch_smp_mb();
@@ -137,7 +137,7 @@ static int clear_bits_ll(uint64_t *addr, uint64_t mask_to_clear)
         val = nval;
 
         if ((val & mask_to_clear) != mask_to_clear) {
-            return VMM_EBUSY;
+            return VMM_ERR_BUSY;
         }
 
         arch_smp_mb();
@@ -270,7 +270,7 @@ int gen_pool_add_virt(struct gen_pool *pool, uint64_t virt, physical_addr_t phys
     chunk                         = vmm_zalloc(nbytes);
 
     if (unlikely(chunk == NULL)) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     chunk->phys_addr  = phys;
@@ -582,7 +582,7 @@ static void devm_gen_pool_release(vmm_device_t *dev, void *res)
  * devm_gen_pool_create - managed gen_pool_create
  * @dev: device that provides the gen_pool
  * @min_alloc_order: log base 2 of number of bytes each bitmap bit represents
- * @nid: node id of the node the pool structure should be allocated on, or -1
+ * @nodeid: node id of the node the pool structure should be allocated on, or -1
  *
  * Create a new special memory pool that can be used to manage special purpose
  * memory not managed by the regular kmalloc/kfree interface. The pool will be

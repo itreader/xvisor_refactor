@@ -6,15 +6,15 @@ In this release, we mainly have initial RISC-V port, new drivers,
 and new boards.
 
 New Features:
- - Host aspace APIs to allocate and free hugepages
- - Pagepool APIs to manage regular pages on top of hugepages
+ - Host addr_space APIs to allocate and free huge_pages
+ - Pagepool APIs to manage regular pages on top of huge_pages
  - Xref library for simple reference counting
  - Rational fractions library
  - IOMMU controller and related APIs
- - Print RAM and VAPOOL details at boot-time
+ - Print RAM and VIRTUAL_ADDR_POOL details at boot-time
 
 New Commands:
- - host memmap sub-command
+ - host memory_map sub-command
  - host page_pool sub-command
  - iommu command
  - clk command
@@ -47,7 +47,7 @@ ARM Ports:
  - Reorganized DTS files to have separate vendor directory
  - Basic firmware using common arch independent implementation
  - Make VCPU exception stack cache-line aligned
- - Allow hugepage mappings
+ - Allow huge_page mappings
 
 ARM32 Port:
  - No change

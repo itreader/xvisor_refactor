@@ -77,7 +77,7 @@ int __init arch_device_tree_ram_bank_start(uint32_t bank, physical_addr_t *addr)
                                 VMM_DEVICE_TREE_MEMORY_NODE_NAME);
 
     if (!fdt_node) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = libfdt_get_property(&fdt, fdt_node,
@@ -91,7 +91,7 @@ int __init arch_device_tree_ram_bank_start(uint32_t bank, physical_addr_t *addr)
 #else
 
     if (bank > 0) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     *addr = 0x100000UL;
@@ -102,7 +102,7 @@ int __init arch_device_tree_ram_bank_start(uint32_t bank, physical_addr_t *addr)
 int __init arch_device_tree_ram_bank_size(uint32_t bank, physical_size_t *size)
 {
     if (bank > 0) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     *size = boot_info.mem_upper * 1024;
@@ -160,7 +160,7 @@ int __init arch_device_tree_populate(vmm_device_tree_node_t **root)
 
 int __init arch_cpu_nascent_init(void)
 {
-    /* Host aspace, Heap, and Device tree available. */
+    /* Host addr_space, Heap, and Device tree available. */
 
     /* Nothing to do here. */
 
@@ -256,7 +256,7 @@ static void __init boot_modules_move(struct multiboot_info *binfo)
      * If we are already beyond safe limit, we don't need
      * to move the modules.
      */
-    if ((modlist->mod_start >> 20) > CONFIG_VAPOOL_SIZE_MB) {
+    if ((modlist->mod_start >> 20) > CONFIG_VIRTUAL_ADDR_POOL_SIZE_MB) {
         return;
     }
 

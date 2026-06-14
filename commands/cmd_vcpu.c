@@ -231,14 +231,14 @@ static int cmd_vcpu_monitor(vmm_char_device_t *cdev, int argc, char **argv)
             vmm_cdev_puts(ocdev, "\n");
         }
 
-        /* Print VAPOOL usage */
+        /* Print VIRTUAL_ADDR_POOL usage */
         vfree = vmm_host_virtual_address_pool_free_page_count();
         vfree *= VMM_PAGE_SIZE;
         vtotal = vmm_host_virtual_address_pool_total_page_count();
         vtotal *= VMM_PAGE_SIZE;
         vmm_cdev_printf(
             ocdev,
-            "VAPOOL: free %" PRISIZE "KiB  "
+            "VIRTUAL_ADDR_POOL: free %" PRISIZE "KiB  "
             "used %" PRISIZE "KiB  total %" PRISIZE "KiB\n",
             vfree / 1024, (vtotal - vfree) / 1024, vtotal / 1024);
         /* Print RAM usage */
@@ -290,7 +290,7 @@ static int cmd_vcpu_reset(vmm_char_device_t *cdev, int argc, char **argv)
     if (!argc) {
         vmm_cdev_printf(cdev, "Must provide vcpu ID\n");
         cmd_vcpu_usage(cdev);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     id   = atoi(argv[0]);
@@ -299,7 +299,7 @@ static int cmd_vcpu_reset(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (!vcpu) {
         vmm_cdev_printf(cdev, "Failed to find vcpu\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((ret = vmm_manager_vcpu_reset(vcpu))) {
@@ -319,7 +319,7 @@ static int cmd_vcpu_kick(vmm_char_device_t *cdev, int argc, char **argv)
     if (!argc) {
         vmm_cdev_printf(cdev, "Must provide vcpu ID\n");
         cmd_vcpu_usage(cdev);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     id   = atoi(argv[0]);
@@ -328,7 +328,7 @@ static int cmd_vcpu_kick(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (!vcpu) {
         vmm_cdev_printf(cdev, "Failed to find vcpu\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((ret = vmm_manager_vcpu_kick(vcpu))) {
@@ -348,7 +348,7 @@ static int cmd_vcpu_pause(vmm_char_device_t *cdev, int argc, char **argv)
     if (!argc) {
         vmm_cdev_printf(cdev, "Must provide vcpu ID\n");
         cmd_vcpu_usage(cdev);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     id   = atoi(argv[0]);
@@ -357,7 +357,7 @@ static int cmd_vcpu_pause(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (!vcpu) {
         vmm_cdev_printf(cdev, "Failed to find vcpu\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((ret = vmm_manager_vcpu_pause(vcpu))) {
@@ -377,7 +377,7 @@ static int cmd_vcpu_resume(vmm_char_device_t *cdev, int argc, char **argv)
     if (!argc) {
         vmm_cdev_printf(cdev, "Must provide vcpu ID\n");
         cmd_vcpu_usage(cdev);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     id   = atoi(argv[0]);
@@ -386,7 +386,7 @@ static int cmd_vcpu_resume(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (!vcpu) {
         vmm_cdev_printf(cdev, "Failed to find vcpu\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((ret = vmm_manager_vcpu_resume(vcpu))) {
@@ -406,7 +406,7 @@ static int cmd_vcpu_halt(vmm_char_device_t *cdev, int argc, char **argv)
     if (!argc) {
         vmm_cdev_printf(cdev, "Must provide vcpu ID\n");
         cmd_vcpu_usage(cdev);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     id   = atoi(argv[0]);
@@ -415,7 +415,7 @@ static int cmd_vcpu_halt(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (!vcpu) {
         vmm_cdev_printf(cdev, "Failed to find vcpu\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((ret = vmm_manager_vcpu_halt(vcpu))) {
@@ -435,7 +435,7 @@ static int cmd_vcpu_set_hcpu(vmm_char_device_t *cdev, int argc, char **argv)
     if (argc != 2) {
         vmm_cdev_printf(cdev, "Must provide vcpu ID and host CPU\n");
         cmd_vcpu_usage(cdev);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     id       = atoi(argv[0]);
@@ -445,7 +445,7 @@ static int cmd_vcpu_set_hcpu(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (!vcpu) {
         vmm_cdev_printf(cdev, "Failed to find vcpu\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((ret = vmm_manager_vcpu_set_hcpu(vcpu, (uint32_t)host_cpu))) {
@@ -466,7 +466,7 @@ static int cmd_vcpu_set_affinity(vmm_char_device_t *cdev, int argc, char **argv)
     if (argc < 2) {
         vmm_cdev_printf(cdev, "Must provide vcpu ID and host CPUs\n");
         cmd_vcpu_usage(cdev);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     id   = atoi(argv[0]);
@@ -478,12 +478,12 @@ static int cmd_vcpu_set_affinity(vmm_char_device_t *cdev, int argc, char **argv)
 
         if (CONFIG_CPU_COUNT <= host_cpu) {
             vmm_cdev_printf(cdev, "Invalid host CPU%d (>= %d)\n", host_cpu, CONFIG_CPU_COUNT);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         if (!vmm_cpu_online(host_cpu)) {
             vmm_cdev_printf(cdev, "Host CPU%d not online\n", host_cpu);
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
         }
 
         vmm_cpumask_set_cpu(host_cpu, &mask);
@@ -493,7 +493,7 @@ static int cmd_vcpu_set_affinity(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (!vcpu) {
         vmm_cdev_printf(cdev, "Failed to find vcpu\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((ret = vmm_manager_vcpu_set_affinity(vcpu, &mask))) {
@@ -513,7 +513,7 @@ static int cmd_vcpu_dumpreg(vmm_char_device_t *cdev, int argc, char **argv)
     if (!argc) {
         vmm_cdev_printf(cdev, "Must provide vcpu ID\n");
         cmd_vcpu_usage(cdev);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     id   = atoi(argv[0]);
@@ -522,7 +522,7 @@ static int cmd_vcpu_dumpreg(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (!vcpu) {
         vmm_cdev_printf(cdev, "Failed to find vcpu\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Architecture specific dumpreg */
@@ -562,7 +562,7 @@ static int cmd_vcpu_dumpstat(vmm_char_device_t *cdev, int argc, char **argv)
     if (!argc) {
         vmm_cdev_printf(cdev, "Must provide vcpu ID\n");
         cmd_vcpu_usage(cdev);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     id   = atoi(argv[0]);
@@ -571,11 +571,11 @@ static int cmd_vcpu_dumpstat(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (!vcpu) {
         vmm_cdev_printf(cdev, "Failed to find vcpu\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Retrive general statistics*/
-    ret = vmm_scheduler_stats(
+    ret = vmm_scheduler_get_status(
         vcpu, &state, &priority, &host_cpu, &reset_count, &last_reset_nsecs, &ready_nsecs, &running_nsecs, &paused_nsecs, &halted_nsecs,
         &system_nsecs);
 
@@ -679,7 +679,7 @@ static int cmd_vcpu_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc <= 1) {
         cmd_vcpu_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     while (command[index].name) {
@@ -692,7 +692,7 @@ static int cmd_vcpu_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     cmd_vcpu_usage(cdev);
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_vcpu = {

@@ -93,7 +93,7 @@ struct vexpress_config_bridge *vexpress_config_bridge_register(vmm_device_tree_n
     return bridge;
 }
 
-VMM_EXPORT_SYMBOL(vexpress_config_bridge_register);
+VMM_ERR_XPORT_SYMBOL(vexpress_config_bridge_register);
 
 void vexpress_config_bridge_unregister(struct vexpress_config_bridge *bridge)
 {
@@ -119,7 +119,7 @@ void vexpress_config_bridge_unregister(struct vexpress_config_bridge *bridge)
     vmm_device_tree_dref_node(__bridge.node);
 }
 
-VMM_EXPORT_SYMBOL(vexpress_config_bridge_unregister);
+VMM_ERR_XPORT_SYMBOL(vexpress_config_bridge_unregister);
 
 struct vexpress_config_func {
     struct vexpress_config_bridge *bridge;
@@ -182,7 +182,7 @@ struct vexpress_config_func *__vexpress_config_func_get(vmm_device_t *dev, vmm_d
     return func;
 }
 
-VMM_EXPORT_SYMBOL(__vexpress_config_func_get);
+VMM_ERR_XPORT_SYMBOL(__vexpress_config_func_get);
 
 void vexpress_config_func_put(struct vexpress_config_func *func)
 {
@@ -190,7 +190,7 @@ void vexpress_config_func_put(struct vexpress_config_func *func)
     vmm_free(func);
 }
 
-VMM_EXPORT_SYMBOL(vexpress_config_func_put);
+VMM_ERR_XPORT_SYMBOL(vexpress_config_func_put);
 
 struct vexpress_config_trans {
     struct vexpress_config_func *func;
@@ -216,7 +216,7 @@ static int vexpress_config_schedule(struct vexpress_config_trans *trans)
     irq_flags_t                    flags;
 
     INIT_COMPLETION(&trans->completion);
-    trans->status = VMM_EFAULT;
+    trans->status = VMM_ERR_FAULT;
 
     vmm_spin_lock_irq_save(&bridge->transactions_lock, flags);
 
@@ -273,7 +273,7 @@ void vexpress_config_complete(struct vexpress_config_bridge *bridge, int status)
     vmm_spin_unlock_irq_restore(&bridge->transactions_lock, flags);
 }
 
-VMM_EXPORT_SYMBOL(vexpress_config_complete);
+VMM_ERR_XPORT_SYMBOL(vexpress_config_complete);
 
 int vexpress_config_wait(struct vexpress_config_trans *trans)
 {
@@ -282,7 +282,7 @@ int vexpress_config_wait(struct vexpress_config_trans *trans)
     return trans->status;
 }
 
-VMM_EXPORT_SYMBOL(vexpress_config_wait);
+VMM_ERR_XPORT_SYMBOL(vexpress_config_wait);
 
 int vexpress_config_read(struct vexpress_config_func *func, int offset, uint32_t *data)
 {
@@ -302,7 +302,7 @@ int vexpress_config_read(struct vexpress_config_func *func, int offset, uint32_t
     return status;
 }
 
-VMM_EXPORT_SYMBOL(vexpress_config_read);
+VMM_ERR_XPORT_SYMBOL(vexpress_config_read);
 
 int vexpress_config_write(struct vexpress_config_func *func, int offset, uint32_t data)
 {
@@ -322,4 +322,4 @@ int vexpress_config_write(struct vexpress_config_func *func, int offset, uint32_
     return status;
 }
 
-VMM_EXPORT_SYMBOL(vexpress_config_write);
+VMM_ERR_XPORT_SYMBOL(vexpress_config_write);

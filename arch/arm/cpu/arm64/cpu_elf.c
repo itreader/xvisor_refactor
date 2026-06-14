@@ -55,5 +55,5 @@ int arch_elf_apply_relocate(struct elf64_shdr *sechdrs, const char *strtab, uint
 int arch_elf_apply_relocate_add(struct elf64_shdr *sechdrs, const char *strtab, uint32_t symindex, uint32_t relsec, vmm_module_t *mod)
 {
     vmm_printf("module %s: ADD RELOCATION unsupported\n", mod->name);
-    return VMM_ENOEXEC;
+    return VMM_ERR_NOEXEC;
 }

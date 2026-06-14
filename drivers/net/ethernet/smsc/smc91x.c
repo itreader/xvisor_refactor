@@ -2608,7 +2608,7 @@ static int __devinit smc_drv_probe(vmm_device_t *pdev)
     }
 
     if (strlcpy(ndev->name, pdev->name, sizeof(ndev->name)) >= sizeof(ndev->name)) {
-        ret = VMM_EOVERFLOW;
+        ret = VMM_ERR_OVERFLOW;
         goto out_free_netdev;
     }
 

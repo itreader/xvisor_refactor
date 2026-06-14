@@ -18,7 +18,7 @@
  *
  * @file vmm_cpumask.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief Implemention of interface for managing set of CPUs
+ * @brief CPU集合管理接口的实现
  *
  * The source has been largely adapted from:
  * linux-xxx/kernel/cpu.c
@@ -71,6 +71,13 @@ const vmm_cpumask_t *const cpu_active_mask = to_cpumask(cpu_active_bits);
 
 #if CONFIG_CPU_COUNT != 1
 
+/**
+ * @brief 获取两个CPU掩码交集中指定CPU之后的下一个CPU
+ * @param n 起始位置编号
+ * @param src1p CPU亲和性掩码
+ * @param src2p CPU亲和性掩码
+ * @return 下一个在两个掩码中都置位的CPU编号，无则返回nr_cpu_ids
+ */
 uint32_t vmm_cpumask_next_and(int n, const vmm_cpumask_t *src1p, const vmm_cpumask_t *src2p)
 {
     while ((n = vmm_cpumask_next(n, src1p)) < vmm_cpu_count) {
@@ -82,6 +89,12 @@ uint32_t vmm_cpumask_next_and(int n, const vmm_cpumask_t *src1p, const vmm_cpuma
     return n;
 }
 
+/**
+ * @brief 获取CPU掩码中除指定CPU外的任意一个CPU
+ * @param mask CPU亲和性掩码
+ * @param cpu CPU编号
+ * @return 掩码中除指定CPU外的任一CPU编号，无则返回nr_cpu_ids
+ */
 uint32_t vmm_cpumask_any_but(const vmm_cpumask_t *mask, uint32_t cpu)
 {
     uint32_t i;
@@ -95,6 +108,11 @@ uint32_t vmm_cpumask_any_but(const vmm_cpumask_t *mask, uint32_t cpu)
 
 #endif
 
+/**
+ * @brief 设置指定CPU在possible掩码中的状态
+ * @param cpu CPU编号
+ * @param possible 是否可能出现
+ */
 void vmm_set_cpu_possible(uint32_t cpu, bool possible)
 {
     if (possible) {
@@ -104,6 +122,11 @@ void vmm_set_cpu_possible(uint32_t cpu, bool possible)
     }
 }
 
+/**
+ * @brief 设置指定CPU在present掩码中的状态
+ * @param cpu CPU编号
+ * @param present 是否在线（已安装）
+ */
 void vmm_set_cpu_present(uint32_t cpu, bool present)
 {
     if (present) {
@@ -113,6 +136,11 @@ void vmm_set_cpu_present(uint32_t cpu, bool present)
     }
 }
 
+/**
+ * @brief 设置指定CPU在online掩码中的状态
+ * @param cpu CPU编号
+ * @param online 是否在线
+ */
 void vmm_set_cpu_online(uint32_t cpu, bool online)
 {
     if (online) {
@@ -122,6 +150,11 @@ void vmm_set_cpu_online(uint32_t cpu, bool online)
     }
 }
 
+/**
+ * @brief 设置指定CPU在active掩码中的状态
+ * @param cpu CPU编号
+ * @param active 是否处于活动状态
+ */
 void vmm_set_cpu_active(uint32_t cpu, bool active)
 {
     if (active) {
@@ -131,16 +164,28 @@ void vmm_set_cpu_active(uint32_t cpu, bool active)
     }
 }
 
+/**
+ * @brief 用指定掩码初始化CPU present掩码
+ * @param src CPU亲和性掩码
+ */
 void vmm_init_cpu_present(const vmm_cpumask_t *src)
 {
     vmm_cpumask_copy(to_cpumask(cpu_present_bits), src);
 }
 
+/**
+ * @brief 用指定掩码初始化CPU possible掩码
+ * @param src CPU亲和性掩码
+ */
 void vmm_init_cpu_possible(const vmm_cpumask_t *src)
 {
     vmm_cpumask_copy(to_cpumask(cpu_possible_bits), src);
 }
 
+/**
+ * @brief 用指定掩码初始化CPU online掩码
+ * @param src CPU亲和性掩码
+ */
 void vmm_init_cpu_online(const vmm_cpumask_t *src)
 {
     vmm_cpumask_copy(to_cpumask(cpu_online_bits), src);

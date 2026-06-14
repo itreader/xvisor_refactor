@@ -197,17 +197,17 @@ static int iso9660fs_mount(struct mount *m, const char *dev, uint32_t flags)
     struct iso9660_mount_data *mdata;
 
     if (dev == NULL) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (vmm_block_device_total_size(m->m_device) <= sizeof(struct primary_vol_desc)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     mdata = vmm_zalloc(sizeof(struct iso9660_mount_data));
 
     if (!mdata) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     mdata->mdev = m->m_device;
@@ -215,17 +215,17 @@ static int iso9660fs_mount(struct mount *m, const char *dev, uint32_t flags)
     read_count  = vmm_block_device_read(m->m_device, (uint8_t *)(&mdata->vol_desc), VOL_DESC_START_OFFS, sizeof(struct primary_vol_desc));
 
     if (read_count != sizeof(struct primary_vol_desc)) {
-        retval = VMM_EIO;
+        retval = VMM_ERR_IO;
         goto _fail;
     }
 
     if (mdata->vol_desc.type != VOL_DESC_PRIMARY) {
-        retval = VMM_EINVALID;
+        retval = VMM_ERR_INVALID;
         goto _fail;
     }
 
     if (strncmp((const char *)&mdata->vol_desc.ident[0], "CD001", 5) != 0) {
-        retval = VMM_EINVALID;
+        retval = VMM_ERR_INVALID;
         goto _fail;
     }
 
@@ -236,14 +236,14 @@ static int iso9660fs_mount(struct mount *m, const char *dev, uint32_t flags)
     mdata->root_dir        = vmm_zalloc(mdata->root_dir_len);
 
     if (!mdata->root_dir) {
-        retval = VMM_ENOMEM;
+        retval = VMM_ERR_NOMEM;
         goto _fail;
     }
 
     rd = vmm_block_device_read(m->m_device, (uint8_t *)mdata->root_dir, mdata->root_dir_offset, mdata->root_dir_len);
 
     if (!rd || rd != mdata->root_dir_len) {
-        retval = VMM_EIO;
+        retval = VMM_ERR_IO;
         goto _fail;
     }
 
@@ -337,7 +337,7 @@ static size_t iso9660fs_write(struct vnode *v, loff_t off, void *buf, size_t len
 static int iso9660fs_truncate(struct vnode *v, loff_t off)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int iso9660fs_sync(struct vnode *v)
@@ -464,7 +464,7 @@ static int iso9660fs_readdir(struct vnode *dv, loff_t off, struct dirent *d)
         dentry = (struct dir_entry *)root_dir;
 
         if (dentry->len == 0) {
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
         }
 
         if (dentry->ident_len == 1) {
@@ -553,7 +553,7 @@ static int iso9660fs_lookup(struct vnode *dv, const char *name, struct vnode *v)
         dentry = (struct dir_entry *)root_dir;
 
         if (dentry->len == 0) {
-            return VMM_ENOENT;
+            return VMM_ERR_NOENT;
         }
 
         if (dentry->ident_len == 1) {
@@ -643,37 +643,37 @@ static int iso9660fs_lookup(struct vnode *dv, const char *name, struct vnode *v)
 static int iso9660fs_create(struct vnode *dv, const char *filename, uint32_t mode)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int iso9660fs_remove(struct vnode *dv, struct vnode *v, const char *name)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int iso9660fs_rename(struct vnode *sv, const char *sname, struct vnode *v, struct vnode *dv, const char *dname)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int iso9660fs_mkdir(struct vnode *dv, const char *name, uint32_t mode)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int iso9660fs_rmdir(struct vnode *dv, struct vnode *v, const char *name)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static int iso9660fs_chmod(struct vnode *v, uint32_t mode)
 {
     /* Not allowed (read-only filesystem) */
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 /* iso9660fs filesystem access descriptor */

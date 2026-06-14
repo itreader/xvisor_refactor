@@ -77,7 +77,7 @@ static int cmd_module_info(vmm_char_device_t *cdev, uint32_t index)
     mod = vmm_modules_getmodule(index);
 
     if (!mod) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_cdev_printf(cdev, "Name:        %s\n", mod->name);
@@ -98,12 +98,12 @@ static int cmd_module_unload(vmm_char_device_t *cdev, uint32_t index)
     mod = vmm_modules_getmodule(index);
 
     if (!mod) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (vmm_modules_isbuiltin(mod)) {
         vmm_cdev_printf(cdev, "Can't unload built-in module\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((rc = vmm_modules_unload(mod))) {
@@ -131,7 +131,7 @@ static int cmd_module_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc < 3) {
         cmd_module_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (strcmp(argv[1], "info") == 0) {
@@ -142,7 +142,7 @@ static int cmd_module_exec(vmm_char_device_t *cdev, int argc, char **argv)
         return cmd_module_unload(cdev, index);
     } else {
         cmd_module_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;

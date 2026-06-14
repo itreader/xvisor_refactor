@@ -28,7 +28,7 @@
 #include <vmm_heap.h>
 #include <vmm_host_address_space.h>
 
-struct mempool *mempool_raw_create(uint32_t entity_size, physical_addr_t phys, virtual_size_t size, uint32_t mem_flags)
+struct mempool *mempool_raw_create(uint32_t entity_size, physical_addr_t phys, virtual_size_t size, uint32_t memory_flags)
 {
     uint32_t        e;
     virtual_addr_t  va;
@@ -55,7 +55,7 @@ struct mempool *mempool_raw_create(uint32_t entity_size, physical_addr_t phys, v
         return NULL;
     }
 
-    mp->entity_base = vmm_host_memmap(phys, size, mem_flags);
+    mp->entity_base = vmm_host_memory_map(phys, size, memory_flags);
 
     if (!mp->entity_base) {
         fifo_free(mp->f);
@@ -65,7 +65,7 @@ struct mempool *mempool_raw_create(uint32_t entity_size, physical_addr_t phys, v
 
     mp->d.raw.phys      = phys;
     mp->d.raw.size      = size;
-    mp->d.raw.mem_flags = mem_flags;
+    mp->d.raw.memory_flags = memory_flags;
 
     for (e = 0; e < mp->entity_count; e++) {
         va = mp->entity_base + e * entity_size;
@@ -169,12 +169,12 @@ int mempool_destroy(struct mempool *mp)
     int rc = VMM_OK;
 
     if (!mp) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     switch (mp->type) {
         case MEMPOOL_TYPE_RAW:
-            rc = vmm_host_memunmap(mp->entity_base);
+            rc = vmm_host_memory_unmap(mp->entity_base);
             break;
 
         case MEMPOOL_TYPE_RAM:
@@ -186,7 +186,7 @@ int mempool_destroy(struct mempool *mp)
             break;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     };
 
     fifo_free(mp->f);
@@ -259,17 +259,17 @@ int mempool_free(struct mempool *mp, void *entity)
     virtual_addr_t entity_va;
 
     if (!mp) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!mempool_check_ptr(mp, entity)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     entity_va = (virtual_addr_t)entity;
 
     if (!fifo_enqueue(mp->f, &entity_va, FALSE)) {
-        return VMM_ENOSPC;
+        return VMM_ERR_NOSPC;
     }
 
     return VMM_OK;

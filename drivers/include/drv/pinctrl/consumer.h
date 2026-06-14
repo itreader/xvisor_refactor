@@ -163,14 +163,14 @@ static inline struct pinctrl *pinctrl_get_select(vmm_device_t *dev, const char *
 
     if (VMM_IS_ERR(s)) {
         pinctrl_put(p);
-        return VMM_ERR_CAST(s);
+        return VMM_ERR_RR_CAST(s);
     }
 
     ret = pinctrl_select_state(p, s);
 
     if (ret < 0) {
         pinctrl_put(p);
-        return VMM_ERR_PTR(ret);
+        return VMM_ERR_RR_PTR(ret);
     }
 
     return p;
@@ -197,14 +197,14 @@ static inline struct pinctrl *devm_pinctrl_get_select(vmm_device_t *dev, const c
 
     if (VMM_IS_ERR(s)) {
         devm_pinctrl_put(p);
-        return VMM_ERR_CAST(s);
+        return VMM_ERR_RR_CAST(s);
     }
 
     ret = pinctrl_select_state(p, s);
 
     if (ret < 0) {
         devm_pinctrl_put(p);
-        return VMM_ERR_PTR(ret);
+        return VMM_ERR_RR_PTR(ret);
     }
 
     return p;

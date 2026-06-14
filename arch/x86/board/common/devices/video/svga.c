@@ -71,7 +71,7 @@ virtual_addr_t svga_map_fb(physical_addr_t real_addr, virtual_size_t fb_length)
     fb_length = VMM_ROUNDUP2_PAGE_SIZE(fb_length);
 
     vmm_printf("%s: physical: 0x%lx size: 0x%lx\n", __func__, real_addr, fb_length);
-    fb_base = vmm_host_memmap(real_addr, fb_length, VMM_MEMORY_FLAGS_IO);
+    fb_base = vmm_host_memory_map(real_addr, fb_length, VMM_MEMORY_FLAGS_IO);
 
     return fb_base;
 }

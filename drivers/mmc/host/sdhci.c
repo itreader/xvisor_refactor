@@ -186,7 +186,7 @@ static int sdhci_transfer_dma(struct sdhci_host *host, struct mmc_data *data)
 
     rc               = vmm_completion_wait_timeout(&host->wait_dma, &timeout);
 
-    if (VMM_ETIMEDOUT == rc) {
+    if (VMM_ERR_TIMEDOUT == rc) {
         vmm_printf("%s: Transfer data timeout (%" PRId64 ")\n", __func__, timeout);
         return rc;
     }
@@ -223,7 +223,7 @@ static int sdhci_transfer_data(struct sdhci_host *host, struct mmc_data *data, u
 
         if (stat & SDHCI_INT_ERROR) {
             vmm_printf("%s: Error detected in status(0x%X)!\n", __func__, stat);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         if (stat & rdy) {
@@ -244,7 +244,7 @@ static int sdhci_transfer_data(struct sdhci_host *host, struct mmc_data *data, u
             vmm_udelay(10);
         } else {
             vmm_printf("%s: Transfer data timeout\n", __func__);
-            return VMM_ETIMEDOUT;
+            return VMM_ERR_TIMEDOUT;
         }
     } while (!(stat & SDHCI_INT_DATA_END));
 
@@ -270,7 +270,7 @@ int sdhci_send_command(struct mmc_host *mmc, struct mmc_cmd *cmd, struct mmc_dat
 
     /* If card not present then return error */
     if (!present) {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     /* Wait max 10 ms */
@@ -293,7 +293,7 @@ int sdhci_send_command(struct mmc_host *mmc, struct mmc_cmd *cmd, struct mmc_dat
                 __func__);
             sdhci_reset(host, SDHCI_RESET_CMD);
 
-            return VMM_EIO;
+            return VMM_ERR_IO;
         }
 
         timeout--;
@@ -354,7 +354,7 @@ int sdhci_send_command(struct mmc_host *mmc, struct mmc_cmd *cmd, struct mmc_dat
             sdhci_writel(host, ctrl, SDHCI_HOST_CONTROL);
 
             dma_addr = 0x0;
-            ret      = vmm_host_va2pa((virtual_addr_t)host->aligned_buffer, &dma_addr);
+            ret      = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)host->aligned_buffer, &dma_addr);
             BUG_ON(ret);
             sdhci_writel(host, (uint32_t)dma_addr, SDHCI_DMA_ADDRESS);
             mode |= SDHCI_TRNS_DMA;
@@ -377,7 +377,7 @@ int sdhci_send_command(struct mmc_host *mmc, struct mmc_cmd *cmd, struct mmc_dat
         timeout = 12000000;
         ret     = vmm_completion_wait_timeout(&host->wait_command, &timeout);
 
-        if (VMM_ETIMEDOUT == ret) {
+        if (VMM_ERR_TIMEDOUT == ret) {
             if (host->quirks & SDHCI_QUIRK_BROKEN_R1B) {
                 return VMM_OK;
             } else {
@@ -385,7 +385,7 @@ int sdhci_send_command(struct mmc_host *mmc, struct mmc_cmd *cmd, struct mmc_dat
                     "%s: Status update timeout on CMD%d, arg "
                     "0x%08x!\n",
                     __func__, cmd->cmdidx, cmd->cmdarg);
-                return VMM_ETIMEDOUT;
+                return VMM_ERR_TIMEDOUT;
             }
         }
 
@@ -412,7 +412,7 @@ int sdhci_send_command(struct mmc_host *mmc, struct mmc_cmd *cmd, struct mmc_dat
                     "%s: Status update timeout on CMD%d, arg "
                     "0x%08x!\n",
                     __func__, cmd->cmdidx, cmd->cmdarg);
-                return VMM_ETIMEDOUT;
+                return VMM_ERR_TIMEDOUT;
             }
         }
 
@@ -420,7 +420,7 @@ int sdhci_send_command(struct mmc_host *mmc, struct mmc_cmd *cmd, struct mmc_dat
             sdhci_cmd_done(host, cmd);
             sdhci_writel(host, mask, SDHCI_INT_STATUS);
         } else {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
         }
     }
 
@@ -457,9 +457,9 @@ int sdhci_send_command(struct mmc_host *mmc, struct mmc_cmd *cmd, struct mmc_dat
     sdhci_reset(host, SDHCI_RESET_DATA);
 
     if (stat & SDHCI_INT_TIMEOUT) {
-        return VMM_ETIMEDOUT;
+        return VMM_ERR_TIMEDOUT;
     } else {
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 }
 
@@ -516,7 +516,7 @@ static int sdhci_set_clock(struct mmc_host *mmc, uint32_t clock)
     while (!((clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL)) & SDHCI_CLOCK_INT_STABLE)) {
         if (timeout == 0) {
             vmm_printf("%s: Internal clock never stabilised.\n", __func__);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         timeout--;
@@ -626,7 +626,7 @@ static int sdhci_get_cd(struct mmc_host *mmc)
 
     /* If polling/nonremovable, assume that the card is always present. */
     if ((host->quirks & SDHCI_QUIRK_BROKEN_CARD_DETECTION) || (host->mmc->caps & MMC_CAP_NONREMOVABLE)) {
-        return VMM_ENOTSUPP;
+        return VMM_ERR_NOTSUPP;
     }
 
     /* Try slot gpio detect */
@@ -798,7 +798,7 @@ struct sdhci_host *sdhci_alloc_host(vmm_device_t *dev, int extra)
     return host;
 }
 
-VMM_EXPORT_SYMBOL(sdhci_alloc_host);
+VMM_ERR_XPORT_SYMBOL(sdhci_alloc_host);
 
 int sdhci_add_host(struct sdhci_host *host)
 {
@@ -839,7 +839,7 @@ int sdhci_add_host(struct sdhci_host *host)
 
     if (host->max_clock == 0) {
         vmm_printf("%s: Hardware doesn't specify base clock frequency\n", __func__);
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto free_nothing;
     }
 
@@ -935,7 +935,7 @@ int sdhci_add_host(struct sdhci_host *host)
 
         if (!host->aligned_buffer) {
             vmm_printf("%s: host buffer alloc failed!!!\n", __func__);
-            rc = VMM_ENOMEM;
+            rc = VMM_ERR_NOMEM;
             goto free_nothing;
         }
 
@@ -944,7 +944,7 @@ int sdhci_add_host(struct sdhci_host *host)
                 "%s: host buffer not aligned to "
                 "8-byte boundary!!!\n",
                 __func__);
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             goto free_host_buffer;
         }
     }
@@ -975,7 +975,7 @@ int sdhci_add_host(struct sdhci_host *host)
             break;
     };
 
-    if ((rc = vmm_host_va2pa((virtual_addr_t)host->ioaddr, &iopaddr))) {
+    if ((rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)host->ioaddr, &iopaddr))) {
         goto free_host_irq;
     }
 
@@ -1011,7 +1011,7 @@ free_nothing:
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(sdhci_add_host);
+VMM_ERR_XPORT_SYMBOL(sdhci_add_host);
 
 void sdhci_remove_host(struct sdhci_host *host, int dead)
 {
@@ -1029,14 +1029,14 @@ void sdhci_remove_host(struct sdhci_host *host, int dead)
     }
 }
 
-VMM_EXPORT_SYMBOL(sdhci_remove_host);
+VMM_ERR_XPORT_SYMBOL(sdhci_remove_host);
 
 void sdhci_free_host(struct sdhci_host *host)
 {
     mmc_free_host(host->mmc);
 }
 
-VMM_EXPORT_SYMBOL(sdhci_free_host);
+VMM_ERR_XPORT_SYMBOL(sdhci_free_host);
 
 static int __init sdhci_module_init(void)
 {

@@ -117,7 +117,7 @@ static int sdio_bus_probe(vmm_device_t *dev)
     int                          ret;
 
     if (dev->type != &sdio_func_type) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     func = dev_to_sdio_func(dev);
@@ -126,7 +126,7 @@ static int sdio_bus_probe(vmm_device_t *dev)
     id   = sdio_match_device(func, drv);
 
     if (!id) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Set the default block size so the driver is sure it's something
@@ -140,7 +140,7 @@ static int sdio_bus_probe(vmm_device_t *dev)
     if (drv->probe) {
         ret = drv->probe(func, id);
     } else {
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
     }
 
     return ret;
@@ -153,7 +153,7 @@ static int sdio_bus_remove(vmm_device_t *dev)
     int                 ret = 0;
 
     if (dev->type != &sdio_func_type) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     func = dev_to_sdio_func(dev);
@@ -163,7 +163,7 @@ static int sdio_bus_remove(vmm_device_t *dev)
         drv->remove(func);
         ret = VMM_OK;
     } else {
-        ret = VMM_ENODEV;
+        ret = VMM_ERR_NODEV;
     }
 
     return ret;
@@ -186,13 +186,13 @@ struct vmm_device_type sdio_device_type = {
     .name    = "sdio_device",
     .release = sdio_release_device,
 };
-VMM_EXPORT_SYMBOL(sdio_device_type);
+VMM_ERR_XPORT_SYMBOL(sdio_device_type);
 
 struct vmm_device_type sdio_func_type = {
     .name    = "sdio_func",
     .release = sdio_release_func,
 };
-VMM_EXPORT_SYMBOL(sdio_func_type);
+VMM_ERR_XPORT_SYMBOL(sdio_func_type);
 
 vmm_bus_t sdio_bus_type = {
     .name   = "sdio",
@@ -200,7 +200,7 @@ vmm_bus_t sdio_bus_type = {
     .probe  = sdio_bus_probe,
     .remove = sdio_bus_remove,
 };
-VMM_EXPORT_SYMBOL(sdio_bus_type);
+VMM_ERR_XPORT_SYMBOL(sdio_bus_type);
 
 /**
  *  sdio_register_driver - register a function driver
@@ -213,7 +213,7 @@ int sdio_register_driver(struct sdio_driver *drv)
     return vmm_device_driver_register_driver(&drv->drv);
 }
 
-VMM_EXPORT_SYMBOL(sdio_register_driver);
+VMM_ERR_XPORT_SYMBOL(sdio_register_driver);
 
 /**
  *  sdio_unregister_driver - unregister a function driver
@@ -225,7 +225,7 @@ void sdio_unregister_driver(struct sdio_driver *drv)
     vmm_device_driver_unregister_driver(&drv->drv);
 }
 
-VMM_EXPORT_SYMBOL(sdio_unregister_driver);
+VMM_ERR_XPORT_SYMBOL(sdio_unregister_driver);
 
 /*
  * Allocate and initialise a new SDIO function structure.
@@ -237,7 +237,7 @@ struct sdio_func *sdio_alloc_func(struct mmc_card *card)
     func = vmm_zalloc(sizeof(struct sdio_func));
 
     if (!func) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     func->card = card;

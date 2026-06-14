@@ -222,7 +222,7 @@ int libsort_smoothsort(void *base, size_t r, size_t N, int (*do_less)(void *m, s
     array *const array = &array_i;
 
     if (!do_less || !do_swap) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     array->do_less = do_less;
@@ -230,7 +230,7 @@ int libsort_smoothsort(void *base, size_t r, size_t N, int (*do_less)(void *m, s
     array->m       = base;
 
     if (base == NULL || N <= 1 || do_less == NULL || do_swap == NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     DEBUG(("\nsmoothsort(%p, %zu)\n", array, nmemb));
@@ -250,7 +250,7 @@ int libsort_smoothsort(void *base, size_t r, size_t N, int (*do_less)(void *m, s
             while (stretch_down(&s, 0) > 1)
                 ;
         } else {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     }
 

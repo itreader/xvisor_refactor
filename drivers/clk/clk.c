@@ -292,35 +292,35 @@ const char *__clock_get_name(const struct clk *clk)
     return !clk ? NULL : clk->core->name;
 }
 
-VMM_EXPORT_SYMBOL(__clock_get_name);
+VMM_ERR_XPORT_SYMBOL(__clock_get_name);
 
 const char *clock_hw_get_name(const struct clock_hw *hw)
 {
     return hw->core->name;
 }
 
-VMM_EXPORT_SYMBOL(clock_hw_get_name);
+VMM_ERR_XPORT_SYMBOL(clock_hw_get_name);
 
 struct clock_hw *__clock_get_hw(struct clk *clk)
 {
     return !clk ? NULL : clk->core->hw;
 }
 
-VMM_EXPORT_SYMBOL(__clock_get_hw);
+VMM_ERR_XPORT_SYMBOL(__clock_get_hw);
 
 uint32_t clock_hw_get_num_parents(const struct clock_hw *hw)
 {
     return hw->core->num_parents;
 }
 
-VMM_EXPORT_SYMBOL(clock_hw_get_num_parents);
+VMM_ERR_XPORT_SYMBOL(clock_hw_get_num_parents);
 
 struct clock_hw *clock_hw_get_parent(const struct clock_hw *hw)
 {
     return hw->core->parent ? hw->core->parent->hw : NULL;
 }
 
-VMM_EXPORT_SYMBOL(clock_hw_get_parent);
+VMM_ERR_XPORT_SYMBOL(clock_hw_get_parent);
 
 static struct clock_core *__clock_lookup_subtree(const char *name, struct clock_core *core)
 {
@@ -397,7 +397,7 @@ struct clock_hw *clock_hw_get_parent_by_index(const struct clock_hw *hw, uint32_
     return !parent ? NULL : parent->hw;
 }
 
-VMM_EXPORT_SYMBOL(clock_hw_get_parent_by_index);
+VMM_ERR_XPORT_SYMBOL(clock_hw_get_parent_by_index);
 
 uint32_t __clock_get_enable_count(struct clk *clk)
 {
@@ -432,7 +432,7 @@ uint64_t clock_hw_get_rate(const struct clock_hw *hw)
     return clock_core_get_rate_nolock(hw->core);
 }
 
-VMM_EXPORT_SYMBOL(clock_hw_get_rate);
+VMM_ERR_XPORT_SYMBOL(clock_hw_get_rate);
 
 static uint64_t __clock_get_accuracy(struct clock_core *core)
 {
@@ -448,14 +448,14 @@ uint64_t __clock_get_flags(struct clk *clk)
     return !clk ? 0 : clk->core->flags;
 }
 
-VMM_EXPORT_SYMBOL(__clock_get_flags);
+VMM_ERR_XPORT_SYMBOL(__clock_get_flags);
 
 uint64_t clock_hw_get_flags(const struct clock_hw *hw)
 {
     return hw->core->flags;
 }
 
-VMM_EXPORT_SYMBOL(clock_hw_get_flags);
+VMM_ERR_XPORT_SYMBOL(clock_hw_get_flags);
 
 bool clock_hw_is_prepared(const struct clock_hw *hw)
 {
@@ -476,7 +476,7 @@ bool __clock_is_enabled(struct clk *clk)
     return clock_core_is_enabled(clk->core);
 }
 
-VMM_EXPORT_SYMBOL(__clock_is_enabled);
+VMM_ERR_XPORT_SYMBOL(__clock_is_enabled);
 
 static bool mux_is_better_rate(uint64_t rate, uint64_t now, uint64_t best, uint64_t flags)
 {
@@ -543,7 +543,7 @@ static int clock_mux_determine_rate_flags(struct clock_hw *hw, struct clock_rate
     }
 
     if (!best_parent) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
 out:
@@ -583,7 +583,7 @@ void clock_hw_set_rate_range(struct clock_hw *hw, uint64_t min_rate, uint64_t ma
     hw->core->max_rate = max_rate;
 }
 
-VMM_EXPORT_SYMBOL(clock_hw_set_rate_range);
+VMM_ERR_XPORT_SYMBOL(clock_hw_set_rate_range);
 
 /*
  * Helper for finding best parent to provide a given frequency. This can be used
@@ -595,14 +595,14 @@ int __clock_mux_determine_rate(struct clock_hw *hw, struct clock_rate_request *r
     return clock_mux_determine_rate_flags(hw, req, 0);
 }
 
-VMM_EXPORT_SYMBOL(__clock_mux_determine_rate);
+VMM_ERR_XPORT_SYMBOL(__clock_mux_determine_rate);
 
 int __clock_mux_determine_rate_closest(struct clock_hw *hw, struct clock_rate_request *req)
 {
     return clock_mux_determine_rate_flags(hw, req, CLK_MUX_ROUND_CLOSEST);
 }
 
-VMM_EXPORT_SYMBOL(__clock_mux_determine_rate_closest);
+VMM_ERR_XPORT_SYMBOL(__clock_mux_determine_rate_closest);
 
 /***        clk api        ***/
 
@@ -664,7 +664,7 @@ void clock_unprepare(struct clk *clk)
     clock_core_unprepare_lock(clk->core);
 }
 
-VMM_EXPORT_SYMBOL(clock_unprepare);
+VMM_ERR_XPORT_SYMBOL(clock_unprepare);
 
 static int clock_core_prepare(struct clock_core *core)
 {
@@ -740,7 +740,7 @@ int clock_prepare(struct clk *clk)
     return clock_core_prepare_lock(clk->core);
 }
 
-VMM_EXPORT_SYMBOL(clock_prepare);
+VMM_ERR_XPORT_SYMBOL(clock_prepare);
 
 static void clock_core_disable(struct clock_core *core)
 {
@@ -799,7 +799,7 @@ void clock_disable(struct clk *clk)
     clock_core_disable_lock(clk->core);
 }
 
-VMM_EXPORT_SYMBOL(clock_disable);
+VMM_ERR_XPORT_SYMBOL(clock_disable);
 
 static int clock_core_enable(struct clock_core *core)
 {
@@ -812,7 +812,7 @@ static int clock_core_enable(struct clock_core *core)
     }
 
     if (WARN_ON(core->prepare_count == 0)) {
-        return VMM_ESHUTDOWN;
+        return VMM_ERR_SHUTDOWN;
     }
 
     if (core->enable_count == 0) {
@@ -870,7 +870,7 @@ int clock_enable(struct clk *clk)
     return clock_core_enable_lock(clk->core);
 }
 
-VMM_EXPORT_SYMBOL(clock_enable);
+VMM_ERR_XPORT_SYMBOL(clock_enable);
 
 static int clock_core_prepare_enable(struct clock_core *core)
 {
@@ -1012,7 +1012,7 @@ int clock_disable_unused(void)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(clock_disable_unused);
+VMM_ERR_XPORT_SYMBOL(clock_disable_unused);
 
 static int clock_core_round_rate_nolock(struct clock_core *core, struct clock_rate_request *req)
 {
@@ -1071,7 +1071,7 @@ int __clock_determine_rate(struct clock_hw *hw, struct clock_rate_request *req)
     return clock_core_round_rate_nolock(hw->core, req);
 }
 
-VMM_EXPORT_SYMBOL(__clock_determine_rate);
+VMM_ERR_XPORT_SYMBOL(__clock_determine_rate);
 
 uint64_t clock_hw_round_rate(struct clock_hw *hw, uint64_t rate)
 {
@@ -1090,7 +1090,7 @@ uint64_t clock_hw_round_rate(struct clock_hw *hw, uint64_t rate)
     return req.rate;
 }
 
-VMM_EXPORT_SYMBOL(clock_hw_round_rate);
+VMM_ERR_XPORT_SYMBOL(clock_hw_round_rate);
 
 /**
  * clock_round_rate - round the given rate for a clk
@@ -1125,7 +1125,7 @@ long clock_round_rate(struct clk *clk, uint64_t rate)
     return req.rate;
 }
 
-VMM_EXPORT_SYMBOL(clock_round_rate);
+VMM_ERR_XPORT_SYMBOL(clock_round_rate);
 
 /**
  * __clock_notify - call clk notifier chain
@@ -1228,7 +1228,7 @@ long clock_get_accuracy(struct clk *clk)
     return clock_core_get_accuracy(clk->core);
 }
 
-VMM_EXPORT_SYMBOL(clock_get_accuracy);
+VMM_ERR_XPORT_SYMBOL(clock_get_accuracy);
 
 static uint64_t clock_recalc(struct clock_core *core, uint64_t parent_rate)
 {
@@ -1314,14 +1314,14 @@ uint64_t clock_get_rate(struct clk *clk)
     return clock_core_get_rate(clk->core);
 }
 
-VMM_EXPORT_SYMBOL(clock_get_rate);
+VMM_ERR_XPORT_SYMBOL(clock_get_rate);
 
 static int clock_fetch_parent_index(struct clock_core *core, struct clock_core *parent)
 {
     int i;
 
     if (!parent) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     for (i = 0; i < core->num_parents; i++) {
@@ -1330,7 +1330,7 @@ static int clock_fetch_parent_index(struct clock_core *core, struct clock_core *
         }
     }
 
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 /*
@@ -1809,14 +1809,14 @@ static int clock_core_set_rate_nolock(struct clock_core *core, uint64_t req_rate
     }
 
     if ((core->flags & CLK_SET_RATE_GATE) && core->prepare_count) {
-        return VMM_EBUSY;
+        return VMM_ERR_BUSY;
     }
 
     /* calculate new rates and get the topmost changed clock */
     top = clock_calc_new_rates(core, rate);
 
     if (!top) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     ret = clock_pm_runtime_get(core);
@@ -1831,7 +1831,7 @@ static int clock_core_set_rate_nolock(struct clock_core *core, uint64_t req_rate
     if (fail_clock) {
         vmm_lerror(__func__, "failed to set %s rate\n", fail_clock->name);
         clock_propagate_rate_change(top, ABORT_RATE_CHANGE);
-        ret = VMM_EBUSY;
+        ret = VMM_ERR_BUSY;
         goto err;
     }
 
@@ -1864,7 +1864,7 @@ err:
  * Rate changes are accomplished via tree traversal that also recalculates the
  * rates for the clocks and fires off POST_RATE_CHANGE notifiers.
  *
- * Returns 0 on success, VMM_EERROR otherwise.
+ * Returns 0 on success, VMM_ERR_ERROR otherwise.
  */
 int clock_set_rate(struct clk *clk, uint64_t rate)
 {
@@ -1884,7 +1884,7 @@ int clock_set_rate(struct clk *clk, uint64_t rate)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(clock_set_rate);
+VMM_ERR_XPORT_SYMBOL(clock_set_rate);
 
 /**
  * clock_set_rate_range - set a rate range for a clock source
@@ -1904,7 +1904,7 @@ int clock_set_rate_range(struct clk *clk, uint64_t min, uint64_t max)
 
     if (min > max) {
         vmm_lerror(__func__, "clk %s dev %s con %s: invalid range [%lu, %lu]\n", clk->core->name, clk->dev_id, clk->con_id, min, max);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     clock_prepare_lock();
@@ -1920,7 +1920,7 @@ int clock_set_rate_range(struct clk *clk, uint64_t min, uint64_t max)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(clock_set_rate_range);
+VMM_ERR_XPORT_SYMBOL(clock_set_rate_range);
 
 /**
  * clock_set_min_rate - set a minimum clock rate for a clock source
@@ -1938,7 +1938,7 @@ int clock_set_min_rate(struct clk *clk, uint64_t rate)
     return clock_set_rate_range(clk, rate, clk->max_rate);
 }
 
-VMM_EXPORT_SYMBOL(clock_set_min_rate);
+VMM_ERR_XPORT_SYMBOL(clock_set_min_rate);
 
 /**
  * clock_set_max_rate - set a maximum clock rate for a clock source
@@ -1956,7 +1956,7 @@ int clock_set_max_rate(struct clk *clk, uint64_t rate)
     return clock_set_rate_range(clk, clk->min_rate, rate);
 }
 
-VMM_EXPORT_SYMBOL(clock_set_max_rate);
+VMM_ERR_XPORT_SYMBOL(clock_set_max_rate);
 
 /**
  * clock_get_parent - return the parent of a clk
@@ -1980,7 +1980,7 @@ struct clk *clock_get_parent(struct clk *clk)
     return parent;
 }
 
-VMM_EXPORT_SYMBOL(clock_get_parent);
+VMM_ERR_XPORT_SYMBOL(clock_get_parent);
 
 static struct clock_core *__clock_init_parent(struct clock_core *core)
 {
@@ -2046,7 +2046,7 @@ bool clock_has_parent(struct clk *clk, struct clk *parent)
     return false;
 }
 
-VMM_EXPORT_SYMBOL(clock_has_parent);
+VMM_ERR_XPORT_SYMBOL(clock_has_parent);
 
 static int clock_core_set_parent(struct clock_core *core, struct clock_core *parent)
 {
@@ -2067,13 +2067,13 @@ static int clock_core_set_parent(struct clock_core *core, struct clock_core *par
 
     /* verify ops for for multi-parent clks */
     if ((core->num_parents > 1) && (!core->ops->set_parent)) {
-        ret = VMM_ENOSYS;
+        ret = VMM_ERR_NOSYS;
         goto out;
     }
 
     /* check that we are allowed to re-parent if the clock is in use */
     if ((core->flags & CLK_SET_PARENT_GATE) && core->prepare_count) {
-        ret = VMM_EBUSY;
+        ret = VMM_ERR_BUSY;
         goto out;
     }
 
@@ -2138,7 +2138,7 @@ out:
  * clk topology, sysfs topology and propagate rate recalculation via
  * __clock_recalc_rates.
  *
- * Returns 0 on success, VMM_EERROR otherwise.
+ * Returns 0 on success, VMM_ERR_ERROR otherwise.
  */
 int clock_set_parent(struct clk *clk, struct clk *parent)
 {
@@ -2149,7 +2149,7 @@ int clock_set_parent(struct clk *clk, struct clk *parent)
     return clock_core_set_parent(clk->core, parent ? parent->core : NULL);
 }
 
-VMM_EXPORT_SYMBOL(clock_set_parent);
+VMM_ERR_XPORT_SYMBOL(clock_set_parent);
 
 /**
  * clock_set_phase - adjust the phase shift of a clock signal
@@ -2157,7 +2157,7 @@ VMM_EXPORT_SYMBOL(clock_set_parent);
  * @degrees: number of degrees the signal is shifted
  *
  * Shifts the phase of a clock signal by the specified
- * degrees. Returns 0 on success, VMM_EERROR otherwise.
+ * degrees. Returns 0 on success, VMM_ERR_ERROR otherwise.
  *
  * This function makes no distinction about the input or reference
  * signal that we adjust the clock signal phase against. For example
@@ -2173,7 +2173,7 @@ VMM_EXPORT_SYMBOL(clock_set_parent);
  */
 int clock_set_phase(struct clk *clk, int degrees)
 {
-    int ret = VMM_EINVALID;
+    int ret = VMM_ERR_INVALID;
 
     if (!clk) {
         return 0;
@@ -2201,7 +2201,7 @@ int clock_set_phase(struct clk *clk, int degrees)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(clock_set_phase);
+VMM_ERR_XPORT_SYMBOL(clock_set_phase);
 
 static int clock_core_get_phase(struct clock_core *core)
 {
@@ -2219,7 +2219,7 @@ static int clock_core_get_phase(struct clock_core *core)
  * @clk: clock signal source
  *
  * Returns the phase shift of a clock node in degrees, otherwise returns
- * VMM_EERROR.
+ * VMM_ERR_ERROR.
  */
 int clock_get_phase(struct clk *clk)
 {
@@ -2230,7 +2230,7 @@ int clock_get_phase(struct clk *clk)
     return clock_core_get_phase(clk->core);
 }
 
-VMM_EXPORT_SYMBOL(clock_get_phase);
+VMM_ERR_XPORT_SYMBOL(clock_get_phase);
 
 /**
  * clock_is_match - check if two clk's point to the same hardware clock
@@ -2260,7 +2260,7 @@ bool clock_is_match(const struct clk *p, const struct clk *q)
     return false;
 }
 
-VMM_EXPORT_SYMBOL(clock_is_match);
+VMM_ERR_XPORT_SYMBOL(clock_is_match);
 
 /***        debugfs support        ***/
 
@@ -2309,7 +2309,7 @@ int clock_summary_show(vmm_char_device_t *cdev)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(clock_summary_show);
+VMM_ERR_XPORT_SYMBOL(clock_summary_show);
 
 static void clock_dump_indent(vmm_char_device_t *cdev, int level)
 {
@@ -2392,7 +2392,7 @@ int clock_dump(vmm_char_device_t *cdev)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(clock_dump);
+VMM_ERR_XPORT_SYMBOL(clock_dump);
 
 static inline int clock_debug_register(struct clock_core *core)
 {
@@ -2418,7 +2418,7 @@ static int __clock_core_init(struct clock_core *core)
     uint64_t           rate;
 
     if (!core) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     clock_prepare_lock();
@@ -2432,32 +2432,32 @@ static int __clock_core_init(struct clock_core *core)
     /* check to see if a clock with this name is already registered */
     if (clock_core_lookup(core->name)) {
         vmm_lerror(__func__, "clk %s already initialized\n", core->name);
-        ret = VMM_EEXIST;
+        ret = VMM_ERR_EXIST;
         goto out;
     }
 
     /* check that clock_ops are sane.  See Documentation/clk.txt */
     if (core->ops->set_rate && !((core->ops->round_rate || core->ops->determine_rate) && core->ops->recalc_rate)) {
         vmm_lerror(__func__, "%s must implement .round_rate or .determine_rate in addition to .recalc_rate\n", core->name);
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto out;
     }
 
     if (core->ops->set_parent && !core->ops->get_parent) {
         vmm_lerror(__func__, "%s must implement .get_parent & .set_parent\n", core->name);
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto out;
     }
 
     if (core->num_parents > 1 && !core->ops->get_parent) {
         vmm_lerror(__func__, "%s must implement .get_parent as it has multi parents\n", core->name);
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto out;
     }
 
     if (core->ops->set_rate_and_parent && !(core->ops->set_parent && core->ops->set_rate)) {
         vmm_lerror(__func__, "%s must implement .set_parent & .set_rate\n", core->name);
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto out;
     }
 
@@ -2592,13 +2592,13 @@ struct clk *__clock_create_clock(struct clock_hw *hw, const char *dev_id, const 
 
     /* This is to allow this function to be chained to others */
     if (VMM_IS_ERR_OR_NULL(hw)) {
-        return VMM_ERR_CAST(hw);
+        return VMM_ERR_RR_CAST(hw);
     }
 
     clk = vmm_zalloc(sizeof(*clk));
 
     if (!clk) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     clk->core     = hw->core;
@@ -2645,14 +2645,14 @@ struct clk *clock_register(vmm_device_t *dev, struct clock_hw *hw)
     core = vmm_zalloc(sizeof(*core));
 
     if (!core) {
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail_out;
     }
 
     core->name = vmm_strdup_const(hw->init->name);
 
     if (!core->name) {
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail_name;
     }
 
@@ -2673,7 +2673,7 @@ struct clk *clock_register(vmm_device_t *dev, struct clock_hw *hw)
     core->parent_names = vmm_calloc(core->num_parents, sizeof(char *));
 
     if (!core->parent_names) {
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail_parent_names;
     }
 
@@ -2682,7 +2682,7 @@ struct clk *clock_register(vmm_device_t *dev, struct clock_hw *hw)
         core->parent_names[i] = vmm_strdup_const(hw->init->parent_names[i]);
 
         if (!core->parent_names[i]) {
-            ret = VMM_ENOMEM;
+            ret = VMM_ERR_NOMEM;
             goto fail_parent_names_copy;
         }
     }
@@ -2691,7 +2691,7 @@ struct clk *clock_register(vmm_device_t *dev, struct clock_hw *hw)
     core->parents = vmm_calloc(core->num_parents, sizeof(*core->parents));
 
     if (!core->parents) {
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto fail_parents;
     };
 
@@ -2727,10 +2727,10 @@ fail_parent_names:
 fail_name:
     vmm_free(core);
 fail_out:
-    return VMM_ERR_PTR(ret);
+    return VMM_ERR_RR_PTR(ret);
 }
 
-VMM_EXPORT_SYMBOL(clock_register);
+VMM_ERR_XPORT_SYMBOL(clock_register);
 
 /**
  * clock_hw_register - register a clock_hw and return an error code
@@ -2747,7 +2747,7 @@ int clock_hw_register(vmm_device_t *dev, struct clock_hw *hw)
     return VMM_PTR_RET(clock_register(dev, hw));
 }
 
-VMM_EXPORT_SYMBOL(clock_hw_register);
+VMM_ERR_XPORT_SYMBOL(clock_hw_register);
 
 /* Free memory allocated for a clock. */
 static void __clock_release(struct xref *ref)
@@ -2775,7 +2775,7 @@ static void __clock_release(struct xref *ref)
  */
 static int clock_nodrv_prepare_enable(struct clock_hw *hw)
 {
-    return VMM_EIO;
+    return VMM_ERR_IO;
 }
 
 static void clock_nodrv_disable_unprepare(struct clock_hw *hw)
@@ -2785,12 +2785,12 @@ static void clock_nodrv_disable_unprepare(struct clock_hw *hw)
 
 static int clock_nodrv_set_rate(struct clock_hw *hw, uint64_t rate, uint64_t parent_rate)
 {
-    return VMM_EIO;
+    return VMM_ERR_IO;
 }
 
 static int clock_nodrv_set_parent(struct clock_hw *hw, uint8_t index)
 {
-    return VMM_EIO;
+    return VMM_ERR_IO;
 }
 
 static const struct clock_ops clock_nodrv_ops = {
@@ -2850,7 +2850,7 @@ unlock:
     clock_prepare_unlock();
 }
 
-VMM_EXPORT_SYMBOL(clock_unregister);
+VMM_ERR_XPORT_SYMBOL(clock_unregister);
 
 /**
  * clock_hw_unregister - unregister a currently registered clock_hw
@@ -2861,7 +2861,7 @@ void clock_hw_unregister(struct clock_hw *hw)
     clock_unregister(hw->clk);
 }
 
-VMM_EXPORT_SYMBOL(clock_hw_unregister);
+VMM_ERR_XPORT_SYMBOL(clock_hw_unregister);
 
 static void devm_clock_release(vmm_device_t *dev, void *res)
 {
@@ -2890,7 +2890,7 @@ struct clk *devm_clock_register(vmm_device_t *dev, struct clock_hw *hw)
     clkp = vmm_device_resource_alloc(devm_clock_release, sizeof(*clkp));
 
     if (!clkp) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     clk = clock_register(dev, hw);
@@ -2905,7 +2905,7 @@ struct clk *devm_clock_register(vmm_device_t *dev, struct clock_hw *hw)
     return clk;
 }
 
-VMM_EXPORT_SYMBOL(devm_clock_register);
+VMM_ERR_XPORT_SYMBOL(devm_clock_register);
 
 /**
  * devm_clock_hw_register - resource managed clock_hw_register()
@@ -2924,7 +2924,7 @@ int devm_clock_hw_register(vmm_device_t *dev, struct clock_hw *hw)
     hwp = vmm_device_resource_alloc(devm_clock_hw_release, sizeof(*hwp));
 
     if (!hwp) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     ret = clock_hw_register(dev, hw);
@@ -2939,7 +2939,7 @@ int devm_clock_hw_register(vmm_device_t *dev, struct clock_hw *hw)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(devm_clock_hw_register);
+VMM_ERR_XPORT_SYMBOL(devm_clock_hw_register);
 
 static int devm_clock_match(vmm_device_t *dev, void *res, void *data)
 {
@@ -2976,7 +2976,7 @@ void devm_clock_unregister(vmm_device_t *dev, struct clk *clk)
     WARN_ON(vmm_device_resource_release(dev, devm_clock_release, devm_clock_match, clk));
 }
 
-VMM_EXPORT_SYMBOL(devm_clock_unregister);
+VMM_ERR_XPORT_SYMBOL(devm_clock_unregister);
 
 /**
  * devm_clock_hw_unregister - resource managed clock_hw_unregister()
@@ -2992,7 +2992,7 @@ void devm_clock_hw_unregister(vmm_device_t *dev, struct clock_hw *hw)
     WARN_ON(vmm_device_resource_release(dev, devm_clock_hw_release, devm_clock_hw_match, hw));
 }
 
-VMM_EXPORT_SYMBOL(devm_clock_hw_unregister);
+VMM_ERR_XPORT_SYMBOL(devm_clock_hw_unregister);
 
 /*
  * clkdev helpers
@@ -3047,17 +3047,17 @@ void __clock_put(struct clk *clk)
  * and the new frequency is passed via struct clock_notifier_data.new_rate.
  *
  * clock_notifier_register() must be called from non-atomic context.
- * Returns VMM_EINVALID if called with null arguments, VMM_ENOMEM upon
+ * Returns VMM_ERR_INVALID if called with null arguments, VMM_ERR_NOMEM upon
  * allocation failure; otherwise, passes along the return value of
  * vmm_atomic_notifier_register().
  */
 int clock_notifier_register(struct clk *clk, vmm_notifier_block_t *nb)
 {
     struct clock_notifier *cn;
-    int                    ret = VMM_ENOMEM;
+    int                    ret = VMM_ERR_NOMEM;
 
     if (!clk || !nb) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     clock_prepare_lock();
@@ -3090,7 +3090,7 @@ out:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(clock_notifier_register);
+VMM_ERR_XPORT_SYMBOL(clock_notifier_register);
 
 /**
  * clock_notifier_unregister - remove a clk rate change notifier
@@ -3100,16 +3100,16 @@ VMM_EXPORT_SYMBOL(clock_notifier_register);
  * Request no further notification for changes to 'clk' and frees memory
  * allocated in clock_notifier_register.
  *
- * Returns VMM_EINVALID if called with null arguments; otherwise, passes
+ * Returns VMM_ERR_INVALID if called with null arguments; otherwise, passes
  * along the return value of vmm_atomic_notifier_unregister().
  */
 int clock_notifier_unregister(struct clk *clk, vmm_notifier_block_t *nb)
 {
     struct clock_notifier *cn  = NULL;
-    int                    ret = VMM_EINVALID;
+    int                    ret = VMM_ERR_INVALID;
 
     if (!clk || !nb) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     clock_prepare_lock();
@@ -3127,7 +3127,7 @@ int clock_notifier_unregister(struct clk *clk, vmm_notifier_block_t *nb)
             vmm_free(cn);
         }
     } else {
-        ret = VMM_ENOENT;
+        ret = VMM_ERR_NOENT;
     }
 
     clock_prepare_unlock();
@@ -3135,7 +3135,7 @@ int clock_notifier_unregister(struct clk *clk, vmm_notifier_block_t *nb)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(clock_notifier_unregister);
+VMM_ERR_XPORT_SYMBOL(clock_notifier_unregister);
 
 #ifdef CONFIG_OF
 /**
@@ -3163,14 +3163,14 @@ struct clk *of_clock_src_simple_get(struct vmm_device_tree_phandle_args *clkspec
     return data;
 }
 
-VMM_EXPORT_SYMBOL(of_clock_src_simple_get);
+VMM_ERR_XPORT_SYMBOL(of_clock_src_simple_get);
 
 struct clock_hw *of_clock_hw_simple_get(struct vmm_device_tree_phandle_args *clkspec, void *data)
 {
     return data;
 }
 
-VMM_EXPORT_SYMBOL(of_clock_hw_simple_get);
+VMM_ERR_XPORT_SYMBOL(of_clock_hw_simple_get);
 
 struct clk *of_clock_src_onecell_get(struct vmm_device_tree_phandle_args *clkspec, void *data)
 {
@@ -3179,13 +3179,13 @@ struct clk *of_clock_src_onecell_get(struct vmm_device_tree_phandle_args *clkspe
 
     if (idx >= clock_data->clock_num) {
         vmm_lerror(__func__, "invalid clock index %u\n", idx);
-        return VMM_ERR_PTR(VMM_EINVALID);
+        return VMM_ERR_RR_PTR(VMM_ERR_INVALID);
     }
 
     return clock_data->clks[idx];
 }
 
-VMM_EXPORT_SYMBOL(of_clock_src_onecell_get);
+VMM_ERR_XPORT_SYMBOL(of_clock_src_onecell_get);
 
 struct clock_hw *of_clock_hw_onecell_get(struct vmm_device_tree_phandle_args *clkspec, void *data)
 {
@@ -3194,13 +3194,13 @@ struct clock_hw *of_clock_hw_onecell_get(struct vmm_device_tree_phandle_args *cl
 
     if (idx >= hw_data->num) {
         vmm_lerror(__func__, "invalid index %u\n", idx);
-        return VMM_ERR_PTR(VMM_EINVALID);
+        return VMM_ERR_RR_PTR(VMM_ERR_INVALID);
     }
 
     return hw_data->hws[idx];
 }
 
-VMM_EXPORT_SYMBOL(of_clock_hw_onecell_get);
+VMM_ERR_XPORT_SYMBOL(of_clock_hw_onecell_get);
 
 /**
  * of_clock_add_provider() - Register a clock provider for a node
@@ -3217,7 +3217,7 @@ int of_clock_add_provider(
     cp = vmm_zalloc(sizeof(struct of_clock_provider));
 
     if (!cp) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     cp->node = vmm_device_tree_ref_node(np);
@@ -3237,7 +3237,7 @@ int of_clock_add_provider(
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(of_clock_add_provider);
+VMM_ERR_XPORT_SYMBOL(of_clock_add_provider);
 
 /**
  * of_clock_add_hw_provider() - Register a clock provider for a node
@@ -3254,7 +3254,7 @@ int of_clock_add_hw_provider(
     cp = vmm_zalloc(sizeof(*cp));
 
     if (!cp) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     cp->node   = vmm_device_tree_ref_node(np);
@@ -3274,7 +3274,7 @@ int of_clock_add_hw_provider(
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(of_clock_add_hw_provider);
+VMM_ERR_XPORT_SYMBOL(of_clock_add_hw_provider);
 
 static void devm_of_clock_release_provider(vmm_device_t *dev, void *res)
 {
@@ -3289,7 +3289,7 @@ int devm_of_clock_add_hw_provider(vmm_device_t *dev, struct clock_hw *(*get)(str
     ptr = vmm_device_resource_alloc(devm_of_clock_release_provider, sizeof(*ptr));
 
     if (!ptr) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     np  = dev->of_node;
@@ -3305,7 +3305,7 @@ int devm_of_clock_add_hw_provider(vmm_device_t *dev, struct clock_hw *(*get)(str
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(devm_of_clock_add_hw_provider);
+VMM_ERR_XPORT_SYMBOL(devm_of_clock_add_hw_provider);
 
 /**
  * of_clock_del_provider() - Remove a previously registered clock provider
@@ -3328,7 +3328,7 @@ void of_clock_del_provider(vmm_device_tree_node_t *np)
     vmm_spin_unlock(&of_clock_slock);
 }
 
-VMM_EXPORT_SYMBOL(of_clock_del_provider);
+VMM_ERR_XPORT_SYMBOL(of_clock_del_provider);
 
 static int devm_clock_provider_match(vmm_device_t *dev, void *res, void *data)
 {
@@ -3350,7 +3350,7 @@ void devm_of_clock_del_provider(vmm_device_t *dev)
     WARN_ON(ret);
 }
 
-VMM_EXPORT_SYMBOL(devm_of_clock_del_provider);
+VMM_ERR_XPORT_SYMBOL(devm_of_clock_del_provider);
 
 static struct clock_hw *__of_clock_get_hw_from_provider(struct of_clock_provider *provider, struct vmm_device_tree_phandle_args *clkspec)
 {
@@ -3363,7 +3363,7 @@ static struct clock_hw *__of_clock_get_hw_from_provider(struct of_clock_provider
     clk = provider->get(clkspec, provider->data);
 
     if (VMM_IS_ERR(clk)) {
-        return VMM_ERR_CAST(clk);
+        return VMM_ERR_RR_CAST(clk);
     }
 
     return __clock_get_hw(clk);
@@ -3372,11 +3372,11 @@ static struct clock_hw *__of_clock_get_hw_from_provider(struct of_clock_provider
 struct clk *__of_clock_get_from_provider(struct vmm_device_tree_phandle_args *clkspec, const char *dev_id, const char *con_id)
 {
     struct of_clock_provider *provider;
-    struct clk               *clk = VMM_ERR_PTR(VMM_EPROBE_DEFER);
+    struct clk               *clk = VMM_ERR_RR_PTR(VMM_ERR_PROBE_DEFER);
     struct clock_hw          *hw;
 
     if (!clkspec) {
-        return VMM_ERR_PTR(VMM_EINVALID);
+        return VMM_ERR_RR_PTR(VMM_ERR_INVALID);
     }
 
     /* Check if we have such a provider in our array */
@@ -3391,7 +3391,7 @@ struct clk *__of_clock_get_from_provider(struct vmm_device_tree_phandle_args *cl
         if (!VMM_IS_ERR(clk)) {
             if (!__clock_get(clk)) {
                 __clock_free_clock(clk);
-                clk = VMM_ERR_PTR(VMM_ENOENT);
+                clk = VMM_ERR_RR_PTR(VMM_ERR_NOENT);
             }
 
             break;
@@ -3415,7 +3415,7 @@ struct clk *of_clock_get_from_provider(struct vmm_device_tree_phandle_args *clks
     return __of_clock_get_from_provider(clkspec, NULL, __func__);
 }
 
-VMM_EXPORT_SYMBOL(of_clock_get_from_provider);
+VMM_ERR_XPORT_SYMBOL(of_clock_get_from_provider);
 
 /**
  * of_clock_get_parent_count() - Count the number of clocks a device node has
@@ -3436,7 +3436,7 @@ uint32_t of_clock_get_parent_count(vmm_device_tree_node_t *np)
     return count;
 }
 
-VMM_EXPORT_SYMBOL(of_clock_get_parent_count);
+VMM_ERR_XPORT_SYMBOL(of_clock_get_parent_count);
 
 const char *of_clock_get_parent_name(vmm_device_tree_node_t *np, int index)
 {
@@ -3501,7 +3501,7 @@ const char *of_clock_get_parent_name(vmm_device_tree_node_t *np, int index)
     return clock_name;
 }
 
-VMM_EXPORT_SYMBOL(of_clock_get_parent_name);
+VMM_ERR_XPORT_SYMBOL(of_clock_get_parent_name);
 
 /**
  * of_clock_parent_fill() - Fill @parents with names of @np's parents and return
@@ -3523,7 +3523,7 @@ int of_clock_parent_fill(vmm_device_tree_node_t *np, const char **parents, uint3
     return i;
 }
 
-VMM_EXPORT_SYMBOL(of_clock_parent_fill);
+VMM_ERR_XPORT_SYMBOL(of_clock_parent_fill);
 
 static void of_clock_init_matching(vmm_device_tree_node_t *np, const struct vmm_device_tree_nodeid *match, void *data)
 {

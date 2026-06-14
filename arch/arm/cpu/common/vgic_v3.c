@@ -449,7 +449,7 @@ int vgic_v3_probe(struct vgic_ops *ops, struct vgic_params *params)
     node = vmm_device_tree_find_matching(NULL, vgic_host_match);
 
     if (!node) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto fail;
     }
 
@@ -476,7 +476,7 @@ int vgic_v3_probe(struct vgic_ops *ops, struct vgic_params *params)
     vgicp.maint_irq = vmm_device_tree_irq_parse_map(node, 0);
 
     if (!vgicp.maint_irq) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto fail_unmap_vcpu;
     }
 

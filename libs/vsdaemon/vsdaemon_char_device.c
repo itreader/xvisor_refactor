@@ -69,20 +69,20 @@ static int vsdaemon_char_device_setup(struct vsdaemon *vsd, int argc, char **arg
     struct vsdaemon_char_device *vcdev;
 
     if (argc < 1) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vcdev = vmm_zalloc(sizeof(*vcdev));
 
     if (!vcdev) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     vcdev->cdev = vmm_char_device_find(argv[0]);
 
     if (!vcdev->cdev) {
         vmm_free(vcdev);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vsdaemon_transport_set_data(vsd, vcdev);

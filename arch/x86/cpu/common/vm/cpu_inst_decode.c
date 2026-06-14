@@ -122,7 +122,7 @@ int x86_decode_inst(struct vcpu_hw_context *context, x86_inst inst, x86_decoded_
                 cinst += opsize;
                 memcpy((void *)&dinst->inst.gen_mov.src_addr, (void *)cinst, opsize);
             } else {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             break;
@@ -167,13 +167,13 @@ int x86_decode_inst(struct vcpu_hw_context *context, x86_inst inst, x86_decoded_
                 cinst += sizeof(uint16_t);
                 dinst->inst.lja.ss = *((uint16_t *)cinst);
             } else {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             break;
 
         default:
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
     }
 
     return VMM_OK;

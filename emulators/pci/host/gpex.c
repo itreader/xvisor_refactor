@@ -89,7 +89,7 @@ static int gpex_reg_write(struct gpex_state *s, uint32_t addr, uint32_t src_mask
     pdev                   = pci_emu_pci_dev_find_by_addr(s->controller, addr);
 
     if (!pdev) {
-        ret = VMM_EFAIL;
+        ret = VMM_ERR_FAIL;
         goto exit;
     }
 
@@ -111,7 +111,7 @@ static int gpex_reg_read(struct gpex_state *s, uint32_t addr, uint32_t *dst, uin
 
     if (!pdev) {
         *dst = 0xFFFF;
-        ret  = VMM_EFAIL;
+        ret  = VMM_ERR_FAIL;
         goto exit;
     }
 
@@ -186,7 +186,7 @@ static int gpex_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ed
 
     if (!s) {
         GPEX_LOG(LVL_ERR, "Failed to allocate gpex state.\n");
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto _failed;
     }
 
@@ -235,7 +235,7 @@ static int gpex_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ed
     strlcat(name, "/", sizeof(name));
 
     if (strlcat(name, edev->node->name, sizeof(name)) >= sizeof(name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto _failed;
     }
 

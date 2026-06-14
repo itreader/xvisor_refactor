@@ -49,22 +49,22 @@ extern struct regmap *syscon_regmap_lookup_by_phandle(vmm_device_tree_node_t *np
 #else
 static inline struct regmap *syscon_node_to_regmap(vmm_device_tree_node_t *np)
 {
-    return VMM_ERR_PTR(VMM_ENOTSUPP);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOTSUPP);
 }
 
 static inline struct regmap *syscon_regmap_lookup_by_compatible(const char *s)
 {
-    return VMM_ERR_PTR(VMM_ENOTSUPP);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOTSUPP);
 }
 
 static inline struct regmap *syscon_regmap_lookup_by_pdevname(const char *s)
 {
-    return VMM_ERR_PTR(VMM_ENOTSUPP);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOTSUPP);
 }
 
 static inline struct regmap *syscon_regmap_lookup_by_phandle(vmm_device_tree_node_t *np, const char *property)
 {
-    return VMM_ERR_PTR(VMM_ENOTSUPP);
+    return VMM_ERR_RR_PTR(VMM_ERR_NOTSUPP);
 }
 #endif
 

@@ -18,7 +18,7 @@
  *
  * @file vmm_host_io.h
  * @author Himanshu Chauhan (hschauhan@nulltrace.org)
- * @brief header file for common io functions.
+ * @brief 通用IO函数头文件
  */
 
 #ifndef __VMM_HOST_IO_H_
@@ -64,19 +64,36 @@
 #define vmm_le_long_to_cpu(__val) vmm_le64_to_cpu(__val)
 #endif
 
-/** I/O space access functions (Assumed to be Little Endian) */
+/**
+ * @brief IO空间访问函数（假定小端序）
+ */
 static inline uint8_t vmm_inb(uint64_t port)
 {
+/**
+ * @brief 架构相关IO端口字节读取
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
     return arch_inb(port);
 }
 
 static inline uint16_t vmm_inw(uint64_t port)
 {
+/**
+ * @brief 架构相关IO端口字读取
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
     return arch_inw(port);
 }
 
 static inline uint32_t vmm_inl(uint64_t port)
 {
+/**
+ * @brief 架构相关IO端口双字读取
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
     return arch_inl(port);
 }
 
@@ -97,16 +114,31 @@ static inline void vmm_outl(uint32_t value, uint64_t port)
 
 static inline uint8_t vmm_inb_p(uint64_t port)
 {
+/**
+ * @brief 从I/O端口读取8位数据（带端口延迟）
+ * @param port 端口编号或端口结构体指针
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_inb_p(port);
 }
 
 static inline uint16_t vmm_inw_p(uint64_t port)
 {
+/**
+ * @brief 从I/O端口读取16位数据（带端口延迟）
+ * @param port 端口编号或端口结构体指针
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_inw_p(port);
 }
 
 static inline uint32_t vmm_inl_p(uint64_t port)
 {
+/**
+ * @brief 从I/O端口读取32位数据（带端口延迟）
+ * @param port 端口编号或端口结构体指针
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_inl_p(port);
 }
 
@@ -155,9 +187,16 @@ static inline void vmm_outsl(uint64_t port, const void *buffer, int count)
     arch_outsl(port, buffer, count);
 }
 
-/** Memory read/write legacy functions (Assumed to be Little Endian) */
+/**
+ * @brief 内存读写传统函数（假定小端序）
+ */
 static inline uint8_t vmm_readb(volatile void *addr)
 {
+/**
+ * @brief 从I/O端口读取8位数据（架构相关实现）
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_8(addr);
 }
 
@@ -168,6 +207,11 @@ static inline void vmm_writeb(uint8_t data, volatile void *addr)
 
 static inline uint16_t vmm_readw(volatile void *addr)
 {
+/**
+ * @brief 从I/O端口读取小端16位数据
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_le16(addr);
 }
 
@@ -178,6 +222,11 @@ static inline void vmm_writew(uint16_t data, volatile void *addr)
 
 static inline uint32_t vmm_readl(volatile void *addr)
 {
+/**
+ * @brief 从I/O端口读取小端32位数据
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_le32(addr);
 }
 
@@ -188,6 +237,11 @@ static inline void vmm_writel(uint32_t data, volatile void *addr)
 
 static inline uint64_t vmm_readq(volatile void *addr)
 {
+/**
+ * @brief 从I/O端口读取小端64位数据
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_le64(addr);
 }
 
@@ -265,9 +319,16 @@ static inline void vmm_writesl(volatile void *addr, const void *buffer, int len)
     }
 }
 
-/** Memory read/write relaxed legacy functions (Assumed to be Little Endian) */
+/**
+ * @brief 内存读写宽松传统函数（假定小端序）
+ */
 static inline uint8_t vmm_readb_relaxed(volatile void *addr)
 {
+/**
+ * @brief 从I/O端口读取8位数据（宽松内存序）
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_8_relax(addr);
 }
 
@@ -278,6 +339,11 @@ static inline void vmm_writeb_relaxed(uint8_t data, volatile void *addr)
 
 static inline uint16_t vmm_readw_relaxed(volatile void *addr)
 {
+/**
+ * @brief 从I/O端口读取小端16位数据（宽松内存序）
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_le16_relax(addr);
 }
 
@@ -288,6 +354,11 @@ static inline void vmm_writew_relaxed(uint16_t data, volatile void *addr)
 
 static inline uint32_t vmm_readl_relaxed(volatile void *addr)
 {
+/**
+ * @brief 从I/O端口读取小端32位数据（宽松内存序）
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_le32_relax(addr);
 }
 
@@ -298,6 +369,11 @@ static inline void vmm_writel_relaxed(uint32_t data, volatile void *addr)
 
 static inline uint64_t vmm_readq_relaxed(volatile void *addr)
 {
+/**
+ * @brief 从I/O端口读取小端64位数据（宽松内存序）
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_le64_relax(addr);
 }
 
@@ -306,9 +382,16 @@ static inline void vmm_writeq_relaxed(uint64_t data, volatile void *addr)
     arch_out_le64_relax(addr, data);
 }
 
-/** Memory read/write functions */
+/**
+ * @brief 内存读写函数
+ */
 static inline uint8_t vmm_in_8(volatile uint8_t *addr)
 {
+/**
+ * @brief 从I/O端口读取8位数据（架构相关实现）
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_8(addr);
 }
 
@@ -319,6 +402,11 @@ static inline void vmm_out_8(volatile uint8_t *addr, uint8_t data)
 
 static inline uint16_t vmm_in_le16(volatile uint16_t *addr)
 {
+/**
+ * @brief 从I/O端口读取小端16位数据
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_le16(addr);
 }
 
@@ -329,6 +417,11 @@ static inline void vmm_out_le16(volatile uint16_t *addr, uint16_t data)
 
 static inline uint16_t vmm_in_be16(volatile uint16_t *addr)
 {
+/**
+ * @brief 从I/O端口读取大端16位数据
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_be16(addr);
 }
 
@@ -339,6 +432,11 @@ static inline void vmm_out_be16(volatile uint16_t *addr, uint16_t data)
 
 static inline uint32_t vmm_in_le32(volatile uint32_t *addr)
 {
+/**
+ * @brief 从I/O端口读取小端32位数据
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_le32(addr);
 }
 
@@ -349,6 +447,11 @@ static inline void vmm_out_le32(volatile uint32_t *addr, uint32_t data)
 
 static inline uint32_t vmm_in_be32(volatile uint32_t *addr)
 {
+/**
+ * @brief 从I/O端口读取大端32位数据
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_be32(addr);
 }
 
@@ -359,6 +462,11 @@ static inline void vmm_out_be32(volatile uint32_t *addr, uint32_t data)
 
 static inline uint64_t vmm_in_le64(volatile uint64_t *addr)
 {
+/**
+ * @brief 从I/O端口读取小端64位数据
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_le64(addr);
 }
 
@@ -369,6 +477,11 @@ static inline void vmm_out_le64(volatile uint64_t *addr, uint64_t data)
 
 static inline uint64_t vmm_in_be64(volatile uint64_t *addr)
 {
+/**
+ * @brief 从I/O端口读取大端64位数据
+ * @param addr 地址值
+ * @return 成功读取的字节数，失败返回错误码
+ */
     return arch_in_be64(addr);
 }
 

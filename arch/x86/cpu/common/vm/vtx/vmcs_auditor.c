@@ -151,7 +151,7 @@ int audit_vmcs(BOOLEAN IsVMResume, UINT64 RevisionID, UINT64 VMXON_Pointer)
 
     if (vm == NULL) {
         vmm_printf("Failed to allocate memory for vmcs copy\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Get host states */

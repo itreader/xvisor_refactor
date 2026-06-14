@@ -224,7 +224,7 @@ shown in figure-1 of chapter 1.
                    |              |
                    |              |     (Guest Address Space)
                    |              |          +--------+
-                   |              +----------| aspace |
+                   |              +----------| addr_space |
                    |                         +--------+
                    |                             |
                    |                             |        (Guest Region)
@@ -280,7 +280,7 @@ shown in figure-1 of chapter 1.
                                   |
                                   |     (Guest Address Space)
                                   |          +--------+
-                                  +----------| aspace |
+                                  +----------| addr_space |
                                              +--------+
                                                  |
                                                  |        (Guest Region)

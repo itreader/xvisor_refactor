@@ -262,7 +262,7 @@ static uint64_t pl022_read(struct pl022_state *s, uint32_t offset, uint32_t *dst
             if (offset >= 0xfe0 && offset < 0x1000) {
                 *dst = s->id[(offset - 0xfe0) >> 2];
             } else {
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
             }
 
             break;
@@ -412,7 +412,7 @@ static int pl022_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(struct pl022_state));
 
     if (!s) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto pl022_emulator_probe_done;
     }
 
@@ -439,7 +439,7 @@ static int pl022_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s->vsh = vmm_vspihost_create(guest->name, edev, pl022_xfer, 1, s);
 
     if (!s->vsh) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto pl022_emulator_probe_freestate_fail;
     }
 

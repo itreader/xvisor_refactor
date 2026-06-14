@@ -202,7 +202,7 @@ static int sp805_reg_read(struct sp805_state *sp805, physical_addr_t offset, uin
             break;
 
         default:
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             break;
     };
 
@@ -320,7 +320,7 @@ static int sp805_reg_write(struct sp805_state *sp805, physical_addr_t offset, ui
             break;
 
         default:
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             break;
     };
 
@@ -454,7 +454,7 @@ static int sp805_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     sp805                     = vmm_zalloc(sizeof(struct sp805_state));
 
     if (!sp805) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     sp805->edev  = edev;

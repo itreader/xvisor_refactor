@@ -19,7 +19,7 @@
  * @file vmm_host_irq_domain.h
  * @author Jimmy Durand Wesolowski (jimmy.durand-wesolowski@openwide.fr)
  * @author Anup Patel (anup@brainfault.org)
- * @brief IRQ domain support, kind of Xvior compatible Linux IRQ domain.
+ * @brief IRQ域支持，类似Linux IRQ域的Xvisor兼容实现
  */
 
 #ifndef _VMM_HOST_IRQDOMAIN_H__
@@ -48,18 +48,18 @@ typedef struct vmm_char_device vmm_char_device_t;
  *
  * Functions below are provided by the driver and called whenever a new
  * mapping is created or an old mapping is disposed. The driver can then
- * proceed to whatever internal data structures management is required.
+ * proceed to whatever internal data structures 管理 is required.
  * It also needs to setup the irq_desc when returning from map().
  */
 struct vmm_host_irq_domain_ops {
-    int (*match)(struct vmm_host_irq_domain *d, vmm_device_tree_node_t *node);
-    int (*map)(struct vmm_host_irq_domain *d, uint32_t hirq, uint32_t hwirq);
-    void (*unmap)(struct vmm_host_irq_domain *d, uint32_t hirq);
+    int (*match)(struct vmm_host_irq_domain *d, vmm_device_tree_node_t *node); /**< 匹配函数 */
+    int (*map)(struct vmm_host_irq_domain *d, uint32_t hirq, uint32_t hw_irq_num); /**< 映射 */
+    void (*unmap)(struct vmm_host_irq_domain *d, uint32_t hirq); /**< unmap成员 */
     int (*xlate)(
-        struct vmm_host_irq_domain *d, vmm_device_tree_node_t *node, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hwirq,
-        uint32_t *out_type);
-    int (*alloc)(struct vmm_host_irq_domain *d, uint32_t nr_irqs, void *arg);
-    void (*free)(struct vmm_host_irq_domain *d, uint32_t hwirq, uint32_t nr_irqs);
+        struct vmm_host_irq_domain *d, vmm_device_tree_node_t *node, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hw_irq, /**< out_hw_irq成员 */
+        uint32_t *out_type); /**< out_type)成员 */
+    int (*alloc)(struct vmm_host_irq_domain *d, uint32_t nr_irqs, void *arg); /**< alloc成员 */
+    void (*free)(struct vmm_host_irq_domain *d, uint32_t hw_irq_num, uint32_t nr_irqs); /**< 可用量 */
 };
 
 /**
@@ -70,7 +70,7 @@ struct vmm_host_irq_domain_ops {
  * @ops:    Pointer to vmm_host_irq_domain methods.
  * @irqs:   The extended IRQ array
  *
- * Optional elements
+ * 可选的 elements
  * @of_node:    The device node using this domain
  * @host_data:  The controller private data pointer. Not touched by extended
  *      IRQ core code.
@@ -78,61 +78,108 @@ struct vmm_host_irq_domain_ops {
  * @bmap:   The IRQ domain bitmap
  */
 struct vmm_host_irq_domain {
-    double_list_t                         head;
-    bool                                  uses_extend_irq;
-    uint32_t                              base;
-    uint32_t                              count;
-    uint32_t                              end;
-    const struct vmm_host_irq_domain_ops *ops;
-    vmm_device_tree_node_t               *of_node;
-    void                                 *host_data;
-    vmm_spinlock_t                        bmap_lock;
-    uint64_t                             *bmap;
+    double_list_t                         head; /**< 链表头 */
+    bool                                  uses_extend_irq; /**< uses_extend_irq成员 */
+    uint32_t                              base; /**< 基址 */
+    uint32_t                              count; /**< 计数 */
+    uint32_t                              end; /**< 结束 */
+    const struct vmm_host_irq_domain_ops *ops; /**< 操作集 */
+    vmm_device_tree_node_t               *of_node; /**< 设备树节点 */
+    void                                 *host_data; /**< host_data成员 */
+    vmm_spinlock_t                        bmap_lock; /**< bmap_lock成员 */
+    uint64_t                             *bmap; /**< bmap成员 */
 };
 
-/** Convert host IRQ to HW IRQ */
-int vmm_host_irq_domain_to_hwirq(struct vmm_host_irq_domain *domain, uint32_t hirq);
+/**
+ * @brief 将主机中断域中的中断号转换为硬件中断号
+ * @param domain 指向主机中断结构体的指针
+ * @param hirq 中断号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+int vmm_host_irq_domain_to_hw_irq(struct vmm_host_irq_domain *domain, uint32_t hirq);
 
-/** Convert HW IRQ to host IRQ */
-int vmm_host_irq_domain_to_hirq(struct vmm_host_irq_domain *domain, uint32_t hwirq);
+/**
+ * @brief 将主机中断域中的中断号转换为全局中断号
+ * @param domain 指向主机中断结构体的指针
+ * @param hw_irq_num 数量
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+int vmm_host_irq_domain_to_hirq(struct vmm_host_irq_domain *domain, uint32_t hw_irq_num);
 
-/** Find host IRQ for givne HW IRQ */
-int vmm_host_irq_domain_find_mapping(struct vmm_host_irq_domain *domain, uint32_t hwirq);
+/**
+ * @brief 在主机中断域中查找已映射的中断
+ * @param domain 指向主机中断结构体的指针
+ * @param hw_irq_num 数量
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+int vmm_host_irq_domain_find_mapping(struct vmm_host_irq_domain *domain, uint32_t hw_irq_num);
 
 /** Find matching host IRQ domain based on given match function */
 struct vmm_host_irq_domain *vmm_host_irq_domain_match(void *data, int (*fn)(struct vmm_host_irq_domain *, void *));
 
-/** Dump host IRQ domain debug info */
+/**
+ * @brief 输出主机中断域的调试信息
+ * @param cdev 字符设备指针
+ */
 void vmm_host_irq_domain_debug_dump(vmm_char_device_t *cdev);
 
 /** Find host IRQ domain for given host IRQ */
 struct vmm_host_irq_domain *vmm_host_irq_domain_get(uint32_t hirq);
 
-/** Create mapping in host IRQ domain for given HW IRQ */
-int vmm_host_irq_domain_create_mapping(struct vmm_host_irq_domain *domain, uint32_t hwirq);
+/**
+ * @brief 在主机中断域中创建中断映射
+ * @param domain 指向主机中断结构体的指针
+ * @param hw_irq_num 数量
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+int vmm_host_irq_domain_create_mapping(struct vmm_host_irq_domain *domain, uint32_t hw_irq_num);
 
-/** Dispose mapping in host IRQ domain associated with given host IRQ */
+/**
+ * @brief 释放主机中断域中的中断映射
+ * @param hirq 中断号
+ */
 void vmm_host_irq_domain_dispose_mapping(uint32_t hirq);
 
-/** Allocate and map host IRQs */
+/**
+ * @brief 分配主机中断域
+ * @param domain 指向主机中断结构体的指针
+ * @param irq_count 数量
+ * @param arg 参数值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_host_irq_domain_alloc(struct vmm_host_irq_domain *domain, uint32_t irq_count, void *arg);
 
-/** Free and unmap host IRQs */
+/**
+ * @brief 释放主机中断域
+ * @param domain 指向主机中断结构体的指针
+ * @param hirq 中断号
+ * @param irq_count 数量
+ */
 void vmm_host_irq_domain_free(struct vmm_host_irq_domain *domain, uint32_t hirq, uint32_t irq_count);
 
-/** Translate device tree cells to HW IRQ for given host IRQ domain
- *  using xlate() callback provided in host IRQ domain ops.
+/**
+ * @brief 将设备树中断描述翻译为主机中断号
+ * @param domain 指向主机中断结构体的指针
+ * @param intspec 中断规格描述数组
+ * @param intsize 大小
+ * @param out_hw_irq 用于返回硬件中断号
+ * @param out_type 用于返回中断类型
+ * @return 成功返回VMM_OK，失败返回错误码
  */
-int vmm_host_irq_domain_xlate(struct vmm_host_irq_domain *domain, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hwirq, uint32_t *out_type);
+int vmm_host_irq_domain_xlate(struct vmm_host_irq_domain *domain, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hw_irq, uint32_t *out_type);
 
-/** Common xlate() callback to translate one device tree cell */
+/**
+ * @brief 通用xlate()回调，转换一个设备树单元
+ */
 int vmm_host_irq_domain_xlate_onecell(
-    struct vmm_host_irq_domain *domain, vmm_device_tree_node_t *node, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hwirq,
+    struct vmm_host_irq_domain *domain, vmm_device_tree_node_t *node, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hw_irq,
     uint32_t *out_type);
 
-/** Common xlate() callback to translate two device tree cells */
+/**
+ * @brief 通用xlate()回调，转换两个设备树单元
+ */
 int vmm_host_irq_domain_xlate_twocells(
-    struct vmm_host_irq_domain *domain, vmm_device_tree_node_t *node, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hwirq,
+    struct vmm_host_irq_domain *domain, vmm_device_tree_node_t *node, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hw_irq,
     uint32_t *out_type);
 
 /**
@@ -146,10 +193,16 @@ int vmm_host_irq_domain_xlate_twocells(
 struct vmm_host_irq_domain *vmm_host_irq_domain_add(
     vmm_device_tree_node_t *of_node, int base, uint32_t size, const struct vmm_host_irq_domain_ops *ops, void *host_data);
 
-/** Remove existing host IRQ domain */
+/**
+ * @brief 从系统中移除主机中断域
+ * @param domain 指向主机中断结构体的指针
+ */
 void vmm_host_irq_domain_remove(struct vmm_host_irq_domain *domain);
 
-/** Initialize host IRQ domain framework */
+/**
+ * @brief 初始化主机中断域
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_host_irq_domain_init(void);
 
 extern const struct vmm_host_irq_domain_ops irq_domain_ops;

@@ -74,7 +74,7 @@ static int cmd_stdio_change_device(vmm_char_device_t *cdev, char *char_device_na
         }
     } else {
         vmm_cdev_printf(cdev, "Device %s not found\n", char_device_name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
@@ -109,7 +109,7 @@ static int cmd_stdio_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc < 3) {
         cmd_stdio_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (strcmp(argv[1], "change_device") == 0) {
@@ -119,7 +119,7 @@ static int cmd_stdio_exec(vmm_char_device_t *cdev, int argc, char **argv)
         return cmd_stdio_change_loglevel(cdev, loglevel);
     } else {
         cmd_stdio_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;

@@ -18,7 +18,7 @@
  *
  * @file vmm_timer.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief Implementation of timer subsystem
+ * @brief 定时器子系统实现
  */
 
 #include <arch_cpu_irq.h>
@@ -34,38 +34,58 @@
 #include <vmm_timer.h>
 
 /** Control structure for Timer Subsystem */
+/**
+ * @brief 本地定时器控制结构，维护每CPU的定时器事件列表
+ */
 struct vmm_timer_local_ctrl {
-    vmm_timecounter_t  tc;
-    vmm_clock_chip_t  *cc;
-    bool               started;
-    bool               inprocess;
-    uint64_t           next_event;
-    vmm_timer_event_t *curr;
-    vmm_rwlock_t       event_list_lock;
-    double_list_t      event_list;
+    vmm_timecounter_t  tc; /**< 流量控制/定时器芯片 */
+    vmm_clock_chip_t  *cc; /**< cc */
+    bool               started; /**< started成员 */
+    bool               inprocess; /**< inprocess成员 */
+    uint64_t           next_event; /**< next_event成员 */
+    vmm_timer_event_t *curr; /**< 当前值 */
+    vmm_rwlock_t       event_list_lock; /**< event_list_lock成员 */
+    double_list_t      event_list; /**< event_list成员 */
 };
 
 static DEFINE_PER_CPU(struct vmm_timer_local_ctrl, tlc);
 
 static vmm_timecounter_t ref_tc;
 
+/**
+ * @brief 获取定时器时钟源的频率
+ * @return 频率值（Hz）
+ */
 uint32_t vmm_timer_clocksource_frequency(void)
 {
     return vmm_timecounter_clocksource_frequency(&this_cpu(tlc).tc);
 }
 
+/**
+ * @brief 获取定时器时钟芯片的频率
+ * @return 频率值（Hz）
+ */
 uint32_t vmm_timer_clock_chip_frequency(void)
 {
     return vmm_clock_chip_frequency(this_cpu(tlc).cc);
 }
 
 #if defined(CONFIG_PROFILE)
+/**
+ * @brief 获取用于性能分析的时间戳
+ * @return 返回64位无符号整数值
+ */
 uint64_t __notrace vmm_timer_timestamp_for_profile(void)
 {
     return vmm_timecounter_read_for_profile(&this_cpu(tlc).tc);
 }
 #endif
 
+/**
+ * @brief 将CPU时钟周期数转换为纳秒
+ * @param cycles CPU时钟周期数
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_timer_cycles_to_ns(uint64_t cycles)
 {
     irq_flags_t        flags;
@@ -79,10 +99,17 @@ uint64_t vmm_timer_cycles_to_ns(uint64_t cycles)
     return nanosecs;
 }
 
+/**
+ * @brief 将时钟周期差值转换为纳秒
+ * @param cycles CPU时钟周期数
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_timer_delta_cycles_to_ns(uint64_t cycles)
 {
     irq_flags_t        flags;
-    uint64_t           ns_delta, cycles_now, cycles_delta;
+    uint64_t ns_delta;
+    uint64_t cycles_now;
+    uint64_t cycles_delta;
     vmm_timecounter_t *tc = &this_cpu(tlc).tc;
 
     arch_cpu_irq_save(flags);
@@ -100,6 +127,10 @@ uint64_t vmm_timer_delta_cycles_to_ns(uint64_t cycles)
     return ns_delta;
 }
 
+/**
+ * @brief 定时器 时间戳
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_timer_timestamp(void)
 {
     uint64_t    ret;
@@ -113,6 +144,10 @@ uint64_t vmm_timer_timestamp(void)
 }
 
 /* Note: This function must be called with tlcp->event_list_lock held. */
+/**
+ * @brief 调度定时器的下一个事件
+ * @param tlcp TLC指针
+ */
 static void __timer_schedule_next_event(struct vmm_timer_local_ctrl *tlcp)
 {
     uint64_t           tstamp;
@@ -145,6 +180,10 @@ static void __timer_schedule_next_event(struct vmm_timer_local_ctrl *tlcp)
 }
 
 /* Note: This function must be called with ev->active_lock held. */
+/**
+ * @brief   定时器 事件 停止
+ * @param ev 定时器事件
+ */
 static void __timer_event_stop(vmm_timer_event_t *ev)
 {
     irq_flags_t                  flags;
@@ -168,9 +207,14 @@ static void __timer_event_stop(vmm_timer_event_t *ev)
 /* This is called from interrupt context. We need to protect the
  * event list when manipulating it.
  */
+/**
+ * @brief 定时器时钟芯片的事件处理函数
+ * @param cc 时钟芯片结构体指针
+ */
 static void timer_clock_chip_event_handler(vmm_clock_chip_t *cc)
 {
-    irq_flags_t                  flags, flags1;
+    irq_flags_t flags;
+    irq_flags_t flags1;
     vmm_timer_event_t           *e;
     struct vmm_timer_local_ctrl *tlcp = &this_cpu(tlc);
 
@@ -210,6 +254,11 @@ static void timer_clock_chip_event_handler(vmm_clock_chip_t *cc)
     vmm_read_unlock_irq_restore_lite(&tlcp->event_list_lock, flags);
 }
 
+/**
+ * @brief 检查定时器事件是否处于等待状态
+ * @param ev 定时器事件
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_timer_event_pending(vmm_timer_event_t *ev)
 {
     bool        ret;
@@ -226,6 +275,11 @@ bool vmm_timer_event_pending(vmm_timer_event_t *ev)
     return ret;
 }
 
+/**
+ * @brief 获取定时器事件的到期时间
+ * @param ev 定时器事件
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_timer_event_expiry_time(vmm_timer_event_t *ev)
 {
     uint64_t    exp_time;
@@ -242,17 +296,25 @@ uint64_t vmm_timer_event_expiry_time(vmm_timer_event_t *ev)
     return exp_time;
 }
 
+/**
+ * @brief 启动定时器事件（带扩展参数）
+ * @param ev 定时器事件
+ * @param duration_nsecs 时间值（纳秒）
+ * @param ret_expiry_tstamp 用于返回到期时间戳
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_timer_event_start2(vmm_timer_event_t *ev, uint64_t duration_nsecs, uint64_t *ret_expiry_tstamp)
 {
     uint32_t                     host_cpu;
     uint64_t                     tstamp;
     bool                         found_pos = FALSE;
-    irq_flags_t                  flags, flags1;
+    irq_flags_t flags;
+    irq_flags_t flags1;
     vmm_timer_event_t           *e = NULL;
     struct vmm_timer_local_ctrl *tlcp;
 
     if (!ev) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     host_cpu = vmm_smp_processor_id();
@@ -297,21 +359,31 @@ int vmm_timer_event_start2(vmm_timer_event_t *ev, uint64_t duration_nsecs, uint6
     return VMM_OK;
 }
 
+/**
+ * @brief 重新启动已到期的定时器事件
+ * @param ev 定时器事件
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_timer_event_restart(vmm_timer_event_t *ev)
 {
     if (!ev) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return vmm_timer_event_start(ev, ev->duration_nsecs);
 }
 
+/**
+ * @brief 停止定时器事件
+ * @param ev 定时器事件
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_timer_event_stop(vmm_timer_event_t *ev)
 {
     irq_flags_t flags;
 
     if (!ev) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_spin_lock_irq_save_lite(&ev->active_lock, flags);
@@ -323,11 +395,18 @@ int vmm_timer_event_stop(vmm_timer_event_t *ev)
     return VMM_OK;
 }
 
+/**
+ * @brief 检查定时器是否已启动
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_timer_started(void)
 {
     return this_cpu(tlc).started;
 }
 
+/**
+ * @brief 启动定时器
+ */
 void vmm_timer_start(void)
 {
     uint64_t                     tstamp;
@@ -344,6 +423,9 @@ void vmm_timer_start(void)
     vmm_clock_chip_program_event(tlcp->cc, tstamp, tlcp->next_event);
 }
 
+/**
+ * @brief 停止定时器
+ */
 void vmm_timer_stop(void)
 {
     struct vmm_timer_local_ctrl *tlcp = &this_cpu(tlc);
@@ -353,6 +435,12 @@ void vmm_timer_stop(void)
     tlcp->started = FALSE;
 }
 
+/**
+ * @brief 定时器子系统初始化启动
+ * @param cpu_hotplug CPU热插拔结构体指针
+ * @param cpu CPU编号
+ * @return 时间值（纳秒）
+ */
 static int timer_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t cpu)
 {
     int                          rc;
@@ -377,7 +465,7 @@ static int timer_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t cpu)
 
     if (!tlcp->cc) {
         vmm_printf("%s: No clockchip for CPU%d\n", __func__, cpu);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Update event handler of clockchip */
@@ -399,6 +487,10 @@ static vmm_cpu_hotplug_notify_t timer_cpu_hotplug = {
     .startup = timer_startup,
 };
 
+/**
+ * @brief 初始化定时器
+ * @return 时间值（纳秒）
+ */
 int __init vmm_timer_init(void)
 {
     int                rc;
@@ -407,7 +499,7 @@ int __init vmm_timer_init(void)
     /* Find suitable clocksource */
     if (!(cs = vmm_clocksource_best())) {
         vmm_printf("%s: No clocksource found\n", __func__);
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Initialize reference timecounter wrapper */

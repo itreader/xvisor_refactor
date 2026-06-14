@@ -88,13 +88,13 @@ static int fb_check_foreignness(struct frame_buffer_info *fi)
             "%s: enable CONFIG_FB_BIG_ENDIAN to "
             "support this framebuffer\n",
             fi->fix.id);
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     } else if (!(fi->flags & FBINFO_BE_MATH) && fb_be_math(fi)) {
         vmm_printf(
             "%s: enable CONFIG_FB_LITTLE_ENDIAN to "
             "support this framebuffer\n",
             fi->fix.id);
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     return VMM_OK;
@@ -155,7 +155,7 @@ static int fb_check_caps(struct frame_buffer_info *info, struct frame_buffer_var
     info->fbops->fb_get_caps(info, &fbcaps, var);
 
     if (((fbcaps.x ^ caps.x) & caps.x) || ((fbcaps.y ^ caps.y) & caps.y) || (fbcaps.len < caps.len)) {
-        err = VMM_EINVALID;
+        err = VMM_ERR_INVALID;
     }
 
     return err;
@@ -170,7 +170,7 @@ int fb_check_var(struct frame_buffer_info *info, struct frame_buffer_var_screeni
     return info->fbops->fb_check_var(var, info);
 }
 
-VMM_EXPORT_SYMBOL(fb_check_var);
+VMM_ERR_XPORT_SYMBOL(fb_check_var);
 
 int fb_set_var(struct frame_buffer_info *info, struct frame_buffer_var_screeninfo *var)
 {
@@ -197,7 +197,7 @@ int fb_set_var(struct frame_buffer_info *info, struct frame_buffer_var_screeninf
             fb_delete_videomode(&mode1, &info->modelist);
         }
 
-        ret = (ret) ? VMM_EINVALID : 0;
+        ret = (ret) ? VMM_ERR_INVALID : 0;
         goto done;
     }
 
@@ -267,12 +267,12 @@ done:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(fb_set_var);
+VMM_ERR_XPORT_SYMBOL(fb_set_var);
 
 int fb_get_smem(struct frame_buffer_info *info, uint64_t *start, uint32_t *len)
 {
     if (!info || !start || !len) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     *start = info->fix.smem_start;
@@ -281,22 +281,22 @@ int fb_get_smem(struct frame_buffer_info *info, uint64_t *start, uint32_t *len)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(fb_get_smem);
+VMM_ERR_XPORT_SYMBOL(fb_get_smem);
 
 int fb_set_smem(struct frame_buffer_info *info, uint64_t start, uint32_t len)
 {
     if (!info) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (info->fbops->fb_set_smem) {
         return info->fbops->fb_set_smem(info, start, len);
     }
 
-    return VMM_EOPNOTSUPP;
+    return VMM_ERR_OPNOTSUPP;
 }
 
-VMM_EXPORT_SYMBOL(fb_set_smem);
+VMM_ERR_XPORT_SYMBOL(fb_set_smem);
 
 int fb_pan_display(struct frame_buffer_info *info, struct frame_buffer_var_screeninfo *var)
 {
@@ -307,22 +307,22 @@ int fb_pan_display(struct frame_buffer_info *info, struct frame_buffer_var_scree
     if (var->yoffset > 0) {
         if (var->vmode & FB_VMODE_YWRAP) {
             if (!fix->ywrapstep || umod32(var->yoffset, fix->ywrapstep)) {
-                err = VMM_EINVALID;
+                err = VMM_ERR_INVALID;
             } else {
                 yres = 0;
             }
         } else if (!fix->ypanstep || umod32(var->yoffset, fix->ypanstep)) {
-            err = VMM_EINVALID;
+            err = VMM_ERR_INVALID;
         }
     }
 
     if (var->xoffset > 0 && (!fix->xpanstep || umod32(var->xoffset, fix->xpanstep))) {
-        err = VMM_EINVALID;
+        err = VMM_ERR_INVALID;
     }
 
     if (err || !info->fbops->fb_pan_display || var->yoffset > info->var.yres_virtual - yres ||
         var->xoffset > info->var.xres_virtual - info->var.xres) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if ((err = info->fbops->fb_pan_display(var, info))) {
@@ -341,11 +341,11 @@ int fb_pan_display(struct frame_buffer_info *info, struct frame_buffer_var_scree
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(fb_pan_display);
+VMM_ERR_XPORT_SYMBOL(fb_pan_display);
 
 int fb_blank(struct frame_buffer_info *info, int blank)
 {
-    int ret = VMM_EINVALID;
+    int ret = VMM_ERR_INVALID;
 
     if (blank > FB_BLANK_POWERDOWN) {
         blank = FB_BLANK_POWERDOWN;
@@ -366,7 +366,7 @@ int fb_blank(struct frame_buffer_info *info, int blank)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(fb_blank);
+VMM_ERR_XPORT_SYMBOL(fb_blank);
 
 int lock_frame_buffer_info(struct frame_buffer_info *info)
 {
@@ -380,14 +380,14 @@ int lock_frame_buffer_info(struct frame_buffer_info *info)
     return 1;
 }
 
-VMM_EXPORT_SYMBOL(lock_frame_buffer_info);
+VMM_ERR_XPORT_SYMBOL(lock_frame_buffer_info);
 
 void unlock_frame_buffer_info(struct frame_buffer_info *info)
 {
     vmm_mutex_unlock(&info->lock);
 }
 
-VMM_EXPORT_SYMBOL(unlock_frame_buffer_info);
+VMM_ERR_XPORT_SYMBOL(unlock_frame_buffer_info);
 
 void fb_set_suspend(struct frame_buffer_info *info, int state)
 {
@@ -404,7 +404,7 @@ void fb_set_suspend(struct frame_buffer_info *info, int state)
     unlock_frame_buffer_info(info);
 }
 
-VMM_EXPORT_SYMBOL(fb_set_suspend);
+VMM_ERR_XPORT_SYMBOL(fb_set_suspend);
 
 int fb_get_color_depth(struct frame_buffer_var_screeninfo *var, struct frame_buffer_fix_screeninfo *fix)
 {
@@ -424,7 +424,7 @@ int fb_get_color_depth(struct frame_buffer_var_screeninfo *var, struct frame_buf
     return depth;
 }
 
-VMM_EXPORT_SYMBOL(fb_get_color_depth);
+VMM_ERR_XPORT_SYMBOL(fb_get_color_depth);
 
 int fb_open(
     struct frame_buffer_info *info, void (*save)(struct frame_buffer_info *, void *), void (*restore)(struct frame_buffer_info *, void *),
@@ -435,7 +435,7 @@ int fb_open(
     struct fb_user *user;
 
     if (!info) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Lock frame buffer */
@@ -470,7 +470,7 @@ int fb_open(
         user = vmm_zalloc(sizeof(struct fb_user));
 
         if (!user) {
-            res = VMM_ENOMEM;
+            res = VMM_ERR_NOMEM;
         } else {
             INIT_LIST_HEAD(&user->head);
             user->save    = save;
@@ -491,7 +491,7 @@ int fb_open(
     return res;
 }
 
-VMM_EXPORT_SYMBOL(fb_open);
+VMM_ERR_XPORT_SYMBOL(fb_open);
 
 int fb_release(struct frame_buffer_info *info)
 {
@@ -499,7 +499,7 @@ int fb_release(struct frame_buffer_info *info)
     struct fb_user *user;
 
     if (!info) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Lock frame buffer */
@@ -541,7 +541,7 @@ int fb_release(struct frame_buffer_info *info)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(fb_release);
+VMM_ERR_XPORT_SYMBOL(fb_release);
 
 struct frame_buffer_info *fb_alloc(size_t size, vmm_device_t *parent)
 {
@@ -574,7 +574,7 @@ struct frame_buffer_info *fb_alloc(size_t size, vmm_device_t *parent)
 #undef BYTES_PER_LONG
 }
 
-VMM_EXPORT_SYMBOL(fb_alloc);
+VMM_ERR_XPORT_SYMBOL(fb_alloc);
 
 void fb_free(struct frame_buffer_info *info)
 {
@@ -589,7 +589,7 @@ void fb_free(struct frame_buffer_info *info)
     vmm_free(info);
 }
 
-VMM_EXPORT_SYMBOL(fb_free);
+VMM_ERR_XPORT_SYMBOL(fb_free);
 
 #define VGA_FB_PHYS 0xA0000
 
@@ -632,7 +632,7 @@ void fb_remove_conflicting_framebuffers(struct apertures_struct *a, const char *
     }
 }
 
-VMM_EXPORT_SYMBOL(fb_remove_conflicting_framebuffers);
+VMM_ERR_XPORT_SYMBOL(fb_remove_conflicting_framebuffers);
 
 static vmm_class_t fb_class = {
     .name = FB_CLASS_NAME,
@@ -645,11 +645,11 @@ int fb_register(struct frame_buffer_info *info)
     struct fb_videomode mode;
 
     if (info == NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (info->fbops == NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((rc = fb_check_foreignness(info))) {
@@ -696,7 +696,7 @@ int fb_register(struct frame_buffer_info *info)
     vmm_device_driver_initialize_device(&info->dev);
 
     if (strlcpy(info->dev.name, info->name, sizeof(info->dev.name)) >= sizeof(info->dev.name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto free_pixmap;
     }
 
@@ -725,7 +725,7 @@ free_pixmap:
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(fb_register);
+VMM_ERR_XPORT_SYMBOL(fb_register);
 
 int fb_unregister(struct frame_buffer_info *info)
 {
@@ -733,7 +733,7 @@ int fb_unregister(struct frame_buffer_info *info)
     struct fb_event event;
 
     if (info == NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = vmm_device_driver_unregister_device(&info->dev);
@@ -754,7 +754,7 @@ int fb_unregister(struct frame_buffer_info *info)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(fb_unregister);
+VMM_ERR_XPORT_SYMBOL(fb_unregister);
 
 struct frame_buffer_info *fb_find(const char *name)
 {
@@ -769,7 +769,7 @@ struct frame_buffer_info *fb_find(const char *name)
     return vmm_device_driver_get_data(dev);
 }
 
-VMM_EXPORT_SYMBOL(fb_find);
+VMM_ERR_XPORT_SYMBOL(fb_find);
 
 struct fb_iterate_priv {
     void *data;
@@ -790,7 +790,7 @@ int fb_iterate(struct frame_buffer_info *start, void *data, int (*fn)(struct fra
     struct fb_iterate_priv p;
 
     if (!fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     p.data = data;
@@ -799,7 +799,7 @@ int fb_iterate(struct frame_buffer_info *start, void *data, int (*fn)(struct fra
     return vmm_device_driver_class_device_iterate(&fb_class, st, &p, __fb_iterate);
 }
 
-VMM_EXPORT_SYMBOL(fb_iterate);
+VMM_ERR_XPORT_SYMBOL(fb_iterate);
 
 struct fb_get_priv {
     int                       num;
@@ -828,14 +828,14 @@ struct frame_buffer_info *fb_get(int num)
     return p.info;
 }
 
-VMM_EXPORT_SYMBOL(fb_get);
+VMM_ERR_XPORT_SYMBOL(fb_get);
 
 uint32_t fb_count(void)
 {
     return vmm_device_driver_class_device_count(&fb_class);
 }
 
-VMM_EXPORT_SYMBOL(fb_count);
+VMM_ERR_XPORT_SYMBOL(fb_count);
 
 static int __init fb_init(void)
 {

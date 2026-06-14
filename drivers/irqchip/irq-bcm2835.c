@@ -71,7 +71,7 @@
 #include <vmm_smp.h>
 #include <vmm_stdio.h>
 
-/* Put the bank and irq (32 bits) into the hwirq */
+/* Put the bank and irq (32 bits) into the hw_irq_num */
 #define MAKE_HWIRQ(b, n) (((b) << 5) | (n))
 #define HWIRQ_BANK(i)    ((i) >> 5)
 #define HWIRQ_BIT(i)     (1UL << ((i) & 0x1f))
@@ -115,17 +115,17 @@ struct armctrl_ic {
 
 static struct armctrl_ic intc __read_mostly;
 
-static void bcm283x_intc_irq_mask(struct vmm_host_irq *d)
+static void bcm283x_intc_irq_mask(vmm_host_irq_t *d)
 {
-    vmm_writel(HWIRQ_BIT(d->hwirq), intc.disable[HWIRQ_BANK(d->hwirq)]);
+    vmm_writel(HWIRQ_BIT(d->hw_irq_num), intc.disable[HWIRQ_BANK(d->hw_irq_num)]);
 }
 
-static void bcm283x_intc_irq_unmask(struct vmm_host_irq *d)
+static void bcm283x_intc_irq_unmask(vmm_host_irq_t *d)
 {
-    vmm_writel(HWIRQ_BIT(d->hwirq), intc.enable[HWIRQ_BANK(d->hwirq)]);
+    vmm_writel(HWIRQ_BIT(d->hw_irq_num), intc.enable[HWIRQ_BANK(d->hw_irq_num)]);
 }
 
-static struct vmm_host_irq_chip bcm283x_intc_chip = {
+static vmm_host_irq_chip_t bcm283x_intc_chip = {
     .name       = "INTC",
     .irq_mask   = bcm283x_intc_irq_mask,
     .irq_unmask = bcm283x_intc_irq_unmask,
@@ -133,32 +133,32 @@ static struct vmm_host_irq_chip bcm283x_intc_chip = {
 
 static uint32_t bcm283x_intc_active_irq(uint32_t cpu_irq_no, uint32_t prev_irq)
 {
-    register uint32_t stat, hwirq;
+    register uint32_t stat, hw_irq_num;
 
     if ((stat = vmm_readl(intc.pending[0]))) {
         if (stat & BANK0_HWIRQ_MASK) {
             stat  = stat & BANK0_HWIRQ_MASK;
-            hwirq = MAKE_HWIRQ(0, ffs(stat) - 1);
+            hw_irq_num = MAKE_HWIRQ(0, ffs(stat) - 1);
         } else if (stat & SHORTCUT1_MASK) {
             stat  = (stat & SHORTCUT1_MASK) >> SHORTCUT_SHIFT;
-            hwirq = MAKE_HWIRQ(1, shortcuts[ffs(stat) - 1]);
+            hw_irq_num = MAKE_HWIRQ(1, shortcuts[ffs(stat) - 1]);
         } else if (stat & SHORTCUT2_MASK) {
             stat  = (stat & SHORTCUT2_MASK) >> SHORTCUT_SHIFT;
-            hwirq = MAKE_HWIRQ(2, shortcuts[ffs(stat) - 1]);
+            hw_irq_num = MAKE_HWIRQ(2, shortcuts[ffs(stat) - 1]);
         } else if (stat & BANK1_HWIRQ) {
             stat  = vmm_readl(intc.pending[1]);
-            hwirq = MAKE_HWIRQ(1, ffs(stat) - 1);
+            hw_irq_num = MAKE_HWIRQ(1, ffs(stat) - 1);
         } else if (stat & BANK2_HWIRQ) {
             stat  = vmm_readl(intc.pending[2]);
-            hwirq = MAKE_HWIRQ(2, ffs(stat) - 1);
+            hw_irq_num = MAKE_HWIRQ(2, ffs(stat) - 1);
         } else {
             BUG();
         }
     } else {
-        hwirq = UINT_MAX;
+        hw_irq_num = UINT_MAX;
     }
 
-    return vmm_host_irq_domain_find_mapping(intc.domain, hwirq);
+    return vmm_host_irq_domain_find_mapping(intc.domain, hw_irq_num);
 }
 
 static vmm_irq_return_t bcm2836_intc_cascade_irq(int irq, void *dev)
@@ -169,25 +169,25 @@ static vmm_irq_return_t bcm2836_intc_cascade_irq(int irq, void *dev)
 }
 
 static int bcm283x_intc_xlate(
-    struct vmm_host_irq_domain *d, vmm_device_tree_node_t *ctrlr, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hwirq, uint32_t *out_type)
+    struct vmm_host_irq_domain *d, vmm_device_tree_node_t *ctrlr, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hw_irq, uint32_t *out_type)
 {
     if (WARN_ON(intsize != 2)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (WARN_ON(intspec[0] >= NR_BANKS)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (WARN_ON(intspec[1] >= IRQS_PER_BANK)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (WARN_ON(intspec[0] == 0 && intspec[1] >= NR_IRQS_BANK0)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
-    *out_hwirq = MAKE_HWIRQ(intspec[0], intspec[1]);
+    *out_hw_irq = MAKE_HWIRQ(intspec[0], intspec[1]);
     *out_type  = VMM_IRQ_TYPE_NONE;
 
     return 0;
@@ -215,7 +215,7 @@ static int __init bcm283x_intc_init(vmm_device_tree_node_t *node, bool is_bcm283
     intc.domain = vmm_host_irq_domain_add(node, (int)irq_start, NR_IRQS, &bcm283x_intc_ops, NULL);
 
     if (!intc.domain) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = vmm_device_tree_request_regmap(node, &intc.base_va, 0, "BCM2835 INTC");

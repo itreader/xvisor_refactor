@@ -18,7 +18,7 @@
  *
  * @file vmm_netport.c
  * @author Sukanto Ghosh <sukantoghosh@gmail.com>
- * @brief Netswitch port framework.
+ * @brief 网络交换机端口框架
  */
 
 #include <libs/stringlib.h>
@@ -33,35 +33,40 @@
 
 struct vmm_netport *vmm_netport_alloc(char *name, uint32_t queue_size)
 {
-    struct vmm_netport *port;
+    struct vmm_netport *port; /**< 端口 */
 
-    port = vmm_zalloc(sizeof(struct vmm_netport));
+    port = vmm_zalloc(sizeof(struct vmm_netport)); /**< vmm_netport))成员 */
 
     if (!port) {
-        vmm_printf("%s Failed to allocate net port\n", __func__);
-        return NULL;
+        vmm_printf("%s Failed to allocate net port\n", __func__); /**< __func__)成员 */
+        return NULL; /**< NULL成员 */
     }
 
     INIT_LIST_HEAD(&port->head);
 
     if (strlcpy(port->name, name, sizeof(port->name)) >= sizeof(port->name)) {
         vmm_free(port);
-        return NULL;
+        return NULL; /**< NULL成员 */
     };
 
-    port->queue_size = (queue_size < VMM_NETPORT_MAX_QUEUE_SIZE) ? queue_size : VMM_NETPORT_MAX_QUEUE_SIZE;
+    port->queue_size = (queue_size < VMM_NETPORT_MAX_QUEUE_SIZE) ? queue_size : VMM_NETPORT_MAX_QUEUE_SIZE; /**< VMM_NETPORT_MAX_QUEUE_SIZE成员 */
 
     INIT_SPIN_LOCK(&port->switch2port_xfer_lock);
 
-    return port;
+    return port; /**< 端口 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_netport_alloc);
+VMM_ERR_XPORT_SYMBOL(vmm_netport_alloc);
 
+/**
+ * @brief 释放网络端口
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netport_free(struct vmm_netport *port)
 {
     if (!port) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_free(port);
@@ -69,18 +74,23 @@ int vmm_netport_free(struct vmm_netport *port)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_netport_free);
+VMM_ERR_XPORT_SYMBOL(vmm_netport_free);
 
 static vmm_class_t netport_class = {
     .name = VMM_NETPORT_CLASS_NAME,
 };
 
+/**
+ * @brief 注册网络端口
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netport_register(struct vmm_netport *port)
 {
     int rc;
 
     if (port == NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* If port has invalid mac, assign a random one */
@@ -91,7 +101,7 @@ int vmm_netport_register(struct vmm_netport *port)
     vmm_device_driver_initialize_device(&port->dev);
 
     if (strlcpy(port->dev.name, port->name, sizeof(port->dev.name)) >= sizeof(port->dev.name)) {
-        return VMM_EOVERFLOW;
+        return VMM_ERR_OVERFLOW;
     }
 
     port->dev.class = &netport_class;
@@ -111,14 +121,19 @@ int vmm_netport_register(struct vmm_netport *port)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_netport_register);
+VMM_ERR_XPORT_SYMBOL(vmm_netport_register);
 
+/**
+ * @brief 注销网络端口
+ * @param port 端口编号或端口结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netport_unregister(struct vmm_netport *port)
 {
     int rc;
 
     if (!port) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = vmm_netswitch_port_remove(port);
@@ -130,28 +145,37 @@ int vmm_netport_unregister(struct vmm_netport *port)
     return vmm_device_driver_unregister_device(&port->dev);
 }
 
-VMM_EXPORT_SYMBOL(vmm_netport_unregister);
+VMM_ERR_XPORT_SYMBOL(vmm_netport_unregister);
 
 struct vmm_netport *vmm_netport_find(const char *name)
 {
-    vmm_device_t *dev;
+    vmm_device_t *dev; /**< 设备 */
 
-    dev = vmm_device_driver_class_find_device_by_name(&netport_class, name);
+    dev = vmm_device_driver_class_find_device_by_name(&netport_class, name); /**< name)成员 */
 
     if (!dev) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    return vmm_device_driver_get_data(dev);
+    return vmm_device_driver_get_data(dev); /**< vmm_device_driver_get_data(dev)成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_netport_find);
+VMM_ERR_XPORT_SYMBOL(vmm_netport_find);
 
+/**
+ * @brief 网络端口遍历上下文结构，私有上下文
+ */
 struct netport_iterate_priv {
-    void *data;
-    int (*fn)(struct vmm_netport *port, void *data);
+    void *data; /**< 数据 */
+    int (*fn)(struct vmm_netport *port, void *data); /**< 函数指针 */
 };
 
+/**
+ * @brief 网络端口 遍历
+ * @param dev 设备结构体指针
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int netport_iterate(vmm_device_t *dev, void *data)
 {
     struct netport_iterate_priv *p    = data;
@@ -160,13 +184,20 @@ static int netport_iterate(vmm_device_t *dev, void *data)
     return p->fn(port, p->data);
 }
 
+/**
+ * @brief 网络端口 遍历
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_netport_iterate(struct vmm_netport *start, void *data, int (*fn)(struct vmm_netport *dev, void *data))
 {
     vmm_device_t               *st = (start) ? &start->dev : NULL;
     struct netport_iterate_priv p;
 
     if (!fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     p.data = data;
@@ -175,15 +206,23 @@ int vmm_netport_iterate(struct vmm_netport *start, void *data, int (*fn)(struct 
     return vmm_device_driver_class_device_iterate(&netport_class, st, &p, netport_iterate);
 }
 
-VMM_EXPORT_SYMBOL(vmm_netport_iterate);
+VMM_ERR_XPORT_SYMBOL(vmm_netport_iterate);
 
+/**
+ * @brief 获取网络端口的数量
+ * @return 数量值
+ */
 uint32_t vmm_netport_count(void)
 {
     return vmm_device_driver_class_device_count(&netport_class);
 }
 
-VMM_EXPORT_SYMBOL(vmm_netport_count);
+VMM_ERR_XPORT_SYMBOL(vmm_netport_count);
 
+/**
+ * @brief 初始化网络端口
+ * @return 数量值
+ */
 int __init vmm_netport_init(void)
 {
     int rc;
@@ -200,6 +239,10 @@ int __init vmm_netport_init(void)
     return VMM_OK;
 }
 
+/**
+ * @brief 网络端口子系统退出
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __exit vmm_netport_exit(void)
 {
     int rc;

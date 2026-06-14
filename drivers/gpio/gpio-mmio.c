@@ -758,7 +758,7 @@ static void *bgpio_map(vmm_device_t *dev, const char *name)
     rc = vmm_device_tree_regmap_byname(dev->of_node, &ret, name);
 
     if (rc) {
-        return VMM_ERR_PTR(rc);
+        return VMM_ERR_RR_PTR(rc);
     }
 
     return (void *)ret;
@@ -789,7 +789,7 @@ static struct bgpio_pdata *bgpio_parse_dt(vmm_device_t *dev, uint64_t *flags)
     pdata = vmm_devm_zalloc(dev, sizeof(struct bgpio_pdata));
 
     if (!pdata) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     pdata->base = -1;
@@ -873,7 +873,7 @@ static int bgpio_probe(vmm_device_t *dev)
     gc = vmm_devm_zalloc(dev, sizeof(*gc));
 
     if (!gc) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     err = bgpio_init(gc, dev, size, dat, set, clr, dirout, dirin, flags);

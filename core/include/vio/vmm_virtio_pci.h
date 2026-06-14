@@ -18,7 +18,7 @@
  *
  * @file vmm_virtio_pci.h
  * @author Himanshu Chauhan <hschauhan@nulltrace.org>
- * @brief VirtIO PCI Transport Interface
+ * @brief VirtIO PCI传输层接口
  */
 
 #ifndef __VMM_VIRTIO_PCI_H__
@@ -74,15 +74,18 @@
 #define VMM_VIRTIO_PCI_IO_SIZE             VMM_VIRTIO_PCI_REGION_SIZE
 #define VMM_VIRTIO_PCI_PAGE_SIZE           (0x1UL << VMM_VIRTIO_PCI_QUEUE_ADDR_SHIFT)
 
+/**
+ * @brief VirtIO PCI配置空间，保存PCI设备的VirtIO能力信息
+ */
 struct vmm_virtio_pci_config {
-    uint32_t host_features;
-    uint32_t guest_features;
-    uint32_t queue_pfn;
-    uint16_t queue_num;
-    uint16_t queue_sel;
-    uint16_t queue_notify;
-    uint8_t  status;
-    uint8_t  interrupt_state;
+    uint32_t host_features; /**< 主机特性 */
+    uint32_t guest_features; /**< 客户机特性 */
+    uint32_t queue_pfn; /**< 队列页帧号 */
+    uint16_t queue_num; /**< 队列数量 */
+    uint16_t queue_sel; /**< 队列选择 */
+    uint16_t queue_notify; /**< queue_notify成员 */
+    uint8_t  status; /**< 状态 */
+    uint8_t  interrupt_state; /**< interrupt_state成员 */
 } __attribute__((packed));
 
 #define VMM_VIRTIO_PCI_O_CONFIG 0

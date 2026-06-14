@@ -139,7 +139,7 @@ int realview_system_reset(void)
     void    *sys_id, *sys_lock, *sys_resetctl;
 
     if (!realview_sysreg_base) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     sys_id       = realview_sysreg_base + REALVIEW_SYS_ID_OFFSET;
@@ -226,7 +226,7 @@ static int realview_sysreg_probe(vmm_device_t *dev)
 
     if (!realview_sysreg_base) {
         vmm_printf("%s: Failed to obtain base address!\n", __func__);
-        return VMM_EFAULT;
+        return VMM_ERR_FAULT;
     }
 
     return VMM_OK;

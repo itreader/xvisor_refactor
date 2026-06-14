@@ -33,7 +33,7 @@ static int __set_clock_parents(vmm_device_tree_node_t *node, bool clock_supplier
 
     num_parents                                    = vmm_device_tree_count_phandle_with_args(node, list_name, cells_name);
 
-    if (num_parents == VMM_EINVALID) {
+    if (num_parents == VMM_ERR_INVALID) {
         vmm_printf(
             "clk: invalid value of clock-parents property at "
             "%s\n",
@@ -45,7 +45,7 @@ static int __set_clock_parents(vmm_device_tree_node_t *node, bool clock_supplier
 
         if (rc < 0) {
             /* skip empty (null) phandles */
-            if (rc == VMM_ENOENT) {
+            if (rc == VMM_ERR_NOENT) {
                 continue;
             } else {
                 return rc;
@@ -63,7 +63,7 @@ static int __set_clock_parents(vmm_device_tree_node_t *node, bool clock_supplier
                 "clk: couldn't get parent clock %d for "
                 "%s\n",
                 index, node->name);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         rc = vmm_device_tree_parse_phandle_with_args(node, "assigned-clocks", cells_name, index, &clkspec);
@@ -84,7 +84,7 @@ static int __set_clock_parents(vmm_device_tree_node_t *node, bool clock_supplier
                 "clk: couldn't get parent clock %d for "
                 "%s\n",
                 index, node->name);
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             goto err;
         }
 
@@ -129,7 +129,7 @@ static int __set_clock_rates(vmm_device_tree_node_t *node, bool clock_supplier)
 
         if (rc < 0) {
             /* skip empty (null) phandles */
-            if (rc == VMM_ENOENT) {
+            if (rc == VMM_ERR_NOENT) {
                 continue;
             } else {
                 return rc;
@@ -189,4 +189,4 @@ int of_clock_set_defaults(vmm_device_tree_node_t *node, bool clock_supplier)
     return __set_clock_rates(node, clock_supplier);
 }
 
-VMM_EXPORT_SYMBOL_GPL(of_clock_set_defaults);
+VMM_ERR_XPORT_SYMBOL_GPL(of_clock_set_defaults);

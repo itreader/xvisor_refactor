@@ -175,13 +175,13 @@ static uint32_t samsung_tx(struct serial *p, uint8_t *src, size_t len)
 static int samsung_driver_probe(vmm_device_t *dev)
 {
     uint32_t             ucon;
-    int                  rc   = VMM_EFAIL;
+    int                  rc   = VMM_ERR_FAIL;
     struct samsung_port *port = NULL;
 
     port                      = vmm_zalloc(sizeof(struct samsung_port));
 
     if (!port) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_nothing;
     }
 
@@ -212,7 +212,7 @@ static int samsung_driver_probe(vmm_device_t *dev)
     port->irq = vmm_device_tree_irq_parse_map(dev->of_node, 0);
 
     if (!port->irq) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto free_reg;
     }
 

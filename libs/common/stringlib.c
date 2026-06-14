@@ -738,7 +738,7 @@ int u64_to_size_str(uint64_t val, char *out, size_t out_len)
     const char *suffix = "";
 
     if (!out || (out_len < 16)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (val < SZ_1K) {
@@ -803,7 +803,7 @@ found:
  * @string: string to match with
  *
  * Return:
- * index of a @string in the @array if matches, or %VMM_EINVALID otherwise.
+ * index of a @string in the @array if matches, or %VMM_ERR_INVALID otherwise.
  */
 int match_string(const char *const *array, size_t n, const char *string)
 {
@@ -822,7 +822,7 @@ int match_string(const char *const *array, size_t n, const char *string)
         }
     }
 
-    return VMM_EINVALID;
+    return VMM_ERR_INVALID;
 }
 
 /**
@@ -1112,7 +1112,7 @@ int vsscanf(const char *buf, const char *fmt, va_list args)
     return num;
 }
 
-VMM_EXPORT_SYMBOL(vsscanf);
+VMM_ERR_XPORT_SYMBOL(vsscanf);
 
 /**
  * sscanf - Unformat a buffer into a list of arguments
@@ -1132,4 +1132,4 @@ int sscanf(const char *buf, const char *fmt, ...)
     return i;
 }
 
-VMM_EXPORT_SYMBOL(sscanf);
+VMM_ERR_XPORT_SYMBOL(sscanf);

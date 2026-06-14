@@ -22,7 +22,7 @@
  * @author Himanshu Chauhan (hchauhan@nulltrace.org)
  * @author Pavel Borzenkov (pavel.borzenkov@gmail.com)
  * @author Jean Guyomarc'h (jean.guyomarch@openwide.fr)
- * @brief header file for common types used in xvisor.
+ * @brief Xvisor通用类型头文件
  */
 
 #ifndef __VMM_TYPES_H__
@@ -30,22 +30,23 @@
 
 #include <arch_types.h>
 
-/** Boolean macros */
+/** @brief 布尔类型宏定义 */
 #define TRUE  1
 #define FALSE 0
 #define true  TRUE
 #define false FALSE
 #define NULL  ((void *)0)
 
+/** @brief DMA地址类型，基于物理地址 */
 typedef physical_addr_t dma_addr_t;
+/** @brief 资源地址类型，基于物理地址 */
 typedef physical_addr_t resource_addr_t;
+/** @brief 资源大小类型，基于物理大小 */
 typedef physical_size_t resource_size_t;
 
-/* The following macros are part of POSIX.1 requirements for
- * inttypes.h. They provide a portable interface to the printf-like
- * functions that takes a format as input. */
+/* 以下宏是POSIX.1对inttypes.h的要求，提供可移植的printf格式接口 */
 
-/* Decimal notation: signed integers */
+/* 十进制格式：有符号整数 */
 #define PRId8      "d"
 #define PRId16     "d"
 #define PRId32     "d"
@@ -55,27 +56,25 @@ typedef physical_size_t resource_size_t;
 #define PRIi32     "i"
 #define PRIi64     __ARCH_PRI64_PREFIX "i"
 
-/* Decimal notation: unsigned integers */
+/* 十进制格式：无符号整数 */
 #define PRIu8      "u"
 #define PRIu16     "u"
 #define PRIu32     "u"
 #define PRIu64     __ARCH_PRI64_PREFIX "u"
 
-/* Hexadecimal notation, lowercase */
+/* 十六进制格式，小写 */
 #define PRIx8      "x"
 #define PRIx16     "x"
 #define PRIx32     "x"
 #define PRIx64     __ARCH_PRI64_PREFIX "x"
 
-/* Hexadecimal notation, uppercase */
+/* 十六进制格式，大写 */
 #define PRIX8      "X"
 #define PRIX16     "X"
 #define PRIX32     "X"
 #define PRIX64     __ARCH_PRI64_PREFIX "X"
 
-/* Non-standard. Used to print addresses and their sizes. Avoids
- * to write endless tests to print addresses in function of the
- * architecture. */
+/* 非标准，用于打印地址及其大小，避免针对不同架构编写冗长的测试代码 */
 #define PRIADDR    "0" __ARCH_PRIADDR_DIGITS __ARCH_PRIADDR_PREFIX "X"
 #define PRIADDR64  "016" __ARCH_PRI64_PREFIX "X"
 #define PRISIZE    __ARCH_PRISIZE_PREFIX "u"

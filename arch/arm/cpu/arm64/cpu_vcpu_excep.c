@@ -57,7 +57,7 @@ static int cpu_vcpu_stage2_map(vmm_vcpu_t *vcpu, arch_regs_t *regs, physical_add
 
     if (availsz < TTBL_L3_BLOCK_SIZE) {
         vmm_printf("%s: availsz=0x%lx insufficent for IPA=0x%lx\n", __func__, availsz, inaddr);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     pg.ia        = inaddr;
@@ -127,7 +127,7 @@ int cpu_vcpu_inst_abort(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32
             break;
     };
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 int cpu_vcpu_data_abort(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32_t iss, physical_addr_t fipa)
@@ -146,7 +146,7 @@ int cpu_vcpu_data_abort(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32
         case FSC_ACCESS_FAULT_LEVEL3:
             if (!(iss & ISS_ABORT_ISV_MASK)) {
                 /* Determine instruction physical address */
-                va2pa_at(VA2PA_STAGE12, VA2PA_EL1, VA2PA_RD, regs->pc);
+                virtualAddr_to_physicalAddr_at(VA2PA_STAGE12, VA2PA_EL1, VA2PA_RD, regs->pc);
                 inst_pa = mrs(par_el1);
                 inst_pa &= PAR_PA_MASK;
                 inst_pa |= (regs->pc & 0x00000FFF);
@@ -156,7 +156,7 @@ int cpu_vcpu_data_abort(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32
                 read_count = vmm_host_memory_read(inst_pa, &inst, sizeof(inst), TRUE);
 
                 if (read_count != sizeof(inst)) {
-                    return VMM_EFAIL;
+                    return VMM_ERR_FAIL;
                 }
 
                 if (regs->pstate & PSR_THUMB_ENABLED) {
@@ -177,5 +177,5 @@ int cpu_vcpu_data_abort(vmm_vcpu_t *vcpu, arch_regs_t *regs, uint32_t il, uint32
             break;
     };
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }

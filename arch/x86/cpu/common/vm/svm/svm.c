@@ -145,7 +145,7 @@ static void set_vm_to_powerup_state(struct vcpu_hw_context *context)
     vmcb->rflags                                     = 0x2;
     vmcb->efer                                       = EFER_SVME;
 
-    if (vmm_host_va2pa((virtual_addr_t)context->shadow32_pgt, &gcr3_pa) != VMM_OK) {
+    if (vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)context->shadow32_pgt, &gcr3_pa) != VMM_OK) {
         vmm_panic("ERROR: Couldn't convert guest shadow table virtual address to physical!\n");
     }
 
@@ -374,7 +374,7 @@ static int enable_svm(struct cpuinfo_x86 *c)
 
     if (!c->hw_virt_available) {
         X86_DEBUG_LOG(svm, LVL_ERR, "ERROR: Hardware virtualization is not support but Xvisor needs it.\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!c->hw_nested_paging) {
@@ -394,9 +394,9 @@ static int enable_svm(struct cpuinfo_x86 *c)
     /* Initialize the Host Save Area */
     host_save_area = alloc_host_save_area();
 
-    if (vmm_host_va2pa(host_save_area, (physical_addr_t *)&phys_hsa) != VMM_OK) {
-        X86_DEBUG_LOG(svm, LVL_ERR, "Host va2pa for host save area failed.\n");
-        return VMM_EFAIL;
+    if (vmm_host_virtualAddr_to_physicalAddr(host_save_area, (physical_addr_t *)&phys_hsa) != VMM_OK) {
+        X86_DEBUG_LOG(svm, LVL_ERR, "Host virtualAddr_to_physicalAddr for host save area failed.\n");
+        return VMM_ERR_FAIL;
     }
 
     X86_DEBUG_LOG(svm, LVL_VERBOSE, "Write HSAVE PA.\n");
@@ -411,7 +411,7 @@ int amd_setup_vm_control(struct vcpu_hw_context *context)
     /* Allocate a new page inside host memory for storing VMCB. */
     context->vmcb = alloc_vmcb();
 
-    if (vmm_host_va2pa((virtual_addr_t)context->vmcb, &context->vmcb_pa) != VMM_OK) {
+    if (vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)context->vmcb, &context->vmcb_pa) != VMM_OK) {
         vmm_panic("Critical conversion of VMCB VA=>PA failed!\n");
     }
 
@@ -446,7 +446,7 @@ int amd_init(struct cpuinfo_x86 *cpuinfo)
     /* FIXME: SMP: This should be done by all CPUs? */
     if (enable_svm(cpuinfo) != VMM_OK) {
         X86_DEBUG_LOG(svm, LVL_ERR, "ERROR: Failed to enable virtual machine.\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     X86_DEBUG_LOG(svm, LVL_VERBOSE, "AMD SVM enable success!\n");

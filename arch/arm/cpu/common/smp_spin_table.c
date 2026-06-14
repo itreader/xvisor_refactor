@@ -89,7 +89,7 @@ static int __init smp_spin_table_cpu_prepare(uint32_t cpu)
 #endif
 
     /* Get physical address secondary startup code */
-    rc = vmm_host_va2pa((virtual_addr_t)&_start_secondary, &_start_secondary_pa);
+    rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)&_start_secondary, &_start_secondary_pa);
 
     if (rc) {
         return rc;
@@ -133,7 +133,7 @@ static int __init smp_spin_table_cpu_boot(uint32_t cpu)
 
     /* Check pen value */
     if (smp_read_pen_release() != MPIDR_INVALID) {
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     return VMM_OK;

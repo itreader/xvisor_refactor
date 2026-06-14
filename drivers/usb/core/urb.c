@@ -40,7 +40,7 @@ void usb_init_urb(struct urb *urb)
     INIT_LIST_HEAD(&urb->urb_list);
 }
 
-VMM_EXPORT_SYMBOL(usb_init_urb);
+VMM_ERR_XPORT_SYMBOL(usb_init_urb);
 
 static void usb_release_urb(struct urb *urb)
 {
@@ -64,7 +64,7 @@ struct urb *usb_alloc_urb(void)
     return urb;
 }
 
-VMM_EXPORT_SYMBOL(usb_alloc_urb);
+VMM_ERR_XPORT_SYMBOL(usb_alloc_urb);
 
 void usb_ref_urb(struct urb *urb)
 {
@@ -73,7 +73,7 @@ void usb_ref_urb(struct urb *urb)
     }
 }
 
-VMM_EXPORT_SYMBOL(usb_ref_urb);
+VMM_ERR_XPORT_SYMBOL(usb_ref_urb);
 
 void usb_free_urb(struct urb *urb)
 {
@@ -90,33 +90,33 @@ void usb_free_urb(struct urb *urb)
     }
 }
 
-VMM_EXPORT_SYMBOL(usb_free_urb);
+VMM_ERR_XPORT_SYMBOL(usb_free_urb);
 
 int usb_submit_urb(struct urb *urb)
 {
     if (!urb || urb->hcprivate) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
-    urb->status        = VMM_EBUSY;
+    urb->status        = VMM_ERR_BUSY;
     urb->actual_length = 0;
 
     return usb_hcd_submit_urb(urb);
 }
 
-VMM_EXPORT_SYMBOL(usb_submit_urb);
+VMM_ERR_XPORT_SYMBOL(usb_submit_urb);
 
 int usb_unlink_urb(struct urb *urb, int status)
 {
     if (!urb) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (!urb->dev) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
-    return usb_hcd_unlink_urb(urb, VMM_EFAIL);
+    return usb_hcd_unlink_urb(urb, VMM_ERR_FAIL);
 }
 
-VMM_EXPORT_SYMBOL(usb_unlink_urb);
+VMM_ERR_XPORT_SYMBOL(usb_unlink_urb);

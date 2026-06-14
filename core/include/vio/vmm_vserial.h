@@ -18,7 +18,7 @@
  *
  * @file vmm_vserial.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for virtual serial port
+ * @brief 虚拟串口头文件
  */
 #ifndef _VMM_VSERIAL_H__
 #define _VMM_VSERIAL_H__
@@ -39,23 +39,25 @@ struct vmm_vserial;
  *  hence we cannot sleep in receive callback.
  */
 struct vmm_vserial_receiver {
-    double_list_t head;
-    void (*recv)(struct vmm_vserial *vser, void *private, uint8_t data);
-    void *private;
+    double_list_t head; /**< 链表头 */
+    void (*recv)(struct vmm_vserial *vser, void *private, uint8_t data); /**< 接收 */
+    void *private; /**< 私有数据 */
 };
 
-/** Representation of a virtual serial port */
+/**
+ * @brief 虚拟串口端口结构体，维护发送/接收回调、接收者链表和FIFO缓冲区
+ */
 struct vmm_vserial {
-    double_list_t head;
-    char          name[VMM_FIELD_NAME_SIZE];
+    double_list_t head; /**< 链表头 */
+    char          name[VMM_FIELD_NAME_SIZE]; /**< 名称 */
 
-    bool (*can_send)(struct vmm_vserial *vser);
-    int (*send)(struct vmm_vserial *vser, uint8_t data);
+    bool (*can_send)(struct vmm_vserial *vser); /**< can_send成员 */
+    int (*send)(struct vmm_vserial *vser, uint8_t data); /**< 发送 */
 
-    vmm_spinlock_t receiver_list_lock;
-    double_list_t  receiver_list;
-    struct fifo   *receive_fifo;
-    void *private;
+    vmm_spinlock_t receiver_list_lock; /**< receiver_list_lock成员 */
+    double_list_t  receiver_list; /**< receiver_list成员 */
+    struct fifo   *receive_fifo; /**< receive_fifo成员 */
+    void *private; /**< 私有数据 */
 };
 
 /* Notifier event when virtual serial port is created */
@@ -63,16 +65,26 @@ struct vmm_vserial {
 /* Notifier event when virtual serial port is destroyed */
 #define VMM_VSERIAL_EVENT_DESTROY 0x02
 
-/** Representation of virtual serial port notifier event */
+/**
+ * @brief 虚拟串口通知器事件，包含关联的虚拟串口和数据指针
+ */
 struct vmm_vserial_event {
-    struct vmm_vserial *vser;
-    void               *data;
+    struct vmm_vserial *vser; /**< 虚拟串口 */
+    void               *data; /**< 数据 */
 };
 
-/** Register a notifier client to receive virtual serial port events */
+/**
+ * @brief 注册虚拟串口客户端
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_register_client(vmm_notifier_block_t *nb);
 
-/** Unregister a notifier client to not receive virtual serial port events */
+/**
+ * @brief 注销虚拟串口客户端
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_unregister_client(vmm_notifier_block_t *nb);
 
 /** Retrive private context of virtual serial port */
@@ -81,32 +93,67 @@ static inline void *vmm_vserial_private(struct vmm_vserial *vser)
     return (vser) ? vser->private : NULL;
 }
 
-/** Send bytes to virtual serial port */
+/**
+ * @brief 虚拟串口 发送
+ * @param vser 虚拟串口设备指针
+ * @param src 源设备树节点
+ * @param len 大小
+ * @return 成功返回发送的字节数，失败返回0
+ */
 uint32_t vmm_vserial_send(struct vmm_vserial *vser, uint8_t *src, uint32_t len);
 
-/** Receive bytes on virtual serial port */
+/**
+ * @brief 虚拟串口 接收
+ * @param vser 虚拟串口设备指针
+ * @param dst 目标缓冲区指针
+ * @param len 大小
+ * @return 成功返回接收的字节数，失败返回0
+ */
 uint32_t vmm_vserial_receive(struct vmm_vserial *vser, uint8_t *dst, uint32_t len);
 
-/** Register receiver to a virtual serial port */
+/**
+ * @brief 注册虚拟串口接收器
+ * @param vser 虚拟串口设备指针
+ * @param (*recv 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_register_receiver(struct vmm_vserial *vser, void (*recv)(struct vmm_vserial *, void *, uint8_t), void *private);
 
-/** Unregister a virtual serial port */
+/**
+ * @brief 注销虚拟串口接收器
+ * @param vser 虚拟串口设备指针
+ * @param (*recv 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_unregister_receiver(struct vmm_vserial *vser, void (*recv)(struct vmm_vserial *, void *, uint8_t), void *private);
 
 /** Create a virtual serial port */
 struct vmm_vserial *vmm_vserial_create(
     const char *name, bool (*can_send)(struct vmm_vserial *), int (*send)(struct vmm_vserial *, uint8_t), uint32_t receive_fifo_size, void *private);
 
-/** Destroy a virtual serial port */
+/**
+ * @brief 销毁虚拟串口
+ * @param vser 虚拟串口设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_destroy(struct vmm_vserial *vser);
 
 /** Find a virtual serial port with given name */
 struct vmm_vserial *vmm_vserial_find(const char *name);
 
-/** Iterate over each virtual serial port */
+/**
+ * @brief 虚拟串口 遍历
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_vserial_iterate(struct vmm_vserial *start, void *data, int (*fn)(struct vmm_vserial *vser, void *data));
 
-/** Count of available virtual serial ports */
+/**
+ * @brief 获取虚拟串口的数量
+ * @return 数量值
+ */
 uint32_t vmm_vserial_count(void);
 
 #endif

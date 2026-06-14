@@ -185,7 +185,7 @@ static int cmd_device_tree_attr_show(vmm_char_device_t *cdev, char *path)
 
     if (!node) {
         vmm_cdev_printf(cdev, "Error: Unable to find node at %s\n", path);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_device_tree_for_each_attr(attr, node)
@@ -207,7 +207,7 @@ static int cmd_device_tree_attr_set(vmm_char_device_t *cdev, char *path, char *n
 
     if (!node) {
         vmm_cdev_printf(cdev, "Error: Unable to find node at %s\n", path);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!strcmp(type, "unknown")) {
@@ -296,7 +296,7 @@ static int cmd_device_tree_attr_set(vmm_char_device_t *cdev, char *path, char *n
         val_type = VMM_DEVICE_TREE_ATTRTYPE_VIRTSIZE;
     } else {
         vmm_cdev_printf(cdev, "Error: Invalid attribute type %s\n", type);
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto done;
     }
 
@@ -317,7 +317,7 @@ static int cmd_device_tree_attr_get(vmm_char_device_t *cdev, char *path, char *n
 
     if (!node) {
         vmm_cdev_printf(cdev, "Error: Unable to find node at %s\n", path);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     attr = vmm_device_tree_getattr(node, name);
@@ -325,7 +325,7 @@ static int cmd_device_tree_attr_get(vmm_char_device_t *cdev, char *path, char *n
 
     if (!attr) {
         vmm_cdev_printf(cdev, "Error: Unable to find attr %s\n", name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cmd_device_tree_print_attribute(cdev, attr, 0);
@@ -340,7 +340,7 @@ static int cmd_device_tree_attr_del(vmm_char_device_t *cdev, char *path, char *n
 
     if (!node) {
         vmm_cdev_printf(cdev, "Error: Unable to find node at %s\n", path);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = vmm_device_tree_delattr(node, name);
@@ -360,7 +360,7 @@ static int cmd_device_tree_node_show(vmm_char_device_t *cdev, char *path)
 
     if (!node) {
         vmm_cdev_printf(cdev, "Error: Unable to find node at %s\n", path);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cmd_device_tree_print_node(cdev, node, FALSE, 0);
@@ -375,7 +375,7 @@ static int cmd_device_tree_node_dump(vmm_char_device_t *cdev, char *path)
 
     if (!node) {
         vmm_cdev_printf(cdev, "Error: Unable to find node at %s\n", path);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cmd_device_tree_print_node(cdev, node, TRUE, 0);
@@ -391,7 +391,7 @@ static int cmd_device_tree_node_add(vmm_char_device_t *cdev, char *path, char *n
 
     if (!parent) {
         vmm_cdev_printf(cdev, "Error: Unable to find node at %s\n", path);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     node = vmm_device_tree_addnode(parent, name);
@@ -403,7 +403,7 @@ static int cmd_device_tree_node_add(vmm_char_device_t *cdev, char *path, char *n
             "Error: Unable to add node %s. "
             "Probably node already exist\n",
             name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
@@ -417,12 +417,12 @@ static int cmd_device_tree_node_copy(vmm_char_device_t *cdev, char *path, char *
 
     if (!node) {
         vmm_cdev_printf(cdev, "Error: Unable to find node at %s\n", path);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!src) {
         vmm_cdev_printf(cdev, "Error: Unable to find node at %s\n", src_path);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = vmm_device_tree_copynode(node, name, src);
@@ -439,7 +439,7 @@ static int cmd_device_tree_node_del(vmm_char_device_t *cdev, char *path)
 
     if (!node) {
         vmm_cdev_printf(cdev, "Error: Unable to find node at %s\n", path);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = vmm_device_tree_delnode(node);
@@ -457,7 +457,7 @@ static int cmd_device_tree_exec(vmm_char_device_t *cdev, int argc, char **argv)
 {
     if (argc < 2) {
         cmd_device_tree_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     } else {
         if (argc == 2) {
             if (strcmp(argv[1], "help") == 0) {
@@ -465,11 +465,11 @@ static int cmd_device_tree_exec(vmm_char_device_t *cdev, int argc, char **argv)
                 return VMM_OK;
             } else {
                 cmd_device_tree_usage(cdev);
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
         } else if (argc < 4) {
             cmd_device_tree_usage(cdev);
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     }
 
@@ -498,7 +498,7 @@ static int cmd_device_tree_exec(vmm_char_device_t *cdev, int argc, char **argv)
     }
 
     cmd_device_tree_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_device_tree = {

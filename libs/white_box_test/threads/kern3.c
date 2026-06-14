@@ -171,7 +171,7 @@ static int kern3_do_test(vmm_char_device_t *cdev)
     vmm_threads_stop(workers[0]);
     vmm_threads_stop(workers[1]);
 
-    return (failures) ? VMM_EFAIL : 0;
+    return (failures) ? VMM_ERR_FAIL : 0;
 }
 
 static int kern3_run(struct white_box_test *test, vmm_char_device_t *cdev, uint32_t test_hcpu)
@@ -189,7 +189,7 @@ static int kern3_run(struct white_box_test *test, vmm_char_device_t *cdev, uint3
             "Current priority %d non-sufficient to "
             "create %d threads of lower priority\n",
             (uint32_t)current_priority, NUM_THREADS);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Initialise global data */
@@ -206,7 +206,7 @@ static int kern3_run(struct white_box_test *test, vmm_char_device_t *cdev, uint3
         workers[i] = vmm_threads_create(wname, kern3_worker_thread_main, (void *)(uint64_t)i, current_priority - i, VMM_THREAD_DEF_TIME_SLICE);
 
         if (workers[i] == NULL) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             goto destroy_workers;
         }
 

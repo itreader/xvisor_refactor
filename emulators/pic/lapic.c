@@ -1008,7 +1008,7 @@ static int apic_emulator_remove(vmm_emulate_device_t *edev)
     apic_state_t *s = edev->private;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_free(s);
@@ -1036,7 +1036,7 @@ static int apic_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ed
 
     if (!s) {
         APIC_LOG(ERR, "APIC state allocation failed!\n");
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto apic_emulator_probe_done;
     }
 

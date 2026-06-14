@@ -12,7 +12,7 @@
     ({                                                                                                                                               \
         physical_addr_t __pa = 0;                                                                                                                    \
         do {                                                                                                                                         \
-            vmm_host_va2pa(virt, &__pa);                                                                                                             \
+            vmm_host_virtualAddr_to_physicalAddr(virt, &__pa);                                                                                                             \
         } while (0);                                                                                                                                 \
         (void *)(__pa);                                                                                                                              \
     })
@@ -22,7 +22,7 @@ static inline void *phys_to_virt(physical_addr_t pa)
     int            rc = VMM_OK;
     virtual_addr_t va = 0;
 
-    if ((rc = vmm_host_pa2va(pa, &va))) {
+    if ((rc = vmm_host_physicalAddr_to_virtualAddr(pa, &va))) {
         return NULL;
     }
 

@@ -18,7 +18,7 @@
  *
  * @file vmm_profiler.c
  * @author Jean-Christophe Dubois (jcd@tribudubois.net)
- * @brief source file of hypervisor profiler (profiling support).
+ * @brief Hypervisor性能分析器源文件
  */
 
 #include <arch_atomic.h>
@@ -35,14 +35,22 @@
 
 typedef void (*vmm_profile_callback_t)(void *, void *);
 
+/**
+ * @brief 性能分析控制结构，管理计数器和统计数据
+ */
 struct vmm_profiler_ctrl {
-    bool                      is_active;
-    bool                      is_in_trace[CONFIG_CPU_COUNT];
-    struct vmm_profiler_stat *stat;
+    bool                      is_active; /**< is_active成员 */
+    bool                      is_in_trace[CONFIG_CPU_COUNT]; /**< is_in_trace成员 */
+    struct vmm_profiler_stat *stat; /**< 状态 */
 };
 
 static struct vmm_profiler_ctrl pctrl;
 
+/**
+ * @brief 空性能分析器（无操作）
+ * @param ip IP地址
+ * @param parent_ip 父函数调用地址（用于调用栈追踪）
+ */
 static __notrace void vmm_profile_none(void *ip, void *parent_ip)
 {
     // Default NULL function
@@ -51,19 +59,39 @@ static __notrace void vmm_profile_none(void *ip, void *parent_ip)
 static vmm_profile_callback_t _vmm_profile_enter = vmm_profile_none;
 static vmm_profile_callback_t _vmm_profile_exit  = vmm_profile_none;
 
+/**
+ * @brief 性能分析函数入口回调
+ * @param ip IP地址
+ * @param parent_ip 父函数调用地址（用于调用栈追踪）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 void __notrace __cyg_profile_func_enter(void *ip, void *parent_ip)
 {
     (*_vmm_profile_enter)(ip, parent_ip);
 }
 
+/**
+ * @brief 性能分析函数退出回调（CygProfiler）
+ * @param ip IP地址
+ * @param parent_ip 父函数调用地址（用于调用栈追踪）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 void __notrace __cyg_profile_func_exit(void *ip, void *parent_ip)
 {
     (*_vmm_profile_exit)(ip, parent_ip);
 }
 
+/**
+ * @brief 性能分析函数进入回调（CygProfiler）
+ * @param ip IP地址
+ * @param parent_ip 父函数调用地址（用于调用栈追踪）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __notrace vmm_profile_enter(void *ip, void *parent_ip)
 {
-    int                     index, parent_index, i;
+    int index;
+    int parent_index;
+    int i;
     vmm_profiler_counter_t *ptr;
     int                     cpu_id = vmm_smp_processor_id();
 
@@ -108,10 +136,19 @@ retry:
     pctrl.is_in_trace[cpu_id] = FALSE;
 }
 
+/**
+ * @brief 性能分析器退出清理
+ * @param ip IP地址
+ * @param parent_ip 父函数调用地址（用于调用栈追踪）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __notrace vmm_profile_exit(void *ip, void *parent_ip)
 {
-    int                     index, parent_index, i;
-    uint64_t                time, previous;
+    int index;
+    int parent_index;
+    int i;
+    uint64_t time;
+    uint64_t previous;
     vmm_profiler_counter_t *ptr;
     int                     cpu_id = vmm_smp_processor_id();
 
@@ -162,11 +199,19 @@ out:
     pctrl.is_in_trace[cpu_id] = FALSE;
 }
 
+/**
+ * @brief 检查性能分析器是否处于活动状态
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 bool __notrace vmm_profiler_isactive(void)
 {
     return pctrl.is_active;
 }
 
+/**
+ * @brief 启动性能分析器
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __notrace vmm_profiler_start(void)
 {
     if (!vmm_profiler_isactive()) {
@@ -183,12 +228,16 @@ int __notrace vmm_profiler_start(void)
 
         pctrl.is_active    = TRUE;
     } else {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
 }
 
+/**
+ * @brief 停止性能分析器
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __notrace vmm_profiler_stop(void)
 {
     if (vmm_profiler_isactive()) {
@@ -197,7 +246,7 @@ int __notrace vmm_profiler_stop(void)
         _vmm_profile_enter = vmm_profile_none;
         _vmm_profile_exit  = vmm_profile_none;
     } else {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;
@@ -205,15 +254,19 @@ int __notrace vmm_profiler_stop(void)
 
 struct vmm_profiler_stat *vmm_profiler_get_stat_array(void)
 {
-    return pctrl.stat;
+    return pctrl.stat; /**< pctrl.stat成员 */
 }
 
+/**
+ * @brief 初始化性能分析器
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_profiler_init(void)
 {
     pctrl.stat = vmm_zalloc(sizeof(struct vmm_profiler_stat) * kallsyms_num_syms);
 
     if (pctrl.stat == NULL) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;

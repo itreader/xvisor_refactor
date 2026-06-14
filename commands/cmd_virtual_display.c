@@ -74,7 +74,7 @@ static int cmd_virtual_display_exec(vmm_char_device_t *cdev, int argc, char **ar
     }
 
     cmd_virtual_display_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_virtual_display = {

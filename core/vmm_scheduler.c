@@ -18,7 +18,7 @@
  *
  * @file vmm_scheduler.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief source file for hypervisor scheduler
+ * @brief Hypervisor调度器源文件
  */
 
 #include <arch_cpu_irq.h>
@@ -44,102 +44,144 @@
 
 #define SAMPLE_EVENT_PERIOD   (CONFIG_IDLE_PERIOD_SECS * 1000000000ULL)
 
+/**
+ * @brief 调度器重调度状态，保存上下文切换时的寄存器状态
+ */
 enum vmm_scheduler_resched_state {
-    VMM_SCHEDULER_RESCHED_IDLE = 0,
+    VMM_SCHEDULER_RESCHED_IDLE = 0, /**< 0 */
     VMM_SCHEDULER_RESCHED_TRIGGERED
 };
 
 /** Control structure for Scheduler */
-struct vmm_scheduler_ctrl {
-    void             *rq;
-    vmm_spinlock_t    rq_lock;
-    atomic_t          rq_resched_state;
-    uint64_t          current_vcpu_irq_ns;
-    uint64_t          current_vcpu_exp_ns;
-    vmm_vcpu_t       *current_vcpu;
-    vmm_vcpu_t       *idle_vcpu;
-    bool              irq_context;
-    arch_regs_t      *irq_regs;
-    uint64_t          irq_enter_tstamp;
-    uint64_t          irq_process_ns;
-    uint64_t          exp_process_ns;
-    bool              yield_on_irq_exit;
-    vmm_timer_event_t ev;
-    vmm_timer_event_t sample_ev;
-    vmm_rwlock_t      sample_lock;
-    uint64_t          sample_period_ns;
-    uint64_t          sample_idle_ns;
-    uint64_t          sample_idle_last_ns;
-    uint64_t          sample_irq_ns;
-    uint64_t          sample_irq_last_ns;
+/**
+ * @brief 调度器每CPU控制结构，维护单个CPU核心的调度状态
+ */
+struct vmm_scheduler_ctrl_per_cpu {
+    void             *ready_queue; /**< ready_queue成员 */
+    vmm_spinlock_t    rq_lock; /**< 运行队列锁 */
+    atomic_t          rq_resched_state; /**< rq_resched_state成员 */
+    uint64_t          current_vcpu_irq_ns; /**< current_vcpu_irq_ns成员 */
+    uint64_t          current_vcpu_exp_ns; /**< current_vcpu_exp_ns成员 */
+    vmm_vcpu_t       *current_vcpu; /**< current_vcpu成员 */
+    vmm_vcpu_t       *idle_vcpu; /**< idle_vcpu成员 */
+    bool              irq_context; /**< irq_context成员 */
+    arch_regs_t      *irq_regs; /**< irq_regs成员 */
+    uint64_t          irq_enter_tstamp; /**< irq_enter_tstamp成员 */
+    uint64_t          irq_process_ns; /**< irq_process_ns成员 */
+    uint64_t          exp_process_ns; /**< exp_process_ns成员 */
+    bool              yield_on_irq_exit; /**< yield_on_irq_exit成员 */
+    vmm_timer_event_t ev; /**< 事件 */
+    vmm_timer_event_t sample_ev; /**< sample_ev成员 */
+    vmm_rwlock_t      sample_lock; /**< sample_lock成员 */
+    uint64_t          sample_period_ns; /**< sample_period_ns成员 */
+    uint64_t          sample_idle_ns; /**< sample_idle_ns成员 */
+    uint64_t          sample_idle_last_ns; /**< sample_idle_last_ns成员 */
+    uint64_t          sample_irq_ns; /**< sample_irq_ns成员 */
+    uint64_t          sample_irq_last_ns; /**< sample_irq_last_ns成员 */
 };
 
-static DEFINE_PER_CPU(struct vmm_scheduler_ctrl, sched);
+static DEFINE_PER_CPU(struct vmm_scheduler_ctrl_per_cpu, sched);
 
-static int rq_dequeue(struct vmm_scheduler_ctrl *schedp, vmm_vcpu_t **next, uint64_t *next_time_slice)
+/**
+ * @brief 就绪 队列 出队
+ * @param schedp 调度参数指针
+ * @param next 指向VCPU结构体的指针
+ * @param next_time_slice 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+static int ready_queue_dequeue(struct vmm_scheduler_ctrl_per_cpu *schedp, vmm_vcpu_t **next, uint64_t *next_time_slice)
 {
     int         ret;
     irq_flags_t flags;
 
     vmm_spin_lock_irq_save_lite(&schedp->rq_lock, flags);
-    ret = vmm_schedule_algorithm_rq_dequeue(schedp->rq, next, next_time_slice);
+    ret = vmm_schedule_algorithm_ready_queue_dequeue(schedp->ready_queue, next, next_time_slice);
     vmm_spin_unlock_irq_restore_lite(&schedp->rq_lock, flags);
 
     return ret;
 }
 
 /* NOTE: Must be called with vcpu->sched_lock held */
-static int rq_enqueue(struct vmm_scheduler_ctrl *schedp, vmm_vcpu_t *vcpu)
+/**
+ * @brief 就绪 队列 入队
+ * @param schedp 调度参数指针
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功读取的字节数，失败返回错误码
+ */
+static int ready_queue_enqueue(struct vmm_scheduler_ctrl_per_cpu *schedp, vmm_vcpu_t *vcpu)
 {
     int         ret;
     irq_flags_t flags;
 
     vmm_spin_lock_irq_save_lite(&schedp->rq_lock, flags);
-    ret = vmm_schedule_algorithm_rq_enqueue(schedp->rq, vcpu);
+    ret = vmm_schedule_algorithm_ready_queue_enqueue(schedp->ready_queue, vcpu);
     vmm_spin_unlock_irq_restore_lite(&schedp->rq_lock, flags);
 
     return ret;
 }
 
 /* NOTE: Must be called with vcpu->sched_lock held */
-static int rq_detach(struct vmm_scheduler_ctrl *schedp, vmm_vcpu_t *vcpu)
+/**
+ * @brief 就绪 队列 分离
+ * @param schedp 调度参数指针
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功读取的字节数，失败返回错误码
+ */
+static int ready_queue_detach(struct vmm_scheduler_ctrl_per_cpu *schedp, vmm_vcpu_t *vcpu)
 {
     int         ret;
     irq_flags_t flags;
 
     vmm_spin_lock_irq_save_lite(&schedp->rq_lock, flags);
-    ret = vmm_schedule_algorithm_rq_detach(schedp->rq, vcpu);
+    ret = vmm_schedule_algorithm_ready_queue_detach(schedp->ready_queue, vcpu);
     vmm_spin_unlock_irq_restore_lite(&schedp->rq_lock, flags);
 
     return ret;
 }
 
-static bool rq_prempt_needed(struct vmm_scheduler_ctrl *schedp)
+/**
+ * @brief 检查就绪队列是否需要抢占
+ * @param schedp 调度参数指针
+ * @return 成功读取的字节数，失败返回错误码
+ */
+static bool ready_queue_prempt_needed(struct vmm_scheduler_ctrl_per_cpu *schedp)
 {
     bool        ret;
     irq_flags_t flags;
 
     vmm_spin_lock_irq_save_lite(&schedp->rq_lock, flags);
-    ret = vmm_schedule_algorithm_rq_prempt_needed(schedp->rq, schedp->current_vcpu);
+    ret = vmm_schedule_algorithm_ready_queue_prempt_needed(schedp->ready_queue, schedp->current_vcpu);
     vmm_spin_unlock_irq_restore_lite(&schedp->rq_lock, flags);
 
     return ret;
 }
 
-static uint32_t rq_length(struct vmm_scheduler_ctrl *schedp, uint32_t priority)
+/**
+ * @brief 就绪 队列 长度
+ * @param schedp 调度参数指针
+ * @param priority 优先级
+ * @return 就绪队列中的VCPU数量
+ */
+static uint32_t ready_queue_length(struct vmm_scheduler_ctrl_per_cpu *schedp, uint32_t priority)
 {
     uint32_t    ret;
     irq_flags_t flags;
 
     vmm_spin_lock_irq_save_lite(&schedp->rq_lock, flags);
-    ret = vmm_schedule_algorithm_rq_length(schedp->rq, priority);
+    ret = vmm_schedule_algorithm_ready_queue_length(schedp->ready_queue, priority);
     vmm_spin_unlock_irq_restore_lite(&schedp->rq_lock, flags);
 
     return ret;
 }
 
-/* Should not be called from anywhere else */
-static vmm_vcpu_t *__vmm_scheduler_next1(struct vmm_scheduler_ctrl *schedp, arch_regs_t *regs)
+/* 不应从其他任何地方调用 */
+/**
+ * @brief 选择下一个要调度的VCPU（第一阶段：优先级选择）
+ * @param schedp 调度参数指针
+ * @param regs 寄存器上下文指针
+ * @return 成功返回下一个被调度的VCPU，失败为内部错误会触发panic
+ */
+static vmm_vcpu_t *__vmm_scheduler_next1(struct vmm_scheduler_ctrl_per_cpu *schedp, arch_regs_t *regs)
 {
     int         rc;
     irq_flags_t nf;
@@ -147,7 +189,7 @@ static vmm_vcpu_t *__vmm_scheduler_next1(struct vmm_scheduler_ctrl *schedp, arch
     uint64_t    next_time_slice = VMM_VCPU_DEF_TIME_SLICE;
     vmm_vcpu_t *next            = NULL;
 
-    rc                          = rq_dequeue(schedp, &next, &next_time_slice);
+    rc                          = ready_queue_dequeue(schedp, &next, &next_time_slice);
 
     if (rc) {
         /* This should never happen !!! */
@@ -171,8 +213,13 @@ static vmm_vcpu_t *__vmm_scheduler_next1(struct vmm_scheduler_ctrl *schedp, arch
     return next;
 }
 
-/* Must be called with write lock held on current->sched_lock */
-static void __vmm_scheduler_sync_system_time(struct vmm_scheduler_ctrl *schedp, vmm_vcpu_t *current)
+/* 必须在current->sched_lock的写锁持有状态下调用 */
+/**
+ * @brief 同步系统时间到调度器
+ * @param schedp 调度参数指针
+ * @param current 指向VCPU结构体的指针
+ */
+static void __vmm_scheduler_sync_system_time(struct vmm_scheduler_ctrl_per_cpu *schedp, vmm_vcpu_t *current)
 {
     uint64_t system_nsecs;
 
@@ -183,8 +230,15 @@ static void __vmm_scheduler_sync_system_time(struct vmm_scheduler_ctrl *schedp, 
     schedp->current_vcpu_exp_ns = schedp->exp_process_ns;
 }
 
-/* Must be called with write lock held on current->sched_lock */
-static vmm_vcpu_t *__vmm_scheduler_next2(struct vmm_scheduler_ctrl *schedp, vmm_vcpu_t *current, arch_regs_t *regs)
+/* 必须在current->sched_lock的写锁持有状态下调用 */
+/**
+ * @brief 选择下一个要调度的VCPU（第二阶段：同优先级轮转）
+ * @param schedp 调度参数指针
+ * @param current 指向VCPU结构体的指针
+ * @param regs 寄存器上下文指针
+ * @return 成功返回下一个被调度的VCPU，失败为内部错误会触发panic
+ */
+static vmm_vcpu_t *__vmm_scheduler_next2(struct vmm_scheduler_ctrl_per_cpu *schedp, vmm_vcpu_t *current, arch_regs_t *regs)
 {
     int         rc;
     irq_flags_t nf = 0;
@@ -203,14 +257,14 @@ static vmm_vcpu_t *__vmm_scheduler_next2(struct vmm_scheduler_ctrl *schedp, vmm_
             current->state_running_nsecs += tstamp - current->state_tstamp;
             arch_atomic_write(&current->state, VMM_VCPU_STATE_READY);
             current->state_tstamp = tstamp;
-            rq_enqueue(schedp, current);
+            ready_queue_enqueue(schedp, current);
         }
 
         tcurrent = current;
     }
 
 dequeue_again:
-    rc = rq_dequeue(schedp, &next, &next_time_slice);
+    rc = ready_queue_dequeue(schedp, &next, &next_time_slice);
 
     if (rc) {
         /* This should never happen !!! */
@@ -253,7 +307,12 @@ dequeue_again:
     return (next != current) ? next : NULL;
 }
 
-static void vmm_scheduler_switch(struct vmm_scheduler_ctrl *schedp, arch_regs_t *regs)
+/**
+ * @brief 调度器 交换机
+ * @param schedp 调度参数指针
+ * @param regs 寄存器上下文指针
+ */
+static void vmm_scheduler_switch(struct vmm_scheduler_ctrl_per_cpu *schedp, arch_regs_t *regs)
 {
     uint32_t    preempt_min;
     vmm_vcpu_t *next;
@@ -265,7 +324,7 @@ static void vmm_scheduler_switch(struct vmm_scheduler_ctrl *schedp, arch_regs_t 
     }
 
     if (current) {
-        preempt_min = (current->wq_lock) ? 1 : 0;
+        preempt_min = (current->wait_queue_lock) ? 1 : 0;
 
         if (current->preempt_count == preempt_min) {
             irq_flags_t cf;
@@ -275,8 +334,8 @@ static void vmm_scheduler_switch(struct vmm_scheduler_ctrl *schedp, arch_regs_t 
             vmm_write_unlock_irq_restore_lite(&current->sched_lock, cf);
 
             if (next != current) {
-                if (current->wq_lock) {
-                    vmm_spin_unlock_lite(current->wq_lock);
+                if (current->wait_queue_lock) {
+                    vmm_spin_unlock_lite(current->wait_queue_lock);
                     arch_cpu_irq_save(cf);
 
                     if (current->preempt_count) {
@@ -299,25 +358,32 @@ static void vmm_scheduler_switch(struct vmm_scheduler_ctrl *schedp, arch_regs_t 
     }
 }
 
+/**
+ * @brief 调度器 定时器 事件
+ * @param ev 定时器事件
+ */
 static void scheduler_timer_event(vmm_timer_event_t *ev)
 {
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     if (schedp->irq_regs) {
-        vmm_scheduler_switch(schedp, schedp->irq_regs);
+        vmm_scheduler_switch(schedp, schedp->irq_regs); /**< schedp->irq_regs)成员 */
     }
 }
 
+/**
+ * @brief 调度器 抢占 禁用
+ */
 void vmm_scheduler_preempt_disable(void)
 {
     irq_flags_t                flags;
     vmm_vcpu_t                *vcpu;
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     arch_cpu_irq_save(flags);
 
     if (!schedp->irq_context) {
-        vcpu = schedp->current_vcpu;
+        vcpu = schedp->current_vcpu; /**< schedp->current_vcpu成员 */
 
         if (vcpu) {
             vcpu->preempt_count++;
@@ -327,16 +393,19 @@ void vmm_scheduler_preempt_disable(void)
     arch_cpu_irq_restore(flags);
 }
 
+/**
+ * @brief 调度器 抢占 启用
+ */
 void vmm_scheduler_preempt_enable(void)
 {
     irq_flags_t                flags;
     vmm_vcpu_t                *vcpu;
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     arch_cpu_irq_save(flags);
 
     if (!schedp->irq_context) {
-        vcpu = schedp->current_vcpu;
+        vcpu = schedp->current_vcpu; /**< schedp->current_vcpu成员 */
 
         if (vcpu && vcpu->preempt_count) {
             vcpu->preempt_count--;
@@ -346,34 +415,49 @@ void vmm_scheduler_preempt_enable(void)
     arch_cpu_irq_restore(flags);
 }
 
+/**
+ * @brief 调度器 抢占 孤儿
+ * @param regs 寄存器上下文指针
+ */
 void vmm_scheduler_preempt_orphan(arch_regs_t *regs)
 {
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     vmm_scheduler_switch(schedp, regs);
 }
 
+/**
+ * @brief 调度器 处理器间中断 重调度
+ * @param arg0 第零个参数值
+ * @param arg1 第一个参数值
+ * @param arg2 第二个参数值
+ */
 static void scheduler_ipi_resched(void *arg0, void *arg1, void *arg2)
 {
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     arch_atomic_write(&schedp->rq_resched_state, VMM_SCHEDULER_RESCHED_IDLE);
 
-    if (schedp->irq_regs && rq_prempt_needed(schedp)) {
-        vmm_scheduler_switch(schedp, schedp->irq_regs);
+    if (schedp->irq_regs && ready_queue_prempt_needed(schedp)) {
+        vmm_scheduler_switch(schedp, schedp->irq_regs); /**< schedp->irq_regs)成员 */
     }
 }
 
+/**
+ * @brief 强制触发当前CPU的VCPU重新调度
+ * @param host_cpu 主机CPU编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_scheduler_force_resched(uint32_t host_cpu)
 {
-    struct vmm_scheduler_ctrl *schedp;
+    struct vmm_scheduler_ctrl_per_cpu *schedp;
 
     if (CONFIG_CPU_COUNT <= host_cpu) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     if (!vmm_cpu_online(host_cpu)) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     if (host_cpu == vmm_smp_processor_id()) {
@@ -389,11 +473,18 @@ int vmm_scheduler_force_resched(uint32_t host_cpu)
     return VMM_OK;
 }
 
+/**
+ * @brief 同步调度器的系统时间
+ * @param arg0 第零个参数值
+ * @param arg1 第一个参数值
+ * @param arg2 第二个参数值
+ */
 static void scheduler_system_time_sync(void *arg0, void *arg1, void *arg2)
 {
-    irq_flags_t                flags, flags1;
+    irq_flags_t flags;
+    irq_flags_t flags1;
     vmm_vcpu_t                *current;
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     arch_cpu_irq_save(flags);
 
@@ -408,17 +499,22 @@ static void scheduler_system_time_sync(void *arg0, void *arg1, void *arg2)
     arch_cpu_irq_restore(flags);
 }
 
-int vmm_scheduler_stats(
+/**
+ * @brief 获取调度器的状态
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
+int vmm_scheduler_get_status(
     vmm_vcpu_t *vcpu, uint32_t *state, uint8_t *priority, uint32_t *host_cpu, uint32_t *reset_count, uint64_t *last_reset_nsecs,
     uint64_t *ready_nsecs, uint64_t *running_nsecs, uint64_t *paused_nsecs, uint64_t *halted_nsecs, uint64_t *system_nsecs)
 {
     int         rc;
     irq_flags_t flags;
     uint64_t    current_tstamp;
-    uint32_t    vcpu_hcpu, current_state;
+    uint32_t vcpu_hcpu;
+    uint32_t current_state;
 
     if (!vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Get host CPU assigned to given VCPU */
@@ -518,18 +614,26 @@ int vmm_scheduler_stats(
     return VMM_OK;
 }
 
+/**
+ * @brief 通知调度器VCPU状态发生变化
+ * @param vcpu 指向VCPU结构体的指针
+ * @param new_state 状态值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_scheduler_state_change(vmm_vcpu_t *vcpu, uint32_t new_state)
 {
     uint64_t                   tstamp;
     int                        rc = VMM_OK;
     irq_flags_t                flags;
-    bool                       resumed, preempt = FALSE;
-    uint32_t                   chcpu = vmm_smp_processor_id(), vhcpu;
-    struct vmm_scheduler_ctrl *schedp;
+    bool resumed;
+    bool preempt = FALSE;
+    uint32_t chcpu = vmm_smp_processor_id();
+    uint32_t vhcpu;
+    struct vmm_scheduler_ctrl_per_cpu *schedp;
     uint32_t                   current_state;
 
     if (!vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     arch_cpu_irq_save(flags);
@@ -558,7 +662,7 @@ int vmm_scheduler_state_change(vmm_vcpu_t *vcpu, uint32_t new_state)
 
                 /* Make sure VCPU is not in a ready queue */
                 if ((schedp->current_vcpu != vcpu) && (current_state == VMM_VCPU_STATE_READY)) {
-                    if ((rc = rq_detach(schedp, vcpu))) {
+                    if ((rc = ready_queue_detach(schedp, vcpu))) {
                         break;
                     }
                 }
@@ -586,14 +690,14 @@ int vmm_scheduler_state_change(vmm_vcpu_t *vcpu, uint32_t new_state)
         case VMM_VCPU_STATE_READY:
             if ((current_state == VMM_VCPU_STATE_RESET) || (current_state == VMM_VCPU_STATE_PAUSED)) {
                 /* Enqueue VCPU to ready queue */
-                rc = rq_enqueue(schedp, vcpu);
+                rc = ready_queue_enqueue(schedp, vcpu);
 
                 if (!rc && (schedp->current_vcpu != vcpu)) {
-                    preempt = rq_prempt_needed(schedp);
+                    preempt = ready_queue_prempt_needed(schedp);
                 }
 
-                if (vcpu->wq_cleanup) {
-                    vcpu->wq_cleanup(vcpu);
+                if (vcpu->wait_queue_cleanup) {
+                    vcpu->wait_queue_cleanup(vcpu);
                 }
             } else if (current_state == VMM_VCPU_STATE_RUNNING) {
                 /* Set resumed flag. This means we catch
@@ -606,7 +710,7 @@ int vmm_scheduler_state_change(vmm_vcpu_t *vcpu, uint32_t new_state)
                 /* READY->READY is a valid scenario... Do nothing. */
                 goto skip_state_change;
             } else {
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
             }
 
             break;
@@ -615,7 +719,7 @@ int vmm_scheduler_state_change(vmm_vcpu_t *vcpu, uint32_t new_state)
             /* Only context-switch can set RUNNING state.
              * Any request for setting RUNNING state is invalid.
              */
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
 
         case VMM_VCPU_STATE_PAUSED:
@@ -629,8 +733,8 @@ int vmm_scheduler_state_change(vmm_vcpu_t *vcpu, uint32_t new_state)
                 vcpu->resumed = FALSE;
 
                 if (resumed && (new_state == VMM_VCPU_STATE_PAUSED)) {
-                    if (vcpu->wq_cleanup) {
-                        vcpu->wq_cleanup(vcpu);
+                    if (vcpu->wait_queue_cleanup) {
+                        vcpu->wait_queue_cleanup(vcpu);
                     }
 
                     goto skip_state_change;
@@ -639,14 +743,14 @@ int vmm_scheduler_state_change(vmm_vcpu_t *vcpu, uint32_t new_state)
                     preempt = TRUE;
                 } else if (current_state == VMM_VCPU_STATE_READY) {
                     /* Make sure VCPU is not in a ready queue */
-                    rc = rq_detach(schedp, vcpu);
+                    rc = ready_queue_detach(schedp, vcpu);
                 }
             } else {
-                if (vcpu->wq_cleanup) {
-                    vcpu->wq_cleanup(vcpu);
+                if (vcpu->wait_queue_cleanup) {
+                    vcpu->wait_queue_cleanup(vcpu);
                 }
 
-                rc = VMM_EINVALID;
+                rc = VMM_ERR_INVALID;
             }
 
             break;
@@ -701,8 +805,8 @@ skip_state_change:
             } else {
                 arch_vcpu_preempt_orphan();
 
-                if (schedp->current_vcpu->wq_lock) {
-                    vmm_spin_lock(schedp->current_vcpu->wq_lock);
+                if (schedp->current_vcpu->wait_queue_lock) {
+                    vmm_spin_lock(schedp->current_vcpu->wait_queue_lock);
                 }
             }
         } else {
@@ -723,12 +827,18 @@ skip_state_change:
     return rc;
 }
 
+/**
+ * @brief 获取调度器的hcpu
+ * @param vcpu 指向VCPU结构体的指针
+ * @param host_cpu 主机CPU编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_scheduler_get_hcpu(vmm_vcpu_t *vcpu, uint32_t *host_cpu)
 {
     irq_flags_t flags;
 
     if ((vcpu == NULL) || (host_cpu == NULL)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_read_lock_irq_save_lite(&vcpu->sched_lock, flags);
@@ -738,6 +848,11 @@ int vmm_scheduler_get_hcpu(vmm_vcpu_t *vcpu, uint32_t *host_cpu)
     return VMM_OK;
 }
 
+/**
+ * @brief 检查当前硬件CPU是否仍在运行指定的VCPU
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_scheduler_check_current_hcpu(vmm_vcpu_t *vcpu)
 {
     bool        ret;
@@ -754,11 +869,18 @@ bool vmm_scheduler_check_current_hcpu(vmm_vcpu_t *vcpu)
     return ret;
 }
 
+/**
+ * @brief 调度器 处理器间中断 迁移 虚拟CPU
+ * @param arg0 第零个参数值
+ * @param arg1 第一个参数值
+ * @param arg2 第二个参数值
+ */
 static void scheduler_ipi_migrate_vcpu(void *arg0, void *arg1, void *arg2)
 {
     irq_flags_t flags;
     uint32_t    old_hcpu = vmm_smp_processor_id();
-    uint32_t    state, new_hcpu = (uint32_t)(virtual_addr_t)arg1;
+    uint32_t state;
+    uint32_t new_hcpu = (uint32_t)(virtual_addr_t)arg1;
     vmm_vcpu_t *vcpu = arg0;
 
     /* Lock VCPU scheduling */
@@ -772,11 +894,11 @@ static void scheduler_ipi_migrate_vcpu(void *arg0, void *arg1, void *arg2)
     }
 
     /* Detach VCPU from old host_cpu ready queue */
-    rq_detach(&per_cpu(sched, old_hcpu), vcpu);
+    ready_queue_detach(&per_cpu(sched, old_hcpu), vcpu);
 
     /* Enqueue VCPU to new host_cpu ready queue */
     vcpu->host_cpu = new_hcpu;
-    rq_enqueue(&per_cpu(sched, new_hcpu), vcpu);
+    ready_queue_enqueue(&per_cpu(sched, new_hcpu), vcpu);
 
     /* Trigger re-scheduling on new host_cpu */
     vmm_scheduler_force_resched(new_hcpu);
@@ -786,14 +908,21 @@ skip:
     vmm_write_unlock_irq_restore_lite(&vcpu->sched_lock, flags);
 }
 
+/**
+ * @brief 设置调度器的hcpu
+ * @param vcpu 指向VCPU结构体的指针
+ * @param host_cpu 主机CPU编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_scheduler_set_hcpu(vmm_vcpu_t *vcpu, uint32_t host_cpu)
 {
-    uint32_t    old_hcpu, state;
+    uint32_t old_hcpu;
+    uint32_t state;
     irq_flags_t flags;
     bool        migrate_vcpu = FALSE;
 
     if (!vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Lock VCPU scheduling */
@@ -811,7 +940,7 @@ int vmm_scheduler_set_hcpu(vmm_vcpu_t *vcpu, uint32_t host_cpu)
     /* Match affinity with new host_cpu */
     if (!vmm_cpumask_test_cpu(host_cpu, vcpu->cpu_affinity)) {
         vmm_write_unlock_irq_restore_lite(&vcpu->sched_lock, flags);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Check if we don't need to migrate VCPU to new host_cpu */
@@ -834,9 +963,14 @@ int vmm_scheduler_set_hcpu(vmm_vcpu_t *vcpu, uint32_t host_cpu)
     return VMM_OK;
 }
 
+/**
+ * @brief 通知调度器进入中断上下文
+ * @param regs 寄存器上下文指针
+ * @param vcpu_context VCPU上下文结构体指针
+ */
 void vmm_scheduler_irq_enter(arch_regs_t *regs, bool vcpu_context)
 {
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     /* Indicate that we have entered in IRQ */
     schedp->irq_enter_tstamp          = vmm_timer_timestamp();
@@ -854,16 +988,23 @@ void vmm_scheduler_irq_enter(arch_regs_t *regs, bool vcpu_context)
     schedp->yield_on_irq_exit = FALSE;
 }
 
+/**
+ * @brief 调度器 中断 寄存器
+ */
 arch_regs_t *vmm_scheduler_irq_regs(void)
 {
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     return schedp->irq_regs;
 }
 
+/**
+ * @brief 通知调度器退出中断上下文
+ * @param regs 寄存器上下文指针
+ */
 void vmm_scheduler_irq_exit(arch_regs_t *regs)
 {
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
     vmm_vcpu_t                *vcpu   = NULL;
 
     /* Determine current vcpu */
@@ -897,21 +1038,29 @@ void vmm_scheduler_irq_exit(arch_regs_t *regs)
     schedp->irq_regs    = NULL;
 }
 
+/**
+ * @brief 检查调度器是否处于中断上下文
+ * @return 处于中断上下文返回TRUE，否则返回FALSE
+ */
 bool vmm_scheduler_irq_context(void)
 {
     return this_cpu(sched).irq_context;
 }
 
+/**
+ * @brief
+ *  虚拟机监视器的线程执行上下文
+ */
 bool vmm_scheduler_orphan_context(void)
 {
     bool                       ret = FALSE;
     irq_flags_t                flags;
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     arch_cpu_irq_save(flags);
 
     if (schedp->current_vcpu && !schedp->irq_context) {
-        ret = (schedp->current_vcpu->is_normal) ? FALSE : TRUE;
+        ret = (schedp->current_vcpu->is_normal) ? FALSE : TRUE; /**< TRUE成员 */
     }
 
     arch_cpu_irq_restore(flags);
@@ -919,16 +1068,20 @@ bool vmm_scheduler_orphan_context(void)
     return ret;
 }
 
+/**
+ * @brief 检查调度器是否处于普通上下文
+ * @return 处于普通上下文返回TRUE，否则返回FALSE
+ */
 bool vmm_scheduler_normal_context(void)
 {
     bool                       ret = FALSE;
     irq_flags_t                flags;
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     arch_cpu_irq_save(flags);
 
     if (schedp->current_vcpu && !schedp->irq_context) {
-        ret = (schedp->current_vcpu->is_normal) ? TRUE : FALSE;
+        ret = (schedp->current_vcpu->is_normal) ? TRUE : FALSE; /**< FALSE成员 */
     }
 
     arch_cpu_irq_restore(flags);
@@ -936,23 +1089,35 @@ bool vmm_scheduler_normal_context(void)
     return ret;
 }
 
+/**
+ * @brief 获取调度器就绪队列的数量
+ * @param host_cpu 主机CPU编号
+ * @param priority 优先级
+ * @return 数量值
+ */
 uint32_t vmm_scheduler_ready_count(uint32_t host_cpu, uint8_t priority)
 {
     if ((CONFIG_CPU_COUNT <= host_cpu) || !vmm_cpu_online(host_cpu) || (priority < VMM_VCPU_MIN_PRIORITY) || (VMM_VCPU_MAX_PRIORITY < priority)) {
         return 0;
     }
 
-    return rq_length(&per_cpu(sched, host_cpu), priority);
+    return ready_queue_length(&per_cpu(sched, host_cpu), priority);
 }
 
+/**
+ * @brief 采样调度器事件用于统计
+ * @param ev 定时器事件
+ */
 static void scheduler_sample_event(vmm_timer_event_t *ev)
 {
     irq_flags_t                flags;
-    uint64_t                   idle_ns, irq_ns, next_period;
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    uint64_t idle_ns;
+    uint64_t irq_ns;
+    uint64_t next_period;
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     idle_ns                           = 0;
-    vmm_scheduler_stats(schedp->idle_vcpu, NULL, NULL, NULL, NULL, NULL, NULL, &idle_ns, NULL, NULL, NULL);
+    vmm_scheduler_get_status(schedp->idle_vcpu, NULL, NULL, NULL, NULL, NULL, NULL, &idle_ns, NULL, NULL, NULL);
 
     irq_ns = 0;
     arch_cpu_irq_save(flags);
@@ -973,14 +1138,19 @@ static void scheduler_sample_event(vmm_timer_event_t *ev)
     vmm_timer_event_start(&schedp->sample_ev, next_period);
 }
 
+/**
+ * @brief 获取调度器的采样周期
+ * @param host_cpu 主机CPU编号
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_scheduler_get_sample_period(uint32_t host_cpu)
 {
     uint64_t                   ret;
     irq_flags_t                flags;
-    struct vmm_scheduler_ctrl *schedp;
+    struct vmm_scheduler_ctrl_per_cpu *schedp;
 
     if ((CONFIG_CPU_COUNT <= host_cpu) || !vmm_cpu_online(host_cpu)) {
-        return SAMPLE_EVENT_PERIOD;
+        return SAMPLE_EVENT_PERIOD; /**< SAMPLE_EVENT_PERIOD成员 */
     }
 
     schedp = &per_cpu(sched, host_cpu);
@@ -992,10 +1162,15 @@ uint64_t vmm_scheduler_get_sample_period(uint32_t host_cpu)
     return ret;
 }
 
+/**
+ * @brief 设置调度器的采样周期
+ * @param host_cpu 主机CPU编号
+ * @param period 周期
+ */
 void vmm_scheduler_set_sample_period(uint32_t host_cpu, uint64_t period)
 {
     irq_flags_t                flags;
-    struct vmm_scheduler_ctrl *schedp;
+    struct vmm_scheduler_ctrl_per_cpu *schedp;
 
     if ((CONFIG_CPU_COUNT <= host_cpu) || !vmm_cpu_online(host_cpu)) {
         return;
@@ -1008,14 +1183,19 @@ void vmm_scheduler_set_sample_period(uint32_t host_cpu, uint64_t period)
     vmm_write_unlock_irq_restore_lite(&schedp->sample_lock, flags);
 }
 
+/**
+ * @brief 调度器 中断 时间
+ * @param host_cpu 主机CPU编号
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_scheduler_irq_time(uint32_t host_cpu)
 {
     uint64_t                   ret;
     irq_flags_t                flags;
-    struct vmm_scheduler_ctrl *schedp;
+    struct vmm_scheduler_ctrl_per_cpu *schedp;
 
     if ((CONFIG_CPU_COUNT <= host_cpu) || !vmm_cpu_online(host_cpu)) {
-        return 0;
+        return 0; /**< 0 */
     }
 
     schedp = &per_cpu(sched, host_cpu);
@@ -1027,14 +1207,19 @@ uint64_t vmm_scheduler_irq_time(uint32_t host_cpu)
     return ret;
 }
 
+/**
+ * @brief 调度器 空闲 时间
+ * @param host_cpu 主机CPU编号
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_scheduler_idle_time(uint32_t host_cpu)
 {
     uint64_t                   ret;
     irq_flags_t                flags;
-    struct vmm_scheduler_ctrl *schedp;
+    struct vmm_scheduler_ctrl_per_cpu *schedp;
 
     if ((CONFIG_CPU_COUNT <= host_cpu) || !vmm_cpu_online(host_cpu)) {
-        return 0;
+        return 0; /**< 0 */
     }
 
     schedp = &per_cpu(sched, host_cpu);
@@ -1046,6 +1231,11 @@ uint64_t vmm_scheduler_idle_time(uint32_t host_cpu)
     return ret;
 }
 
+/**
+ * @brief 调度器 空闲 虚拟CPU
+ * @param host_cpu 主机CPU编号
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_vcpu_t *vmm_scheduler_idle_vcpu(uint32_t host_cpu)
 {
     if ((CONFIG_CPU_COUNT <= host_cpu) || !vmm_cpu_online(host_cpu)) {
@@ -1055,11 +1245,19 @@ vmm_vcpu_t *vmm_scheduler_idle_vcpu(uint32_t host_cpu)
     return per_cpu(sched, host_cpu).idle_vcpu;
 }
 
+/**
+ * @brief 调度器 当前 虚拟CPU
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_vcpu_t *vmm_scheduler_current_vcpu(void)
 {
     return this_cpu(sched).current_vcpu;
 }
 
+/**
+ * @brief 调度器 当前 优先级
+ * @return 调度结果
+ */
 uint8_t vmm_scheduler_current_priority(void)
 {
     vmm_vcpu_t *cvcpu = vmm_scheduler_current_vcpu();
@@ -1069,18 +1267,21 @@ uint8_t vmm_scheduler_current_priority(void)
 
 struct vmm_guest *vmm_scheduler_current_guest(void)
 {
-    vmm_vcpu_t *vcpu = this_cpu(sched).current_vcpu;
+    vmm_vcpu_t *vcpu = this_cpu(sched).current_vcpu; /**< this_cpu(sched).current_vcpu成员 */
 
-    return (vcpu) ? vcpu->guest : NULL;
+    return (vcpu) ? vcpu->guest : NULL; /**< NULL成员 */
 }
 
+/**
+ * @brief 调度器 让出
+ */
 void vmm_scheduler_yield(void)
 {
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
     vmm_vcpu_t                *vcpu   = this_cpu(sched).current_vcpu;
 
     if (schedp->irq_context) {
-        vmm_panic("%s: Cannot yield in IRQ context\n", __func__);
+        vmm_panic("%s: Cannot yield in IRQ context\n", __func__); /**< __func__)成员 */
     }
 
     if (!vcpu) {
@@ -1092,12 +1293,15 @@ void vmm_scheduler_yield(void)
     }
 }
 
+/**
+ * @brief 空闲 孤儿
+ */
 static void idle_orphan(void)
 {
-    struct vmm_scheduler_ctrl *schedp = &this_cpu(sched);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &this_cpu(sched);
 
     while (1) {
-        if (rq_length(schedp, IDLE_VCPU_PRIORITY) == 0) {
+        if (ready_queue_length(schedp, IDLE_VCPU_PRIORITY) == 0) {
             arch_cpu_wait_for_irq();
         }
 
@@ -1105,20 +1309,26 @@ static void idle_orphan(void)
     }
 }
 
+/**
+ * @brief 调度器初始化启动
+ * @param cpu_hotplug CPU热插拔结构体指针
+ * @param cpu CPU编号
+ * @return 编号值
+ */
 static int scheduler_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t cpu)
 {
     int                        rc;
     char                       vcpu_name[VMM_FIELD_NAME_SIZE];
-    struct vmm_scheduler_ctrl *schedp = &per_cpu(sched, cpu);
+    struct vmm_scheduler_ctrl_per_cpu *schedp = &per_cpu(sched, cpu);
 
     /* Reset the scheduler control structure */
-    memset(schedp, 0, sizeof(struct vmm_scheduler_ctrl));
+    memset(schedp, 0, sizeof(struct vmm_scheduler_ctrl_per_cpu));
 
     /* Create ready queue (Per Host CPU) */
-    schedp->rq = vmm_schedule_algorithm_rq_create();
+    schedp->ready_queue = vmm_schedule_algorithm_ready_queue_create();
 
-    if (!schedp->rq) {
-        return VMM_EFAIL;
+    if (!schedp->ready_queue) {
+        return VMM_ERR_FAIL;
     }
 
     INIT_SPIN_LOCK(&schedp->rq_lock);
@@ -1165,7 +1375,7 @@ static int scheduler_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t cpu
         IDLE_VCPU_TIMESLICE, vmm_cpumask_of(cpu));
 
     if (!schedp->idle_vcpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Kick idle orphan vcpu */
@@ -1186,6 +1396,10 @@ static vmm_cpu_hotplug_notify_t scheduler_cpu_hotplug = {
     .startup = scheduler_startup,
 };
 
+/**
+ * @brief 初始化调度器
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_scheduler_init(void)
 {
     /* Setup hotplug notifier */

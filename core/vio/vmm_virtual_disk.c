@@ -18,7 +18,7 @@
  *
  * @file vmm_virtual_disk.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief source code for virtual disk framework
+ * @brief 虚拟磁盘框架源代码
  */
 
 #include <libs/mathlib.h>
@@ -46,53 +46,79 @@
 #define MODULE_INIT      vmm_virtual_disk_init
 #define MODULE_EXIT      vmm_virtual_disk_exit
 
+/**
+ * @brief 虚拟磁盘控制结构（内部），维护磁盘设备的运行时状态
+ */
 struct vmm_virtual_disk_ctrl {
-    vmm_mutex_t                   virtual_disk_list_lock;
-    double_list_t                 virtual_disk_list;
-    vmm_blocking_notifier_chain_t notifier_chain;
-    vmm_notifier_block_t          block_client;
+    vmm_mutex_t                   virtual_disk_list_lock; /**< virtual_disk_list_lock成员 */
+    double_list_t                 virtual_disk_list; /**< virtual_disk_list成员 */
+    vmm_blocking_notifier_chain_t notifier_chain; /**< 通知器链 */
+    vmm_notifier_block_t          block_client; /**< block_client成员 */
 };
 
 static struct vmm_virtual_disk_ctrl vdctrl;
 
+/**
+ * @brief 注册虚拟磁盘客户端
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtual_disk_register_client(vmm_notifier_block_t *nb)
 {
     return vmm_blocking_notifier_register(&vdctrl.notifier_chain, nb);
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_register_client);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_register_client);
 
+/**
+ * @brief 注销虚拟磁盘客户端
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtual_disk_unregister_client(vmm_notifier_block_t *nb)
 {
     return vmm_blocking_notifier_unregister(&vdctrl.notifier_chain, nb);
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_unregister_client);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_unregister_client);
 
+/**
+ * @brief 虚拟磁盘请求完成回调
+ * @param r 资源或数据指针
+ */
 static void virtual_disk_req_completed(vmm_request_t *r)
 {
     struct vmm_virtual_disk_request *vreq         = container_of(r, struct vmm_virtual_disk_request, r);
     struct vmm_virtual_disk         *virtual_disk = vreq->virtual_disk;
 
     if (virtual_disk->completed) {
-        virtual_disk->completed(virtual_disk, vreq);
+        virtual_disk->completed(virtual_disk, vreq); /**< vreq)成员 */
     }
 
     DPRINTF("%s: virtual_disk=%s lba=0x%llx bcnt=%d\n", __func__, virtual_disk->name, (uint64_t)r->lba, r->bcnt);
 }
 
+/**
+ * @brief 虚拟磁盘请求失败回调
+ * @param r 资源或数据指针
+ */
 static void virtual_disk_req_failed(vmm_request_t *r)
 {
     struct vmm_virtual_disk_request *vreq         = container_of(r, struct vmm_virtual_disk_request, r);
     struct vmm_virtual_disk         *virtual_disk = vreq->virtual_disk;
 
     if (virtual_disk->failed) {
-        virtual_disk->failed(virtual_disk, vreq);
+        virtual_disk->failed(virtual_disk, vreq); /**< vreq)成员 */
     }
 
     DPRINTF("%s: virtual_disk=%s lba=0x%llx bcnt=%d\n", __func__, virtual_disk->name, (uint64_t)r->lba, r->bcnt);
 }
 
+/**
+ * @brief 设置虚拟磁盘的请求类型
+ * @param vreq 虚拟请求结构体指针
+ * @param type 类型标识值
+ */
 void vmm_virtual_disk_set_request_type(struct vmm_virtual_disk_request *vreq, enum vmm_virtual_disk_request_type type)
 {
     if (!vreq) {
@@ -116,31 +142,36 @@ void vmm_virtual_disk_set_request_type(struct vmm_virtual_disk_request *vreq, en
 
 enum vmm_virtual_disk_request_type vmm_virtual_disk_get_request_type(struct vmm_virtual_disk_request *vreq)
 {
-    enum vmm_virtual_disk_request_type type;
+    enum vmm_virtual_disk_request_type type; /**< 类型 */
 
     if (!vreq) {
-        return VMM_VIRTUAL_DISK_REQUEST_UNKNOWN;
+        return VMM_VIRTUAL_DISK_REQUEST_UNKNOWN; /**< VMM_VIRTUAL_DISK_REQUEST_UNKNOWN成员 */
     }
 
     switch (vreq->r.type) {
         case VMM_REQUEST_READ:
-            type = VMM_VIRTUAL_DISK_REQUEST_READ;
+            type = VMM_VIRTUAL_DISK_REQUEST_READ; /**< VMM_VIRTUAL_DISK_REQUEST_READ成员 */
             break;
 
         case VMM_REQUEST_WRITE:
-            type = VMM_VIRTUAL_DISK_REQUEST_WRITE;
+            type = VMM_VIRTUAL_DISK_REQUEST_WRITE; /**< VMM_VIRTUAL_DISK_REQUEST_WRITE成员 */
             break;
 
         default:
-            type = VMM_VIRTUAL_DISK_REQUEST_UNKNOWN;
+            type = VMM_VIRTUAL_DISK_REQUEST_UNKNOWN; /**< VMM_VIRTUAL_DISK_REQUEST_UNKNOWN成员 */
             break;
     };
 
-    return type;
+    return type; /**< 类型 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_get_request_type);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_get_request_type);
 
+/**
+ * @brief 设置虚拟磁盘的请求长度
+ * @param vreq 虚拟请求结构体指针
+ * @param data_len 大小
+ */
 void vmm_virtual_disk_set_request_len(struct vmm_virtual_disk_request *vreq, uint32_t data_len)
 {
     irq_flags_t              flags;
@@ -156,8 +187,13 @@ void vmm_virtual_disk_set_request_len(struct vmm_virtual_disk_request *vreq, uin
     vmm_spin_unlock_irq_restore_lite(&virtual_disk->block_lock, flags);
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_set_request_len);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_set_request_len);
 
+/**
+ * @brief 获取虚拟磁盘的请求长度
+ * @param vreq 虚拟请求结构体指针
+ * @return 成功返回请求数据长度，失败返回0
+ */
 uint32_t vmm_virtual_disk_get_request_len(struct vmm_virtual_disk_request *vreq)
 {
     uint32_t                 ret = 0;
@@ -165,7 +201,7 @@ uint32_t vmm_virtual_disk_get_request_len(struct vmm_virtual_disk_request *vreq)
     struct vmm_virtual_disk *virtual_disk;
 
     if (!vreq || !vreq->virtual_disk) {
-        return 0;
+        return 0; /**< 0 */
     }
 
     virtual_disk = vreq->virtual_disk;
@@ -176,64 +212,74 @@ uint32_t vmm_virtual_disk_get_request_len(struct vmm_virtual_disk_request *vreq)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_get_request_len);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_get_request_len);
 
+/**
+ * @brief 提交虚拟磁盘I/O请求
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtual_disk_submit_request(
     struct vmm_virtual_disk *virtual_disk, struct vmm_virtual_disk_request *vreq, enum vmm_virtual_disk_request_type type, uint64_t lba, void *data,
     uint32_t data_len)
 {
-    int         rc;
-    irq_flags_t flags;
+    int         rc; /**< rc */
+    irq_flags_t flags; /**< 标志位 */
 
     if (!virtual_disk || !vreq || !data) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     if (data_len < virtual_disk->block_size) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     if ((type < VMM_VIRTUAL_DISK_REQUEST_READ) || (VMM_VIRTUAL_DISK_REQUEST_WRITE < type)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
-    vmm_spin_lock_irq_save_lite(&virtual_disk->block_lock, flags);
+    vmm_spin_lock_irq_save_lite(&virtual_disk->block_lock, flags); /**< flags)成员 */
 
     if (virtual_disk->blk) {
-        vreq->virtual_disk = virtual_disk;
-        vmm_virtual_disk_set_request_type(vreq, type);
-        vreq->r.lba       = (lba + virtual_disk->blk->start_lba) * virtual_disk->block_factor;
-        vreq->r.bcnt      = udiv32(data_len, virtual_disk->block_size) * virtual_disk->block_factor;
-        vreq->r.data      = data;
-        vreq->r.completed = virtual_disk_req_completed;
-        vreq->r.failed    = virtual_disk_req_failed;
-        vreq->r.private   = NULL;
-        rc                = vmm_block_device_submit_request(virtual_disk->blk, &vreq->r);
+        vreq->virtual_disk = virtual_disk; /**< virtual_disk成员 */
+        vmm_virtual_disk_set_request_type(vreq, type); /**< type)成员 */
+        vreq->r.lba       = (lba + virtual_disk->blk->start_lba) * virtual_disk->block_factor; /**< virtual_disk->block_factor成员 */
+        vreq->r.bcnt      = udiv32(data_len, virtual_disk->block_size) * virtual_disk->block_factor; /**< virtual_disk->block_factor成员 */
+        vreq->r.data      = data; /**< 数据 */
+        vreq->r.completed = virtual_disk_req_completed; /**< virtual_disk_req_completed成员 */
+        vreq->r.failed    = virtual_disk_req_failed; /**< virtual_disk_req_failed成员 */
+        vreq->r.private   = NULL; /**< NULL成员 */
+        rc                = vmm_block_device_submit_request(virtual_disk->blk, &vreq->r); /**< &vreq->r)成员 */
     } else {
-        virtual_disk->failed(virtual_disk, vreq);
-        rc = VMM_ENODEV;
+        virtual_disk->failed(virtual_disk, vreq); /**< vreq)成员 */
+        rc = VMM_ERR_NODEV; /**< VMM_ERR_NODEV成员 */
     }
 
-    vmm_spin_unlock_irq_restore_lite(&virtual_disk->block_lock, flags);
+    vmm_spin_unlock_irq_restore_lite(&virtual_disk->block_lock, flags); /**< flags)成员 */
 
-    DPRINTF("%s: virtual_disk=%s lba=0x%llx bcnt=%d rc=%d\n", __func__, virtual_disk->name, (uint64_t)vreq->r.lba, vreq->r.bcnt, rc);
+    DPRINTF("%s: virtual_disk=%s lba=0x%llx bcnt=%d rc=%d\n", __func__, virtual_disk->name, (uint64_t)vreq->r.lba, vreq->r.bcnt, rc); /**< rc)成员 */
 
-    return rc;
+    return rc; /**< rc */
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_submit_request);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_submit_request);
 
+/**
+ * @brief 中止虚拟磁盘的I/O请求
+ * @param virtual_disk 虚拟磁盘设备指针
+ * @param vreq 虚拟请求结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtual_disk_abort_request(struct vmm_virtual_disk *virtual_disk, struct vmm_virtual_disk_request *vreq)
 {
     int         rc;
     irq_flags_t flags;
 
     if (!virtual_disk || !vreq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (vreq->virtual_disk != virtual_disk) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save_lite(&virtual_disk->block_lock, flags);
@@ -241,7 +287,7 @@ int vmm_virtual_disk_abort_request(struct vmm_virtual_disk *virtual_disk, struct
     if (virtual_disk->blk) {
         rc = vmm_block_device_abort_request(&vreq->r);
     } else {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
     }
 
     vmm_spin_unlock_irq_restore_lite(&virtual_disk->block_lock, flags);
@@ -251,15 +297,20 @@ int vmm_virtual_disk_abort_request(struct vmm_virtual_disk *virtual_disk, struct
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_abort_request);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_abort_request);
 
+/**
+ * @brief 刷新虚拟磁盘的请求缓存
+ * @param virtual_disk 虚拟磁盘设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtual_disk_flush_cache(struct vmm_virtual_disk *virtual_disk)
 {
     int         rc;
     irq_flags_t flags;
 
     if (!virtual_disk) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save_lite(&virtual_disk->block_lock, flags);
@@ -267,7 +318,7 @@ int vmm_virtual_disk_flush_cache(struct vmm_virtual_disk *virtual_disk)
     if (virtual_disk->blk) {
         rc = vmm_block_device_flush_cache(virtual_disk->blk);
     } else {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
     }
 
     vmm_spin_unlock_irq_restore_lite(&virtual_disk->block_lock, flags);
@@ -277,8 +328,13 @@ int vmm_virtual_disk_flush_cache(struct vmm_virtual_disk *virtual_disk)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_flush_cache);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_flush_cache);
 
+/**
+ * @brief 获取虚拟磁盘的容量（扇区数）
+ * @param virtual_disk 虚拟磁盘设备指针
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_virtual_disk_capacity(struct vmm_virtual_disk *virtual_disk)
 {
     uint64_t    ret = 0;
@@ -302,15 +358,22 @@ uint64_t vmm_virtual_disk_capacity(struct vmm_virtual_disk *virtual_disk)
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_capacity);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_capacity);
 
+/**
+ * @brief 获取虚拟磁盘当前关联的块设备
+ * @param virtual_disk 虚拟磁盘设备指针
+ * @param name 目标对象的名称
+ * @param name_len 大小
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtual_disk_current_block_device(struct vmm_virtual_disk *virtual_disk, char *name, uint32_t name_len)
 {
     int         rc;
     irq_flags_t flags;
 
     if (!virtual_disk || !name || !name_len) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save_lite(&virtual_disk->block_lock, flags);
@@ -319,7 +382,7 @@ int vmm_virtual_disk_current_block_device(struct vmm_virtual_disk *virtual_disk,
         strncpy(name, virtual_disk->blk->name, name_len);
         rc = VMM_OK;
     } else {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
     }
 
     vmm_spin_unlock_irq_restore_lite(&virtual_disk->block_lock, flags);
@@ -327,13 +390,22 @@ int vmm_virtual_disk_current_block_device(struct vmm_virtual_disk *virtual_disk,
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_current_block_device);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_current_block_device);
 
+/**
+ * @brief 虚拟磁盘附加私有上下文，传递附加操作所需的参数
+ */
 struct virtual_disk_attach_priv {
-    struct vmm_virtual_disk *virtual_disk;
-    const char              *bdev_name;
+    struct vmm_virtual_disk *virtual_disk; /**< virtual_disk成员 */
+    const char              *bdev_name; /**< bdev_name成员 */
 };
 
+/**
+ * @brief 将虚拟磁盘附加到块设备迭代器
+ * @param dev 设备结构体指针
+ * @param data 用户自定义数据指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int virtual_disk_attach_iter(vmm_block_device_t *dev, void *data)
 {
     bool                             attached;
@@ -343,16 +415,16 @@ static int virtual_disk_attach_iter(vmm_block_device_t *dev, void *data)
     struct vmm_virtual_disk         *virtual_disk = ap->virtual_disk;
 
     if (strncmp(dev->name, bdev_name, sizeof(dev->name)) == 0) {
-        attached = FALSE;
-        vmm_spin_lock_irq_save_lite(&virtual_disk->block_lock, flags);
+        attached = FALSE; /**< FALSE成员 */
+        vmm_spin_lock_irq_save_lite(&virtual_disk->block_lock, flags); /**< flags)成员 */
 
         if (!virtual_disk->blk && (dev->block_size <= virtual_disk->block_size) && !umod32(virtual_disk->block_size, dev->block_size)) {
-            virtual_disk->blk          = dev;
-            virtual_disk->block_factor = udiv32(virtual_disk->block_size, virtual_disk->blk->block_size);
-            attached                   = TRUE;
+            virtual_disk->blk          = dev; /**< 设备 */
+            virtual_disk->block_factor = udiv32(virtual_disk->block_size, virtual_disk->blk->block_size); /**< virtual_disk->blk->block_size)成员 */
+            attached                   = TRUE; /**< TRUE成员 */
         }
 
-        vmm_spin_unlock_irq_restore_lite(&virtual_disk->block_lock, flags);
+        vmm_spin_unlock_irq_restore_lite(&virtual_disk->block_lock, flags); /**< flags)成员 */
 
         if (attached && virtual_disk->attached) {
             virtual_disk->attached(virtual_disk);
@@ -362,6 +434,11 @@ static int virtual_disk_attach_iter(vmm_block_device_t *dev, void *data)
     return VMM_OK;
 }
 
+/**
+ * @brief 将虚拟磁盘附加到块设备
+ * @param virtual_disk 虚拟磁盘设备指针
+ * @param bdev_name 块设备名称
+ */
 void vmm_virtual_disk_attach_block_device(struct vmm_virtual_disk *virtual_disk, const char *bdev_name)
 {
     struct virtual_disk_attach_priv ap;
@@ -375,8 +452,12 @@ void vmm_virtual_disk_attach_block_device(struct vmm_virtual_disk *virtual_disk,
     vmm_block_device_iterate(NULL, &ap, virtual_disk_attach_iter);
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_attach_block_device);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_attach_block_device);
 
+/**
+ * @brief 将虚拟磁盘从块设备上分离
+ * @param virtual_disk 虚拟磁盘设备指针
+ */
 void vmm_virtual_disk_detach_block_device(struct vmm_virtual_disk *virtual_disk)
 {
     bool        detached;
@@ -403,44 +484,44 @@ void vmm_virtual_disk_detach_block_device(struct vmm_virtual_disk *virtual_disk)
     }
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_detach_block_device);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_detach_block_device);
 
 struct vmm_virtual_disk *vmm_virtual_disk_create(
     const char *name, uint32_t block_size, void (*attached)(struct vmm_virtual_disk *), void (*detached)(struct vmm_virtual_disk *),
     void (*completed)(struct vmm_virtual_disk *, struct vmm_virtual_disk_request *),
     void (*failed)(struct vmm_virtual_disk *, struct vmm_virtual_disk_request *), void *private)
 {
-    bool                          found;
-    struct vmm_virtual_disk      *virtual_disk;
-    struct vmm_virtual_disk_event event;
+    bool                          found; /**< found成员 */
+    struct vmm_virtual_disk      *virtual_disk; /**< virtual_disk成员 */
+    struct vmm_virtual_disk_event event; /**< 事件 */
 
     if (!name || !block_size || !completed || !failed) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    virtual_disk = NULL;
-    found        = FALSE;
+    virtual_disk = NULL; /**< NULL成员 */
+    found        = FALSE; /**< FALSE成员 */
 
     vmm_mutex_lock(&vdctrl.virtual_disk_list_lock);
 
     list_for_each_entry(virtual_disk, &vdctrl.virtual_disk_list, head)
     {
         if (strcmp(name, virtual_disk->name) == 0) {
-            found = TRUE;
+            found = TRUE; /**< TRUE成员 */
             break;
         }
     }
 
     if (found) {
         vmm_mutex_unlock(&vdctrl.virtual_disk_list_lock);
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    virtual_disk = vmm_zalloc(sizeof(struct vmm_virtual_disk));
+    virtual_disk = vmm_zalloc(sizeof(struct vmm_virtual_disk)); /**< vmm_virtual_disk))成员 */
 
     if (!virtual_disk) {
         vmm_mutex_unlock(&vdctrl.virtual_disk_list_lock);
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
     INIT_LIST_HEAD(&virtual_disk->head);
@@ -448,33 +529,38 @@ struct vmm_virtual_disk *vmm_virtual_disk_create(
     if (strlcpy(virtual_disk->name, name, sizeof(virtual_disk->name)) >= sizeof(virtual_disk->name)) {
         vmm_free(virtual_disk);
         vmm_mutex_unlock(&vdctrl.virtual_disk_list_lock);
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    virtual_disk->block_size = block_size;
-    virtual_disk->attached   = attached;
-    virtual_disk->detached   = detached;
-    virtual_disk->completed  = completed;
-    virtual_disk->failed     = failed;
+    virtual_disk->block_size = block_size; /**< block_size成员 */
+    virtual_disk->attached   = attached; /**< attached成员 */
+    virtual_disk->detached   = detached; /**< detached成员 */
+    virtual_disk->completed  = completed; /**< completed成员 */
+    virtual_disk->failed     = failed; /**< failed成员 */
     INIT_SPIN_LOCK(&virtual_disk->block_lock);
-    virtual_disk->blk          = NULL;
-    virtual_disk->block_factor = 1;
-    virtual_disk->private      = private;
+    virtual_disk->blk          = NULL; /**< NULL成员 */
+    virtual_disk->block_factor = 1; /**< 1 */
+    virtual_disk->private      = private; /**< 私有数据 */
 
-    list_add_tail(&virtual_disk->head, &vdctrl.virtual_disk_list);
+    list_add_tail(&virtual_disk->head, &vdctrl.virtual_disk_list); /**< &vdctrl.virtual_disk_list)成员 */
 
     vmm_mutex_unlock(&vdctrl.virtual_disk_list_lock);
 
     /* Broadcast create event */
-    event.virtual_disk = virtual_disk;
-    event.data         = NULL;
-    vmm_blocking_notifier_call(&vdctrl.notifier_chain, VMM_VIRTUAL_DISK_EVENT_CREATE, &event);
+    event.virtual_disk = virtual_disk; /**< virtual_disk成员 */
+    event.data         = NULL; /**< NULL成员 */
+    vmm_blocking_notifier_call(&vdctrl.notifier_chain, VMM_VIRTUAL_DISK_EVENT_CREATE, &event); /**< &event)成员 */
 
-    return virtual_disk;
+    return virtual_disk; /**< virtual_disk成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_create);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_create);
 
+/**
+ * @brief 销毁虚拟磁盘
+ * @param virtual_disk 虚拟磁盘设备指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtual_disk_destroy(struct vmm_virtual_disk *virtual_disk)
 {
     bool                          found;
@@ -482,7 +568,7 @@ int vmm_virtual_disk_destroy(struct vmm_virtual_disk *virtual_disk)
     struct vmm_virtual_disk_event event;
 
     if (!virtual_disk) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL; /**< VMM_ERR_FAIL成员 */
     }
 
     /* Detach current block device */
@@ -497,7 +583,7 @@ int vmm_virtual_disk_destroy(struct vmm_virtual_disk *virtual_disk)
 
     if (list_empty(&vdctrl.virtual_disk_list)) {
         vmm_mutex_unlock(&vdctrl.virtual_disk_list_lock);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vd    = NULL;
@@ -513,7 +599,7 @@ int vmm_virtual_disk_destroy(struct vmm_virtual_disk *virtual_disk)
 
     if (!found) {
         vmm_mutex_unlock(&vdctrl.virtual_disk_list_lock);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     list_del(&vd->head);
@@ -525,26 +611,26 @@ int vmm_virtual_disk_destroy(struct vmm_virtual_disk *virtual_disk)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_destroy);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_destroy);
 
 struct vmm_virtual_disk *vmm_virtual_disk_find(const char *name)
 {
-    bool                     found;
-    struct vmm_virtual_disk *virtual_disk;
+    bool                     found; /**< found成员 */
+    struct vmm_virtual_disk *virtual_disk; /**< virtual_disk成员 */
 
     if (!name) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    found        = FALSE;
-    virtual_disk = NULL;
+    found        = FALSE; /**< FALSE成员 */
+    virtual_disk = NULL; /**< NULL成员 */
 
     vmm_mutex_lock(&vdctrl.virtual_disk_list_lock);
 
     list_for_each_entry(virtual_disk, &vdctrl.virtual_disk_list, head)
     {
         if (strcmp(virtual_disk->name, name) == 0) {
-            found = TRUE;
+            found = TRUE; /**< TRUE成员 */
             break;
         }
     }
@@ -552,14 +638,21 @@ struct vmm_virtual_disk *vmm_virtual_disk_find(const char *name)
     vmm_mutex_unlock(&vdctrl.virtual_disk_list_lock);
 
     if (!found) {
-        return NULL;
+        return NULL; /**< NULL成员 */
     }
 
-    return virtual_disk;
+    return virtual_disk; /**< virtual_disk成员 */
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_find);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_find);
 
+/**
+ * @brief 虚拟 磁盘 遍历
+ * @param start 遍历起始节点（NULL表示从头开始）
+ * @param data 用户自定义数据指针
+ * @param (*fn 指针参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_virtual_disk_iterate(struct vmm_virtual_disk *start, void *data, int (*fn)(struct vmm_virtual_disk *virtual_disk, void *data))
 {
     int                      rc          = VMM_OK;
@@ -567,7 +660,7 @@ int vmm_virtual_disk_iterate(struct vmm_virtual_disk *start, void *data, int (*f
     struct vmm_virtual_disk *vd          = NULL;
 
     if (!fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     vmm_mutex_lock(&vdctrl.virtual_disk_list_lock);
@@ -594,8 +687,12 @@ int vmm_virtual_disk_iterate(struct vmm_virtual_disk *start, void *data, int (*f
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_iterate);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_iterate);
 
+/**
+ * @brief 获取虚拟磁盘的数量
+ * @return 数量值
+ */
 uint32_t vmm_virtual_disk_count(void)
 {
     uint32_t                 retval = 0;
@@ -613,8 +710,15 @@ uint32_t vmm_virtual_disk_count(void)
     return retval;
 }
 
-VMM_EXPORT_SYMBOL(vmm_virtual_disk_count);
+VMM_ERR_XPORT_SYMBOL(vmm_virtual_disk_count);
 
+/**
+ * @brief 虚拟磁盘的块设备事件通知
+ * @param nb 通知器块指针
+ * @param evt 事件结构体指针
+ * @param data 用户自定义数据指针
+ * @return 数量值
+ */
 static int virtual_disk_block_notification(vmm_notifier_block_t *nb, uint64_t evt, void *data)
 {
     irq_flags_t                    flags;
@@ -625,7 +729,7 @@ static int virtual_disk_block_notification(vmm_notifier_block_t *nb, uint64_t ev
         /* We are only interested in unregister events so,
          * don't care about this event.
          */
-        return NOTIFY_DONE;
+        return NOTIFY_DONE; /**< NOTIFY_DONE成员 */
     }
 
     /* Lock virtual disk list */
@@ -650,6 +754,10 @@ static int virtual_disk_block_notification(vmm_notifier_block_t *nb, uint64_t ev
     return NOTIFY_OK;
 }
 
+/**
+ * @brief 初始化虚拟磁盘
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int __init vmm_virtual_disk_init(void)
 {
     memset(&vdctrl, 0, sizeof(vdctrl));
@@ -665,6 +773,10 @@ static int __init vmm_virtual_disk_init(void)
     return VMM_OK;
 }
 
+/**
+ * @brief 虚拟磁盘子系统退出清理
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static void __exit vmm_virtual_disk_exit(void)
 {
     vmm_block_device_unregister_client(&vdctrl.block_client);

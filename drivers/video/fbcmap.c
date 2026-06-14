@@ -78,7 +78,7 @@ static const struct frame_buffer_cmap default_16_colors = {.len = 16, .red = red
 int fb_alloc_cmap(struct frame_buffer_cmap *cmap, int len, int transp)
 {
     int size = len * sizeof(uint16_t);
-    int ret  = VMM_ENOMEM;
+    int ret  = VMM_ERR_NOMEM;
 
     if (cmap->len != len) {
         fb_dealloc_cmap(cmap);
@@ -131,7 +131,7 @@ fail:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(fb_alloc_cmap);
+VMM_ERR_XPORT_SYMBOL(fb_alloc_cmap);
 
 /**
  *      Deallocate a colormap
@@ -168,7 +168,7 @@ void fb_dealloc_cmap(struct frame_buffer_cmap *cmap)
     cmap->len                                           = 0;
 }
 
-VMM_EXPORT_SYMBOL(fb_dealloc_cmap);
+VMM_ERR_XPORT_SYMBOL(fb_dealloc_cmap);
 
 /**
  *  Copy a colormap
@@ -196,7 +196,7 @@ int fb_copy_cmap(const struct frame_buffer_cmap *from, struct frame_buffer_cmap 
     }
 
     if (size <= 0) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     size *= sizeof(uint16_t);
@@ -212,7 +212,7 @@ int fb_copy_cmap(const struct frame_buffer_cmap *from, struct frame_buffer_cmap 
     return 0;
 }
 
-VMM_EXPORT_SYMBOL(fb_copy_cmap);
+VMM_ERR_XPORT_SYMBOL(fb_copy_cmap);
 
 /**
  *  Set the colormap
@@ -238,7 +238,7 @@ int fb_set_cmap(struct frame_buffer_cmap *cmap, struct frame_buffer_info *info)
     start  = cmap->start;
 
     if (start < 0 || (!info->fbops->fb_setcolreg && !info->fbops->fb_setcmap)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (info->fbops->fb_setcmap) {
@@ -266,7 +266,7 @@ int fb_set_cmap(struct frame_buffer_cmap *cmap, struct frame_buffer_info *info)
     return rc;
 }
 
-VMM_EXPORT_SYMBOL(fb_set_cmap);
+VMM_ERR_XPORT_SYMBOL(fb_set_cmap);
 
 /**
  *  Get default colormap
@@ -296,7 +296,7 @@ const struct frame_buffer_cmap *fb_default_cmap(int len)
     return &default_16_colors;
 }
 
-VMM_EXPORT_SYMBOL(fb_default_cmap);
+VMM_ERR_XPORT_SYMBOL(fb_default_cmap);
 
 /**
  *  Invert all defaults colormaps
@@ -331,4 +331,4 @@ void fb_invert_cmaps(void)
     }
 }
 
-VMM_EXPORT_SYMBOL(fb_invert_cmaps);
+VMM_ERR_XPORT_SYMBOL(fb_invert_cmaps);

@@ -768,7 +768,7 @@ static int emac_open(struct net_device *dev)
     }
 
     if (request_irq(dev->irq, &emac_interrupt, 0, dev->name, dev)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Initialize EMAC board */

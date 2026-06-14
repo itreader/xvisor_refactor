@@ -220,7 +220,7 @@ struct cpu_ioapic {
     uint32_t                 version;
     uint32_t                 pins;
     uint32_t                 gsi_base;
-    struct vmm_host_irq_chip irq_chip[CONFIG_HOST_IRQ_COUNT];
+    vmm_host_irq_chip_t irq_chip[CONFIG_HOST_IRQ_COUNT];
 };
 
 struct cpu_lapic {

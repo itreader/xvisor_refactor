@@ -106,7 +106,7 @@ static int waitqueue3_do_test(vmm_char_device_t *cdev)
         }
     }
 
-    return (failures) ? VMM_EFAIL : 0;
+    return (failures) ? VMM_ERR_FAIL : 0;
 }
 
 static int waitqueue3_run(struct white_box_test *test, vmm_char_device_t *cdev, uint32_t test_hcpu)
@@ -124,7 +124,7 @@ static int waitqueue3_run(struct white_box_test *test, vmm_char_device_t *cdev, 
         workers[i] = vmm_threads_create(wname, waitqueue3_worker_thread_main, (void *)(uint64_t)i, current_priority, VMM_THREAD_DEF_TIME_SLICE);
 
         if (workers[i] == NULL) {
-            ret = VMM_EFAIL;
+            ret = VMM_ERR_FAIL;
             goto destroy_workers;
         }
     }

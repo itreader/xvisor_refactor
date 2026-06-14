@@ -18,7 +18,7 @@
  *
  * @file vmm_virtio_config.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief VirtIO device feature and status defines
+ * @brief VirtIO设备特性与状态定义
  */
 #ifndef __VMM_VIRTIO_CONFIG_H__
 #define __VMM_VIRTIO_CONFIG_H__

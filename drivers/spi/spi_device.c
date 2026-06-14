@@ -65,7 +65,7 @@ int spi_device_count(void)
     return num;
 }
 
-VMM_EXPORT_SYMBOL(spi_device_count);
+VMM_ERR_XPORT_SYMBOL(spi_device_count);
 
 struct spi_device *spi_device_get(int id)
 {
@@ -85,7 +85,7 @@ struct spi_device *spi_device_get(int id)
     return ptr;
 }
 
-VMM_EXPORT_SYMBOL(spi_device_get);
+VMM_ERR_XPORT_SYMBOL(spi_device_get);
 
 const char *spi_device_name(struct spi_device *spi_device)
 {
@@ -96,7 +96,7 @@ const char *spi_device_name(struct spi_device *spi_device)
     return dev_name(&spi_device->spi->dev);
 }
 
-VMM_EXPORT_SYMBOL(spi_device_name);
+VMM_ERR_XPORT_SYMBOL(spi_device_name);
 
 static void spi_device_complete(void *arg)
 {
@@ -116,9 +116,9 @@ static ssize_t spi_device_sync(struct spi_device *spi_device, struct spi_message
     vmm_spin_lock_irq_save(&spi_device->spi_lock, flags);
 
     if (spi_device->spi == NULL) {
-        status = VMM_ENOTAVAIL;
+        status = VMM_ERR_NOTAVAIL;
     } else if (spi_device->busy) {
-        status = VMM_EBUSY;
+        status = VMM_ERR_BUSY;
     } else {
         spi_device->busy = 1;
         status           = spi_async(spi_device->spi, msg);
@@ -152,7 +152,7 @@ int spi_device_xfer(struct spi_device *spi_device, struct spi_device_xfer_data *
     struct spi_message m;
 
     if (!spi_device || !xdata) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (xdata->mode == -1) {
@@ -193,7 +193,7 @@ int spi_device_xfer(struct spi_device *spi_device, struct spi_device_xfer_data *
 
     if (ret < 0) {
         vmm_lerror("SPI_DEV", "Setting up SPI failed\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     spi_message_init(&m);
@@ -204,13 +204,13 @@ int spi_device_xfer(struct spi_device *spi_device, struct spi_device_xfer_data *
     if (ret < 0) {
         vmm_lerror("SPI_DEV", "Submitting data to SPI failed\n");
 
-        if (ret == VMM_EBUSY) {
+        if (ret == VMM_ERR_BUSY) {
             return ret;
         }
 
-        spi_device->busy = 0; /* This is required since in case of a failure other then VMM_EBUSY, the busy bit is not set to 0 causing erronous
+        spi_device->busy = 0; /* This is required since in case of a failure other then VMM_ERR_BUSY, the busy bit is not set to 0 causing erronous
                              conditions in subsequent operations */
-        return VMM_EIO;
+        return VMM_ERR_IO;
     }
 
     return ret;
@@ -225,7 +225,7 @@ static int spi_device_probe(struct spi_device *spi)
     spi_device = vmm_zalloc(sizeof(*spi_device));
 
     if (!spi_device) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     spi_device->spi = spi;

@@ -46,7 +46,7 @@ struct buddy_allocator {
     uint64_t              min_bin;
     uint64_t              max_bin;
     vmm_spinlock_t        alloc_lock;
-    struct red_black_root alloc;
+    red_black_root_t alloc;
     vmm_spinlock_t        bins_lock[BUDDY_MAX_SUPPORTED_BIN];
     double_list_t         bins[BUDDY_MAX_SUPPORTED_BIN];
 };

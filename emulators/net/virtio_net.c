@@ -281,7 +281,7 @@ static int virtio_net_notify_vq(struct vmm_virtio_device *dev, uint32_t vq)
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     }
 
@@ -430,7 +430,7 @@ static int virtio_net_connect(struct vmm_virtio_device *dev, struct vmm_virtio_e
 
     if (!ndev) {
         vmm_printf("Failed to allocate virtio net device....\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     ndev->vdev = dev;
@@ -439,7 +439,7 @@ static int virtio_net_connect(struct vmm_virtio_device *dev, struct vmm_virtio_e
 
     if (!ndev->port) {
         vmm_free(ndev);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     ndev->port->mtu                  = VIRTIO_NET_MTU;
@@ -457,7 +457,7 @@ static int virtio_net_connect(struct vmm_virtio_device *dev, struct vmm_virtio_e
     if (!ndev->vqs) {
         vmm_netport_free(ndev->port);
         vmm_free(ndev);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     ndev->config.status = VMM_VIRTIO_NET_S_LINK_UP;

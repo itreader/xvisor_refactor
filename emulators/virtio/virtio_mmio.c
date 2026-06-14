@@ -60,7 +60,7 @@ int virtio_mmio_config_read(struct virtio_mmio_dev *m, uint32_t offset, void *ds
 
     if (dst_len != 4) {
         vmm_printf("%s: guest=%s invalid length=%d\n", __func__, m->guest->name, dst_len);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     switch (offset) {
@@ -107,7 +107,7 @@ int virtio_mmio_config_read(struct virtio_mmio_dev *m, uint32_t offset, void *ds
 
         default:
             vmm_printf("%s: guest=%s invalid offset=0x%x\n", __func__, m->guest->name, offset);
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     }
 
@@ -132,7 +132,7 @@ static int virtio_mmio_config_write(struct virtio_mmio_dev *m, uint32_t offset, 
 
     if (src_len != 4) {
         vmm_printf("%s: guest=%s invalid length=%d\n", __func__, m->guest->name, src_len);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     switch (offset) {
@@ -188,7 +188,7 @@ static int virtio_mmio_config_write(struct virtio_mmio_dev *m, uint32_t offset, 
 
         default:
             vmm_printf("%s: guest=%s invalid offset=0x%x\n", __func__, m->guest->name, offset);
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -284,7 +284,7 @@ static int virtio_mmio_probe(struct vmm_guest *guest, vmm_emulate_device_t *edev
     m = vmm_zalloc(sizeof(struct virtio_mmio_dev));
 
     if (!m) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto virtio_mmio_probe_done;
     }
 

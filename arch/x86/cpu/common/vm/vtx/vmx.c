@@ -67,7 +67,7 @@ static int enable_vmx(struct cpuinfo_x86 *cpuinfo)
     /* FIXME: Detect VMX support */
     if (!cpuinfo->hw_virt_available) {
         X86_DEBUG_LOG(vmx, LVL_ERR, "No VMX feature!\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Determine the VMX capabilities */
@@ -76,12 +76,12 @@ static int enable_vmx(struct cpuinfo_x86 *cpuinfo)
     /* EPT and VPID support is required */
     if (!cpu_has_vmx_ept) {
         X86_DEBUG_LOG(vmx, LVL_ERR, "No EPT support!\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!cpu_has_vmx_vpid) {
         X86_DEBUG_LOG(vmx, LVL_ERR, "No VPID support!\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /*
@@ -127,7 +127,7 @@ static int enable_vmx(struct cpuinfo_x86 *cpuinfo)
             "Some settings of host CR0 are not allowed in VMX"
             " operation. (Host CR0: 0x%lx CR0 Fixed0: 0x%lx CR0 Fixed1: 0x%lx)\n",
             cr0, vmx_cr0_fixed0, vmx_cr0_fixed1);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((~cr4 & vmx_cr4_fixed0) || (cr4 & ~vmx_cr4_fixed1)) {
@@ -136,7 +136,7 @@ static int enable_vmx(struct cpuinfo_x86 *cpuinfo)
             "Some settings of host CR4 are not allowed in VMX"
             " operation. (Host CR4: 0x%lx CR4 Fixed0: 0x%lx CR4 Fixed1: 0x%lx)\n",
             cr4, vmx_cr4_fixed0, vmx_cr4_fixed1);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cpu_read_msr32(IA32_FEATURE_CONTROL_MSR, &edx, &eax);
@@ -150,7 +150,7 @@ static int enable_vmx(struct cpuinfo_x86 *cpuinfo)
     if (bios_locked) {
         if (!(eax & IA32_FEATURE_CONTROL_MSR_ENABLE_VMXON_OUTSIDE_SMX)) {
             X86_DEBUG_LOG(vmx, LVL_ERR, "VMX disabled by BIOS.\n");
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     }
 
@@ -158,13 +158,13 @@ static int enable_vmx(struct cpuinfo_x86 *cpuinfo)
 
     if (vmx_on_region == NULL) {
         X86_DEBUG_LOG(vmx, LVL_ERR, "Failed to create vmx on region.\n");
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto _fail;
     }
 
-    if (vmm_host_va2pa((virtual_addr_t)vmx_on_region, &vmx_on_region_pa) != VMM_OK) {
+    if (vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)vmx_on_region, &vmx_on_region_pa) != VMM_OK) {
         X86_DEBUG_LOG(vmx, LVL_ERR, "Critical conversion of vmx on regsion VA=>PA failed!\n");
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto _fail;
     }
 
@@ -179,7 +179,7 @@ static int enable_vmx(struct cpuinfo_x86 *cpuinfo)
     /* get in VMX ON  state */
     if ((ret = __vmxon(vmx_on_region_pa)) != VMM_OK) {
         X86_DEBUG_LOG(vmx, LVL_ERR, "VMXON returned with error: %d\n", ret);
-        ret = VMM_EACCESS;
+        ret = VMM_ERR_ACCESS;
         goto _fail;
     }
 
@@ -432,33 +432,33 @@ int intel_setup_vm_control(struct vcpu_hw_context *context)
 {
     /* Create a VMCS */
     struct vmcs *vmcs;
-    int          ret = VMM_EFAIL;
+    int          ret = VMM_ERR_FAIL;
 
     vmcs             = create_vmcs();
 
     if (vmcs == NULL) {
         vmm_printf("Failed to create VMCS.\n");
-        ret = VMM_ENOMEM;
+        ret = VMM_ERR_NOMEM;
         goto _fail;
     }
 
     context->vmcs = vmcs;
 
-    if (vmm_host_va2pa((virtual_addr_t)context->vmcs, &context->vmcs_pa) != VMM_OK) {
+    if (vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)context->vmcs, &context->vmcs_pa) != VMM_OK) {
         vmm_printf("Critical conversion of VMCB VA=>PA failed!\n");
-        ret = VMM_EINVALID;
+        ret = VMM_ERR_INVALID;
         goto _fail;
     }
 
     if ((ret = __vmpclear(context->vmcs_pa)) != VMM_OK) {
         vmm_printf("VMCS clear failed with error: %d\n", ret);
-        ret = VMM_EACCESS;
+        ret = VMM_ERR_ACCESS;
         goto _fail;
     }
 
     if ((ret = __vmptrld(context->vmcs_pa)) != VMM_OK) {
         vmm_printf("VMCS load failed with error: %d\n", ret);
-        ret = VMM_EACCESS;
+        ret = VMM_ERR_ACCESS;
         goto _fail;
     }
 
@@ -498,7 +498,7 @@ int __init intel_init(struct cpuinfo_x86 *cpuinfo)
     /* Enable VMX */
     if (enable_vmx(cpuinfo) != VMM_OK) {
         X86_DEBUG_LOG(vmx, LVL_ERR, "ERROR: Failed to enable virtual machine.\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return VMM_OK;

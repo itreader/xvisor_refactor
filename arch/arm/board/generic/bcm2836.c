@@ -50,7 +50,7 @@ static int __init bcm2836_early_init(vmm_device_tree_node_t *node)
     np = vmm_device_tree_find_compatible(NULL, NULL, "brcm,bcm2836-l1-intc");
 
     if (!np) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     rc = vmm_device_tree_regmap(np, &base_va, 0);
@@ -76,7 +76,7 @@ static int __init bcm2836_early_init(vmm_device_tree_node_t *node)
     };
 
     if (!prescaler) {
-        rc = VMM_EINVALID;
+        rc = VMM_ERR_INVALID;
         goto done_unmap;
     }
 

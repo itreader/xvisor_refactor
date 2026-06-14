@@ -16,11 +16,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * @file s2_hugepage_rdonly.c
+ * @file s2_huge_page_rdonly.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief s2_hugepage_rdonly test implementation
+ * @brief s2_huge_page_rdonly test implementation
  *
- * This tests the handling read-only hugepages in stage2 page table.
+ * This tests the handling read-only huge_pages in stage2 page table.
  */
 
 #include <vmm_error.h>
@@ -30,14 +30,14 @@
 
 #include "nested_mmu_test.h"
 
-#define MODULE_DESC      "s2_hugepage_rdonly test"
+#define MODULE_DESC      "s2_huge_page_rdonly test"
 #define MODULE_AUTHOR    "Anup Patel"
 #define MODULE_LICENSE   "GPL"
 #define MODULE_IPRIORITY (WBOXTEST_IPRIORITY + 1)
-#define MODULE_INIT      s2_hugepage_rdonly_init
-#define MODULE_EXIT      s2_hugepage_rdonly_exit
+#define MODULE_INIT      s2_huge_page_rdonly_init
+#define MODULE_EXIT      s2_huge_page_rdonly_exit
 
-static int s2_hugepage_rdonly_run(struct white_box_test *test, vmm_char_device_t *cdev, uint32_t test_hcpu)
+static int s2_huge_page_rdonly_run(struct white_box_test *test, vmm_char_device_t *cdev, uint32_t test_hcpu)
 {
     int                    rc = VMM_OK;
     struct mmu_page_table *s2_page_table;
@@ -45,20 +45,20 @@ static int s2_hugepage_rdonly_run(struct white_box_test *test, vmm_char_device_t
     physical_addr_t        map_host_pa;
     physical_addr_t        map_guest_pa;
 
-    nested_mmu_test_alloc_hugepages(cdev, test, rc, fail, 1, NESTED_MMU_TEST_RDWR_MEM_FLAGS, &map_host_va, &map_host_pa);
+    nested_mmu_test_alloc_huge_pages(cdev, test, rc, fail, 1, NESTED_MMU_TEST_RDWR_MEM_FLAGS, &map_host_va, &map_host_pa);
 
-    nested_mmu_test_alloc_page_table(cdev, test, rc, fail_free_host_hugepage, MMU_STAGE2, &s2_page_table);
+    nested_mmu_test_alloc_page_table(cdev, test, rc, fail_free_host_huge_page, MMU_STAGE2, &s2_page_table);
 
     nested_mmu_test_find_free_addr(
-        cdev, test, rc, fail_free_s2_page_table, s2_page_table, nested_mmu_test_best_min_addr(s2_page_table), vmm_host_hugepage_shift(),
+        cdev, test, rc, fail_free_s2_page_table, s2_page_table, nested_mmu_test_best_min_addr(s2_page_table), vmm_host_huge_page_shift(),
         &map_guest_pa);
 
     nested_mmu_test_map_page_table(
-        cdev, test, rc, fail_free_s2_page_table, s2_page_table, map_guest_pa, map_host_pa, vmm_host_hugepage_size(),
+        cdev, test, rc, fail_free_s2_page_table, s2_page_table, map_guest_pa, map_host_pa, vmm_host_huge_page_size(),
         NESTED_MMU_TEST_RDONLY_REG_FLAGS);
 
 #define chunk_start 0
-#define chunk_end   (chunk_start + (vmm_host_hugepage_size() / 4))
+#define chunk_end   (chunk_start + (vmm_host_huge_page_size() / 4))
 
     nested_mmu_test_execute(
         cdev, test, rc, fail_free_s2_page_table, s2_page_table, NULL, map_guest_pa + chunk_start + sizeof(uint8_t), MMU_TEST_WIDTH_8BIT,
@@ -71,8 +71,8 @@ static int s2_hugepage_rdonly_run(struct white_box_test *test, vmm_char_device_t
 #undef chunk_start
 #undef chunk_end
 
-#define chunk_start (1 * (vmm_host_hugepage_size() / 4))
-#define chunk_end   (chunk_start + (vmm_host_hugepage_size() / 4))
+#define chunk_start (1 * (vmm_host_huge_page_size() / 4))
+#define chunk_end   (chunk_start + (vmm_host_huge_page_size() / 4))
 
     nested_mmu_test_execute(
         cdev, test, rc, fail_free_s2_page_table, s2_page_table, NULL, map_guest_pa + chunk_start + sizeof(uint16_t), MMU_TEST_WIDTH_16BIT,
@@ -85,8 +85,8 @@ static int s2_hugepage_rdonly_run(struct white_box_test *test, vmm_char_device_t
 #undef chunk_start
 #undef chunk_end
 
-#define chunk_start (2 * (vmm_host_hugepage_size() / 4))
-#define chunk_end   (chunk_start + (vmm_host_hugepage_size() / 4))
+#define chunk_start (2 * (vmm_host_huge_page_size() / 4))
+#define chunk_end   (chunk_start + (vmm_host_huge_page_size() / 4))
 
     nested_mmu_test_execute(
         cdev, test, rc, fail_free_s2_page_table, s2_page_table, NULL, map_guest_pa + chunk_start + sizeof(uint32_t), MMU_TEST_WIDTH_32BIT,
@@ -101,25 +101,25 @@ static int s2_hugepage_rdonly_run(struct white_box_test *test, vmm_char_device_t
 
 fail_free_s2_page_table:
     nested_mmu_test_free_page_table(cdev, test, s2_page_table);
-fail_free_host_hugepage:
-    nested_mmu_test_free_hugepages(cdev, test, &map_host_va, &map_host_pa, 1);
+fail_free_host_huge_page:
+    nested_mmu_test_free_huge_pages(cdev, test, &map_host_va, &map_host_pa, 1);
 fail:
     return rc;
 }
 
-static struct white_box_test s2_hugepage_rdonly = {
-    .name = "s2_hugepage_rdonly",
-    .run  = s2_hugepage_rdonly_run,
+static struct white_box_test s2_huge_page_rdonly = {
+    .name = "s2_huge_page_rdonly",
+    .run  = s2_huge_page_rdonly_run,
 };
 
-static int __init s2_hugepage_rdonly_init(void)
+static int __init s2_huge_page_rdonly_init(void)
 {
-    return wboxtest_register("nested_mmu", &s2_hugepage_rdonly);
+    return wboxtest_register("nested_mmu", &s2_huge_page_rdonly);
 }
 
-static void __exit s2_hugepage_rdonly_exit(void)
+static void __exit s2_huge_page_rdonly_exit(void)
 {
-    wboxtest_unregister(&s2_hugepage_rdonly);
+    wboxtest_unregister(&s2_huge_page_rdonly);
 }
 
 VMM_DECLARE_MODULE(MODULE_DESC, MODULE_AUTHOR, MODULE_LICENSE, MODULE_IPRIORITY, MODULE_INIT, MODULE_EXIT);

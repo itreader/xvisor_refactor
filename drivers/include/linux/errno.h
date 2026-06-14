@@ -14,14 +14,14 @@
 #define ERESTARTNOHAND        514                 /* restart if no handler.. */
 #define ENOIOCTLCMD           515                 /* No ioctl command */
 #define ERESTART_RESTARTBLOCK 516                 /* restart by calling sys_restart_syscall */
-#define EPROBE_DEFER          -(VMM_EPROBE_DEFER) /* Driver requests probe retry */
+#define EPROBE_DEFER          -(VMM_ERR_PROBE_DEFER) /* Driver requests probe retry */
 #define EOPENSTALE            518                 /* open found a stale dentry */
 
 /* Defined for the NFSv3 protocol */
 #define EBADHANDLE            521             /* Illegal NFS file handle */
 #define ENOTSYNC              522             /* Update synchronization mismatch */
 #define EBADCOOKIE            523             /* Cookie is stale */
-#define ENOTSUPP              -(VMM_ENOTSUPP) /* Operation is not supported */
+#define ENOTSUPP              -(VMM_ERR_NOTSUPP) /* Operation is not supported */
 #define ETOOSMALL             525             /* Buffer or request is too small */
 #define ESERVERFAULT          526             /* An untranslatable error occurred */
 #define EBADTYPE              527             /* Type not supported by server */

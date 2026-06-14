@@ -21,7 +21,7 @@
 		poweroff;
 	};
 
-	aspace {
+	addr_space {
 		guest_irq_count = <1024>;
 
 		nor_flash0 {

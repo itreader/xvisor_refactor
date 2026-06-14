@@ -61,7 +61,7 @@ struct mempool {
         struct {
             physical_addr_t phys;
             virtual_size_t  size;
-            uint32_t        mem_flags;
+            uint32_t        memory_flags;
         } raw;
 
         /* Additional fields for MEMPOOL_TYPE_RAM */
@@ -73,7 +73,7 @@ struct mempool {
 };
 
 /** Create a MEMPOOL on RAW/Device memory */
-struct mempool *mempool_raw_create(uint32_t entity_size, physical_addr_t phys, virtual_size_t size, uint32_t mem_flags);
+struct mempool *mempool_raw_create(uint32_t entity_size, physical_addr_t phys, virtual_size_t size, uint32_t memory_flags);
 
 /** Create a MEMPOOL on RAM pages */
 struct mempool *mempool_ram_create(uint32_t entity_size, uint32_t page_count, enum vmm_page_pool_type page_type);

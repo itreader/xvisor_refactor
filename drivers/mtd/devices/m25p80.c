@@ -962,7 +962,7 @@ static int m25p_probe(struct spi_device *spi)
     flash = devm_kzalloc(&spi->dev, sizeof(*flash), GFP_KERNEL);
 
     if (!flash) {
-        err = VMM_ENOMEM;
+        err = VMM_ERR_NOMEM;
         dev_err(&spi->dev, "failed to allocate flash device\n");
         goto out_flash_free;
     }
@@ -970,7 +970,7 @@ static int m25p_probe(struct spi_device *spi)
     flash->command = devm_kzalloc(&spi->dev, MAX_CMD_SIZE, GFP_KERNEL);
 
     if (!flash->command) {
-        err = VMM_ENOMEM;
+        err = VMM_ERR_NOMEM;
         dev_err(&spi->dev, "failed to allocate flash command\n");
         goto out_command_free;
     }

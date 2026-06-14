@@ -62,7 +62,7 @@ static int regmap_mmio_regbits_check(size_t reg_bits)
             return 0;
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     }
 }
 
@@ -91,7 +91,7 @@ static int regmap_mmio_get_min_stride(size_t val_bits)
 #endif
 
         default:
-            return VMM_EINVALID;
+            return VMM_ERR_INVALID;
     }
 
     return min_stride;
@@ -234,32 +234,32 @@ static struct regmap_mmio_context *regmap_mmio_gen_context(vmm_device_t *dev, co
     ret = regmap_mmio_regbits_check(config->reg_bits);
 
     if (ret) {
-        return VMM_ERR_PTR(ret);
+        return VMM_ERR_RR_PTR(ret);
     }
 
     if (config->pad_bits) {
-        return VMM_ERR_PTR(VMM_EINVALID);
+        return VMM_ERR_RR_PTR(VMM_ERR_INVALID);
     }
 
     min_stride = regmap_mmio_get_min_stride(config->val_bits);
 
     if (min_stride < 0) {
-        return VMM_ERR_PTR(min_stride);
+        return VMM_ERR_RR_PTR(min_stride);
     }
 
     if (config->reg_stride < min_stride) {
-        return VMM_ERR_PTR(VMM_EINVALID);
+        return VMM_ERR_RR_PTR(VMM_ERR_INVALID);
     }
 
     ctx = vmm_zalloc(sizeof(*ctx));
 
     if (!ctx) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     ctx->regs      = regs;
     ctx->val_bytes = config->val_bits / 8;
-    ctx->clk       = VMM_ERR_PTR(VMM_ENODEV);
+    ctx->clk       = VMM_ERR_RR_PTR(VMM_ERR_NODEV);
 
     switch (regmap_get_val_endian(dev, &regmap_mmio, config)) {
         case REGMAP_ENDIAN_DEFAULT:
@@ -291,7 +291,7 @@ static struct regmap_mmio_context *regmap_mmio_gen_context(vmm_device_t *dev, co
 #endif
 
                 default:
-                    ret = VMM_EINVALID;
+                    ret = VMM_ERR_INVALID;
                     goto err_free;
             }
 
@@ -318,14 +318,14 @@ static struct regmap_mmio_context *regmap_mmio_gen_context(vmm_device_t *dev, co
                     break;
 
                 default:
-                    ret = VMM_EINVALID;
+                    ret = VMM_ERR_INVALID;
                     goto err_free;
             }
 
             break;
 
         default:
-            ret = VMM_EINVALID;
+            ret = VMM_ERR_INVALID;
             goto err_free;
     }
 
@@ -352,7 +352,7 @@ static struct regmap_mmio_context *regmap_mmio_gen_context(vmm_device_t *dev, co
 err_free:
     vmm_free(ctx);
 
-    return VMM_ERR_PTR(ret);
+    return VMM_ERR_RR_PTR(ret);
 }
 
 struct regmap *__regmap_init_mmio_clock(vmm_device_t *dev, const char *clock_id, void *regs, const struct regmap_config *config)
@@ -362,13 +362,13 @@ struct regmap *__regmap_init_mmio_clock(vmm_device_t *dev, const char *clock_id,
     ctx = regmap_mmio_gen_context(dev, clock_id, regs, config);
 
     if (VMM_IS_ERR(ctx)) {
-        return VMM_ERR_CAST(ctx);
+        return VMM_ERR_RR_CAST(ctx);
     }
 
     return __regmap_init(dev, &regmap_mmio, ctx, config);
 }
 
-VMM_EXPORT_SYMBOL(__regmap_init_mmio_clock);
+VMM_ERR_XPORT_SYMBOL(__regmap_init_mmio_clock);
 
 struct regmap *__devm_regmap_init_mmio_clock(vmm_device_t *dev, const char *clock_id, void *regs, const struct regmap_config *config)
 {
@@ -377,10 +377,10 @@ struct regmap *__devm_regmap_init_mmio_clock(vmm_device_t *dev, const char *cloc
     ctx = regmap_mmio_gen_context(dev, clock_id, regs, config);
 
     if (VMM_IS_ERR(ctx)) {
-        return VMM_ERR_CAST(ctx);
+        return VMM_ERR_RR_CAST(ctx);
     }
 
     return __devm_regmap_init(dev, &regmap_mmio, ctx, config);
 }
 
-VMM_EXPORT_SYMBOL(__devm_regmap_init_mmio_clock);
+VMM_ERR_XPORT_SYMBOL(__devm_regmap_init_mmio_clock);

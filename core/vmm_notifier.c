@@ -18,7 +18,7 @@
  *
  * @file vmm_notifier.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief Implementation of notifier chain management.
+ * @brief 通知器链管理实现
  *
  * The notifer chain management is highly inspired from Linux notifiers.
  *
@@ -35,6 +35,12 @@
  *  Notifier chain core routines.
  */
 
+/**
+ * @brief 注册通知器链
+ * @param nl 是否换行标志
+ * @param n 起始位置编号
+ * @return 通知结果
+ */
 static int notifier_chain_register(vmm_notifier_block_t **nl, vmm_notifier_block_t *n)
 {
     while ((*nl) != NULL) {
@@ -50,6 +56,12 @@ static int notifier_chain_register(vmm_notifier_block_t **nl, vmm_notifier_block
     return VMM_OK;
 }
 
+/**
+ * @brief 条件注册通知器链
+ * @param nl 是否换行标志
+ * @param n 起始位置编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int notifier_chain_cond_register(vmm_notifier_block_t **nl, vmm_notifier_block_t *n)
 {
     while ((*nl) != NULL) {
@@ -69,6 +81,12 @@ static int notifier_chain_cond_register(vmm_notifier_block_t **nl, vmm_notifier_
     return VMM_OK;
 }
 
+/**
+ * @brief 注销通知器链
+ * @param nl 是否换行标志
+ * @param n 起始位置编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int notifier_chain_unregister(vmm_notifier_block_t **nl, vmm_notifier_block_t *n)
 {
     while ((*nl) != NULL) {
@@ -80,13 +98,23 @@ static int notifier_chain_unregister(vmm_notifier_block_t **nl, vmm_notifier_blo
         nl = &((*nl)->next);
     }
 
-    return VMM_ENOENT;
+    return VMM_ERR_NOENT;
 }
 
+/**
+ * @brief 调用通知器链上的所有通知器回调
+ * @param nl 是否换行标志
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @param nr_to_call 要调用的通知器数量上限
+ * @param nr_calls 实际调用的通知器数量（输出）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 static int notifier_call_chain(vmm_notifier_block_t **nl, uint64_t val, void *v, int nr_to_call, int *nr_calls)
 {
     int                   ret = NOTIFY_DONE;
-    vmm_notifier_block_t *nb, *next_nb;
+    vmm_notifier_block_t *nb = NULL;
+    vmm_notifier_block_t *next_nb = NULL;
 
     nb = *nl;
 
@@ -114,6 +142,12 @@ static int notifier_call_chain(vmm_notifier_block_t **nl, uint64_t val, void *v,
  *  Atomic notifier chain routines.
  */
 
+/**
+ * @brief 注册原子通知器
+ * @param nc 网络配置结构体指针
+ * @param n 起始位置编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_atomic_notifier_register(vmm_atomic_notifier_chain_t *nc, vmm_notifier_block_t *n)
 {
     irq_flags_t flags;
@@ -126,6 +160,12 @@ int vmm_atomic_notifier_register(vmm_atomic_notifier_chain_t *nc, vmm_notifier_b
     return ret;
 }
 
+/**
+ * @brief 注销原子通知器
+ * @param nc 网络配置结构体指针
+ * @param n 起始位置编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_atomic_notifier_unregister(vmm_atomic_notifier_chain_t *nc, vmm_notifier_block_t *n)
 {
     irq_flags_t flags;
@@ -138,6 +178,15 @@ int vmm_atomic_notifier_unregister(vmm_atomic_notifier_chain_t *nc, vmm_notifier
     return ret;
 }
 
+/**
+ * @brief 调用原子通知器链上的所有通知器
+ * @param nc 网络配置结构体指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @param nr_to_call 要调用的通知器数量上限
+ * @param nr_calls 实际调用的通知器数量（输出）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __vmm_atomic_notifier_call(vmm_atomic_notifier_chain_t *nc, uint64_t val, void *v, int nr_to_call, int *nr_calls)
 {
     irq_flags_t flags;
@@ -150,6 +199,13 @@ int __vmm_atomic_notifier_call(vmm_atomic_notifier_chain_t *nc, uint64_t val, vo
     return ret;
 }
 
+/**
+ * @brief 调用原子通知器链上的所有通知器
+ * @param nc 网络配置结构体指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_atomic_notifier_call(vmm_atomic_notifier_chain_t *nc, uint64_t val, void *v)
 {
     return __vmm_atomic_notifier_call(nc, val, v, -1, NULL);
@@ -159,6 +215,12 @@ int vmm_atomic_notifier_call(vmm_atomic_notifier_chain_t *nc, uint64_t val, void
  *  Blocking notifier chain routines.
  */
 
+/**
+ * @brief 注册阻塞通知器
+ * @param nc 网络配置结构体指针
+ * @param n 起始位置编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_blocking_notifier_register(vmm_blocking_notifier_chain_t *nc, vmm_notifier_block_t *n)
 {
     int ret;
@@ -170,6 +232,12 @@ int vmm_blocking_notifier_register(vmm_blocking_notifier_chain_t *nc, vmm_notifi
     return ret;
 }
 
+/**
+ * @brief 注册阻塞通知器条件
+ * @param nc 网络配置结构体指针
+ * @param n 起始位置编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_blocking_notifier_cond_register(vmm_blocking_notifier_chain_t *nc, vmm_notifier_block_t *n)
 {
     int ret;
@@ -181,6 +249,12 @@ int vmm_blocking_notifier_cond_register(vmm_blocking_notifier_chain_t *nc, vmm_n
     return ret;
 }
 
+/**
+ * @brief 注销阻塞通知器
+ * @param nc 网络配置结构体指针
+ * @param n 起始位置编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_blocking_notifier_unregister(vmm_blocking_notifier_chain_t *nc, vmm_notifier_block_t *n)
 {
     int ret;
@@ -192,6 +266,15 @@ int vmm_blocking_notifier_unregister(vmm_blocking_notifier_chain_t *nc, vmm_noti
     return ret;
 }
 
+/**
+ * @brief 调用阻塞通知器链上的所有通知器（可睡眠）
+ * @param nc 网络配置结构体指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @param nr_to_call 要调用的通知器数量上限
+ * @param nr_calls 实际调用的通知器数量（输出）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __vmm_blocking_notifier_call(vmm_blocking_notifier_chain_t *nc, uint64_t val, void *v, int nr_to_call, int *nr_calls)
 {
     int ret = NOTIFY_DONE;
@@ -203,6 +286,13 @@ int __vmm_blocking_notifier_call(vmm_blocking_notifier_chain_t *nc, uint64_t val
     return ret;
 }
 
+/**
+ * @brief 调用阻塞通知器链上的所有通知器（可睡眠）
+ * @param nc 网络配置结构体指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_blocking_notifier_call(vmm_blocking_notifier_chain_t *nc, uint64_t val, void *v)
 {
     return __vmm_blocking_notifier_call(nc, val, v, -1, NULL);
@@ -212,21 +302,49 @@ int vmm_blocking_notifier_call(vmm_blocking_notifier_chain_t *nc, uint64_t val, 
  *  Raw notifier chain routines.
  */
 
+/**
+ * @brief 注册原始通知器
+ * @param nc 网络配置结构体指针
+ * @param n 起始位置编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_raw_notifier_register(struct vmm_raw_notifier_chain *nc, vmm_notifier_block_t *n)
 {
     return notifier_chain_register(&nc->head, n);
 }
 
+/**
+ * @brief 注销原始通知器
+ * @param nc 网络配置结构体指针
+ * @param n 起始位置编号
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_raw_notifier_unregister(struct vmm_raw_notifier_chain *nc, vmm_notifier_block_t *n)
 {
     return notifier_chain_unregister(&nc->head, n);
 }
 
+/**
+ * @brief 调用原始通知器链上的所有通知器（无锁保护）
+ * @param nc 网络配置结构体指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @param nr_to_call 要调用的通知器数量上限
+ * @param nr_calls 实际调用的通知器数量（输出）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __vmm_raw_notifier_call(struct vmm_raw_notifier_chain *nc, uint64_t val, void *v, int nr_to_call, int *nr_calls)
 {
     return notifier_call_chain(&nc->head, val, v, nr_to_call, nr_calls);
 }
 
+/**
+ * @brief 调用原始通知器链上的所有通知器（无锁保护）
+ * @param nc 网络配置结构体指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_raw_notifier_call(struct vmm_raw_notifier_chain *nc, uint64_t val, void *v)
 {
     return __vmm_raw_notifier_call(nc, val, v, -1, NULL);

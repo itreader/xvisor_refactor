@@ -104,7 +104,7 @@ static int cmd_rtcdev_sync_wall_clock(vmm_char_device_t *cdev, const char *name)
 
     if (!rtc) {
         vmm_cdev_printf(cdev, "Error: cannot find rtc %s\n", name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = rtc_device_sync_wall_clock(rtc);
@@ -128,7 +128,7 @@ static int cmd_rtcdev_sync_device(vmm_char_device_t *cdev, const char *name)
 
     if (!rtc) {
         vmm_cdev_printf(cdev, "Error: cannot find rtc %s\n", name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = rtc_device_sync_device(rtc);
@@ -149,7 +149,7 @@ static int cmd_rtcdev_get_time(vmm_char_device_t *cdev, const char *name)
 
     if (!rtc) {
         vmm_cdev_printf(cdev, "Error: cannot find rtc %s\n", name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = rtc_device_get_time(rtc, &tm);
@@ -261,7 +261,7 @@ static int cmd_rtcdev_set_time(vmm_char_device_t *cdev, const char *name, int ta
 
     if (!rtc) {
         vmm_cdev_printf(cdev, "Error: cannot find rtc %s\n", name);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     s            = targv[0];
@@ -331,7 +331,7 @@ static int cmd_rtcdev_set_time(vmm_char_device_t *cdev, const char *name, int ta
 
     if (!rtc_valid_tm(&tm)) {
         vmm_cdev_printf(cdev, "Error: invalid date-time\n");
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = rtc_device_set_time(rtc, &tm);
@@ -358,7 +358,7 @@ static int cmd_rtcdev_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc < 3) {
         cmd_rtcdev_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (strcmp(argv[1], "sync_wall_clock") == 0) {
@@ -372,7 +372,7 @@ static int cmd_rtcdev_exec(vmm_char_device_t *cdev, int argc, char **argv)
     }
 
     cmd_rtcdev_usage(cdev);
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
 static vmm_command_t cmd_rtcdev = {

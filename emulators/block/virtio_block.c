@@ -108,7 +108,7 @@ static int virtio_block_init_vq(struct vmm_virtio_device *dev, uint32_t vq, uint
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -126,7 +126,7 @@ static int virtio_block_get_pfn_vq(struct vmm_virtio_device *dev, uint32_t vq)
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -380,7 +380,7 @@ static int virtio_block_notify_vq(struct vmm_virtio_device *dev, uint32_t vq)
             break;
 
         default:
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             break;
     };
 
@@ -461,7 +461,7 @@ static int virtio_block_connect(struct vmm_virtio_device *dev, struct vmm_virtio
 
     if (!vbdev) {
         vmm_printf("Failed to allocate virtio block device....\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     vbdev->vdev            = dev;
@@ -474,7 +474,7 @@ static int virtio_block_connect(struct vmm_virtio_device *dev, struct vmm_virtio
 
     if (!vbdev->virtual_disk) {
         vmm_free(vbdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Attach block device */

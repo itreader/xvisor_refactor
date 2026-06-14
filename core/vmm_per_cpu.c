@@ -18,7 +18,7 @@
  *
  * @file vmm_per_cpu.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief Implementation of per-cpu areas
+ * @brief Per-CPU区域实现
  */
 
 #include <arch_sections.h>
@@ -34,9 +34,14 @@
 virtual_addr_t __per_cpu_vaddr[CONFIG_CPU_COUNT]  = {0};
 virtual_addr_t __per_cpu_offset[CONFIG_CPU_COUNT] = {0};
 
+/**
+ * @brief 初始化每CPU数据
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_per_cpu_init(void)
 {
-    uint32_t       cpu, pgcount;
+    uint32_t cpu;
+    uint32_t pgcount;
     virtual_addr_t base = arch_per_cpu_vaddr();
     virtual_size_t size = arch_per_cpu_size();
 
@@ -51,7 +56,7 @@ int __init vmm_per_cpu_init(void)
         __per_cpu_vaddr[cpu] = vmm_page_pool_alloc(VMM_PAGE_POOL_NORMAL, pgcount);
 
         if (!__per_cpu_vaddr[cpu]) {
-            return VMM_ENOMEM;
+            return VMM_ERR_NOMEM;
         }
 
         __per_cpu_offset[cpu] = __per_cpu_vaddr[cpu] - base;
@@ -63,6 +68,10 @@ int __init vmm_per_cpu_init(void)
 
 #else
 
+/**
+ * @brief 初始化每CPU数据
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_per_cpu_init(void)
 {
     /* Don't require to do anything for UP */

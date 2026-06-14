@@ -111,19 +111,19 @@ struct aw_vic {
 
 static struct aw_vic awvic;
 
-static void aw_irq_ack(struct vmm_host_irq *d)
+static void aw_irq_ack(vmm_host_irq_t *d)
 {
-    uint32_t mask = 1 << (d->hwirq & 0x1f);
+    uint32_t mask = 1 << (d->hw_irq_num & 0x1f);
 
-    if (d->hwirq < 32) {
+    if (d->hw_irq_num < 32) {
         vmm_writel(vmm_readl(awvic.enable0) & ~mask, awvic.enable0);
         vmm_writel(vmm_readl(awvic.mask0) | mask, awvic.mask0);
         vmm_writel(vmm_readl(awvic.irq_pend0) | mask, awvic.irq_pend0);
-    } else if (d->hwirq < 64) {
+    } else if (d->hw_irq_num < 64) {
         vmm_writel(vmm_readl(awvic.enable1) & ~mask, awvic.enable1);
         vmm_writel(vmm_readl(awvic.mask1) | mask, awvic.mask1);
         vmm_writel(vmm_readl(awvic.irq_pend1) | mask, awvic.irq_pend1);
-    } else if (d->hwirq < 96) {
+    } else if (d->hw_irq_num < 96) {
         vmm_writel(vmm_readl(awvic.enable2) & ~mask, awvic.enable2);
         vmm_writel(vmm_readl(awvic.mask2) | mask, awvic.mask2);
         vmm_writel(vmm_readl(awvic.irq_pend2) | mask, awvic.irq_pend2);
@@ -131,44 +131,44 @@ static void aw_irq_ack(struct vmm_host_irq *d)
 }
 
 /* Mask an IRQ line, which means disabling the IRQ line */
-static void aw_irq_mask(struct vmm_host_irq *d)
+static void aw_irq_mask(vmm_host_irq_t *d)
 {
-    uint32_t mask = 1 << (d->hwirq & 0x1f);
+    uint32_t mask = 1 << (d->hw_irq_num & 0x1f);
 
-    if (d->hwirq < 32) {
+    if (d->hw_irq_num < 32) {
         vmm_writel(vmm_readl(awvic.enable0) & ~mask, awvic.enable0);
         vmm_writel(vmm_readl(awvic.mask0) | mask, awvic.mask0);
-    } else if (d->hwirq < 64) {
+    } else if (d->hw_irq_num < 64) {
         vmm_writel(vmm_readl(awvic.enable1) & ~mask, awvic.enable1);
         vmm_writel(vmm_readl(awvic.mask1) | mask, awvic.mask1);
-    } else if (d->hwirq < 96) {
+    } else if (d->hw_irq_num < 96) {
         vmm_writel(vmm_readl(awvic.enable2) & ~mask, awvic.enable2);
         vmm_writel(vmm_readl(awvic.mask2) | mask, awvic.mask2);
     }
 }
 
-static void aw_irq_unmask(struct vmm_host_irq *d)
+static void aw_irq_unmask(vmm_host_irq_t *d)
 {
-    uint32_t mask = 1 << (d->hwirq & 0x1f);
+    uint32_t mask = 1 << (d->hw_irq_num & 0x1f);
 
-    if (d->hwirq < 32) {
+    if (d->hw_irq_num < 32) {
         vmm_writel(vmm_readl(awvic.enable0) | mask, awvic.enable0);
         vmm_writel(vmm_readl(awvic.mask0) & ~mask, awvic.mask0);
 
         /* must clear pending bit when NMI is enabled */
-        if (d->hwirq == AW_INT_IRQNO_ENMI) {
+        if (d->hw_irq_num == AW_INT_IRQNO_ENMI) {
             vmm_writel(mask, awvic.irq_pend0);
         }
-    } else if (d->hwirq < 64) {
+    } else if (d->hw_irq_num < 64) {
         vmm_writel(vmm_readl(awvic.enable1) | mask, awvic.enable1);
         vmm_writel(vmm_readl(awvic.mask1) & ~mask, awvic.mask1);
-    } else if (d->hwirq < 96) {
+    } else if (d->hw_irq_num < 96) {
         vmm_writel(vmm_readl(awvic.enable2) | mask, awvic.enable2);
         vmm_writel(vmm_readl(awvic.mask2) & ~mask, awvic.mask2);
     }
 }
 
-static struct vmm_host_irq_chip aw_vic_chip = {
+static vmm_host_irq_chip_t aw_vic_chip = {
     .name       = "AW_INTC",
     .irq_ack    = aw_irq_ack,
     .irq_mask   = aw_irq_mask,
@@ -209,21 +209,21 @@ static uint32_t aw_intc_irq_active(uint32_t cpu_irq_no, uint32_t prev_irq)
 }
 
 static int aw_intc_xlate(
-    struct vmm_host_irq_domain *d, vmm_device_tree_node_t *ctrlr, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hwirq, uint32_t *out_type)
+    struct vmm_host_irq_domain *d, vmm_device_tree_node_t *ctrlr, const uint32_t *intspec, uint32_t intsize, uint64_t *out_hw_irq, uint32_t *out_type)
 {
     if (WARN_ON(intsize != 2)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (WARN_ON(intspec[0] >= AW_NR_BANKS)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (WARN_ON(intspec[1] >= AW_IRQS_PER_BANK)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
-    *out_hwirq = intspec[0] * AW_IRQS_PER_BANK + intspec[1];
+    *out_hw_irq = intspec[0] * AW_IRQS_PER_BANK + intspec[1];
     *out_type  = VMM_IRQ_TYPE_NONE;
 
     return 0;
@@ -236,7 +236,7 @@ static struct vmm_host_irq_domain_ops aw_intc_ops = {
 static int __init aw_intc_device_tree_init(vmm_device_tree_node_t *node)
 {
     int      hirq, rc;
-    uint32_t hwirq, irq_start = 0;
+    uint32_t hw_irq_num, irq_start = 0;
     void    *base;
 
     if (vmm_device_tree_read_u32(node, "irq_start", &irq_start)) {
@@ -247,7 +247,7 @@ static int __init aw_intc_device_tree_init(vmm_device_tree_node_t *node)
     awvic.domain = vmm_host_irq_domain_add(node, (int)irq_start, AW_NR_IRQS, &aw_intc_ops, NULL);
 
     if (!awvic.domain) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Map registers */
@@ -299,8 +299,8 @@ static int __init aw_intc_device_tree_init(vmm_device_tree_node_t *node)
     vmm_writel(0x00, awvic.nmi_ctrl);
 
     /* Setup irq_domain and irqchip */
-    for (hwirq = 0; hwirq < AW_NR_IRQS; hwirq++) {
-        hirq = vmm_host_irq_domain_create_mapping(awvic.domain, hwirq);
+    for (hw_irq_num = 0; hw_irq_num < AW_NR_IRQS; hw_irq_num++) {
+        hirq = vmm_host_irq_domain_create_mapping(awvic.domain, hw_irq_num);
         BUG_ON(hirq < 0);
         vmm_host_irq_set_chip(hirq, &aw_vic_chip);
         vmm_host_irq_set_handler(hirq, vmm_handle_level_irq);

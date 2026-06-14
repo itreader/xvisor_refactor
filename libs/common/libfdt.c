@@ -120,7 +120,7 @@ int libfdt_parse_fileinfo(virtual_addr_t fdt_addr, struct fdt_fileinfo *fdt)
 
     /* Sanity check */
     if (!fdt) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Retrive header */
@@ -138,7 +138,7 @@ int libfdt_parse_fileinfo(virtual_addr_t fdt_addr, struct fdt_fileinfo *fdt)
 
     /* Check magic number of header for sainity */
     if (fdt->header.magic != FDT_MAGIC) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Compute data location & size */
@@ -224,7 +224,7 @@ int libfdt_parse_device_tree(struct fdt_fileinfo *fdt, vmm_device_tree_node_t **
 
     /* Sanity check */
     if (!fdt || !root_name) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Get data pointer */
@@ -232,7 +232,7 @@ int libfdt_parse_device_tree(struct fdt_fileinfo *fdt, vmm_device_tree_node_t **
 
     /* Sanity check */
     if (LIBFDT_DATA32(data) != FDT_BEGIN_NODE) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Skip root node name */
@@ -242,7 +242,7 @@ int libfdt_parse_device_tree(struct fdt_fileinfo *fdt, vmm_device_tree_node_t **
     node = vmm_device_tree_addnode(root_parent, root_name);
 
     if (!node) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Update return pointer for root node */
@@ -511,11 +511,11 @@ int libfdt_reserve_address(struct fdt_fileinfo *fdt, uint32_t index, uint64_t *a
     struct fdt_reserve_entry *rsv;
 
     if (!fdt || !fdt->mem_rsvmap || !addr) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (fdt->mem_rsvcnt <= index) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     rsv   = (struct fdt_reserve_entry *)fdt->mem_rsvmap;
@@ -529,11 +529,11 @@ int libfdt_reserve_size(struct fdt_fileinfo *fdt, uint32_t index, uint64_t *size
     struct fdt_reserve_entry *rsv;
 
     if (!fdt || !fdt->mem_rsvmap || !size) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (fdt->mem_rsvcnt <= index) {
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     rsv   = (struct fdt_reserve_entry *)fdt->mem_rsvmap;
@@ -552,12 +552,12 @@ int libfdt_get_property(
 
     /* Sanity checks */
     if (!fdt || !fdt_node || !property || !property_value || !property_len) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Sanity checks */
     if (LIBFDT_DATA32(&fdt_node->tag) != FDT_BEGIN_NODE) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Convert node to character stream */
@@ -595,7 +595,7 @@ int libfdt_get_property(
     }
 
     if (!ret) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (property_len < len) {

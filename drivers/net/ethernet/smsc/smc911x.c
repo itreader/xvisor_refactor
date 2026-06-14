@@ -1445,7 +1445,7 @@ static int smc911x_open(struct net_device *dev)
      */
     if (!is_valid_ether_addr(dev->dev_addr)) {
         PRINTK("%s: no valid ethernet hw addr\n", __func__);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* reset the hardware */
@@ -1849,7 +1849,7 @@ static int smc911x_probe(struct net_device *dev)
 
     if (val != 0x87654321) {
         printk(KERN_ERR "Invalid chip endian 0x%08x\n", val);
-        retval = VMM_ENODEV;
+        retval = VMM_ERR_NODEV;
         goto err_out;
     }
 
@@ -1869,7 +1869,7 @@ static int smc911x_probe(struct net_device *dev)
 
     if (!chip_ids[i].id) {
         printk(KERN_ERR "Unknown chip ID %04x\n", chip_id);
-        retval = VMM_ENODEV;
+        retval = VMM_ERR_NODEV;
         goto err_out;
     }
 
@@ -1884,7 +1884,7 @@ static int smc911x_probe(struct net_device *dev)
     /* Validate the TX FIFO size requested */
     if ((tx_fifo_kb < 2) || (tx_fifo_kb > 14)) {
         printk(KERN_ERR "Invalid TX FIFO size requested %d\n", tx_fifo_kb);
-        retval = VMM_EINVALID;
+        retval = VMM_ERR_INVALID;
         goto err_out;
     }
 
@@ -2133,7 +2133,7 @@ static int smc911x_driver_probe(vmm_device_t *dev)
 
     if (!ndev) {
         vmm_printf("%s Failed to allocate netdev for %s\n", __func__, dev->name);
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto exit_probe;
     }
 
@@ -2141,7 +2141,7 @@ static int smc911x_driver_probe(vmm_device_t *dev)
     ndev->vmm_dev = dev;
 
     if (strlcpy(ndev->name, dev->name, sizeof(ndev->name)) >= sizeof(ndev->name)) {
-        rc = VMM_EOVERFLOW;
+        rc = VMM_ERR_OVERFLOW;
         goto free_ndev;
     }
 
@@ -2161,7 +2161,7 @@ static int smc911x_driver_probe(vmm_device_t *dev)
     ndev->irq = irq_of_parse_and_map(dev->of_node, 0);
 
     if (!ndev->irq) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto free_ioreamp_mem;
     }
 

@@ -82,7 +82,7 @@ static int __init riscv_timer_clocksource_init(vmm_device_tree_node_t *node)
 
     if (!cs) {
         vmm_lerror("riscv-timer-clocksource", "failed to allocate clocksource\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     cs->name   = "riscv-timer";
@@ -161,7 +161,7 @@ static int riscv_timer_startup(vmm_cpu_hotplug_notify_t *cpu_hotplug, uint32_t c
     cc = vmm_zalloc(sizeof(vmm_clock_chip_t));
 
     if (!cc) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     cc->name     = "riscv-timer";

@@ -18,7 +18,7 @@
  *
  * @file vmm_waitqueue.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief Header file for Orphan VCPU (or Thread) wait queue.
+ * @brief 孤儿VCPU（或线程）等待队列头文件
  */
 
 #ifndef __VMM_WAITQUEUE_H__
@@ -30,11 +30,14 @@
 #include <vmm_spinlocks.h>
 #include <vmm_stdio.h>
 
+/**
+ * @brief 等待队列结构，实现线程的阻塞等待和唤醒机制
+ */
 typedef struct vmm_wait_queue {
-    vmm_spinlock_t lock;
-    double_list_t  vcpu_list;
-    uint32_t       vcpu_count;
-    void *private;
+    vmm_spinlock_t lock; /**< 自旋锁 */
+    double_list_t  vcpu_list; /**< VCPU列表 */
+    uint32_t       vcpu_count; /**< 虚拟CPU数量 */
+    void *private; /**< 私有数据 */
 } vmm_wait_queue_t;
 
 #define INIT_WAITQUEUE(__wq, __p)                                                                                                                    \
@@ -52,46 +55,76 @@ typedef struct vmm_wait_queue {
 
 #define DECLARE_WAITQUEUE(__n, __p) vmm_wait_queue_t __n = __WAITQUEUE_INITIALIZER(__n, __p)
 
-/** Lowlevel waitqueue sleep.
- *  Note: This function should only be called with wait_queue->lock held using
- *  any vmm_spin_lock_xxx() API except lite APIs
- *  Note: This function can only be called from Orphan Context
+/**
+ * @brief   等待队列 休眠
+ * @param wait_queue 等待队列指针
+ * @param timeout_nsecs 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int __vmm_waitqueue_sleep(vmm_wait_queue_t *wait_queue, uint64_t *timeout_nsecs);
 
-/** Lowlevel waitqueue wakeup first VCPU.
- *  Note: This function should only be called with wait_queue->lock held using
- *  any vmm_spin_lock_xxx() API except lite APIs
- *  Note: This function can be called from any context
+/**
+ * @brief   唤醒等待队列中的首个等待者
+ * @param wait_queue 等待队列指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int __vmm_waitqueue_wakefirst(vmm_wait_queue_t *wait_queue);
 
-/** Lowlevel waitqueue wakeup all VCPUs.
- *  Note: This function should only be called with wait_queue->lock held using
- *  any vmm_spin_lock_xxx() API except lite APIs
- *  Note: This function can be called from any context
+/**
+ * @brief   唤醒等待队列中的所有等待者
+ * @param wait_queue 等待队列指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int __vmm_waitqueue_wakeall(vmm_wait_queue_t *wait_queue);
 
-/** Waiting VCPU count */
+/**
+ * @brief 获取等待队列的数量
+ * @param wait_queue 等待队列指针
+ * @return 数量值
+ */
 uint32_t vmm_waitqueue_count(vmm_wait_queue_t *wait_queue);
 
-/** Put current VCPU to sleep on given waitqueue */
+/**
+ * @brief 等待队列 休眠
+ * @param wait_queue 等待队列指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_waitqueue_sleep(vmm_wait_queue_t *wait_queue);
 
-/** Put current VCPU to sleep on given waitqueue at most for timeout usecs */
+/**
+ * @brief 在等待队列上休眠指定超时时间
+ * @param wait_queue 等待队列指针
+ * @param timeout_usecs 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_waitqueue_sleep_timeout(vmm_wait_queue_t *wait_queue, uint64_t *timeout_usecs);
 
-/** Wakeup VCPU from its waitqueue */
+/**
+ * @brief 等待队列 唤醒
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_waitqueue_wake(vmm_vcpu_t *vcpu);
 
-/** Force VCPU out of waitqueue */
+/**
+ * @brief 强制从等待队列中移除等待项
+ * @param vcpu 指向VCPU结构体的指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_waitqueue_forced_remove(vmm_vcpu_t *vcpu);
 
-/** Wakeup first VCPU in a given waitqueue */
+/**
+ * @brief 唤醒等待队列中的首个等待者
+ * @param wait_queue 等待队列指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_waitqueue_wakefirst(vmm_wait_queue_t *wait_queue);
 
-/** Wakeup all VCPUs in a given waitqueue */
+/**
+ * @brief 唤醒等待队列中的所有等待者
+ * @param wait_queue 等待队列指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_waitqueue_wakeall(vmm_wait_queue_t *wait_queue);
 
 /**

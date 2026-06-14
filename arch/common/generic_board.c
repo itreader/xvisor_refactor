@@ -81,7 +81,7 @@ void arch_board_print_info(vmm_char_device_t *cdev)
 
 int __init arch_board_nascent_init(void)
 {
-    /* Host aspace, Heap, and Device tree available. */
+    /* Host addr_space, Heap, and Device tree available. */
 
     /* Nothing to do here. */
 
@@ -106,7 +106,7 @@ static void __init generic_board_early(vmm_device_tree_node_t *node, const struc
 
 int __init arch_board_early_init(void)
 {
-    /* Host aspace, Heap, Device tree, and Host IRQ available.
+    /* Host addr_space, Heap, Device tree, and Host IRQ available.
      *
      * Do necessary early stuff like:
      * iomapping devices,

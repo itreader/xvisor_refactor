@@ -18,7 +18,7 @@
  *
  * @file vmm_notifier.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief Interface for notifier chain management.
+ * @brief 通知器链管理接口
  *
  * The notifer chain management is highly inspired from Linux notifiers.
  *
@@ -54,10 +54,13 @@
  * _must not_ be called from within the call chain.
  */
 
+/**
+ * @brief 通知器回调块，封装通知链中的回调函数和优先级
+ */
 struct vmm_notifier_block {
-    int (*notifier_call)(struct vmm_notifier_block *, uint64_t, void *);
-    struct vmm_notifier_block *next;
-    int                        priority;
+    int (*notifier_call)(struct vmm_notifier_block *, uint64_t, void *); /**< notifier_call成员 */
+    struct vmm_notifier_block *next; /**< 下一个 */
+    int                        priority; /**< 优先级 */
 };
 
 typedef struct vmm_notifier_block vmm_notifier_block_t;
@@ -90,10 +93,12 @@ static inline int vmm_notifier_to_errno(int ret)
     return ret > NOTIFY_OK ? NOTIFY_OK - ret : 0;
 }
 
-/** Representation of an atoming notifier chain */
+/**
+ * @brief 原子通知器链的表示
+ */
 typedef struct vmm_atomic_notifier_chain {
-    vmm_spinlock_t        lock;
-    vmm_notifier_block_t *head;
+    vmm_spinlock_t        lock; /**< 自旋锁 */
+    vmm_notifier_block_t *head; /**< 链表头 */
 } vmm_atomic_notifier_chain_t;
 
 #define ATOMIC_INIT_NOTIFIER_CHAIN(name)                                                                                                             \
@@ -108,49 +113,47 @@ typedef struct vmm_atomic_notifier_chain {
 #define ATOMIC_NOTIFIER_CHAIN(name) vmm_atomic_notifier_chain_t name = ATOMIC_NOTIFIER_INIT(name)
 
 /**
- *  Add notifier to an atomic notifier chain
- *  @nc Pointer to head of the atomic notifier chain
- *  @nb New entry in notifier chain
- *
- *  @returns Currently always returns VMM_OK.
+ * @brief 注册原子通知器
+ * @param nc 网络配置结构体指针
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_atomic_notifier_register(vmm_atomic_notifier_chain_t *nc, vmm_notifier_block_t *nb);
 
 /**
- *  Remove notifier from an atomic notifier chain
- *  @nc Pointer to head of the atomic notifier chain
- *  @nb Entry to remove from notifier chain
- *
- *  @returns VMM_OK on success or VMM_Exxxx on failure.
+ * @brief 注销原子通知器
+ * @param nc 网络配置结构体指针
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_atomic_notifier_unregister(vmm_atomic_notifier_chain_t *nc, vmm_notifier_block_t *nb);
 
 /**
- *  Call functions in an atomic notifier chain
- *  @nc Pointer to the atomic notifier chain
- *  @val Value passed unmodified to notifier function
- *  @v Pointer passed unmodified to notifier function
- *  @nr_to_call Number of notifier functions to be called. Don't care
- *      value of this parameter is -1.
- *  @nr_calls Records the number of notifications sent. Don't care
- *      value of this field is NULL.
- *  @returns value returned by the last notifier function called.
+ * @brief 调用原子通知器链上的所有通知器
+ * @param nc 网络配置结构体指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @param nr_to_call 要调用的通知器数量上限
+ * @param nr_calls 实际调用的通知器数量（输出）
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int __vmm_atomic_notifier_call(vmm_atomic_notifier_chain_t *nc, uint64_t val, void *v, int nr_to_call, int *nr_calls);
 
 /**
- *  Call functions in an atomic notifier chain only once
- *  @nc Pointer to the atomic notifier chain
- *  @val Value passed unmodified to notifier function
- *  @v Pointer passed unmodified to notifier function
- *  @returns value returned by the last notifier function called.
+ * @brief 调用原子通知器链上的所有通知器
+ * @param nc 网络配置结构体指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_atomic_notifier_call(vmm_atomic_notifier_chain_t *nc, uint64_t val, void *v);
 
-/** Representation of a blocking notifier chain */
+/**
+ * @brief 阻塞通知器链的表示
+ */
 typedef struct vmm_blocking_notifier_chain {
-    vmm_semaphore_t       rwsem;
-    vmm_notifier_block_t *head;
+    vmm_semaphore_t       rwsem; /**< rwsem成员 */
+    vmm_notifier_block_t *head; /**< 链表头 */
 } vmm_blocking_notifier_chain_t;
 
 #define BLOCKING_INIT_NOTIFIER_CHAIN(name)                                                                                                           \
@@ -165,58 +168,55 @@ typedef struct vmm_blocking_notifier_chain {
 #define BLOCKING_NOTIFIER_CHAIN(name) vmm_blocking_notifier_chain_t name = BLOCKING_NOTIFIER_INIT(name)
 
 /**
- *  Add notifier to a blocking notifier chain
- *  @nc Pointer to head of the blocking notifier chain
- *  @nb New entry in notifier chain
- *
- *  @returns Currently always returns VMM_OK.
+ * @brief 注册阻塞通知器
+ * @param nc 网络配置结构体指针
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_blocking_notifier_register(vmm_blocking_notifier_chain_t *nc, vmm_notifier_block_t *nb);
 
 /**
- *  Add notifier to a blocking notifier chain only if it is not already
- *  registered with the notifier chain
- *  @nc Pointer to head of the blocking notifier chain
- *  @nb New entry in notifier chain
- *
- *  @returns Currently always returns VMM_OK.
+ * @brief 注册阻塞通知器条件
+ * @param nc 网络配置结构体指针
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_blocking_notifier_cond_register(vmm_blocking_notifier_chain_t *nc, vmm_notifier_block_t *nb);
 
 /**
- *  Remove notifier from a blocking notifier chain
- *  @nc Pointer to head of the blocking notifier chain
- *  @nb Entry to remove from notifier chain
- *
- *  @returns VMM_OK on success or VMM_Exxxx on failure.
+ * @brief 注销阻塞通知器
+ * @param nc 网络配置结构体指针
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_blocking_notifier_unregister(vmm_blocking_notifier_chain_t *nc, vmm_notifier_block_t *nb);
 
 /**
- *  Call functions in a blocking notifier chain
- *  @nc Pointer to the blocking notifier chain
- *  @val Value passed unmodified to notifier function
- *  @v Pointer passed unmodified to notifier function
- *  @nr_to_call Number of notifier functions to be called. Don't care
- *      value of this parameter is -1.
- *  @nr_calls Records the number of notifications sent. Don't care
- *      value of this field is NULL.
- *  @returns value returned by the last notifier function called.
+ * @brief 调用阻塞通知器链上的所有通知器（可睡眠）
+ * @param nc 网络配置结构体指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @param nr_to_call 要调用的通知器数量上限
+ * @param nr_calls 实际调用的通知器数量（输出）
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int __vmm_blocking_notifier_call(vmm_blocking_notifier_chain_t *nc, uint64_t val, void *v, int nr_to_call, int *nr_calls);
 
 /**
- *  Call functions in a blocking notifier chain only once
- *  @nc Pointer to the blocking notifier chain
- *  @val Value passed unmodified to notifier function
- *  @v Pointer passed unmodified to notifier function
- *  @returns value returned by the last notifier function called.
+ * @brief 调用阻塞通知器链上的所有通知器（可睡眠）
+ * @param nh 节点头指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_blocking_notifier_call(vmm_blocking_notifier_chain_t *nh, uint64_t val, void *v);
 
 /** Representation of a raw notifier chain */
+/**
+ * @brief 原始通知器链节点，用于非原子上下文的通知链
+ */
 struct vmm_raw_notifier_chain {
-    vmm_notifier_block_t *head;
+    vmm_notifier_block_t *head; /**< 链表头 */
 };
 
 #define RAW_INIT_NOTIFIER_CHAIN(name)                                                                                                                \
@@ -230,42 +230,38 @@ struct vmm_raw_notifier_chain {
 #define RAW_NOTIFIER_CHAIN(name) struct vmm_raw_notifier_chain name = RAW_NOTIFIER_INIT(name)
 
 /**
- *  Add notifier to a raw notifier chain
- *  @nc Pointer to head of the raw notifier chain
- *  @nb New entry in notifier chain
- *
- *  @returns Currently always returns VMM_OK.
+ * @brief 注册原始通知器
+ * @param nc 网络配置结构体指针
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_raw_notifier_register(struct vmm_raw_notifier_chain *nc, vmm_notifier_block_t *nb);
 
 /**
- *  Remove notifier from a raw notifier chain
- *  @nc Pointer to head of the raw notifier chain
- *  @nb Entry to remove from notifier chain
- *
- *  @returns VMM_OK on success or VMM_Exxxx on failure.
+ * @brief 注销原始通知器
+ * @param nc 网络配置结构体指针
+ * @param nb 通知器块指针
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_raw_notifier_unregister(struct vmm_raw_notifier_chain *nc, vmm_notifier_block_t *nb);
 
 /**
- *  Call functions in a raw notifier chain
- *  @nc Pointer to the raw notifier chain
- *  @val Value passed unmodified to notifier function
- *  @v Pointer passed unmodified to notifier function
- *  @nr_to_call Number of notifier functions to be called. Don't care
- *      value of this parameter is -1.
- *  @nr_calls Records the number of notifications sent. Don't care
- *      value of this field is NULL.
- *  @returns value returned by the last notifier function called.
+ * @brief 调用原始通知器链上的所有通知器（无锁保护）
+ * @param nc 网络配置结构体指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @param nr_to_call 要调用的通知器数量上限
+ * @param nr_calls 实际调用的通知器数量（输出）
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int __vmm_raw_notifier_call(struct vmm_raw_notifier_chain *nc, uint64_t val, void *v, int nr_to_call, int *nr_calls);
 
 /**
- *  Call functions in a raw notifier chain only once
- *  @nc Pointer to the raw notifier chain
- *  @val Value passed unmodified to notifier function
- *  @v Pointer passed unmodified to notifier function
- *  @returns value returned by the last notifier function called.
+ * @brief 调用原始通知器链上的所有通知器（无锁保护）
+ * @param nc 网络配置结构体指针
+ * @param val 待写入的值
+ * @param v 通用值参数
+ * @return 成功返回VMM_OK，失败返回错误码
  */
 int vmm_raw_notifier_call(struct vmm_raw_notifier_chain *nc, uint64_t val, void *v);
 

@@ -18,7 +18,7 @@
  *
  * @file vmm_initfn.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file device-tree based init functions
+ * @brief 基于设备树的初始化函数头文件
  */
 #ifndef _VMM_INITFN_H__
 #define _VMM_INITFN_H__
@@ -27,25 +27,34 @@
 #include <vmm_device_tree.h>
 #include <vmm_types.h>
 
-/* nodeid table based initfn callback */
+/** @brief 基于设备树节点ID表的初始化回调函数类型 */
 typedef int (*vmm_initfn_t)(vmm_device_tree_node_t *);
 
-/* Declare final init function */
+/** @brief 声明最终阶段初始化函数 */
 #define VMM_INITFN_DECLARE_FINAL(name, compat, fn)   VMM_DEVICE_TREE_NIDTBL_ENTRY(name, "initfn_final", "", "", compat, fn)
 
-/* Declare early init function */
+/** @brief 声明早期阶段初始化函数 */
 #define VMM_INITFN_DECLARE_EARLY(name, compat, fn)   VMM_DEVICE_TREE_NIDTBL_ENTRY(name, "initfn_early", "", "", compat, fn)
 
-/* Declare nascent init function */
+/** @brief 声明初始阶段初始化函数 */
 #define VMM_INITFN_DECLARE_NASCENT(name, compat, fn) VMM_DEVICE_TREE_NIDTBL_ENTRY(name, "initfn_nascent", "", "", compat, fn)
 
-/** Call nascent init functions */
+/**
+ * @brief 调用初始阶段的初始化函数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_initfn_nascent(void);
 
-/** Call early init functions */
+/**
+ * @brief 调用早期阶段的初始化函数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_initfn_early(void);
 
-/** Call final init functions */
+/**
+ * @brief 调用最终阶段的初始化函数
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_initfn_final(void);
 
 #endif

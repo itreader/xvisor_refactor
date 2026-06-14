@@ -144,7 +144,7 @@ static int __init scu_cpu_init(vmm_device_tree_node_t *node, uint32_t cpu)
 
     /* Check SCU base */
     if (!scu_base) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Map clear address */
@@ -169,12 +169,12 @@ static int __init scu_cpu_init(vmm_device_tree_node_t *node, uint32_t cpu)
     ncores = scu_get_core_count((void *)scu_base);
 
     if (ncores <= cpu) {
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     /* Check SCU status */
     if (!scu_cpu_core_is_smp((void *)scu_base, cpu)) {
-        return VMM_ENOSYS;
+        return VMM_ERR_NOSYS;
     }
 
     return VMM_OK;
@@ -189,7 +189,7 @@ static int __init scu_cpu_prepare(uint32_t cpu)
     physical_addr_t _start_secondary_pa;
 
     /* Get physical address secondary startup code */
-    rc = vmm_host_va2pa((virtual_addr_t)&_start_secondary_nopen, &_start_secondary_pa);
+    rc = vmm_host_virtualAddr_to_physicalAddr((virtual_addr_t)&_start_secondary_nopen, &_start_secondary_pa);
 
     if (rc) {
         return rc;

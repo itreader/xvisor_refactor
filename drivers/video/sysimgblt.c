@@ -302,4 +302,4 @@ void sys_imageblit(struct frame_buffer_info *p, const struct frame_buffer_image 
     }
 }
 
-VMM_EXPORT_SYMBOL(sys_imageblit);
+VMM_ERR_XPORT_SYMBOL(sys_imageblit);

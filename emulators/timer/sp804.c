@@ -203,7 +203,7 @@ static void sp804_timer_init_timer(struct sp804_timer *t)
         /*
          * We start our timer
          */
-        if (vmm_timer_event_start(&t->event, nsecs) == VMM_EFAIL) {
+        if (vmm_timer_event_start(&t->event, nsecs) == VMM_ERR_FAIL) {
             /* FIXME: What should we do??? */
         }
     } else {
@@ -211,7 +211,7 @@ static void sp804_timer_init_timer(struct sp804_timer *t)
          * This timer is not enabled ...
          * To be safe, we stop the timer
          */
-        if (vmm_timer_event_stop(&t->event) == VMM_EFAIL) {
+        if (vmm_timer_event_stop(&t->event) == VMM_ERR_FAIL) {
             /* FIXME: What should we do??? */
         }
 
@@ -361,7 +361,7 @@ static int sp804_timer_read(struct sp804_timer *t, uint32_t offset, uint32_t *ds
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -414,7 +414,7 @@ static int sp804_timer_write(struct sp804_timer *t, uint32_t offset, uint32_t sr
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -559,7 +559,7 @@ static int sp804_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *e
     s = vmm_zalloc(sizeof(struct sp804_state));
 
     if (!s) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto sp804_emulator_probe_done;
     }
 

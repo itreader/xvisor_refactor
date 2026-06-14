@@ -45,10 +45,10 @@ int rtc_device_get_time(struct rtc_device *rdev, struct rtc_time *tm)
         return rdev->ops->read_time(rdev, tm);
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
-VMM_EXPORT_SYMBOL(rtc_device_get_time);
+VMM_ERR_XPORT_SYMBOL(rtc_device_get_time);
 
 int rtc_device_set_time(struct rtc_device *rdev, struct rtc_time *tm)
 {
@@ -56,10 +56,10 @@ int rtc_device_set_time(struct rtc_device *rdev, struct rtc_time *tm)
         return rdev->ops->set_time(rdev, tm);
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
-VMM_EXPORT_SYMBOL(rtc_device_set_time);
+VMM_ERR_XPORT_SYMBOL(rtc_device_set_time);
 
 int rtc_device_sync_wall_clock(struct rtc_device *rdev)
 {
@@ -69,7 +69,7 @@ int rtc_device_sync_wall_clock(struct rtc_device *rdev)
     struct rtc_time  tm;
 
     if (!rdev) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((rc = rtc_device_get_time(rdev, &tm))) {
@@ -97,7 +97,7 @@ int rtc_device_sync_wall_clock(struct rtc_device *rdev)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(rtc_device_sync_wall_clock);
+VMM_ERR_XPORT_SYMBOL(rtc_device_sync_wall_clock);
 
 int rtc_device_sync_device(struct rtc_device *rdev)
 {
@@ -107,7 +107,7 @@ int rtc_device_sync_device(struct rtc_device *rdev)
     struct rtc_time  tm;
 
     if (!rdev) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((rc = vmm_wall_clock_get_timeofday(&tv, &tz))) {
@@ -124,14 +124,14 @@ int rtc_device_sync_device(struct rtc_device *rdev)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(rtc_device_sync_device);
+VMM_ERR_XPORT_SYMBOL(rtc_device_sync_device);
 
 void rtc_update_irq(struct rtc_device *rtc, uint64_t num, uint64_t events)
 {
     /* TODO: To be added later */
 }
 
-VMM_EXPORT_SYMBOL(rtc_update_irq);
+VMM_ERR_XPORT_SYMBOL(rtc_update_irq);
 
 static vmm_class_t rtc_class = {
     .name = RTC_DEVICE_CLASS_NAME,
@@ -143,25 +143,25 @@ struct rtc_device *rtc_device_register(vmm_device_t *parent, const char *name, c
     struct rtc_device *rdev;
 
     if (!name || !ops || !ops->set_time || !ops->read_time) {
-        return VMM_ERR_PTR(VMM_EINVALID);
+        return VMM_ERR_RR_PTR(VMM_ERR_INVALID);
     }
 
     rdev = vmm_zalloc(sizeof(*rdev));
 
     if (!rdev) {
-        return VMM_ERR_PTR(VMM_ENOMEM);
+        return VMM_ERR_RR_PTR(VMM_ERR_NOMEM);
     }
 
     if (strlcpy(rdev->name, name, sizeof(rdev->name)) >= sizeof(rdev->name)) {
         vmm_free(rdev);
-        return VMM_ERR_PTR(VMM_EOVERFLOW);
+        return VMM_ERR_RR_PTR(VMM_ERR_OVERFLOW);
     }
 
     vmm_device_driver_initialize_device(&rdev->dev);
 
     if (strlcpy(rdev->dev.name, name, sizeof(rdev->dev.name)) >= sizeof(rdev->dev.name)) {
         vmm_free(rdev);
-        return VMM_ERR_PTR(VMM_EOVERFLOW);
+        return VMM_ERR_RR_PTR(VMM_ERR_OVERFLOW);
     }
 
     rdev->dev.class = &rtc_class;
@@ -173,20 +173,20 @@ struct rtc_device *rtc_device_register(vmm_device_t *parent, const char *name, c
 
     if (ret) {
         vmm_free(rdev);
-        return VMM_ERR_PTR(ret);
+        return VMM_ERR_RR_PTR(ret);
     }
 
     return rdev;
 }
 
-VMM_EXPORT_SYMBOL(rtc_device_register);
+VMM_ERR_XPORT_SYMBOL(rtc_device_register);
 
 int rtc_device_unregister(struct rtc_device *rdev)
 {
     int ret;
 
     if (!rdev) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     ret = vmm_device_driver_unregister_device(&rdev->dev);
@@ -200,7 +200,7 @@ int rtc_device_unregister(struct rtc_device *rdev)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(rtc_device_unregister);
+VMM_ERR_XPORT_SYMBOL(rtc_device_unregister);
 
 struct rtc_device *rtc_device_find(const char *name)
 {
@@ -215,7 +215,7 @@ struct rtc_device *rtc_device_find(const char *name)
     return vmm_device_driver_get_data(dev);
 }
 
-VMM_EXPORT_SYMBOL(rtc_device_find);
+VMM_ERR_XPORT_SYMBOL(rtc_device_find);
 
 struct rtc_device_iterate_priv {
     void *data;
@@ -236,7 +236,7 @@ int rtc_device_iterate(struct rtc_device *start, void *data, int (*fn)(struct rt
     struct rtc_device_iterate_priv p;
 
     if (!fn) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     p.data = data;
@@ -245,14 +245,14 @@ int rtc_device_iterate(struct rtc_device *start, void *data, int (*fn)(struct rt
     return vmm_device_driver_class_device_iterate(&rtc_class, st, &p, __rtc_device_iterate);
 }
 
-VMM_EXPORT_SYMBOL(rtc_device_iterate);
+VMM_ERR_XPORT_SYMBOL(rtc_device_iterate);
 
 uint32_t rtc_device_count(void)
 {
     return vmm_device_driver_class_device_count(&rtc_class);
 }
 
-VMM_EXPORT_SYMBOL(rtc_device_count);
+VMM_ERR_XPORT_SYMBOL(rtc_device_count);
 
 static int __init rtc_device_init(void)
 {

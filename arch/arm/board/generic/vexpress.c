@@ -56,7 +56,7 @@ static int vexpress_clcd_setup(struct clcd_fb *fb)
     fb->panel          = versatile_clcd_get_panel("XVGA");
 
     if (!fb->panel) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     return versatile_clcd_setup_dma(fb, framesize);
@@ -85,28 +85,28 @@ static int __init vexpress_early_init(vmm_device_tree_node_t *node)
     node = vmm_device_tree_find_compatible(NULL, NULL, "arm,vexpress-muxfpga");
 
     if (!node) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     muxfpga_func = vexpress_config_func_get_by_node(node);
     vmm_device_tree_dref_node(node);
 
     if (!muxfpga_func) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Determine dvimode function */
     node = vmm_device_tree_find_compatible(NULL, NULL, "arm,vexpress-dvimode");
 
     if (!node) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     dvimode_func = vexpress_config_func_get_by_node(node);
     vmm_device_tree_dref_node(node);
 
     if (!dvimode_func) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     /* Setup CLCD (before probing) */

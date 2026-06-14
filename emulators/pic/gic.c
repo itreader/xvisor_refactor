@@ -351,7 +351,7 @@ static int __gic_dist_readb(struct gic_state *s, int cpu, uint32_t offset, uint8
     uint32_t done = 0, i, irq, mask;
 
     if (!s || !dst) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     done = 1;
@@ -502,7 +502,7 @@ static int __gic_dist_readb(struct gic_state *s, int cpu, uint32_t offset, uint8
             break;
     };
 
-    return (done) ? VMM_OK : VMM_EFAIL;
+    return (done) ? VMM_OK : VMM_ERR_FAIL;
 }
 
 static int __gic_dist_writeb(struct gic_state *s, int cpu, uint32_t offset, uint8_t src)
@@ -510,7 +510,7 @@ static int __gic_dist_writeb(struct gic_state *s, int cpu, uint32_t offset, uint
     uint32_t done = 0, i, irq, mask, cm;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     done = 1;
@@ -690,7 +690,7 @@ static int __gic_dist_writeb(struct gic_state *s, int cpu, uint32_t offset, uint
             break;
     };
 
-    return (done) ? VMM_OK : VMM_EFAIL;
+    return (done) ? VMM_OK : VMM_ERR_FAIL;
 }
 
 static int gic_dist_read(struct gic_state *s, int cpu, uint32_t offset, uint32_t *dst)
@@ -700,7 +700,7 @@ static int gic_dist_read(struct gic_state *s, int cpu, uint32_t offset, uint32_t
     uint8_t     val;
 
     if (!s || !dst) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_read_lock_irq_save(&s->dist_lock, flags);
@@ -726,7 +726,7 @@ static int gic_dist_write(struct gic_state *s, int cpu, uint32_t offset, uint32_
     irq_flags_t flags;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     vmm_write_lock_irq_save(&s->dist_lock, flags);
@@ -781,11 +781,11 @@ static int gic_cpu_read(struct gic_state *s, uint32_t cpu, uint32_t offset, uint
     int rc = VMM_OK;
 
     if (!s || !dst) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (s->num_cpu <= cpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     switch (offset) {
@@ -818,7 +818,7 @@ static int gic_cpu_read(struct gic_state *s, uint32_t cpu, uint32_t offset, uint
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     }
 
@@ -830,11 +830,11 @@ static int gic_cpu_write(struct gic_state *s, uint32_t cpu, uint32_t offset, uin
     int rc = VMM_OK;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (s->num_cpu <= cpu) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     src = src & ~src_mask;
@@ -859,7 +859,7 @@ static int gic_cpu_write(struct gic_state *s, uint32_t cpu, uint32_t offset, uin
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 
@@ -873,11 +873,11 @@ int gic_reg_read(struct gic_state *s, physical_addr_t offset, uint32_t *dst)
     vcpu = vmm_scheduler_current_vcpu();
 
     if (!vcpu || !vcpu->guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (s->guest->id != vcpu->guest->id) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((offset >= s->cpu.offset) && (offset < (s->cpu.offset + s->cpu.length))) {
@@ -888,10 +888,10 @@ int gic_reg_read(struct gic_state *s, physical_addr_t offset, uint32_t *dst)
         return gic_dist_read(s, vcpu->subid, offset & 0xFFC, dst);
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
-VMM_EXPORT_SYMBOL(gic_reg_read);
+VMM_ERR_XPORT_SYMBOL(gic_reg_read);
 
 int gic_reg_write(struct gic_state *s, physical_addr_t offset, uint32_t src_mask, uint32_t src)
 {
@@ -900,11 +900,11 @@ int gic_reg_write(struct gic_state *s, physical_addr_t offset, uint32_t src_mask
     vcpu = vmm_scheduler_current_vcpu();
 
     if (!vcpu || !vcpu->guest) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (s->guest->id != vcpu->guest->id) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if ((offset >= s->cpu.offset) && (offset < (s->cpu.offset + s->cpu.length))) {
@@ -915,10 +915,10 @@ int gic_reg_write(struct gic_state *s, physical_addr_t offset, uint32_t src_mask
         return gic_dist_write(s, vcpu->subid, offset & 0xFFC, src_mask, src);
     }
 
-    return VMM_EFAIL;
+    return VMM_ERR_FAIL;
 }
 
-VMM_EXPORT_SYMBOL(gic_reg_write);
+VMM_ERR_XPORT_SYMBOL(gic_reg_write);
 
 static int gic_emulator_read8(vmm_emulate_device_t *edev, physical_addr_t offset, uint8_t *dst)
 {
@@ -1015,7 +1015,7 @@ int gic_state_reset(struct gic_state *s)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(gic_state_reset);
+VMM_ERR_XPORT_SYMBOL(gic_state_reset);
 
 static int gic_emulator_reset(vmm_emulate_device_t *edev)
 {
@@ -1167,14 +1167,14 @@ struct gic_state *gic_state_alloc(
     return s;
 }
 
-VMM_EXPORT_SYMBOL(gic_state_alloc);
+VMM_ERR_XPORT_SYMBOL(gic_state_alloc);
 
 int gic_state_free(struct gic_state *s)
 {
     uint32_t i;
 
     if (!s) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     for (i = s->base_irq; i < (s->base_irq + s->num_irq); i++) {
@@ -1186,7 +1186,7 @@ int gic_state_free(struct gic_state *s)
     return VMM_OK;
 }
 
-VMM_EXPORT_SYMBOL(gic_state_free);
+VMM_ERR_XPORT_SYMBOL(gic_state_free);
 
 static int gic_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *edev, const struct vmm_device_tree_nodeid *eid)
 {
@@ -1197,7 +1197,7 @@ static int gic_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ede
     uint32_t          parent_irq, base_irq, num_irq;
 
     if (guest->vcpu_count > GIC_MAX_NCPU) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (vmm_device_tree_getattr(edev->node, "child_pic")) {
@@ -1229,7 +1229,7 @@ static int gic_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t *ede
     s = gic_state_alloc(edev->node->name, guest, type, guest->vcpu_count, is_child_pic, base_irq, num_irq, parent_irq);
 
     if (!s) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     edev->private = s;

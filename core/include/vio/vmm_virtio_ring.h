@@ -18,7 +18,7 @@
  *
  * @file vmm_virtio_ring.h
  * @author Pranav Sawargaonkar (pranav.sawargaonkar@gmail.com)
- * @brief VirtIO Ring Interface
+ * @brief VirtIO环形队列接口
  *
  * The source has been largely adapted from Linux 3.x or higher:
  * include/uapi/linux/virtio_ring.h
@@ -62,48 +62,63 @@
 #define VMM_VIRTIO_RING_F_EVENT_IDX     29
 
 /* Virtio ring descriptors: 16 bytes.  These can chain together via "next". */
+/**
+ * @brief VirtIO环形描述符，描述一个缓冲区的地址、长度和链接标志
+ */
 struct vmm_vring_desc {
     /* Address (guest-physical). */
-    uint64_t addr;
+    uint64_t addr; /**< 地址 */
     /* Length. */
-    uint32_t len;
+    uint32_t len; /**< 长度 */
     /* The flags as indicated above. */
-    uint16_t flags;
+    uint16_t flags; /**< 标志位 */
     /* We chain unused descriptors via this, too */
-    uint16_t next;
+    uint16_t next; /**< 下一个 */
 };
 
+/**
+ * @brief VirtIO可用环，由前端写入可供后端消费的描述符索引
+ */
 struct vmm_vring_avail {
-    uint16_t flags;
-    uint16_t idx;
-    uint16_t ring[];
+    uint16_t flags; /**< 标志位 */
+    uint16_t idx; /**< 索引 */
+    uint16_t ring[]; /**< ring成员 */
 };
 
 /* uint32_t is used here for ids for padding reasons. */
+/**
+ * @brief VirtIO已用环元素，记录已处理的描述符链头和写入长度
+ */
 struct vmm_vring_used_elem {
     /* Index of start of used descriptor chain. */
-    uint32_t id;
+    uint32_t id; /**< 标识符 */
     /* Total length of the descriptor chain which was used (written to) */
-    uint32_t len;
+    uint32_t len; /**< 长度 */
 };
 
+/**
+ * @brief VirtIO已用环，由后端写入已处理的描述符索引和结果
+ */
 struct vmm_vring_used {
-    uint16_t                   flags;
-    uint16_t                   idx;
-    struct vmm_vring_used_elem ring[];
+    uint16_t                   flags; /**< 标志位 */
+    uint16_t                   idx; /**< 索引 */
+    struct vmm_vring_used_elem ring[]; /**< ring成员 */
 };
 
+/**
+ * @brief VirtIO环形队列总结构，整合描述符表、可用环和已用环
+ */
 struct vmm_vring {
-    uint32_t num;
+    uint32_t num; /**< 数量 */
 
-    struct vmm_vring_desc *desc;
-    physical_addr_t        desc_pa;
+    struct vmm_vring_desc *desc; /**< 描述 */
+    physical_addr_t        desc_pa; /**< desc_pa成员 */
 
-    struct vmm_vring_avail *avail;
-    physical_addr_t         avail_pa;
+    struct vmm_vring_avail *avail; /**< 可用量 */
+    physical_addr_t         avail_pa; /**< avail_pa成员 */
 
-    struct vmm_vring_used *used;
-    physical_addr_t        used_pa;
+    struct vmm_vring_used *used; /**< 已使用量 */
+    physical_addr_t        used_pa; /**< used_pa成员 */
 };
 
 /* The standard layout for the ring is a continuous chunk of memory which looks

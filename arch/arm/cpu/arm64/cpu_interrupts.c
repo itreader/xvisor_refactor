@@ -95,7 +95,7 @@ void do_sync(arch_regs_t *regs, uint64_t mode)
     switch (ec) {
         case EC_UNKNOWN:
             /* We dont expect to get this trap so error */
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
 
         case EC_TRAP_WFI_WFE:
@@ -151,7 +151,7 @@ void do_sync(arch_regs_t *regs, uint64_t mode)
         case EC_TRAP_SVC_A32:
         case EC_TRAP_SVC_A64:
             /* We dont expect to get these traps so error */
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
 
         case EC_TRAP_SMC_A32:
@@ -199,18 +199,18 @@ void do_sync(arch_regs_t *regs, uint64_t mode)
         case EC_CUREL_DATA_ABORT:
         case EC_SERROR:
             /* We dont expect to get aborts from EL2 so error */
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
 
         case EC_PC_UNALIGNED:
         case EC_SP_UNALIGNED:
             /* We dont expect to get alignment faults from EL2 */
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
 
         default:
             /* Unhandled or unknown EC value so error */
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     };
 

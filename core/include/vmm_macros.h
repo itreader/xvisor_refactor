@@ -18,7 +18,7 @@
  *
  * @file vmm_macros.h
  * @author Himanshu Chauhan (hschauhan@nulltrace.org)
- * @brief Useful preprocessor macros for vmm
+ * @brief VMM预处理宏定义
  */
 
 #ifndef __VMM_MACROS_H__

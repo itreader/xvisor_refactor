@@ -56,7 +56,7 @@ static int fatfs_mount(struct mount *m, const char *dev, uint32_t flags)
     ctrl = vmm_zalloc(sizeof(fatfs_control_t));
 
     if (!ctrl) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Setup control info */
@@ -118,7 +118,7 @@ static int fatfs_unmount(struct mount *m)
     fatfs_control_t *ctrl = m->m_data;
 
     if (!ctrl) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = fatfs_control_exit(ctrl);
@@ -133,7 +133,7 @@ static int fatfs_msync(struct mount *m)
     fatfs_control_t *ctrl = m->m_data;
 
     if (!ctrl) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return fatfs_control_sync(ctrl);
@@ -148,7 +148,7 @@ static int fatfs_vget(struct mount *m, struct vnode *v)
     node                    = vmm_zalloc(sizeof(struct fatfs_node));
 
     if (!node) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     rc        = fatfs_node_init(ctrl, node);
@@ -164,7 +164,7 @@ static int fatfs_vput(struct mount *m, struct vnode *v)
     struct fatfs_node *node = v->v_data;
 
     if (!node) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     rc = fatfs_node_exit(node);
@@ -216,7 +216,7 @@ static int fatfs_truncate(struct vnode *v, loff_t off)
     struct fatfs_node *node = v->v_data;
 
     if ((uint32_t)off <= fatfs_node_get_size(node)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     rc = fatfs_node_truncate(node, (uint32_t)off);
@@ -239,7 +239,7 @@ static int fatfs_sync(struct vnode *v)
     struct fatfs_node *node = v->v_data;
 
     if (!node) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     return fatfs_node_sync(node);
@@ -321,9 +321,9 @@ static int fatfs_create(struct vnode *dv, const char *name, uint32_t mode)
 
     rc                               = fatfs_node_find_dirent(dnode, name, &dent, &off, &len);
 
-    if (rc != VMM_ENOENT) {
+    if (rc != VMM_ERR_NOENT) {
         if (!rc) {
-            return VMM_EEXIST;
+            return VMM_ERR_EXIST;
         } else {
             return rc;
         }
@@ -392,7 +392,7 @@ static int fatfs_remove(struct vnode *dv, struct vnode *v, const char *name)
     clust |= __le16(dent.first_cluster_lo);
 
     if (node->first_cluster != clust) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     rc = fatfs_node_del_dirent(dnode, name, off, len);
@@ -414,9 +414,9 @@ static int fatfs_rename(struct vnode *sv, const char *sname, struct vnode *v, st
 
     rc                               = fatfs_node_find_dirent(dnode, dname, &dent, &off, &len);
 
-    if (rc != VMM_ENOENT) {
+    if (rc != VMM_ERR_NOENT) {
         if (!rc) {
-            return VMM_EEXIST;
+            return VMM_ERR_EXIST;
         } else {
             return rc;
         }
@@ -454,9 +454,9 @@ static int fatfs_mkdir(struct vnode *dv, const char *name, uint32_t mode)
 
     rc                               = fatfs_node_find_dirent(dnode, name, &dent, &off, &len);
 
-    if (rc != VMM_ENOENT) {
+    if (rc != VMM_ERR_NOENT) {
         if (!rc) {
-            return VMM_EEXIST;
+            return VMM_ERR_EXIST;
         } else {
             return rc;
         }
@@ -525,7 +525,7 @@ static int fatfs_rmdir(struct vnode *dv, struct vnode *v, const char *name)
     clust |= __le16(dent.first_cluster_lo);
 
     if (node->first_cluster != clust) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     rc = fatfs_control_truncate_clusters(node->ctrl, clust);

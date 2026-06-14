@@ -132,7 +132,7 @@ const struct imsic_global_config *imsic_get_global_config(void)
     return &handler->private->global;
 }
 
-VMM_EXPORT_SYMBOL_GPL(imsic_get_global_config);
+VMM_ERR_XPORT_SYMBOL_GPL(imsic_get_global_config);
 
 const struct imsic_local_config *imsic_get_local_config(uint32_t cpu)
 {
@@ -145,7 +145,7 @@ const struct imsic_local_config *imsic_get_local_config(uint32_t cpu)
     return &handler->local;
 }
 
-VMM_EXPORT_SYMBOL_GPL(imsic_get_local_config);
+VMM_ERR_XPORT_SYMBOL_GPL(imsic_get_local_config);
 
 static int imsic_cpu_page_phys(uint32_t cpu, uint32_t guest_index, physical_addr_t *out_msi_pa)
 {
@@ -154,14 +154,14 @@ static int imsic_cpu_page_phys(uint32_t cpu, uint32_t guest_index, physical_addr
     struct imsic_local_config  *local;
 
     if (!handler || !handler->private) {
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     local  = &handler->local;
     global = &handler->private->global;
 
     if (BIT(global->guest_index_bits) <= guest_index) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (out_msi_pa) {
@@ -185,7 +185,7 @@ static int imsic_get_cpu(struct imsic_priv *private, const vmm_cpumask_t *mask_v
     }
 
     if (cpu >= vmm_cpu_count) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (out_target_cpu) {
@@ -374,7 +374,7 @@ static int imsic_ids_alloc(struct imsic_priv *private, uint32_t max_id, uint32_t
     irq_flags_t flags;
 
     if ((private->global.nr_ids < max_id) || (max_id < BIT(order))) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_spin_lock_irq_save_lite(&private->ids_lock, flags);
@@ -404,7 +404,7 @@ static int __init imsic_ids_init(struct imsic_priv *private)
     private->ids_used_bimap = vmm_calloc(BITS_TO_LONGS(global->nr_ids + 1), sizeof(uint64_t));
 
     if (!private->ids_used_bimap) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Allocate enabled bitmap */
@@ -412,7 +412,7 @@ static int __init imsic_ids_init(struct imsic_priv *private)
 
     if (!private->ids_enabled_bimap) {
         vmm_free(private->ids_used_bimap);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Allocate target CPU array */
@@ -421,7 +421,7 @@ static int __init imsic_ids_init(struct imsic_priv *private)
     if (!private->ids_target_cpu) {
         vmm_free(private->ids_enabled_bimap);
         vmm_free(private->ids_used_bimap);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     for (i = 0; i <= global->nr_ids; i++) {
@@ -442,21 +442,21 @@ static void __init imsic_ids_cleanup(struct imsic_priv *private)
 }
 
 #ifdef CONFIG_SMP
-static void imsic_ipi_mask(struct vmm_host_irq *d)
+static void imsic_ipi_mask(vmm_host_irq_t *d)
 {
     struct imsic_priv *private = vmm_host_irq_get_chip_data(d);
 
     __imsic_id_disable(private->ipi_id);
 }
 
-static void imsic_ipi_unmask(struct vmm_host_irq *d)
+static void imsic_ipi_unmask(vmm_host_irq_t *d)
 {
     struct imsic_priv *private = vmm_host_irq_get_chip_data(d);
 
     __imsic_id_enable(private->ipi_id);
 }
 
-static void imsic_ipi_send_mask(struct vmm_host_irq *d, const vmm_cpumask_t *mask)
+static void imsic_ipi_send_mask(vmm_host_irq_t *d, const vmm_cpumask_t *mask)
 {
     int                   cpu;
     struct imsic_handler *handler;
@@ -474,14 +474,14 @@ static void imsic_ipi_send_mask(struct vmm_host_irq *d, const vmm_cpumask_t *mas
     }
 }
 
-static struct vmm_host_irq_chip imsic_ipi_chip = {
+static vmm_host_irq_chip_t imsic_ipi_chip = {
     .name       = "riscv-imsic-ipi",
     .irq_mask   = imsic_ipi_mask,
     .irq_unmask = imsic_ipi_unmask,
     .irq_raise  = imsic_ipi_send_mask,
 };
 
-static int imsic_ipi_domain_map(struct vmm_host_irq_domain *dom, uint32_t hirq, uint32_t hwirq)
+static int imsic_ipi_domain_map(struct vmm_host_irq_domain *dom, uint32_t hirq, uint32_t hw_irq_num)
 {
     struct imsic_priv *private = dom->host_data;
 
@@ -536,7 +536,7 @@ static int __init imsic_ipi_domain_init(struct imsic_priv *private)
 
     if (!private->ipi_domain) {
         imsic_ids_free(private, private->ipi_id, get_count_order(1));
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* Pre-create IPI mappings */
@@ -586,31 +586,31 @@ static int __init imsic_ipi_domain_init(struct imsic_priv *private)
 static void __init imsic_ipi_domain_cleanup(struct imsic_priv *private) {}
 #endif
 
-static void imsic_irq_mask(struct vmm_host_irq *d)
+static void imsic_irq_mask(vmm_host_irq_t *d)
 {
-    imsic_id_disable(vmm_host_irq_get_chip_data(d), d->hwirq);
+    imsic_id_disable(vmm_host_irq_get_chip_data(d), d->hw_irq_num);
 }
 
-static void imsic_irq_unmask(struct vmm_host_irq *d)
+static void imsic_irq_unmask(vmm_host_irq_t *d)
 {
-    imsic_id_enable(vmm_host_irq_get_chip_data(d), d->hwirq);
+    imsic_id_enable(vmm_host_irq_get_chip_data(d), d->hw_irq_num);
 }
 
-static void imsic_irq_compose_msi_msg(struct vmm_host_irq *d, struct vmm_msi_msg *msg)
+static void imsic_irq_compose_msi_msg(vmm_host_irq_t *d, struct vmm_msi_msg *msg)
 {
     struct imsic_priv *private = vmm_host_irq_get_chip_data(d);
     uint32_t cpu;
     int      err;
 
-    cpu = imsic_id_get_target(private, d->hwirq);
+    cpu = imsic_id_get_target(private, d->hw_irq_num);
     WARN_ON(cpu == UINT_MAX);
 
-    err = imsic_get_cpu_msi_msg(cpu, d->hwirq, msg);
+    err = imsic_get_cpu_msi_msg(cpu, d->hw_irq_num, msg);
     WARN_ON(err);
 }
 
 #ifdef CONFIG_SMP
-static int imsic_irq_set_affinity(struct vmm_host_irq *d, const vmm_cpumask_t *mask_val, bool force)
+static int imsic_irq_set_affinity(vmm_host_irq_t *d, const vmm_cpumask_t *mask_val, bool force)
 {
     struct imsic_priv *private = vmm_host_irq_get_chip_data(d);
     uint32_t target_cpu;
@@ -622,7 +622,7 @@ static int imsic_irq_set_affinity(struct vmm_host_irq *d, const vmm_cpumask_t *m
         return rc;
     }
 
-    imsic_id_set_target(private, d->hwirq, target_cpu);
+    imsic_id_set_target(private, d->hw_irq_num, target_cpu);
 
     vmm_msi_domain_write_msg(d);
 
@@ -630,7 +630,7 @@ static int imsic_irq_set_affinity(struct vmm_host_irq *d, const vmm_cpumask_t *m
 }
 #endif
 
-static struct vmm_host_irq_chip imsic_irq_base_chip = {
+static vmm_host_irq_chip_t imsic_irq_base_chip = {
     .name       = "riscv-imsic",
     .irq_mask   = imsic_irq_mask,
     .irq_unmask = imsic_irq_unmask,
@@ -640,7 +640,7 @@ static struct vmm_host_irq_chip imsic_irq_base_chip = {
     .irq_compose_msi_msg = imsic_irq_compose_msi_msg,
 };
 
-static int imsic_irq_domain_map(struct vmm_host_irq_domain *dom, uint32_t hirq, uint32_t hwirq)
+static int imsic_irq_domain_map(struct vmm_host_irq_domain *dom, uint32_t hirq, uint32_t hw_irq_num)
 {
     struct imsic_priv *private = dom->host_data;
 
@@ -655,7 +655,7 @@ static int imsic_irq_domain_alloc(struct vmm_host_irq_domain *dom, uint32_t nr_i
 {
     struct imsic_priv *private = dom->host_data;
     physical_addr_t msi_addr;
-    int             i, hwirq, err = 0;
+    int             i, hw_irq_num, err = 0;
     uint32_t        cpu;
 
     err = imsic_get_cpu(private, &private->lmask, FALSE, &cpu);
@@ -670,26 +670,26 @@ static int imsic_irq_domain_alloc(struct vmm_host_irq_domain *dom, uint32_t nr_i
         return err;
     }
 
-    hwirq = imsic_ids_alloc(private, private->global.nr_ids, get_count_order(nr_irqs));
+    hw_irq_num = imsic_ids_alloc(private, private->global.nr_ids, get_count_order(nr_irqs));
 
-    if (hwirq < 0) {
-        return hwirq;
+    if (hw_irq_num < 0) {
+        return hw_irq_num;
     }
 
     /* TODO: Notify IOMMU ?? */
 
     for (i = 0; i < nr_irqs; i++) {
-        imsic_id_set_target(private, hwirq + i, cpu);
+        imsic_id_set_target(private, hw_irq_num + i, cpu);
     }
 
-    return hwirq;
+    return hw_irq_num;
 }
 
-static void imsic_irq_domain_free(struct vmm_host_irq_domain *dom, uint32_t hwirq, uint32_t nr_irqs)
+static void imsic_irq_domain_free(struct vmm_host_irq_domain *dom, uint32_t hw_irq_num, uint32_t nr_irqs)
 {
     struct imsic_priv *private = dom->host_data;
 
-    imsic_ids_free(private, hwirq, get_count_order(nr_irqs));
+    imsic_ids_free(private, hw_irq_num, get_count_order(nr_irqs));
 }
 
 static const struct vmm_host_irq_domain_ops imsic_base_domain_ops = {
@@ -707,7 +707,7 @@ static int __init imsic_irq_domains_init(struct imsic_priv *private, vmm_device_
 
     if (!private->base_domain) {
         vmm_lerror("imsic", "Failed to create IMSIC base domain\n");
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     private->plat_domain = vmm_platform_msi_create_domain(node, &imsic_plat_domain_ops, private->base_domain, VMM_MSI_FLAG_USE_DEF_DOM_OPS, private);
@@ -715,7 +715,7 @@ static int __init imsic_irq_domains_init(struct imsic_priv *private, vmm_device_
     if (!private->plat_domain) {
         vmm_lerror("imsic", "Failed to create IMSIC platform MSI domain\n");
         vmm_host_irq_domain_remove(private->base_domain);
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     /* TODO: Create PCI MSI domain */
@@ -733,25 +733,25 @@ static vmm_irq_return_t imsic_handle_irq(int irq, void *dev)
     struct imsic_handler *handler = dev;
     struct imsic_priv *private    = handler->private;
     struct vmm_host_irq_domain *domain;
-    uint32_t                    hwirq, base_hwirq, hirq;
+    uint32_t                    hw_irq_num, base_hw_irq, hirq;
     bool                        have_irq = FALSE;
 
     WARN_ON(!handler->private);
 
-    while ((hwirq = csr_swap(CSR_STOPEI, 0))) {
-        hwirq      = hwirq >> TOPEI_ID_SHIFT;
+    while ((hw_irq_num = csr_swap(CSR_STOPEI, 0))) {
+        hw_irq_num      = hw_irq_num >> TOPEI_ID_SHIFT;
         domain     = private->base_domain;
-        base_hwirq = 0;
+        base_hw_irq = 0;
 
-        if (hwirq == private->ipi_id) {
+        if (hw_irq_num == private->ipi_id) {
             domain     = private->ipi_domain;
-            base_hwirq = hwirq;
-        } else if (hwirq == private->ipi_lsync_id) {
+            base_hw_irq = hw_irq_num;
+        } else if (hw_irq_num == private->ipi_lsync_id) {
             imsic_ids_local_sync(private);
             continue;
         }
 
-        hirq = vmm_host_irq_domain_find_mapping(domain, hwirq - base_hwirq);
+        hirq = vmm_host_irq_domain_find_mapping(domain, hw_irq_num - base_hw_irq);
         vmm_host_generic_irq_exec(hirq);
         have_irq = TRUE;
     }
@@ -822,18 +822,18 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
 
     if (imsic_init_done) {
         vmm_lerror(node->name, "already initialized hence ignoring\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     if (!riscv_isa_extension_available(NULL, SxAIA)) {
         vmm_lerror(node->name, "AIA support not available\n");
-        return VMM_ENODEV;
+        return VMM_ERR_NODEV;
     }
 
     private = vmm_zalloc(sizeof(*private));
 
     if (!private) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     global         = &private->global;
@@ -843,7 +843,7 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
 
     if (!nr_parent_irqs) {
         vmm_lerror(node->name, "no parent irqs available\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Find number of guest index bits in MSI address */
@@ -857,7 +857,7 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
 
     if (tmp < global->guest_index_bits) {
         vmm_lerror(node->name, "guest index bits too big\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Find number of HART index bits */
@@ -876,7 +876,7 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
 
     if (tmp < global->hart_index_bits) {
         vmm_lerror(node->name, "HART index bits too big\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Find number of group index bits */
@@ -890,7 +890,7 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
 
     if (tmp < global->group_index_bits) {
         vmm_lerror(node->name, "group index bits too big\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Find first bit position of group index */
@@ -903,14 +903,14 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
 
     if (global->group_index_shift < tmp) {
         vmm_lerror(node->name, "group index shift too small\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     tmp = global->group_index_bits + global->group_index_shift - 1;
 
     if (tmp >= BITS_PER_LONG) {
         vmm_lerror(node->name, "group index shift too big\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Find number of interrupt identities */
@@ -923,7 +923,7 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
 
     if ((global->nr_ids < IMSIC_MIN_ID) || (global->nr_ids >= IMSIC_MAX_ID) || ((global->nr_ids & IMSIC_MIN_ID) != IMSIC_MIN_ID)) {
         vmm_lerror(node->name, "invalid number of interrupt identities\n");
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Check if IPIs are slow */
@@ -949,7 +949,7 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
     private->mmios = vmm_calloc(private->num_mmios, sizeof(*mmio));
 
     if (!private->mmios) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto out_free_private;
     }
 
@@ -976,7 +976,7 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
         base_addr &= ~((BIT(global->group_index_bits) - 1) << global->group_index_shift);
 
         if (base_addr != global->base_addr) {
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             vmm_lerror(node->name, "address mismatch for regset %d\n", i);
             goto out_iounmap;
         }
@@ -984,7 +984,7 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
         tmp = BIT(global->guest_index_bits) - 1;
 
         if ((mmio->size / IMSIC_MMIO_PAGE_SZ) & tmp) {
-            rc = VMM_EINVALID;
+            rc = VMM_ERR_INVALID;
             vmm_lerror(node->name, "size mismatch for regset %d\n", i);
             goto out_iounmap;
         }
@@ -1023,7 +1023,7 @@ static int __init imsic_init(vmm_device_tree_node_t *node)
          * out privilege level.
          */
         if (parent.args[0] != IRQ_S_EXT) {
-            vmm_lwarning(node->name, "invalid hwirq for parent irq%d\n", i);
+            vmm_lwarning(node->name, "invalid hw_irq_num for parent irq%d\n", i);
             continue;
         }
 

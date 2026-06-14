@@ -42,7 +42,7 @@ void clock_bulk_put(int num_clocks, struct clock_bulk_data *clks)
     }
 }
 
-VMM_EXPORT_SYMBOL(clock_bulk_put);
+VMM_ERR_XPORT_SYMBOL(clock_bulk_put);
 
 int clock_bulk_get(vmm_device_t *dev, int num_clocks, struct clock_bulk_data *clks)
 {
@@ -72,7 +72,7 @@ err:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(clock_bulk_get);
+VMM_ERR_XPORT_SYMBOL(clock_bulk_get);
 
 #ifdef CONFIG_HAVE_CLK_PREPARE
 
@@ -82,7 +82,7 @@ VMM_EXPORT_SYMBOL(clock_bulk_get);
  * @clks: the clock_bulk_data table being unprepared
  *
  * clock_bulk_unprepare may sleep, which differentiates it from clock_bulk_disable.
- * Returns 0 on success, VMM_EERROR otherwise.
+ * Returns 0 on success, VMM_ERR_ERROR otherwise.
  */
 void clock_bulk_unprepare(int num_clocks, const struct clock_bulk_data *clks)
 {
@@ -91,7 +91,7 @@ void clock_bulk_unprepare(int num_clocks, const struct clock_bulk_data *clks)
     }
 }
 
-VMM_EXPORT_SYMBOL(clock_bulk_unprepare);
+VMM_ERR_XPORT_SYMBOL(clock_bulk_unprepare);
 
 /**
  * clock_bulk_prepare - prepare a set of clocks
@@ -99,7 +99,7 @@ VMM_EXPORT_SYMBOL(clock_bulk_unprepare);
  * @clks: the clock_bulk_data table being prepared
  *
  * clock_bulk_prepare may sleep, which differentiates it from clock_bulk_enable.
- * Returns 0 on success, VMM_EERROR otherwise.
+ * Returns 0 on success, VMM_ERR_ERROR otherwise.
  */
 int clock_bulk_prepare(int num_clocks, const struct clock_bulk_data *clks)
 {
@@ -123,7 +123,7 @@ err:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(clock_bulk_prepare);
+VMM_ERR_XPORT_SYMBOL(clock_bulk_prepare);
 
 #endif /* CONFIG_HAVE_CLK_PREPARE */
 
@@ -144,7 +144,7 @@ void clock_bulk_disable(int num_clocks, const struct clock_bulk_data *clks)
     }
 }
 
-VMM_EXPORT_SYMBOL(clock_bulk_disable);
+VMM_ERR_XPORT_SYMBOL(clock_bulk_disable);
 
 /**
  * clock_bulk_enable - ungate a set of clocks
@@ -152,7 +152,7 @@ VMM_EXPORT_SYMBOL(clock_bulk_disable);
  * @clks: the clock_bulk_data table being ungated
  *
  * clock_bulk_enable must not sleep
- * Returns 0 on success, VMM_EERROR otherwise.
+ * Returns 0 on success, VMM_ERR_ERROR otherwise.
  */
 int clock_bulk_enable(int num_clocks, const struct clock_bulk_data *clks)
 {
@@ -176,4 +176,4 @@ err:
     return ret;
 }
 
-VMM_EXPORT_SYMBOL(clock_bulk_enable);
+VMM_ERR_XPORT_SYMBOL(clock_bulk_enable);

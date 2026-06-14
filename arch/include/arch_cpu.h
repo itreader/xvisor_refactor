@@ -37,14 +37,14 @@ void arch_cpu_print_summary(vmm_char_device_t *cdev);
 /**
  * CPU nascent init
  *
- * Only Host aspace, Heap, and Device tree available.
+ * Only Host addr_space, Heap, and Device tree available.
  */
 int arch_cpu_nascent_init(void);
 
 /**
  * CPU early init
  *
- * Only Host aspace, Heap, Device tree, Per-CPU areas, CPU hotplug,
+ * Only Host addr_space, Heap, Device tree, Per-CPU areas, CPU hotplug,
  * and Host IRQ available.
  */
 int arch_cpu_early_init(void);

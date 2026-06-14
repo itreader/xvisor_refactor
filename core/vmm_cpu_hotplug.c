@@ -18,7 +18,7 @@
  *
  * @file vmm_cpu_hotplug.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief Interface for CPU hotplug notifiers
+ * @brief CPU热插拔通知器接口
  */
 
 #include <vmm_compiler.h>
@@ -38,33 +38,46 @@
 #define DPRINTF(msg...)
 #endif
 
+/**
+ * @brief CPU热插拔状态表，记录各子系统的初始化状态
+ */
 struct cpu_hotplug_state {
-    vmm_rwlock_t                lock;
-    enum vmm_cpu_hotplug_states state;
+    vmm_rwlock_t                lock; /**< 自旋锁 */
+    enum vmm_cpu_hotplug_states state; /**< 状态 */
 };
 
 static DEFINE_PER_CPU(struct cpu_hotplug_state, chpstate);
 static DEFINE_RWLOCK(notify_lock);
 static LIST_HEAD(notify_list);
 
+/**
+ * @brief 获取指定CPU的热插拔状态
+ * @param cpu CPU编号
+ * @return 当前热插拔状态枚举值
+ */
 enum vmm_cpu_hotplug_states vmm_cpu_hotplug_get_state(uint32_t cpu)
 {
-    uint32_t                  ret;
-    struct cpu_hotplug_state *chps;
+    uint32_t                  ret; /**< 返回值 */
+    struct cpu_hotplug_state *chps; /**< chps成员 */
 
     if (!vmm_cpu_possible(cpu)) {
-        return VMM_CPU_HOTPLUG_STATE_OFFLINE;
+        return VMM_CPU_HOTPLUG_STATE_OFFLINE; /**< VMM_CPU_HOTPLUG_STATE_OFFLINE成员 */
     }
 
-    chps = &per_cpu(chpstate, cpu);
+    chps = &per_cpu(chpstate, cpu); /**< cpu)成员 */
 
     vmm_read_lock_lite(&chps->lock);
-    ret = chps->state;
+    ret = chps->state; /**< chps->state成员 */
     vmm_read_unlock_lite(&chps->lock);
 
-    return ret;
+    return ret; /**< 返回值 */
 }
 
+/**
+ * @brief 设置CPU热插拔的状态
+ * @param state 状态值
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_cpu_hotplug_set_state(uint32_t state)
 {
     int                       ret      = VMM_OK;
@@ -120,6 +133,12 @@ int vmm_cpu_hotplug_set_state(uint32_t state)
     return ret;
 }
 
+/**
+ * @brief 注册CPU热插拔同步回调函数
+ * @param arg1 第一个参数值
+ * @param arg2 第二个参数值
+ * @param arg3 第三个参数值
+ */
 static void cpu_hotplug_register_sync(void *arg1, void *arg2, void *arg3)
 {
     uint32_t                  cpu         = vmm_smp_processor_id();
@@ -129,25 +148,32 @@ static void cpu_hotplug_register_sync(void *arg1, void *arg2, void *arg3)
     vmm_read_lock_lite(&chps->lock);
 
     if (cpu_hotplug->startup && (cpu_hotplug->state <= chps->state)) {
-        cpu_hotplug->startup(cpu_hotplug, cpu);
+        cpu_hotplug->startup(cpu_hotplug, cpu); /**< cpu)成员 */
     }
 
     vmm_read_unlock_lite(&chps->lock);
 }
 
+/**
+ * @brief 注册CPU热插拔
+ * @param cpu_hotplug CPU热插拔结构体指针
+ * @param invoke_startup 是否调用启动函数标志
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_cpu_hotplug_register(vmm_cpu_hotplug_notify_t *cpu_hotplug, bool invoke_startup)
 {
-    uint32_t                  cpu, curr_cpu;
+    uint32_t cpu;
+    uint32_t curr_cpu;
     bool                      found = FALSE;
     struct cpu_hotplug_state *chps  = NULL;
     vmm_cpu_hotplug_notify_t *chpn  = NULL;
 
     if (!cpu_hotplug) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID; /**< VMM_ERR_INVALID成员 */
     }
 
     if (cpu_hotplug->state <= VMM_CPU_HOTPLUG_STATE_OFFLINE) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_write_lock_lite(&notify_lock);
@@ -162,7 +188,7 @@ int vmm_cpu_hotplug_register(vmm_cpu_hotplug_notify_t *cpu_hotplug, bool invoke_
 
     if (found) {
         vmm_write_unlock_lite(&notify_lock);
-        return VMM_EEXIST;
+        return VMM_ERR_EXIST;
     }
 
     found = FALSE;
@@ -216,13 +242,18 @@ done:
     return VMM_OK;
 }
 
+/**
+ * @brief 注销CPU热插拔
+ * @param cpu_hotplug CPU热插拔结构体指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_cpu_hotplug_unregister(vmm_cpu_hotplug_notify_t *cpu_hotplug)
 {
     bool                      found = FALSE;
     vmm_cpu_hotplug_notify_t *chpn;
 
     if (!cpu_hotplug) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     vmm_write_lock_lite(&notify_lock);
@@ -237,7 +268,7 @@ int vmm_cpu_hotplug_unregister(vmm_cpu_hotplug_notify_t *cpu_hotplug)
 
     if (!found) {
         vmm_write_unlock_lite(&notify_lock);
-        return VMM_ENOTAVAIL;
+        return VMM_ERR_NOTAVAIL;
     }
 
     list_del(&cpu_hotplug->head);
@@ -247,6 +278,10 @@ int vmm_cpu_hotplug_unregister(vmm_cpu_hotplug_notify_t *cpu_hotplug)
     return VMM_OK;
 }
 
+/**
+ * @brief 初始化CPU热插拔
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int __init vmm_cpu_hotplug_init(void)
 {
     uint32_t                  cpu;
@@ -254,9 +289,9 @@ int __init vmm_cpu_hotplug_init(void)
 
     for_each_possible_cpu(cpu)
     {
-        chps = &per_cpu(chpstate, cpu);
+        chps = &per_cpu(chpstate, cpu); /**< cpu)成员 */
         INIT_RW_LOCK(&chps->lock);
-        chps->state = VMM_CPU_HOTPLUG_STATE_OFFLINE;
+        chps->state = VMM_CPU_HOTPLUG_STATE_OFFLINE; /**< VMM_CPU_HOTPLUG_STATE_OFFLINE成员 */
     }
 
     return VMM_OK;

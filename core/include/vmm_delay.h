@@ -18,44 +18,78 @@
  *
  * @file vmm_delay.h
  * @author Anup Patel (anup@brainfault.org)
- * @brief header file for soft delay subsystem
+ * @brief 软延迟子系统头文件
  */
 #ifndef _VMM_DELAY_H__
 #define _VMM_DELAY_H__
 
 #include <vmm_types.h>
 
-/** Sleep for some microseconds */
+/**
+ * @brief usleep
+ * @param usecs 微秒值
+ */
 void vmm_usleep(uint64_t usecs);
 
-/** Sleep for some milliseconds */
+/**
+ * @brief msleep
+ * @param msecs 毫秒值
+ */
 void vmm_msleep(uint64_t msecs);
 
-/** Sleep for some seconds */
+/**
+ * @brief ssleep
+ * @param secs 秒数
+ */
 void vmm_ssleep(uint64_t secs);
 
-/** Emulate soft delay in-terms of nanoseconds */
+/**
+ * @brief ndelay
+ * @param nsecs 时间值（纳秒）
+ */
 void vmm_ndelay(uint64_t nsecs);
 
-/** Emulate soft delay in-terms of microseconds */
+/**
+ * @brief udelay
+ * @param usecs 微秒值
+ */
 void vmm_udelay(uint64_t usecs);
 
-/** Emulate soft delay in-terms of milliseconds */
+/**
+ * @brief mdelay
+ * @param msecs 毫秒值
+ */
 void vmm_mdelay(uint64_t msecs);
 
-/** Emulate soft delay in-terms of seconds */
+/**
+ * @brief sdelay
+ * @param secs 秒数
+ */
 void vmm_sdelay(uint64_t secs);
 
-/** Get estimated speed of given host cpu in MHz */
+/**
+ * @brief 估算CPU主频（MHz），用于校准延迟循环
+ * @param cpu CPU编号
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_delay_estimate_cpu_mhz(uint32_t cpu);
 
-/** Get estimated speed of given host cpu in KHz */
+/**
+ * @brief 估算CPU主频（KHz），用于校准延迟循环
+ * @param cpu CPU编号
+ * @return 返回64位无符号整数值
+ */
 uint64_t vmm_delay_estimate_cpu_khz(uint32_t cpu);
 
-/** Recaliberate soft delay subsystem */
+/**
+ * @brief 重新校准延迟循环参数
+ */
 void vmm_delay_recaliberate(void);
 
-/** Initialization soft delay subsystem */
+/**
+ * @brief 初始化延迟
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_delay_init(void);
 
 #endif

@@ -33,7 +33,7 @@ int idr_alloc(struct idr *idr, void *ptr, int start, int end, unsigned gfp_mask)
 
     /* sanity checks */
     if (!idr || !ptr || (start < 0)) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (end <= 0) {
@@ -45,11 +45,11 @@ int idr_alloc(struct idr *idr, void *ptr, int start, int end, unsigned gfp_mask)
     id = radix_tree_next_hole(&idr->root, start, end);
 
     if (id > end) {
-        return VMM_ENOSPC;
+        return VMM_ERR_NOSPC;
     }
 
     if (0 != radix_tree_insert(&idr->root, id, ptr)) {
-        return VMM_ENOMEM;
+        return VMM_ERR_NOMEM;
     }
 
     return id;
@@ -76,7 +76,7 @@ void idr_remove(struct idr *idr, int id)
 int ida_simple_get(struct ida *ida, uint32_t start, uint32_t end, unsigned gfp_mask)
 {
     if (!ida) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Ignore gfp_mask becasue that's only for linux compatibility */

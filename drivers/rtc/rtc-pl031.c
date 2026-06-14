@@ -135,7 +135,7 @@ static int pl031_stv2_tm_to_time(struct rtc_device *rd, struct rtc_time *tm, uin
     /* wday masking is not working in hardware so wday must be valid */
     if (wday < -1 || wday > 6) {
         vmm_lerror(rd->dev.name, "invalid wday value %d\n", tm->tm_week_of_day);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     } else if (wday == -1) {
         /* wday is not provided, calculate it here */
         uint64_t        time;
@@ -356,7 +356,7 @@ static int pl031_driver_probe(vmm_device_t *dev)
     ldata = vmm_zalloc(sizeof(struct pl031_local));
 
     if (!ldata) {
-        rc = VMM_ENOMEM;
+        rc = VMM_ERR_NOMEM;
         goto free_nothing;
     }
 
@@ -374,7 +374,7 @@ static int pl031_driver_probe(vmm_device_t *dev)
     ldata->irq         = vmm_device_tree_irq_parse_map(dev->of_node, 0);
 
     if (!ldata->irq) {
-        rc = VMM_ENODEV;
+        rc = VMM_ERR_NODEV;
         goto free_reg;
     }
 
@@ -394,7 +394,7 @@ static int pl031_driver_probe(vmm_device_t *dev)
         /* ST Micro variant - stv2 */
         ops = &pl031_stv2_ops;
     } else {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto free_irq;
     }
 

@@ -61,5 +61,5 @@ int arch_elf_apply_relocate_add(
 {
     /* TODO: */
     vmm_printf("module %s: ADD RELOCATION unsupported\n", mod->name);
-    return VMM_ENOEXEC;
+    return VMM_ERR_NOEXEC;
 }

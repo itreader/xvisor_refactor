@@ -47,7 +47,7 @@ static int cmd_echo_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if (argc < 2) {
         cmd_echo_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!strcmp(argv[1], "-e")) {

@@ -32,7 +32,7 @@
 #include <vmm_stdio.h>
 #include <vmm_types.h>
 
-#define HOST_PAGE_TABLE_MAX_TABLE_COUNT (CONFIG_VAPOOL_SIZE_MB << (20 - 3 - PAGE_TABLE_SIZE_SHIFT))
+#define HOST_PAGE_TABLE_MAX_TABLE_COUNT (CONFIG_VIRTUAL_ADDR_POOL_SIZE_MB << (20 - 3 - PAGE_TABLE_SIZE_SHIFT))
 #define HOST_PAGE_TABLE_MAX_TABLE_SIZE  (HOST_PAGE_TABLE_MAX_TABLE_COUNT * PAGE_TABLE_SIZE)
 
 uint64_t __force_order;
@@ -94,7 +94,7 @@ int __create_bootstrap_page_table_entry(uint64_t va, uint64_t pa, uint32_t page_
     ent._val = 0;
 
     if ((page_size != PAGE_SIZE_2M) && (page_size != PAGE_SIZE_4K)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (!preinit_pgtables) {
@@ -108,7 +108,7 @@ int __create_bootstrap_page_table_entry(uint64_t va, uint64_t pa, uint32_t page_
     uint64_t pgti_index = ((va >> PGTI_SHIFT) & 0x1ff);
 
     if (!(__pml4[pml4_index] & 0x3)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     uint64_t *pgdp_base = (uint64_t *)(((uint64_t)__pml4[pml4_index]) & ~0xff);
@@ -117,13 +117,13 @@ int __create_bootstrap_page_table_entry(uint64_t va, uint64_t pa, uint32_t page_
         pgdp_base[pgdp_index] = (uint64_t)alloc_iodev_page();
 
         if ((void *)(pgdp_base[pgdp_index]) == NULL) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         pgdp_base[pgdp_index] |= 0x3;
     } else {
         if (!(pgdp_base[pgdp_index] & 0x3)) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     }
 
@@ -141,14 +141,14 @@ int __create_bootstrap_page_table_entry(uint64_t va, uint64_t pa, uint32_t page_
             pgdi_base[pgdi_index] = (uint64_t)alloc_iodev_page();
 
             if ((void *)pgdi_base[pgdi_index] == NULL) {
-                return VMM_EFAIL;
+                return VMM_ERR_FAIL;
             }
 
             pgdi_base[pgdi_index] |= 0x3;
         }
     } else {
         if (!(pgdi_base[pgdi_index] & 0x3)) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     }
 
@@ -158,13 +158,13 @@ int __create_bootstrap_page_table_entry(uint64_t va, uint64_t pa, uint32_t page_
         pgti_base[pgti_index] = (uint64_t)alloc_iodev_page();
 
         if ((void *)pgti_base[pgti_index] == NULL) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
 
         pgti_base[pgti_index] |= 0x3;
     } else {
         if (pgti_base[pgti_index] & 0x3) {
-            return VMM_EFAIL;
+            return VMM_ERR_FAIL;
         }
     }
 
@@ -192,25 +192,25 @@ int __delete_bootstrap_page_table_entry(uint64_t va)
     uint64_t pgti_index = ((va >> PGTI_SHIFT) & 0x1ff);
 
     if (!(__pml4[pml4_index] & 0x3)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     uint64_t *pgdp_base = (uint64_t *)(((uint64_t)__pml4[pml4_index]) & ~0xff);
 
     if (!(pgdp_base[pgdp_index] & 0x3)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     uint64_t *pgdi_base = (uint64_t *)(((uint64_t)pgdp_base[pgdp_index]) & ~0xff);
 
     if (!(pgdi_base[pgdp_index] & 0x3)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     uint64_t *pgti_base = (uint64_t *)(((uint64_t)pgdi_base[pgdi_index]) & ~0xff);
 
     if (!(pgti_base[pgti_index] & 0x3)) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     ent._val              = pgti_base[pgti_index];
@@ -229,19 +229,19 @@ void arch_cpu_addr_space_print_info(vmm_char_device_t *cdev)
     /* Nothing to do here. */
 }
 
-uint32_t arch_cpu_addr_space_hugepage_log2size(void)
+uint32_t arch_cpu_addr_space_huge_page_log2size(void)
 {
-    /* FIXME: hugepage support will be added in-future */
+    /* FIXME: huge_page support will be added in-future */
     return PAGE_SHIFT;
 }
 
 /* mmu inline asm routines */
-int arch_cpu_addr_space_map(virtual_addr_t page_va, virtual_size_t page_sz, physical_addr_t page_pa, uint32_t mem_flags)
+int arch_cpu_addr_space_map(virtual_addr_t page_va, virtual_size_t page_sz, physical_addr_t page_pa, uint32_t memory_flags)
 {
     union page pg;
 
     if (page_sz != PAGE_SIZE) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* FIXME: more specific page attributes */
@@ -250,11 +250,11 @@ int arch_cpu_addr_space_map(virtual_addr_t page_va, virtual_size_t page_sz, phys
     pg.bits.present = 1;
     pg.bits.rw      = 1;
 
-    if (!(mem_flags & VMM_MEMORY_CACHEABLE)) {
+    if (!(memory_flags & VMM_MEMORY_CACHEABLE)) {
         pg.bits.cache_disable = 1;
     }
 
-    if (!(mem_flags & VMM_MEMORY_WRITEABLE)) {
+    if (!(memory_flags & VMM_MEMORY_WRITEABLE)) {
         pg.bits.rw = 0;
     }
 
@@ -266,7 +266,7 @@ int arch_cpu_addr_space_unmap(virtual_addr_t page_va)
     return mmu_unmap_page(&host_page_table_ctl, host_page_table_ctl.base_page_table, page_va);
 }
 
-int arch_cpu_addr_space_va2pa(virtual_addr_t va, physical_addr_t *pa)
+int arch_cpu_addr_space_virtualAddr_to_physicalAddr(virtual_addr_t va, physical_addr_t *pa)
 {
     int        rc;
     union page pg;
@@ -293,7 +293,7 @@ virtual_addr_t __init arch_cpu_addr_space_virtual_address_pool_start(void)
 
 virtual_size_t __init arch_cpu_addr_space_virtual_address_pool_estimate_size(physical_size_t total_ram)
 {
-    return CONFIG_VAPOOL_SIZE_MB << 20;
+    return CONFIG_VIRTUAL_ADDR_POOL_SIZE_MB << 20;
 }
 
 int __init arch_cpu_addr_space_primary_init(
@@ -302,7 +302,7 @@ int __init arch_cpu_addr_space_primary_init(
 {
     int                i;
     int                t;
-    int                rc = VMM_EFAIL;
+    int                rc = VMM_ERR_FAIL;
     virtual_addr_t     va;
     virtual_addr_t     resv_va = *core_resv_va;
     virtual_size_t     size;
@@ -324,7 +324,7 @@ int __init arch_cpu_addr_space_primary_init(
 
     /* Check & setup core reserved space and update the
      * core_resv_pa, core_resv_va, and core_resv_sz parameters
-     * to inform host aspace about correct placement of the
+     * to inform host addr_space about correct placement of the
      * core reserved space.
      */
     pa      = arch_code_paddr_start();
@@ -351,7 +351,7 @@ int __init arch_cpu_addr_space_primary_init(
 
     /* Initialize MMU control and allocate arch reserved space and
      * update the *arch_resv_pa, *arch_resv_va, and *arch_resv_sz
-     * parameters to inform host aspace about the arch reserved space.
+     * parameters to inform host addr_space about the arch reserved space.
      */
     memset(&host_page_table_ctl, 0, sizeof(host_page_table_ctl));
     memset(host_page_table_array, 0, sizeof(host_page_table_array));

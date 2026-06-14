@@ -55,7 +55,7 @@ static int cmd_ping_exec(vmm_char_device_t *cdev, int argc, char **argv)
 
     if ((argc < 2) || (argc > 4)) {
         cmd_ping_usage(cdev);
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     if (argc > 2) {

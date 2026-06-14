@@ -63,7 +63,7 @@ static int add_to_rbuf(struct mbox_chan *chan, void *mssg)
     /* See if there is any space left */
     if (chan->msg_count == MBOX_TX_QUEUE_LEN) {
         vmm_spin_unlock_irq_restore(&chan->lock, flags);
-        return VMM_ENOSPC;
+        return VMM_ERR_NOSPC;
     }
 
     idx                 = chan->msg_free;
@@ -88,7 +88,7 @@ static void msg_submit(struct mbox_chan *chan)
     unsigned    count, idx;
     irq_flags_t flags;
     void       *data;
-    int         err = VMM_EBUSY;
+    int         err = VMM_ERR_BUSY;
 
     vmm_spin_lock_irq_save(&chan->lock, flags);
 
@@ -195,7 +195,7 @@ void mbox_chan_received_data(struct mbox_chan *chan, void *mssg)
     }
 }
 
-VMM_EXPORT_SYMBOL_GPL(mbox_chan_received_data);
+VMM_ERR_XPORT_SYMBOL_GPL(mbox_chan_received_data);
 
 /**
  * mbox_chan_txdone - A way for controller driver to notify the
@@ -217,7 +217,7 @@ void mbox_chan_txdone(struct mbox_chan *chan, int r)
     tx_tick(chan, r);
 }
 
-VMM_EXPORT_SYMBOL_GPL(mbox_chan_txdone);
+VMM_ERR_XPORT_SYMBOL_GPL(mbox_chan_txdone);
 
 /**
  * mbox_client_txdone - The way for a client to run the TX state machine.
@@ -238,7 +238,7 @@ void mbox_client_txdone(struct mbox_chan *chan, int r)
     tx_tick(chan, r);
 }
 
-VMM_EXPORT_SYMBOL_GPL(mbox_client_txdone);
+VMM_ERR_XPORT_SYMBOL_GPL(mbox_client_txdone);
 
 /**
  * mbox_client_peek_data - A way for client driver to pull data
@@ -264,7 +264,7 @@ bool mbox_client_peek_data(struct mbox_chan *chan)
     return FALSE;
 }
 
-VMM_EXPORT_SYMBOL_GPL(mbox_client_peek_data);
+VMM_ERR_XPORT_SYMBOL_GPL(mbox_client_peek_data);
 
 /**
  * mbox_send_message -  For client to submit a message to be
@@ -295,7 +295,7 @@ int mbox_send_message(struct mbox_chan *chan, void *mssg)
     int t;
 
     if (!chan || !chan->cl) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     t = add_to_rbuf(chan, mssg);
@@ -320,15 +320,15 @@ int mbox_send_message(struct mbox_chan *chan, void *mssg)
         ret = vmm_completion_wait_timeout(&chan->tx_complete, &wait);
 
         if (ret == 0) {
-            t = VMM_EIO;
-            tx_tick(chan, VMM_EIO);
+            t = VMM_ERR_IO;
+            tx_tick(chan, VMM_ERR_IO);
         }
     }
 
     return t;
 }
 
-VMM_EXPORT_SYMBOL_GPL(mbox_send_message);
+VMM_ERR_XPORT_SYMBOL_GPL(mbox_send_message);
 
 /**
  * mbox_request_channel - Request a mailbox channel.
@@ -358,7 +358,7 @@ struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index)
 
     if (!dev || !dev->of_node) {
         vmm_printf("%s: No owner device node\n", __func__);
-        return VMM_ERR_PTR(VMM_ENODEV);
+        return VMM_ERR_RR_PTR(VMM_ERR_NODEV);
     }
 
     vmm_mutex_lock(&con_mutex);
@@ -366,10 +366,10 @@ struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index)
     if (vmm_device_tree_parse_phandle_with_args(dev->of_node, "mboxes", "#mbox-cells", index, &spec)) {
         vmm_lerror(dev->name, "%s: can't parse \"mboxes\" property\n", __func__);
         vmm_mutex_unlock(&con_mutex);
-        return VMM_ERR_PTR(VMM_ENODEV);
+        return VMM_ERR_RR_PTR(VMM_ERR_NODEV);
     }
 
-    chan = VMM_ERR_PTR(VMM_EPROBE_DEFER);
+    chan = VMM_ERR_RR_PTR(VMM_ERR_PROBE_DEFER);
 
     list_for_each_entry(mbox, &mbox_cons, node) if (mbox->dev->of_node == spec.np)
     {
@@ -387,7 +387,7 @@ struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index)
     if (chan->cl) {
         vmm_lerror(dev->name, "%s: mailbox not free\n", __func__);
         vmm_mutex_unlock(&con_mutex);
-        return VMM_ERR_PTR(VMM_EBUSY);
+        return VMM_ERR_RR_PTR(VMM_ERR_BUSY);
     }
 
     vmm_spin_lock_irq_save(&chan->lock, flags);
@@ -408,14 +408,14 @@ struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index)
     if (ret) {
         vmm_lerror(dev->name, "Unable to startup the chan (%d)\n", ret);
         mbox_free_channel(chan);
-        chan = VMM_ERR_PTR(ret);
+        chan = VMM_ERR_RR_PTR(ret);
     }
 
     vmm_mutex_unlock(&con_mutex);
     return chan;
 }
 
-VMM_EXPORT_SYMBOL_GPL(mbox_request_channel);
+VMM_ERR_XPORT_SYMBOL_GPL(mbox_request_channel);
 
 struct mbox_chan *mbox_request_channel_byname(struct mbox_client *cl, const char *name)
 {
@@ -426,12 +426,12 @@ struct mbox_chan *mbox_request_channel_byname(struct mbox_client *cl, const char
 
     if (!np) {
         vmm_lerror(cl->dev->name, "%s() currently only supports DT\n", __func__);
-        return VMM_ERR_PTR(VMM_EINVALID);
+        return VMM_ERR_RR_PTR(VMM_ERR_INVALID);
     }
 
     if (!vmm_device_tree_attrval(np, "mbox-names")) {
         vmm_lerror(cl->dev->name, "%s() requires an \"mbox-names\" attribute\n", __func__);
-        return VMM_ERR_PTR(VMM_EINVALID);
+        return VMM_ERR_RR_PTR(VMM_ERR_INVALID);
     }
 
     vmm_device_tree_for_each_string(np, "mbox-names", attr, mbox_name)
@@ -446,7 +446,7 @@ struct mbox_chan *mbox_request_channel_byname(struct mbox_client *cl, const char
     return mbox_request_channel(cl, index);
 }
 
-VMM_EXPORT_SYMBOL_GPL(mbox_request_channel_byname);
+VMM_ERR_XPORT_SYMBOL_GPL(mbox_request_channel_byname);
 
 /**
  * mbox_free_channel - The client relinquishes control of a mailbox
@@ -475,14 +475,14 @@ void mbox_free_channel(struct mbox_chan *chan)
     vmm_spin_unlock_irq_restore(&chan->lock, flags);
 }
 
-VMM_EXPORT_SYMBOL_GPL(mbox_free_channel);
+VMM_ERR_XPORT_SYMBOL_GPL(mbox_free_channel);
 
 static struct mbox_chan *of_mbox_index_xlate(struct mbox_controller *mbox, const struct vmm_device_tree_phandle_args *sp)
 {
     int ind = sp->args[0];
 
     if (ind >= mbox->num_chans) {
-        return VMM_ERR_PTR(VMM_EINVALID);
+        return VMM_ERR_RR_PTR(VMM_ERR_INVALID);
     }
 
     return &mbox->chans[ind];
@@ -500,7 +500,7 @@ int mbox_controller_register(struct mbox_controller *mbox)
 
     /* Sanity check */
     if (!mbox || !mbox->dev || !mbox->ops || !mbox->num_chans) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     if (mbox->txdone_irq) {
@@ -535,7 +535,7 @@ int mbox_controller_register(struct mbox_controller *mbox)
     return 0;
 }
 
-VMM_EXPORT_SYMBOL_GPL(mbox_controller_register);
+VMM_ERR_XPORT_SYMBOL_GPL(mbox_controller_register);
 
 /**
  * mbox_controller_unregister - Unregister the mailbox controller
@@ -564,6 +564,6 @@ void mbox_controller_unregister(struct mbox_controller *mbox)
     vmm_mutex_unlock(&con_mutex);
 }
 
-VMM_EXPORT_SYMBOL_GPL(mbox_controller_unregister);
+VMM_ERR_XPORT_SYMBOL_GPL(mbox_controller_unregister);
 
 VMM_DECLARE_MODULE(MODULE_DESC, MODULE_AUTHOR, MODULE_LICENSE, MODULE_IPRIORITY, MODULE_INIT, MODULE_EXIT);

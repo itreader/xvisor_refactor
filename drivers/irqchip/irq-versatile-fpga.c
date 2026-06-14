@@ -66,7 +66,7 @@ struct fpga_irq_data {
     struct vmm_host_irq_domain *domain;
     vmm_device_tree_node_t     *node;
     void                       *base;
-    struct vmm_host_irq_chip    chip;
+    vmm_host_irq_chip_t    chip;
     uint32_t                    valid;
     uint8_t                     used_irqs;
 };
@@ -79,18 +79,18 @@ struct fpga_irq_data {
 static struct fpga_irq_data fpga_irq_devices[CONFIG_VERSATILE_FPGA_IRQ_NR];
 static int                  fpga_irq_id = 0;
 
-static void fpga_irq_mask(struct vmm_host_irq *d)
+static void fpga_irq_mask(vmm_host_irq_t *d)
 {
     struct fpga_irq_data *f    = vmm_host_irq_get_chip_data(d);
-    uint32_t              mask = 1 << d->hwirq;
+    uint32_t              mask = 1 << d->hw_irq_num;
 
     vmm_writel(mask, f->base + IRQ_ENABLE_CLEAR);
 }
 
-static void fpga_irq_unmask(struct vmm_host_irq *d)
+static void fpga_irq_unmask(vmm_host_irq_t *d)
 {
     struct fpga_irq_data *f    = vmm_host_irq_get_chip_data(d);
-    uint32_t              mask = 1 << d->hwirq;
+    uint32_t              mask = 1 << d->hw_irq_num;
 
     vmm_writel(mask, f->base + IRQ_ENABLE_SET);
 }
@@ -98,7 +98,7 @@ static void fpga_irq_unmask(struct vmm_host_irq *d)
 static uint32_t fpga_find_active_irq(struct fpga_irq_data *f)
 {
     uint32_t ret = UINT_MAX;
-    uint32_t hwirq, int_status;
+    uint32_t hw_irq_num, int_status;
 
     int_status = vmm_readl(f->base + IRQ_STATUS);
 
@@ -106,12 +106,12 @@ static uint32_t fpga_find_active_irq(struct fpga_irq_data *f)
         goto done;
     }
 
-    for (hwirq = 0; hwirq < NR_IRQS; hwirq++) {
-        if (!(int_status & (1 << hwirq))) {
+    for (hw_irq_num = 0; hw_irq_num < NR_IRQS; hw_irq_num++) {
+        if (!(int_status & (1 << hw_irq_num))) {
             continue;
         }
 
-        ret = vmm_host_irq_domain_find_mapping(f->domain, hwirq);
+        ret = vmm_host_irq_domain_find_mapping(f->domain, hw_irq_num);
         goto done;
     }
 
@@ -155,7 +155,7 @@ static struct vmm_host_irq_domain_ops fpga_ops = {
 void __init fpga_irq_init(void *base, const char *name, uint32_t irq_start, uint32_t parent_irq, uint32_t valid, vmm_device_tree_node_t *node)
 {
     int                   hirq;
-    uint32_t              hwirq;
+    uint32_t              hw_irq_num;
     struct fpga_irq_data *f;
 
     if (fpga_irq_id >= array_size(fpga_irq_devices)) {
@@ -191,12 +191,12 @@ void __init fpga_irq_init(void *base, const char *name, uint32_t irq_start, uint
     }
 
     /* This will allocate all valid descriptors in the linear case */
-    for (hwirq = 0; hwirq < NR_IRQS; hwirq++) {
-        if (!(valid & (1 << hwirq))) {
+    for (hw_irq_num = 0; hw_irq_num < NR_IRQS; hw_irq_num++) {
+        if (!(valid & (1 << hw_irq_num))) {
             continue;
         }
 
-        hirq = vmm_host_irq_domain_create_mapping(f->domain, hwirq);
+        hirq = vmm_host_irq_domain_create_mapping(f->domain, hw_irq_num);
         BUG_ON(hirq < 0);
         vmm_host_irq_set_chip(hirq, &f->chip);
         vmm_host_irq_set_chip_data(hirq, f);

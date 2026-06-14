@@ -4,9 +4,9 @@
 #include <linux/bug.h>
 #include <linux/interrupt.h>
 
-static inline uint32_t irq_find_mapping(struct irq_domain *host, irq_hw_number_t hwirq)
+static inline uint32_t irq_find_mapping(struct irq_domain *host, irq_hw_number_t hw_irq_num)
 {
-    return vmm_host_irq_domain_find_mapping(host, hwirq);
+    return vmm_host_irq_domain_find_mapping(host, hw_irq_num);
 }
 
 /* FIXME: Need to fix this */

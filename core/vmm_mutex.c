@@ -18,7 +18,7 @@
  *
  * @file vmm_mutex.c
  * @author Anup Patel (anup@brainfault.org)
- * @brief Implementation of mutext locks for Orphan VCPU (or Thread).
+ * @brief 孤儿VCPU（或线程）互斥锁实现
  */
 
 #include <arch_cpu_irq.h>
@@ -27,6 +27,11 @@
 #include <vmm_scheduler.h>
 #include <vmm_stdio.h>
 
+/**
+ * @brief   互斥锁 清理
+ * @param vcpu 指向VCPU结构体的指针
+ * @param vcpu_res 指向VCPU结构体的指针
+ */
 void __vmm_mutex_cleanup(vmm_vcpu_t *vcpu, vmm_vcpu_resource_t *vcpu_res)
 {
     irq_flags_t  flags;
@@ -47,6 +52,11 @@ void __vmm_mutex_cleanup(vmm_vcpu_t *vcpu, vmm_vcpu_resource_t *vcpu_res)
     vmm_spin_unlock_irq_restore(&mut->wait_queue.lock, flags);
 }
 
+/**
+ * @brief 检查互斥锁是否可用
+ * @param mut 互斥锁指针
+ * @return 条件满足返回TRUE，否则返回FALSE
+ */
 bool vmm_mutex_avail(vmm_mutex_t *mut)
 {
     bool        ret;
@@ -61,6 +71,11 @@ bool vmm_mutex_avail(vmm_mutex_t *mut)
     return ret;
 }
 
+/**
+ * @brief 获取互斥锁持有者
+ * @param mut 互斥锁指针
+ * @return 成功返回目标指针，失败返回NULL
+ */
 vmm_vcpu_t *vmm_mutex_owner(vmm_mutex_t *mut)
 {
     vmm_vcpu_t *ret;
@@ -75,9 +90,14 @@ vmm_vcpu_t *vmm_mutex_owner(vmm_mutex_t *mut)
     return ret;
 }
 
+/**
+ * @brief 释放互斥锁锁
+ * @param mut 互斥锁指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_mutex_unlock(vmm_mutex_t *mut)
 {
-    int         rc = VMM_EINVALID;
+    int         rc = VMM_ERR_INVALID;
     irq_flags_t flags;
     vmm_vcpu_t *current_vcpu = vmm_scheduler_current_vcpu();
 
@@ -94,7 +114,7 @@ int vmm_mutex_unlock(vmm_mutex_t *mut)
             vmm_manager_vcpu_resource_remove(current_vcpu, &mut->res);
             rc = __vmm_waitqueue_wakefirst(&mut->wait_queue);
 
-            if (rc == VMM_ENOENT) {
+            if (rc == VMM_ERR_NOENT) {
                 rc = VMM_OK;
             }
         } else {
@@ -107,6 +127,11 @@ int vmm_mutex_unlock(vmm_mutex_t *mut)
     return rc;
 }
 
+/**
+ * @brief 尝试获取互斥锁（非阻塞）
+ * @param mut 互斥锁指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_mutex_trylock(vmm_mutex_t *mut)
 {
     int         ret          = 0;
@@ -136,6 +161,12 @@ int vmm_mutex_trylock(vmm_mutex_t *mut)
     return ret;
 }
 
+/**
+ * @brief 互斥锁获取的通用实现
+ * @param mut 互斥锁指针
+ * @param timeout 时间值（纳秒）
+ * @return 获取到的值，失败返回错误码
+ */
 static int mutex_lock_common(vmm_mutex_t *mut, uint64_t *timeout)
 {
     int         rc = VMM_OK;
@@ -150,6 +181,7 @@ static int mutex_lock_common(vmm_mutex_t *mut, uint64_t *timeout)
     while (mut->lock) {
         /*
          * If VCPU owning the lock try to acquire it again then let
+
          * it acquire lock multiple times (as-per POSIX standard).
          */
         if (mut->owner == current_vcpu) {
@@ -179,11 +211,22 @@ static int mutex_lock_common(vmm_mutex_t *mut, uint64_t *timeout)
     return rc;
 }
 
+/**
+ * @brief 获取互斥锁锁
+ * @param mut 互斥锁指针
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_mutex_lock(vmm_mutex_t *mut)
 {
     return mutex_lock_common(mut, NULL);
 }
 
+/**
+ * @brief 带超时的获取互斥锁
+ * @param mut 互斥锁指针
+ * @param timeout 时间值（纳秒）
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_mutex_lock_timeout(vmm_mutex_t *mut, uint64_t *timeout)
 {
     return mutex_lock_common(mut, timeout);

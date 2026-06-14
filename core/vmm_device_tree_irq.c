@@ -19,7 +19,7 @@
  * @file vmm_device_tree_irq.c
  * @author Jimmy Durand Wesolowski <jimmy.durand-wesolowski@openwide.fr>
  * @author Anup Patel (anup@brainfault.org)
- * @brief Host IRQ device tree functions
+ * @brief 设备树中断处理函数
  *
  * The source has been largely adapted from the Linux kernel v3.16:
  * drivers/of/irq.c and kernel/irq/irq_domain.c
@@ -42,10 +42,16 @@
 #define pr_debug(msg...)
 #endif
 
+/**
+ * @brief 获取设备树中断的数量
+ * @param node 设备树节点指针
+ * @return 数量值
+ */
 uint32_t vmm_device_tree_irq_count(vmm_device_tree_node_t *node)
 {
     int                     rc;
-    uint32_t                alen, tmp;
+    uint32_t alen;
+    uint32_t tmp;
     vmm_device_tree_node_t *parent;
 
     rc = vmm_device_tree_count_phandle_with_args(node, "interrupts-extended", "#interrupt-cells");
@@ -72,6 +78,11 @@ uint32_t vmm_device_tree_irq_count(vmm_device_tree_node_t *node)
     return udiv32(alen, (sizeof(uint32_t) * tmp));
 }
 
+/**
+ * @brief 查找设备树节点的中断控制器父节点
+ * @param child 子设备树节点
+ * @return 成功返回匹配的对象指针，未找到返回NULL
+ */
 vmm_device_tree_node_t *vmm_device_tree_irq_find_parent(vmm_device_tree_node_t *child)
 {
     vmm_device_tree_node_t *p;
@@ -100,6 +111,13 @@ vmm_device_tree_node_t *vmm_device_tree_irq_find_parent(vmm_device_tree_node_t *
     return p;
 }
 
+/**
+ * @brief 解析设备树节点的第index个中断描述
+ * @param device 设备结构体指针
+ * @param index 数组中的索引位置
+ * @param out_irq 用于返回解析后的中断描述
+ * @return 成功返回VMM_OK，失败返回错误码
+ */
 int vmm_device_tree_irq_parse_one(vmm_device_tree_node_t *device, int index, struct vmm_device_tree_phandle_args *out_irq)
 {
     vmm_device_tree_node_t      *p       = NULL;
@@ -107,11 +125,11 @@ int vmm_device_tree_irq_parse_one(vmm_device_tree_node_t *device, int index, str
     uint32_t                    *intspec = NULL;
     uint32_t                     intsize = 0;
     uint32_t                     intlen  = 0;
-    int                          res     = VMM_EINVALID;
+    int                          res     = VMM_ERR_INVALID;
     int                          i;
 
     if (!device || (index < 0) || !out_irq) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     pr_debug("%s: dev=%s, index=%d\n", __func__, device->name, index);
@@ -126,7 +144,7 @@ int vmm_device_tree_irq_parse_one(vmm_device_tree_node_t *device, int index, str
     attr = vmm_device_tree_getattr(device, "interrupts");
 
     if (NULL == attr) {
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     intlen  = attr->len / sizeof(uint32_t);
@@ -165,7 +183,7 @@ int vmm_device_tree_irq_parse_one(vmm_device_tree_node_t *device, int index, str
     /* Check index */
     if ((index + 1) * intsize > intlen) {
         vmm_device_tree_dref_node(p);
-        return VMM_EINVALID;
+        return VMM_ERR_INVALID;
     }
 
     /* Copy intspec into irq structure */
@@ -180,6 +198,12 @@ int vmm_device_tree_irq_parse_one(vmm_device_tree_node_t *device, int index, str
     return VMM_OK;
 }
 
+/**
+ * @brief 查找匹配设备树节点的中断域
+ * @param domain 指向主机中断结构体的指针
+ * @param node 设备树节点指针
+ * @return 中断处理结果
+ */
 static int device_tree_irq_domain_match_node(struct vmm_host_irq_domain *domain, void *node)
 {
     if (domain->of_node == node) {
@@ -191,16 +215,22 @@ static int device_tree_irq_domain_match_node(struct vmm_host_irq_domain *domain,
 
 struct vmm_host_irq_domain *vmm_device_tree_irq_domain_find(vmm_device_tree_node_t *node)
 {
-    return vmm_host_irq_domain_match(node, &device_tree_irq_domain_match_node);
+    return vmm_host_irq_domain_match(node, &device_tree_irq_domain_match_node); /**< &device_tree_irq_domain_match_node)成员 */
 }
 
+/**
+ * @brief 为设备树节点创建中断映射关系
+ * @param irq_data 中断数据指针
+ * @return 中断号
+ */
 static uint32_t vmm_device_tree_irq_create_mapping(struct vmm_device_tree_phandle_args *irq_data)
 {
     int                         rc;
     struct vmm_host_irq_domain *domain = NULL;
-    struct vmm_host_irq        *irq    = NULL;
-    uint64_t                    hwirq;
-    uint32_t                    hirq, type = VMM_IRQ_TYPE_NONE;
+    vmm_host_irq_t        *irq    = NULL;
+    uint64_t                    hw_irq_num;
+    uint32_t hirq;
+    uint32_t type = VMM_IRQ_TYPE_NONE;
 
     if (irq_data->np) {
         domain = vmm_device_tree_irq_domain_find(irq_data->np);
@@ -216,14 +246,14 @@ static uint32_t vmm_device_tree_irq_create_mapping(struct vmm_device_tree_phandl
     pr_debug("Domain %s found\n", domain->of_node->name);
 
     /* Determine translation */
-    rc = vmm_host_irq_domain_xlate(domain, irq_data->args, irq_data->args_count, &hwirq, &type);
+    rc = vmm_host_irq_domain_xlate(domain, irq_data->args, irq_data->args_count, &hw_irq_num, &type);
 
     if (rc < 0) {
         return rc;
     }
 
     /* Create mapping */
-    rc = vmm_host_irq_domain_create_mapping(domain, hwirq);
+    rc = vmm_host_irq_domain_create_mapping(domain, hw_irq_num);
 
     if (rc < 0) {
         return rc;
@@ -231,12 +261,12 @@ static uint32_t vmm_device_tree_irq_create_mapping(struct vmm_device_tree_phandl
 
     hirq = rc;
 
-    pr_debug("Extended IRQ %d set as the %ldth irq on %s\n", hirq, hwirq, domain->of_node->name);
+    pr_debug("Extended IRQ %d set as the %ldth irq on %s\n", hirq, hw_irq_num, domain->of_node->name);
 
     irq = vmm_host_irq_get(hirq);
 
     if (!irq) {
-        return VMM_EFAIL;
+        return VMM_ERR_FAIL;
     }
 
     /* Set type if specified and different than the current one */
@@ -247,10 +277,17 @@ static uint32_t vmm_device_tree_irq_create_mapping(struct vmm_device_tree_phandl
     return hirq;
 }
 
+/**
+ * @brief 解析设备树节点的中断并映射到主机中断号
+ * @param dev 设备结构体指针
+ * @param index 数组中的索引位置
+ * @return 中断号
+ */
 uint32_t vmm_device_tree_irq_parse_map(vmm_device_tree_node_t *dev, int index)
 {
     int                                 hirq = 0;
-    struct vmm_device_tree_phandle_args oirq = {.np = NULL, .args_count = 0};
+    struct vmm_device_tree_phandle_args oirq = {.np = NULL,
+                                                .args_count = 0};
 
     if (vmm_device_tree_irq_parse_one(dev, index, &oirq)) {
         return 0;

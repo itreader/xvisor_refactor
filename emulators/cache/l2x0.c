@@ -122,7 +122,7 @@ static int l2x0_cc_reg_read(struct l2x0_state *s, uint32_t offset, uint32_t *dst
                 break;
 
             default:
-                rc = VMM_EFAIL;
+                rc = VMM_ERR_FAIL;
                 break;
         }
     }
@@ -177,7 +177,7 @@ static int l2x0_cc_reg_write(struct l2x0_state *s, uint32_t offset, uint32_t reg
             break;
 
         default:
-            rc = VMM_EFAIL;
+            rc = VMM_ERR_FAIL;
             break;
     }
 
@@ -254,7 +254,7 @@ static int l2x0_cc_emulator_probe(struct vmm_guest *guest, vmm_emulate_device_t 
     s = vmm_zalloc(sizeof(struct l2x0_state));
 
     if (!s) {
-        rc = VMM_EFAIL;
+        rc = VMM_ERR_FAIL;
         goto l2x0_probe_done;
     }
 

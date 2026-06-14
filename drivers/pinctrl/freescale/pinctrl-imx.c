@@ -552,7 +552,7 @@ int imx_pinctrl_probe(vmm_device_t *dev, struct imx_pinctrl_soc_info *info)
 
     if (VMM_OK != ret) {
         dev_err(dev, "fail to map registers\n");
-        return VMM_ENODATA;
+        return VMM_ERR_NODATA;
     }
 
     imx_pinctrl_desc.name  = dev_name(dev);
